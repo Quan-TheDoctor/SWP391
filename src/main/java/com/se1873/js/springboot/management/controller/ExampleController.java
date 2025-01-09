@@ -39,7 +39,7 @@ public class ExampleController {
   }
 
   @GetMapping("/example/{id}")
-  public Example getExampleById(@PathVariable Long id) {
+  public ResponseEntity<Example> getExampleById(@PathVariable Long id) {
 //    Optional<Example> example = exampleRepository.findById(id);
 //    if(example.isPresent()) {
 //    return new ResponseEntity<>(example.get(), HttpStatus.OK);
@@ -47,10 +47,8 @@ public class ExampleController {
 //      return new ResponseEntity<>(HttpStatus.NOT_FOUND);
 //    }
 
-//    return exampleRepository.findById(id).map(ResponseEntity::ok).orElse(new ResponseEntity<>(HttpStatus.NOT_FOUND));
-    return exampleRepository.findById(id).orElse(null);
+    return exampleRepository.findById(id).map(ResponseEntity::ok).orElse(new ResponseEntity<>(HttpStatus.NOT_FOUND));
   }
-
 
   @PostMapping("/example")
   public ResponseEntity<Example> createExample(@RequestBody Example example) {
