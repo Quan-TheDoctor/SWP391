@@ -9,7 +9,7 @@ import org.springframework.web.bind.annotation.*;
 import java.util.List;
 import java.util.Optional;
 
-@CrossOrigin(origins = "https://localhost:8081")
+@CrossOrigin(origins = "https://localhost:8081/api/")
 @RestController
 @RequestMapping("/api")
 public class ExampleController {
@@ -39,15 +39,18 @@ public class ExampleController {
   }
 
   @GetMapping("/example/{id}")
-  public ResponseEntity<Example> getExampleById(@PathVariable Long id) {
+  public Example getExampleById(@PathVariable Long id) {
 //    Optional<Example> example = exampleRepository.findById(id);
 //    if(example.isPresent()) {
 //    return new ResponseEntity<>(example.get(), HttpStatus.OK);
 //    } else {
 //      return new ResponseEntity<>(HttpStatus.NOT_FOUND);
 //    }
-    return exampleRepository.findById(id).map(ResponseEntity::ok).orElse(new ResponseEntity<>(HttpStatus.NOT_FOUND));
+
+//    return exampleRepository.findById(id).map(ResponseEntity::ok).orElse(new ResponseEntity<>(HttpStatus.NOT_FOUND));
+    return exampleRepository.findById(id).orElse(null);
   }
+
 
   @PostMapping("/example")
   public ResponseEntity<Example> createExample(@RequestBody Example example) {

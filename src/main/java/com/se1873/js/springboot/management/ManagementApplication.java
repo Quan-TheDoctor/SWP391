@@ -1,15 +1,18 @@
 package com.se1873.js.springboot.management;
 
 import com.se1873.js.springboot.management.controller.ExampleController;
-import com.se1873.js.springboot.management.model.Example;
 import org.springframework.boot.CommandLineRunner;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
+import org.springframework.context.ApplicationContext;
+import org.springframework.context.annotation.Bean;
 import org.springframework.data.jpa.repository.config.EnableJpaRepositories;
+
+import java.util.Arrays;
 
 @SpringBootApplication
 @EnableJpaRepositories(basePackages = "com.se1873.js.springboot.management.repository")
-public class ManagementApplication implements CommandLineRunner {
+public class ManagementApplication {
   private final ExampleController exampleController;
 
   public ManagementApplication(ExampleController exampleController) {
@@ -20,8 +23,17 @@ public class ManagementApplication implements CommandLineRunner {
     SpringApplication.run(ManagementApplication.class, args);
   }
 
-  @Override
-  public void run(String... args) throws Exception {
-    exampleController.updateExample(1L, new Example(1, "Quann"));
+  @Bean
+  public CommandLineRunner commandLineRunner(ApplicationContext ctx) {
+    return args -> {
+      System.out.println("Let's inspect the beans provided by Spring Boot:");
+      String[] beanNames = ctx.getBeanDefinitionNames();
+      Arrays.sort(beanNames);
+      for (String beanName : beanNames) {
+        System.out.println(beanName);
+      }
+
+      System.out.println(exampleController.getExampleById(1L).getName());;
+    };
   }
 }
