@@ -8,8 +8,7 @@ import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
 import java.util.Optional;
-
-@CrossOrigin(origins = "https://localhost:8081/api/")
+@CrossOrigin(origins = "https://localhost:8081/")
 @RestController
 @RequestMapping("/api")
 public class ExampleController {
@@ -84,6 +83,4 @@ public class ExampleController {
 //    }
     return exampleRepository.findById(id).map(ResponseEntity::ok).orElse(new ResponseEntity<>(HttpStatus.NOT_FOUND));
   }
-
-
 }

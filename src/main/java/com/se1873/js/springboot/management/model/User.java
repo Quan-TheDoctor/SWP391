@@ -4,16 +4,25 @@ import jakarta.persistence.*;
 import lombok.Data;
 
 @Entity
-@Table(name = "roles")
+@Table(name = "users")
 @Data
-public class Role {
+public class User {
   @Id
   @GeneratedValue(strategy = GenerationType.IDENTITY)
-  @Column(name = "role_id")
-  private int roleId;
+  @Column(name = "user_id")
+  private int userId;
 
-  @Column(name = "role_name")
-  private String roleName;
+  @Column(name = "role_permission_id")
+  private String rolePermissionId;
+
+  @Column(name = "username")
+  private String username;
+
+  @Column(name = "passwordHash")
+  private String passwordHash;
+
+  @Column(name = "email")
+  private String email;
 
   @Column(name = "is_deleted")
   private boolean isDeleted;
