@@ -9,7 +9,7 @@ import org.springframework.http.ResponseEntity;
 import static org.assertj.core.api.Assertions.assertThat;
 
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
-public class HelloControllerITest {
+public class HomeControllerITest {
   @Autowired
   private TestRestTemplate template;
 

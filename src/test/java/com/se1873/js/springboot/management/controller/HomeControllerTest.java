@@ -14,9 +14,9 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 
 @SpringBootTest
 @AutoConfigureMockMvc
-public class HelloControllerTest {
+public class HomeControllerTest {
   private final MockMvc mockMvc;
-  public HelloControllerTest(MockMvc mockMvc) {
+  public HomeControllerTest(MockMvc mockMvc) {
     this.mockMvc = mockMvc;
   }
 

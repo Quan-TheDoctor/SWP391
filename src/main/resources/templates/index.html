@@ -1,24 +1,19 @@
 <!DOCTYPE HTML>
 <html xmlns:th="http://www.thymeleaf.org">
 <head>
-    <title>Getting Started: Serving Web Content</title>
-    <meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
+    <title>My Application</title>
+    <meta http-equiv="Content-Type" content="text/html; charset=UTF-8"/>
     <link rel="stylesheet" type="text/css" th:href="@{/css/index.css}">
 </head>
 <body>
 <div class="container">
     <div class="header">
-        <div class="menu">
-            <a th:href="@{/dashboard}" class="menu-item">Dashboard</a>
-            <a th:href="@{/employee}" class="menu-item">Employee</a>
-            <a th:href="@{/attendance}" class="menu-item">Attendance</a>
-            <a th:href="@{/form}" class="menu-item">Form</a>
-            <a th:href="@{/log}" class="menu-item">Log</a>
-        </div>
+        <div th:replace="~{fragments/header}"></div>
     </div>
     <div class="body">
-        ah
+        <div th:replace="${bodyContent}"></div>
     </div>
 </div>
+
 </body>
 </html>

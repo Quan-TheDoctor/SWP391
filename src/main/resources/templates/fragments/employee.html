@@ -1,0 +1,21 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <title>Employee Page</title>
+</head>
+<body>
+<h1>Employee Page</h1>
+<p>Welcome to the employee page!</p>
+<a href="/employee/sort" th:href="@{/employee/sort}">Sort by Employee ID</a>
+<table border="1">
+    <tr>
+        <th>Name</th>
+        <th>Email</th>
+    </tr>
+    <tr th:each="employee : ${EMPLOYEES}">
+        <td th:text="${employee.getEmployeeId()}"></td>
+        <td th:text="${employee.getFullName()}"></td>
+    </tr>
+</table>
+</body>
+</html>
