@@ -15,14 +15,14 @@ public class Salary {
   private Employee employee;
 
   @Column(name = "salary_amount")
-  private double salary;
+  private double salaryAmount;
 
-  @Column(name = "salary_start_date")
+  @Column(name = "salary_start_date", columnDefinition = "DATE")
   private String slaryStartDate;
 
-  @Column(name = "salary_end_date")
+  @Column(name = "salary_end_date", columnDefinition = "DATE")
   private String slaryEndDate;
 
-  @Column(name = "is_deleted")
+  @Column(name = "is_deleted", columnDefinition = "BIT")
   private boolean isDeleted = Boolean.FALSE;
 }

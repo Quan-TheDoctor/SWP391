@@ -19,6 +19,7 @@ public class AuditLog {
   @Column(name = "record_id")
   private int recordId;
 
+  @Enumerated(EnumType.STRING)
   @Column(name = "action")
   private SqlActionENUM action;
 
@@ -26,9 +27,9 @@ public class AuditLog {
   @JoinColumn(name = "user_id")
   private User user;
 
-  @Column(name = "changed_timestamp")
+  @Column(name = "changed_timestamp", columnDefinition = "DATETIME")
   private String changedTimestamp;
 
-  @Column(name = "is_deleted")
+  @Column(name = "is_deleted", columnDefinition = "BIT")
   private boolean isDeleted = Boolean.FALSE;
 }

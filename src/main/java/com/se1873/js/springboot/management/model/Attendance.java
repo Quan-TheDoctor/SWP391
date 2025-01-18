@@ -18,18 +18,18 @@ public class Attendance {
   @JoinColumn(name = "attendance_type_id")
   private AttendanceType attendanceType;
 
-  @Column(name = "attendance_date")
+  @Column(name = "attendance_date", columnDefinition = "DATE")
   private String attendanceDate;
 
-  @Column(name = "attendance_start_time")
+  @Column(name = "attendance_start_time", columnDefinition = "DATETIME")
   private String attendanceStartTime;
 
-  @Column(name = "attendance_end_time")
+  @Column(name = "attendance_end_time", columnDefinition = "DATETIME")
   private String attendanceEndTime;
 
   @Column(name = "attendance_note")
   private String attendanceNote;
 
-  @Column(name = "is_deleted")
+  @Column(name = "is_deleted", columnDefinition = "BIT")
   private boolean isDeleted = Boolean.FALSE;
 }

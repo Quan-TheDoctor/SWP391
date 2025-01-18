@@ -14,12 +14,13 @@ public class SalaryPolicy {
   @Column(name = "salary_policy_name")
   private String salaryPolicyName;
 
+  @Enumerated(EnumType.STRING)
   @Column(name = "salary_policy_type")
   private SalaryPolicyTypeENUM salaryPolicyTypeENUM;
 
   @Column(name = "salary_policy_amount")
   private int salaryPolicyAmount;
 
-  @Column(name = "is_deleted")
+  @Column(name = "is_deleted", columnDefinition = "BIT")
   private boolean isDeleted = Boolean.FALSE;
 }

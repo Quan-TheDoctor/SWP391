@@ -21,6 +21,7 @@ public class User {
   @Column(name = "password_hash")
   private String passwordHash;
 
+  @Enumerated(EnumType.STRING)
   @Column(name = "user_type")
   private UserTypeENUM userType;
 

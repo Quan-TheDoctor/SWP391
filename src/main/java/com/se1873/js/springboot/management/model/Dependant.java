@@ -21,21 +21,17 @@ public class Dependant {
   @Column(name = "dependant_phone", length = 15)
   private String dependantPhone;
 
+  @Column(name = "dependant_address", length = 500)
+  private String dependantAddress;
+
   @Enumerated(EnumType.STRING)
+  @Column(name = "dependant_relationship")
   private DependantRelationshipENUM dependantRelationshipENUM;
 
-  @Column(name = "is_deleted")
+  @Column(name = "is_deleted", columnDefinition = "BIT")
   private boolean isDeleted = Boolean.FALSE;
 
-  public Dependant() {}
-
-  public Dependant(int id, Employee employee, String dependantName, String dependantPhone, DependantRelationshipENUM dependantRelationshipENUM, boolean isDeleted) {
-    this.id = id;
-    this.employee = employee;
-    this.dependantName = dependantName;
-    this.dependantPhone = dependantPhone;
-    this.dependantRelationshipENUM = dependantRelationshipENUM;
-    this.isDeleted = isDeleted;
+  public Dependant() {
   }
 
   public int getId() {
@@ -70,6 +66,14 @@ public class Dependant {
     this.dependantPhone = dependantPhone;
   }
 
+  public String getDependantAddress() {
+    return dependantAddress;
+  }
+
+  public void setDependantAddress(String dependantAddress) {
+    this.dependantAddress = dependantAddress;
+  }
+
   public DependantRelationshipENUM getDependantRelationshipENUM() {
     return dependantRelationshipENUM;
   }
@@ -84,17 +88,5 @@ public class Dependant {
 
   public void setDeleted(boolean deleted) {
     isDeleted = deleted;
-  }
-
-  @Override
-  public String toString() {
-    return "Dependant{" +
-      "id=" + id +
-      ", employee=" + employee +
-      ", dependantName='" + dependantName + '\'' +
-      ", dependantPhone='" + dependantPhone + '\'' +
-      ", dependantRelationshipENUM=" + dependantRelationshipENUM +
-      ", isDeleted=" + isDeleted +
-      '}';
   }
 }

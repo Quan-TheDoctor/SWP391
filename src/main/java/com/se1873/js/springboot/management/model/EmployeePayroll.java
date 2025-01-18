@@ -29,12 +29,12 @@ public class EmployeePayroll {
   @Column(name = "final_salary")
   private double finalSalary;
 
-  @Column(name = "payroll_date")
+  @Column(name = "payroll_date", columnDefinition = "DATE")
   private String payrollDate;
 
-  @Column(name = "is_paid")
+  @Column(name = "is_paid", columnDefinition = "BIT")
   private boolean isPaid;
 
-  @Column(name = "is_deleted")
+  @Column(name = "is_deleted", columnDefinition = "BIT")
   private boolean isDeleted = Boolean.FALSE;
 }

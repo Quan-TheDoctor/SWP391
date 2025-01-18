@@ -22,9 +22,9 @@ public class EmployeeDocument {
   @Column(name = "document_body")
   private String documentBody;
 
-  @Column(name = "document_expiry_date")
+  @Column(name = "document_expiry_date", columnDefinition = "DATE")
   private String documentExpiryDate;
 
-  @Column(name = "is_deleted")
+  @Column(name = "is_deleted", columnDefinition = "BIT")
   private boolean isDeleted = Boolean.FALSE;
 }

@@ -27,15 +27,16 @@ public class EmployeePosition {
   @JoinColumn(name = "position_id")
   private Position position;
 
-  @Column(name = "position_history_start_date")
+  @Column(name = "position_history_start_date", columnDefinition = "DATE")
   private String positionHistoryStartDate;
 
-  @Column(name = "position_history_end_date")
+  @Column(name = "position_history_end_date", columnDefinition = "DATE")
   private String positionHistoryEndDate;
 
+  @Enumerated(EnumType.STRING)
   @Column(name = "position_history_status")
   private EmployeeStatusENUM positionHistoryStatus;
 
-  @Column(name = "is_deleted")
+  @Column(name = "is_deleted", columnDefinition = "BIT")
   private boolean isDeleted = Boolean.FALSE;
 }

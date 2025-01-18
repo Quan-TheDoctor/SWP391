@@ -41,8 +41,14 @@ public class Employee {
   @Column(name = "employee_phone", length = 20)
   private String employeePhone;
 
-  @Column(name = "is_deleted")
+  @Column(name = "employee_address", length = 500)
+  private String employeeAddress;
+
+  @Column(name = "is_deleted", columnDefinition = "BIT")
   private boolean isDeleted = Boolean.FALSE;
+
+  public Employee() {
+  }
 
   public int getEmployeeId() {
     return employeeId;
@@ -132,21 +138,19 @@ public class Employee {
     this.employeePhone = employeePhone;
   }
 
+  public String getEmployeeAddress() {
+    return employeeAddress;
+  }
+
+  public void setEmployeeAddress(String employeeAddress) {
+    this.employeeAddress = employeeAddress;
+  }
+
   public boolean isDeleted() {
     return isDeleted;
   }
 
   public void setDeleted(boolean deleted) {
     isDeleted = deleted;
-  }
-
-  public Employee() {
-  }
-
-  public Employee(String employeeFirstName, String employeeLastName, String employeeEmail, String employeePhone) {
-    this.employeeFirstName = employeeFirstName;
-    this.employeeLastName = employeeLastName;
-    this.employeeEmail = employeeEmail;
-    this.employeePhone = employeePhone;
   }
 }

@@ -16,9 +16,10 @@ public class AttendanceType {
   @OneToMany(mappedBy = "attendanceType", cascade = CascadeType.ALL, orphanRemoval = true, fetch = FetchType.LAZY)
   private List<Attendance> attendances;
 
+  @Enumerated(EnumType.STRING)
   @Column(name = "attendance_type_name")
   private AttendanceTypeENUM attendanceTypeName;
 
-  @Column(name = "is_deleted")
+  @Column(name = "is_deleted", columnDefinition = "BIT")
   private boolean isDeleted = Boolean.FALSE;
 }
