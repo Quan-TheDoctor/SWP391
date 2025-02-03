@@ -11,4 +11,6 @@ public interface PositionRepository extends JpaRepository<Position, Long> {
     "JOIN Employee e ON e.employeeId = de.employee.employeeId " +
     "WHERE e.employeeId = :employeeId AND de.isPresent = true")
   Position findPositionByEmployeeId(@Param("employeeId") Integer employeeId);
+
+  Position findPositionByPositionId(Integer positionId);
 }

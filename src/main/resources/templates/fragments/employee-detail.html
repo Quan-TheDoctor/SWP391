@@ -1,51 +1,65 @@
 <div class="bodyContainer">
     <div class="basic-information">
-        <form th:object="${employee}" th:action="@{/employee/update}" method="post">
+        <form th:object="${employee}" th:action="@{/employee/update}" method="get">
+            <div th:switch="${edit && editSection == 'basic-information'}">
+                <a type="submit" th:case="false" th:href="@{/employee/view(employeeId = ${employee.getEmployeeId()}, edit = true, editSection = 'basic-information')}" th:text="Edit"></a>
+                <button class="black-bg" type="submit" th:case="true" th:text="Save"></button>
+            </div>
             <input type="hidden" th:field="*{employeeId}">
             <input type="hidden" name="editSection" th:value="${editSection}">
             <div>
                 <span>Mã nhân viên: </span>
-                <input type="text" th:field="*{employeeCode}" th:disabled="${!edit || editSection != 'basic-information'}">
+                <input class="black-bg" type="text" th:field="*{employeeCode}" th:disabled="${!edit || editSection != 'basic-information'}">
             </div>
             <div>
                 <span>Họ tên: </span>
-                <input type="text" th:field="*{employeeName}" th:disabled="${!edit || editSection != 'basic-information'}">
+                <input class="black-bg" type="text" th:field="*{employeeName}" th:disabled="${!edit || editSection != 'basic-information'}">
             </div>
             <div>
                 <span>Liên hệ: </span>
-                <input type="text" th:field="*{employeePhone}" th:disabled="${!edit || editSection != 'basic-information'}">
+                <input class="black-bg" type="text" th:field="*{employeePhone}" th:disabled="${!edit || editSection != 'basic-information'}">
             </div>
             <div>
                 <span>Email: </span>
-                <input type="text" th:field="*{employeeEmail}" th:disabled="${!edit || editSection != 'basic-information'}">
+                <input class="black-bg" type="text" th:field="*{employeeEmail}" th:disabled="${!edit || editSection != 'basic-information'}">
             </div>
             <div>
                 <span>Địa chỉ: </span>
-                <input type="text" th:field="*{employeeAddress}" th:disabled="${!edit || editSection != 'basic-information'}">
+                <input class="black-bg" type="text" th:field="*{employeeAddress}" th:disabled="${!edit || editSection != 'basic-information'}">
             </div>
             <div>
                 <span>Joining Date: </span>
-                <input type="text" th:field="*{createdAt}" disabled>
+                <input class="black-bg" type="text" th:field="*{createdAt}" disabled>
             </div>
             <div>
                 <span>Trạng thái: </span>
-                <input type="text" th:field="*{isPresent}" disabled>
+                <input class="black-bg" type="text" th:field="*{isPresent}" disabled>
             </div>
         </form>
     </div>
     <div>
-        <form th:object="${employee}" th:action="@{/employee/update}" method="post">
+        <form th:object="${employee}" th:action="@{/employee/update}" method="GET">
+            <div th:switch="${edit && editSection == 'job-information'}">
+                <a type="submit" th:case="false" th:href="@{/employee/view(employeeId = ${employee.getEmployeeId()}, edit = true, editSection = 'job-information')}" th:text="Edit"></a>
+                <button class="black-bg" type="submit" th:case="true" th:text="Save"></button>
+            </div>
             <input type="hidden" th:field="*{employeeId}">
             <input type="hidden" name="editSection" th:value="${editSection}">
             <div>
                 <span>Phòng ban: </span>
-                <select name="departments" class="selects" th:disabled="${!edit || editSection != 'job-information'}">
+                <select name="departmentId" class="black-bg" th:disabled="${!edit || editSection != 'job-information'}">
                     <option th:each="d : ${departments}" th:value="${d.departmentId}" th:text="${d.departmentName}" th:selected="${d.departmentId == departmentId}"/>
                 </select>
             </div>
             <div>
+                <span>Chức vụ: </span>
+                <select name="roleId" class="black-bg" th:disabled="${!edit || editSection != 'job-information'}">
+                    <option th:each="r : ${roles}" th:value="${r.roleId}" th:text="${r.roleName}" th:selected="${r.roleId == roleId}"/>
+                </select>
+            </div>
+            <div>
                 <span>Vị trí: </span>
-                <select name="positions" class="selects" th:disabled="${!edit || editSection != 'job-information'}">
+                <select name="positionId" class="black-bg" th:disabled="${!edit || editSection != 'job-information'}">
                     <option th:each="p : ${positions}" th:value="${p.positionId}" th:text="${p.positionName}" th:selected="${p.positionId == positionId}"/>
                 </select>
             </div>

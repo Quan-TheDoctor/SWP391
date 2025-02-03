@@ -11,4 +11,6 @@ public interface DepartmentRepository extends JpaRepository<Department, Long> {
     "JOIN Employee e ON e.employeeId = de.employee.employeeId " +
     "WHERE e.employeeId = :employeeId AND de.isPresent = true")
   Department findDepartmentByEmployeeId(@Param("employeeId") Integer employeeId);
+
+  Department findDepartmentByDepartmentId(int departmentId);
 }

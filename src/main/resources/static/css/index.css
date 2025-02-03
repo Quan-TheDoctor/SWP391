@@ -76,6 +76,9 @@ html, body {
     background-color: rgba(25,254,0,0.63);
 }
 
-.selects {
+.black-bg {
+    height: 40px;
+    margin: 10px;
+    width: 30%;
     background-color: rgba(18,8,30,255);
 }

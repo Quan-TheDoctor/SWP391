@@ -20,6 +20,12 @@
             </a>
         </th>
         <th class="table-header">
+            <a th:href="@{/employee/sort(sortedField='roleName', direction = ${direction == 'desc' ? 'asc' : 'desc'})}"
+               th:class="${sortedField != 'roleName' ? 'table-header-inactive' : 'table-header-active'}">
+                Role
+            </a>
+        </th>
+        <th class="table-header">
             <a th:href="@{/employee/sort(sortedField='positionName', direction = ${direction == 'desc' ? 'asc' : 'desc'})}"
                th:class="${sortedField != 'positionName' ? 'table-header-inactive' : 'table-header-active'}">
                 Position
@@ -32,6 +38,7 @@
                    th:text="${emp.getEmployeeCode()}"/></td>
             <td th:text="${emp.getEmployeeName()}"></td>
             <td th:text="${emp.getPositionName()}"></td>
+            <td th:text="${emp.getRoleName()}"></td>
             <td th:text="${emp.getDepartmentName()}"></td>
         </tr>
         </tbody>

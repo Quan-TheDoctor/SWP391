@@ -1,6 +1,5 @@
 package com.se1873.js.springboot.management.dto;
 
-import jakarta.persistence.Column;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
@@ -22,6 +21,8 @@ public class EmployeeDTO {
   private int positionId;
   private String positionName;
   private String createdAt;
+  private int roleId;
+  private String roleName;
   private boolean isPresent;
   private boolean isDeleted;
 

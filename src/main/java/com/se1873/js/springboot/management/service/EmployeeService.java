@@ -4,11 +4,11 @@ import com.se1873.js.springboot.management.dto.EmployeeDTO;
 import com.se1873.js.springboot.management.entity.Department;
 import com.se1873.js.springboot.management.entity.Employee;
 import com.se1873.js.springboot.management.entity.Position;
-import com.se1873.js.springboot.management.repository.DepartmentEmployeeRepository;
+import com.se1873.js.springboot.management.entity.Role;
 import com.se1873.js.springboot.management.repository.DepartmentRepository;
 import com.se1873.js.springboot.management.repository.EmployeeRepository;
 import com.se1873.js.springboot.management.repository.PositionRepository;
-import org.springframework.beans.factory.annotation.Autowired;
+import com.se1873.js.springboot.management.repository.RoleRepository;
 import org.springframework.stereotype.Service;
 
 import java.util.Comparator;
@@ -16,16 +16,24 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.function.Function;
-import java.util.stream.Collectors;
 
 @Service
 public class EmployeeService {
-  @Autowired
-  private EmployeeRepository employeeRepository;
-  @Autowired
-  private DepartmentRepository departmentRepository;
-  @Autowired
-  private PositionRepository positionRepository;
+  private final EmployeeRepository employeeRepository;
+  private final DepartmentRepository departmentRepository;
+  private final PositionRepository positionRepository;
+  private final RoleRepository roleRepository;
+
+  public EmployeeService(EmployeeRepository employeeRepository, DepartmentRepository departmentRepository, PositionRepository positionRepository, RoleRepository roleRepository) {
+    this.employeeRepository = employeeRepository;
+    this.departmentRepository = departmentRepository;
+    this.positionRepository = positionRepository;
+    this.roleRepository = roleRepository;
+  }
+
+  public Role getRoleByEmployeeId(Integer employeeId) {
+    return roleRepository.findRoleByEmployeeId(employeeId);
+  }
 
   public Department getDepartmentByEmployeeId(Integer employeeId) {
     return departmentRepository.findDepartmentByEmployeeId(employeeId);
@@ -45,19 +53,31 @@ public class EmployeeService {
       .stream()
       .map(this::convertEmployeeToEmployeeDTO)
       .sorted(comparator("employeeCode", "asc"))
-    .collect(Collectors.toList());
+      .toList();
   }
 
   public List<EmployeeDTO> sortEmployees(List<EmployeeDTO> employees, String field, String direction) {
     return employees
       .stream()
       .sorted(comparator(field, direction))
-      .collect(Collectors.toList());
+      .toList();
+  }
+
+  public void updateEmployee(EmployeeDTO employeeDTO) {
+    Employee employee = employeeRepository.findEmployeeByEmployeeId(employeeDTO.getEmployeeId());
+    employee.setEmployeeCode(employeeDTO.getEmployeeCode());
+    employee.setEmployeeName(employeeDTO.getEmployeeName());
+    employee.setEmployeeAddress(employeeDTO.getEmployeeAddress());
+    employee.setEmployeeEmail(employeeDTO.getEmployeeEmail());
+    employee.setEmployeePhone(employeeDTO.getEmployeePhone());
+
+    employeeRepository.save(employee);
   }
 
   private EmployeeDTO convertEmployeeToEmployeeDTO(Employee employee) {
     Department department = getDepartmentByEmployeeId(employee.getEmployeeId());
     Position position = getPositionByEmployeeId(employee.getEmployeeId());
+    Role role = getRoleByEmployeeId(employee.getEmployeeId());
     return EmployeeDTO.builder()
       .employeeId(employee.getEmployeeId())
       .employeeCode(employee.getEmployeeCode())
@@ -69,6 +89,8 @@ public class EmployeeService {
       .departmentName(department.getDepartmentName())
       .positionId(position.getPositionId())
       .positionName(position.getPositionName())
+      .roleId(role.getRoleId())
+      .roleName(role.getRoleName())
       .build();
   }
 
@@ -78,6 +100,7 @@ public class EmployeeService {
     fieldsMap.put("employeeName", EmployeeDTO::getEmployeeName);
     fieldsMap.put("departmentName", EmployeeDTO::getDepartmentName);
     fieldsMap.put("positionName", EmployeeDTO::getPositionName);
+    fieldsMap.put("roleName", EmployeeDTO::getRoleName);
     return fieldsMap.get(field);
   }
 
