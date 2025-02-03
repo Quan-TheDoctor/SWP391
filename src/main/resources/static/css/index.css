@@ -2,13 +2,16 @@
     padding: 0;
     margin: 0;
     box-sizing: border-box;
+    font-family: "Roboto", serif;
+    color: white;
 }
-
 html, body {
     height: 100%;
     margin: 0;
 }
-
+.body {
+    display: flex;
+}
 .container {
     display: flex;
     flex-direction: row;
@@ -18,16 +21,37 @@ html, body {
     overflow: hidden;
 }
 
+.bodyContainer {
+    display: flex;
+    flex-direction: column;
+    width: 85%;
+    height: 100vh;
+    gap: 3px;
+    overflow: hidden;
+    color: white;
+}
+
+.util-container {
+    width: 15%;
+    height: 100vh;
+    background-color: #f0f0f0;
+    padding: 10px;
+    box-sizing: border-box;
+    color: white;
+    background-color: rgba(18,8,30,255);
+}
+
+
 .header {
     width: 10%;
     height: 100%;
-    background-color: lightgray;
+    background-color: rgb(61, 18, 162);
 }
 
 .body {
     flex-grow: 1;
     height: 100%;
-    background-color: lightgray;
+    background-color: rgba(18,8,30,255);
 }
 
 .header, .body {
@@ -36,18 +60,22 @@ html, body {
     box-sizing: border-box;
 }
 
-.menu {
-    display: flex;
-    flex-direction: column;
-    gap: 5px;
+.table-header a {
+    display: inline-block;
+    margin: 5px;
+    padding: 5px 10px;
+    width: -webkit-fill-available;
 }
 
-.menu-item {
-    padding: 5px;
-    text-align: center;
-    border-radius: 16px;
+
+.table-header-inactive {
+    background-color: rgba(66,85,152,0.63);
 }
 
-.menu-item:hover {
-    background-color: rgba(152,152,152,0.63);
+.table-header-active {
+    background-color: rgba(25,254,0,0.63);
+}
+
+.selects {
+    background-color: rgba(18,8,30,255);
 }

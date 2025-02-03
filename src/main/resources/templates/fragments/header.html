@@ -5,3 +5,12 @@
     <a href="/payroll" th:classappend="${page == 'payroll' ? 'active' : ''}" class="menu-item">Payroll</a>
     <a href="/log" th:classappend="${page == 'log' ? 'active' : ''}" class="menu-item">Log</a>
 </div>
+
+<script>
+    // Toggle the submenu visibility when the Employee menu is clicked
+    document.getElementById('employeeMenu').addEventListener('click', function(e) {
+        e.preventDefault();
+        var submenu = document.getElementById('employeeSubMenu');
+        submenu.style.display = submenu.style.display === 'none' ? 'block' : 'none';
+    });
+</script>

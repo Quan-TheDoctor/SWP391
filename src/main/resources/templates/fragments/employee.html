@@ -1,21 +1,53 @@
-<!DOCTYPE html>
-<html xmlns:th="http://www.thymeleaf.org">
-<head>
-    <title>Employee Page</title>
-</head>
-<body>
-<h1>Employee Page</h1>
-<p>Welcome to the employee page!</p>
-<a href="/employee/sort" th:href="@{/employee/sort}">Sort by Employee ID</a>
-<table border="1">
-    <tr>
-        <th>Name</th>
-        <th>Email</th>
-    </tr>
-    <tr th:each="employee : ${EMPLOYEES}">
-        <td th:text="${employee.getEmployeeId()}"></td>
-        <td th:text="${employee.getFullName()}"></td>
-    </tr>
-</table>
-</body>
-</html>
+<div class="bodyContainer ">
+    <table border="1">
+        <thead>
+        <th class="table-header">
+            <a th:href="@{/employee/sort(sortedField='employeeCode', direction = ${direction == 'desc' ? 'asc' : 'desc'})}"
+               th:class="${sortedField != 'employeeCode' ? 'table-header-inactive' : 'table-header-active'}">
+                Code
+            </a>
+        </th>
+        <th class="table-header">
+            <a th:href="@{/employee/sort(sortedField='employeeName', direction = ${direction == 'desc' ? 'asc' : 'desc'})}"
+               th:class="${sortedField != 'employeeName' ? 'table-header-inactive' : 'table-header-active'}">
+                Name
+            </a>
+        </th>
+        <th class="table-header">
+            <a th:href="@{/employee/sort(sortedField='departmentName', direction = ${direction == 'desc' ? 'asc' : 'desc'})}"
+               th:class="${sortedField != 'departmentName' ? 'table-header-inactive' : 'table-header-active'}">
+                Department
+            </a>
+        </th>
+        <th class="table-header">
+            <a th:href="@{/employee/sort(sortedField='positionName', direction = ${direction == 'desc' ? 'asc' : 'desc'})}"
+               th:class="${sortedField != 'positionName' ? 'table-header-inactive' : 'table-header-active'}">
+                Position
+            </a>
+        </th>
+        </thead>
+        <tbody>
+        <tr th:each="emp : ${employees}">
+            <td><a th:href="@{/employee/view(employeeId=${emp.getEmployeeId()}, edit = false, editSection = '')}"
+                   th:text="${emp.getEmployeeCode()}"/></td>
+            <td th:text="${emp.getEmployeeName()}"></td>
+            <td th:text="${emp.getPositionName()}"></td>
+            <td th:text="${emp.getDepartmentName()}"></td>
+        </tr>
+        </tbody>
+    </table>
+</div>
+<div class="util-container">
+    <div>
+        <div th:text="All"></div>
+        <div th:each="d : ${departments}">
+            <div th:text="${d.getDepartmentName()}"></div>
+        </div>
+    </div>
+    <div>
+        <div th:text="All"></div>
+        <div th:each="p : ${positions}">
+            <div th:text="${p.getPositionName()}"></div>
+        </div>
+    </div>
+</div>
