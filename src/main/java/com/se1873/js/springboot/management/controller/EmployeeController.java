@@ -6,9 +6,11 @@ import com.se1873.js.springboot.management.entity.Position;
 import com.se1873.js.springboot.management.entity.Role;
 import com.se1873.js.springboot.management.service.*;
 import jakarta.annotation.PostConstruct;
+import jakarta.servlet.http.HttpSession;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -48,18 +50,51 @@ public class EmployeeController {
     roles = roleService.findAll();
   }
 
+  public String getService(String service) {
+    switch (service) {
+      case "sort":
+        return service;
+    }
+    return null;
+  }
+
   @RequestMapping()
-  public String index(Model model) {
+  public String index(Model model,
+                      @RequestParam(value = "service", required = false, defaultValue = "null") String service,
+                      @RequestParam(value = "sortedField", required = false, defaultValue = "null") String sortedField,
+                      @RequestParam(value = "direction", required = false, defaultValue = "null") String direction,
+                      @ModelAttribute(value = "modifiedEmployees") List<EmployeeDTO> modifiedEmployees) {
+    List<EmployeeDTO> tempList = new ArrayList<>();
+    if("sort".equals(service)) {
+      tempList = modifiedEmployees;
+      model.addAttribute("sortedField", sortedField);
+      model.addAttribute("direction", direction);
+    }
+
+    if(modifiedEmployees == null) {
+      tempList = employees;
+    }
+
+
     model.addAttribute("positions", positions);
     model.addAttribute("departments", departments);
-    model.addAttribute("employees", employees);
+    model.addAttribute("employees", tempList);
     model.addAttribute("allEmployees", employees);
     model.addAttribute("roles", roles);
-    model.addAttribute("field", "");
-    model.addAttribute("sorted", false);
     model.addAttribute("page", "employee");
     model.addAttribute(bodyContent, "fragments/employee");
     return index;
+  }
+
+  @GetMapping(value = "/sort")
+  public String sort(Model model,
+                     @RequestParam("sortedField") String sortedField,
+                     @RequestParam("direction") String direction,
+                     RedirectAttributes redirectAttributes) {
+    var tempList = employeeService.sortEmployees(employees, sortedField, direction);
+
+    redirectAttributes.addFlashAttribute("modifiedEmployees", tempList);
+    return "redirect:/employee?service=sort" + "&sortedField=" + sortedField + "&direction=" + direction;
   }
 
   @GetMapping(value = "/view")
@@ -77,20 +112,6 @@ public class EmployeeController {
     model.addAttribute("editSection", editSection);
     model.addAttribute("page", "employee");
     model.addAttribute(bodyContent, "fragments/employee-detail");
-    return index;
-  }
-
-  @GetMapping(value = "/sort")
-  public String sort(Model model,
-                     @RequestParam("sortedField") String sortedField,
-                     @RequestParam("direction") String direction) {
-
-    model.addAttribute("allEmployees", employees);
-    model.addAttribute("sortedField", sortedField);
-    model.addAttribute("direction", direction);
-    model.addAttribute("employees", employeeService.sortEmployees(employees, sortedField, direction));
-    model.addAttribute("page", "employee");
-    model.addAttribute(bodyContent, "fragments/employee");
     return index;
   }
 
@@ -136,8 +157,6 @@ public class EmployeeController {
     model.addAttribute("positions", positions);
     model.addAttribute("departments", departments);
     model.addAttribute("roles", roles);
-    model.addAttribute("field", "");
-    model.addAttribute("sorted", false);
     model.addAttribute("page", "employee");
     model.addAttribute(bodyContent, "fragments/employee");
     return index;

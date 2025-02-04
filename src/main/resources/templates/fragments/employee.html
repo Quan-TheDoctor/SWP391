@@ -37,8 +37,11 @@
         var availableEmployeesCount = employees.filter(function (employee) {
             return employee.isPresent === true;
         }).length;
+        var unavailableEmployeesCount = employees.filter((employee) => {
+            return employee.isPresent === false;
+        }).length;
 
-        document.getElementById('availableEmployeesCount').innerText = availableEmployeesCount;
+        document.getElementById('availableEmployeesCount').innerText = availableEmployeesCount + " / " + unavailableEmployeesCount;
     }
 
     function searchEmployees(searchField, searchId) {
@@ -113,9 +116,9 @@
             </a>
         </th>
         <th class="table-header">
-            <a th:href="@{/employee/sort(sortedField='departmentName', direction = ${direction == 'desc' ? 'asc' : 'desc'})}"
-               th:class="${sortedField != 'departmentName' ? 'table-header-inactive' : 'table-header-active'}">
-                Department
+            <a th:href="@{/employee/sort(sortedField='positionName', direction = ${direction == 'desc' ? 'asc' : 'desc'})}"
+               th:class="${sortedField != 'positionName' ? 'table-header-inactive' : 'table-header-active'}">
+                Position
             </a>
         </th>
         <th class="table-header">
@@ -125,9 +128,9 @@
             </a>
         </th>
         <th class="table-header">
-            <a th:href="@{/employee/sort(sortedField='positionName', direction = ${direction == 'desc' ? 'asc' : 'desc'})}"
-               th:class="${sortedField != 'positionName' ? 'table-header-inactive' : 'table-header-active'}">
-                Position
+            <a th:href="@{/employee/sort(sortedField='departmentName', direction = ${direction == 'desc' ? 'asc' : 'desc'})}"
+               th:class="${sortedField != 'departmentName' ? 'table-header-inactive' : 'table-header-active'}">
+                Department
             </a>
         </th>
         <th class="table-header">
@@ -148,7 +151,7 @@
             <td><a th:href="@{/employee/view(employeeId=${emp.getEmployeeId()}, edit = false, editSection = '')}"
                    th:text="${emp.getEmployeeCode()}"/></td>
             <td th:text="${emp.getEmployeeName()}"/>
-            <td th:text="${emp.getPositionName()}"/>
+            <td class="td-position"><div th:text="${emp.getPositionName()}"/></td>
             <td th:text="${emp.getRoleName()}"/>
             <td th:text="${emp.getDepartmentName()}"/>
             <td th:text="${emp.getSalaryAmount()}"/>
