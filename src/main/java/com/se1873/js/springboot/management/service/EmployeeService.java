@@ -117,6 +117,7 @@ public class EmployeeService {
       .salaryAmount(formatSalaryAmount(salary.getSalaryAmount()))
       .salaryStartDate(salary.getStartDate())
       .salaryEndDate(salary.getEndDate())
+      .joiningDate(employee.getJoiningDate())
       .isPresent(employee.getIsPresent())
       .build();
   }

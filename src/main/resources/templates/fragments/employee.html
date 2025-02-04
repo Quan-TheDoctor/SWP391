@@ -1,3 +1,5 @@
+
+
 <script th:inline="javascript">
     var datas = [];
     var employees = /*[[${allEmployees}]]*/ '[]';
@@ -60,7 +62,7 @@
 
     window.onload = function () {
         countTotalEmployees();
-
+        employeeChart();
         $('.ui.search')
             .search({
                 type: 'category',
@@ -71,11 +73,13 @@
                     searchEmployees(searchField, searchId);
                 }
             });
+
     };
+
+
+
 </script>
-
-
-<div class="bodyContainer ">
+<div class="bodyContainer">
     <div class="ui search">
         <div class="ui icon input">
             <input class="prompt" type="text" placeholder="Search countries...">
@@ -87,6 +91,9 @@
         <div class="employee-statistic-div">
             <span>Total Employees: </span>
             <div th:text="${allEmployees.size()}"></div>
+            <div>
+                <canvas id="employeeChart"></canvas>
+            </div>
         </div>
         <div class="employee-statistic-div">
             <span>Total Departments: </span>
@@ -97,53 +104,46 @@
             <div th:text="${positions.size()}"></div>
         </div>
         <div class="employee-statistic-div">
-            <span>Total Available / Unemployeed: </span>
+            <span>Total Available / Unemployed: </span>
             <div id="availableEmployeesCount"></div>
         </div>
     </div>
     <table border="1">
         <thead>
         <th class="table-header">
-            <a th:href="@{/employee/sort(sortedField='employeeCode', direction = ${direction == 'desc' ? 'asc' : 'desc'})}"
-               th:class="${sortedField != 'employeeCode' ? 'table-header-inactive' : 'table-header-active'}">
-                Code
-            </a>
+            <form th:action="@{/employee/sort(sortedField='employeeCode', direction = ${direction == 'desc' ? 'asc' : 'desc'})}" th:method="POST">
+                <button type="submit" th:text="Code"></button>
+            </form>
         </th>
         <th class="table-header">
-            <a th:href="@{/employee/sort(sortedField='employeeName', direction = ${direction == 'desc' ? 'asc' : 'desc'})}"
-               th:class="${sortedField != 'employeeName' ? 'table-header-inactive' : 'table-header-active'}">
-                Name
-            </a>
+            <form th:action="@{/employee/sort(sortedField='employeeName', direction = ${direction == 'desc' ? 'asc' : 'desc'})}" th:method="POST">
+                <button type="submit" th:text="Name"></button>
+            </form>
         </th>
         <th class="table-header">
-            <a th:href="@{/employee/sort(sortedField='positionName', direction = ${direction == 'desc' ? 'asc' : 'desc'})}"
-               th:class="${sortedField != 'positionName' ? 'table-header-inactive' : 'table-header-active'}">
-                Position
-            </a>
+            <form th:action="@{/employee/sort(sortedField='positionName', direction = ${direction == 'desc' ? 'asc' : 'desc'})}" th:method="POST">
+                <button type="submit" th:text="Position"></button>
+            </form>
         </th>
         <th class="table-header">
-            <a th:href="@{/employee/sort(sortedField='roleName', direction = ${direction == 'desc' ? 'asc' : 'desc'})}"
-               th:class="${sortedField != 'roleName' ? 'table-header-inactive' : 'table-header-active'}">
-                Role
-            </a>
+            <form th:action="@{/employee/sort(sortedField='roleName', direction = ${direction == 'desc' ? 'asc' : 'desc'})}" th:method="POST">
+                <button type="submit" th:text="Role"></button>
+            </form>
         </th>
         <th class="table-header">
-            <a th:href="@{/employee/sort(sortedField='departmentName', direction = ${direction == 'desc' ? 'asc' : 'desc'})}"
-               th:class="${sortedField != 'departmentName' ? 'table-header-inactive' : 'table-header-active'}">
-                Department
-            </a>
+            <form th:action="@{/employee/sort(sortedField='departmentName', direction = ${direction == 'desc' ? 'asc' : 'desc'})}" th:method="POST">
+                <button type="submit" th:text="Department"></button>
+            </form>
         </th>
         <th class="table-header">
-            <a th:href="@{/employee/sort(sortedField='salaryAmount', direction = ${direction == 'desc' ? 'asc' : 'desc'})}"
-               th:class="${sortedField != 'salaryAmount' ? 'table-header-inactive' : 'table-header-active'}">
-                Salary
-            </a>
+            <form th:action="@{/employee/sort(sortedField='salaryAmount', direction = ${direction == 'desc' ? 'asc' : 'desc'})}" th:method="POST">
+                <button type="submit" th:text="Salary"></button>
+            </form>
         </th>
         <th class="table-header">
-            <a th:href="@{/employee/sort(sortedField='isPresent', direction = ${direction == 'desc' ? 'asc' : 'desc'})}"
-               th:class="${sortedField != 'isPresent' ? 'table-header-inactive' : 'table-header-active'}">
-                Status
-            </a>
+            <form th:action="@{/employee/sort(sortedField='isPresent', direction = ${direction == 'desc' ? 'asc' : 'desc'})}" th:method="POST">
+                <button type="submit" th:text="Status"></button>
+            </form>
         </th>
         </thead>
         <tbody>

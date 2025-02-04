@@ -34,6 +34,7 @@ public class EmployeeController {
     this.salaryService = salaryService;
   }
 
+  List<EmployeeDTO> allEmployees = new ArrayList<>();
   List<EmployeeDTO> employees = new ArrayList<>();
   List<Department> departments = new ArrayList<>();
   List<Position> positions = new ArrayList<>();
@@ -44,57 +45,48 @@ public class EmployeeController {
 
   @PostConstruct
   public void init() {
-    employees = employeeService.getAllEmployees();
+    allEmployees = employeeService.getAllEmployees();
+    employees = allEmployees;
     departments = departmentService.findAll();
     positions = positionService.findAll();
     roles = roleService.findAll();
   }
-
-  public String getService(String service) {
-    switch (service) {
-      case "sort":
-        return service;
-    }
-    return null;
-  }
-
   @RequestMapping()
   public String index(Model model,
                       @RequestParam(value = "service", required = false, defaultValue = "null") String service,
-                      @RequestParam(value = "sortedField", required = false, defaultValue = "null") String sortedField,
-                      @RequestParam(value = "direction", required = false, defaultValue = "null") String direction,
-                      @ModelAttribute(value = "modifiedEmployees") List<EmployeeDTO> modifiedEmployees) {
-    List<EmployeeDTO> tempList = new ArrayList<>();
+                      @ModelAttribute(value = "sortedField") String sortedField,
+                      @ModelAttribute(value = "direction") String direction,
+                      @ModelAttribute(value = "filteredField") String filteredField) {
+    List<EmployeeDTO> tempList = (List<EmployeeDTO>) model.asMap().get("modifiedEmployees");
+    if(tempList == null) tempList = allEmployees;
     if("sort".equals(service)) {
-      tempList = modifiedEmployees;
       model.addAttribute("sortedField", sortedField);
       model.addAttribute("direction", direction);
+    } else if("filter".equalsIgnoreCase(service)) {
+      model.addAttribute("filteredField", filteredField);
     }
-
-    if(modifiedEmployees == null) {
-      tempList = employees;
-    }
-
 
     model.addAttribute("positions", positions);
     model.addAttribute("departments", departments);
     model.addAttribute("employees", tempList);
-    model.addAttribute("allEmployees", employees);
+    model.addAttribute("allEmployees", allEmployees);
     model.addAttribute("roles", roles);
     model.addAttribute("page", "employee");
     model.addAttribute(bodyContent, "fragments/employee");
     return index;
   }
 
-  @GetMapping(value = "/sort")
+  @PostMapping(value = "/sort")
   public String sort(Model model,
                      @RequestParam("sortedField") String sortedField,
                      @RequestParam("direction") String direction,
                      RedirectAttributes redirectAttributes) {
     var tempList = employeeService.sortEmployees(employees, sortedField, direction);
 
+    redirectAttributes.addFlashAttribute("sortedField", sortedField);
+    redirectAttributes.addFlashAttribute("direction", direction);
     redirectAttributes.addFlashAttribute("modifiedEmployees", tempList);
-    return "redirect:/employee?service=sort" + "&sortedField=" + sortedField + "&direction=" + direction;
+    return "redirect:/employee?service=sort";
   }
 
   @GetMapping(value = "/view")
@@ -118,16 +110,13 @@ public class EmployeeController {
   @GetMapping(value = "/filter")
   public String filter(Model model,
                        @RequestParam("filteredField") String filteredField,
-                       @RequestParam("value") Integer value) {
-    model.addAttribute("allEmployees", employees);
-    model.addAttribute("employees", employeeService.filterEmployees(employees, filteredField, value));
-    model.addAttribute("filteredField", filteredField);
-    model.addAttribute("positions", positions);
-    model.addAttribute("departments", departments);
-    model.addAttribute("roles", roles);
-    model.addAttribute("page", "employee");
-    model.addAttribute(bodyContent, "fragments/employee");
-    return index;
+                       @RequestParam("value") Integer value,
+                       RedirectAttributes redirectAttributes) {
+    employees = employeeService.filterEmployees(employees, filteredField, value);
+
+    redirectAttributes.addFlashAttribute("filteredField", filteredField);
+    redirectAttributes.addFlashAttribute("modifiedEmployees", employees);
+    return "redirect:/employee?service=filter";
   }
 
   @GetMapping(value = "/update")
@@ -149,16 +138,11 @@ public class EmployeeController {
   @GetMapping("/search")
   public String search(Model model,
                        @RequestParam("field") String field,
-                       @RequestParam("id") Integer id) {
-
-
-    model.addAttribute("employees", employeeService.filterEmployees(employees, field, id));
-    model.addAttribute("allEmployees", employees);
-    model.addAttribute("positions", positions);
-    model.addAttribute("departments", departments);
-    model.addAttribute("roles", roles);
-    model.addAttribute("page", "employee");
-    model.addAttribute(bodyContent, "fragments/employee");
-    return index;
+                       @RequestParam("id") Integer id,
+                       RedirectAttributes redirectAttributes) {
+    var tempList = employeeService.filterEmployees(allEmployees, field, id);
+    employees = tempList;
+    redirectAttributes.addFlashAttribute("modifiedEmployees", tempList);
+    return "redirect:/employee?service=search";
   }
 }

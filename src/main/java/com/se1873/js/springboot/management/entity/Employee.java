@@ -6,6 +6,7 @@ import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
+import java.time.LocalDate;
 import java.util.Set;
 
 @Entity
@@ -38,8 +39,8 @@ public class Employee {
   @Column(name = "employee_address")
   private String employeeAddress;
 
-  @Column(name = "created_at")
-  private String createdAt;
+  @Column(name = "joining_date")
+  private LocalDate joiningDate;
 
   @Column(name = "is_present")
   private boolean isPresent;

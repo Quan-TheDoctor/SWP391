@@ -24,13 +24,13 @@ public class EmployeeDTO {
   private String departmentName;
   private int positionId;
   private String positionName;
-  private String createdAt;
   private int roleId;
   private String roleName;
   private Integer salaryId;
   private String salaryAmount;
   private LocalDate salaryStartDate;
   private LocalDate salaryEndDate;
+  private LocalDate joiningDate;
   private boolean isPresent;
   private boolean isDeleted;
 
