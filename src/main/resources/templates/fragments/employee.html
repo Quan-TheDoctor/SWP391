@@ -1,5 +1,3 @@
-
-
 <script th:inline="javascript">
     var datas = [];
     var employees = /*[[${allEmployees}]]*/ '[]';
@@ -34,31 +32,6 @@
             id: position.id
         })
     }
-
-    function countTotalEmployees() {
-        var availableEmployeesCount = employees.filter(function (employee) {
-            return employee.isPresent === true;
-        }).length;
-        var unavailableEmployeesCount = employees.filter((employee) => {
-            return employee.isPresent === false;
-        }).length;
-
-        document.getElementById('availableEmployeesCount').innerText = availableEmployeesCount + " / " + unavailableEmployeesCount;
-    }
-
-    function searchEmployees(searchField, searchId) {
-        $.ajax({
-            url: `/employee/search?field=${encodeURIComponent(searchField)}&id=${encodeURIComponent(searchId)}`,
-            method: 'GET',
-            success: function (response) {
-                window.location.href = `/employee/search?field=${encodeURIComponent(searchField)}&id=${encodeURIComponent(searchId)}`;
-            },
-            error: function (xhr, status, error) {
-                console.error("AJAX Error: " + status + " - " + error);
-            }
-        });
-    }
-
 
     window.onload = function () {
         countTotalEmployees();
@@ -98,15 +71,24 @@
         <div class="employee-statistic-div">
             <span>Total Departments: </span>
             <div th:text="${departments.size()}"></div>
+            <div>
+                <canvas id="departmentChart"></canvas>
+            </div>
         </div>
         <div class="employee-statistic-div">
             <span>Total Positions: </span>
             <div th:text="${positions.size()}"></div>
+            <div>
+                <canvas id="positionChart"></canvas>
+            </div>
         </div>
         <div class="employee-statistic-div">
             <span>Total Available / Unemployed: </span>
             <div id="availableEmployeesCount"></div>
         </div>
+    </div>
+    <div>
+        <a th:href="@{/employee/create}" th:text="Create"></a>
     </div>
     <table border="1">
         <thead>

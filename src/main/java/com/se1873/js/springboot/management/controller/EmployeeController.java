@@ -6,7 +6,6 @@ import com.se1873.js.springboot.management.entity.Position;
 import com.se1873.js.springboot.management.entity.Role;
 import com.se1873.js.springboot.management.service.*;
 import jakarta.annotation.PostConstruct;
-import jakarta.servlet.http.HttpSession;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.*;
@@ -40,8 +39,9 @@ public class EmployeeController {
   List<Position> positions = new ArrayList<>();
   List<Role> roles = new ArrayList<>();
 
-  private static final String bodyContent = "bodyContent";
-  private static final String index = "index";
+  private static final String BODY_CONTENT = "BODY_CONTENT";
+  private static final String INDEX = "index";
+  private static final String EMPLOYEE = "employee";
 
   @PostConstruct
   public void init() {
@@ -71,9 +71,9 @@ public class EmployeeController {
     model.addAttribute("employees", tempList);
     model.addAttribute("allEmployees", allEmployees);
     model.addAttribute("roles", roles);
-    model.addAttribute("page", "employee");
-    model.addAttribute(bodyContent, "fragments/employee");
-    return index;
+    model.addAttribute("page", EMPLOYEE);
+    model.addAttribute(BODY_CONTENT, "fragments/employee");
+    return INDEX;
   }
 
   @PostMapping(value = "/sort")
@@ -102,9 +102,9 @@ public class EmployeeController {
     model.addAttribute("employee", employee);
     model.addAttribute("edit", edit);
     model.addAttribute("editSection", editSection);
-    model.addAttribute("page", "employee");
-    model.addAttribute(bodyContent, "fragments/employee-detail");
-    return index;
+    model.addAttribute("page", EMPLOYEE);
+    model.addAttribute(BODY_CONTENT, "fragments/employee-detail");
+    return INDEX;
   }
 
   @GetMapping(value = "/filter")
@@ -144,5 +144,13 @@ public class EmployeeController {
     employees = tempList;
     redirectAttributes.addFlashAttribute("modifiedEmployees", tempList);
     return "redirect:/employee?service=search";
+  }
+
+  @GetMapping("/create")
+  public String employeeCreate(Model model) {
+
+    model.addAttribute("page", "employee-create");
+    model.addAttribute(BODY_CONTENT, "fragments/employee-create");
+    return INDEX;
   }
 }

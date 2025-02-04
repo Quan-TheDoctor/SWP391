@@ -122,5 +122,24 @@ tr {
         background-color: white;
     }
 }
-    
+
+canvas {
+    width: 100%;
+    max-width: 600px;
+    height: auto;
+}
+
+#positionChart {
+    max-width: 400px;
+    height: auto;
+}
+
+#departmentChart {
+    max-width: 400px;
+    height: auto;
+}
+
+#employeeChart {
+    max-width: 300px;
+    height: 400px;
 }
