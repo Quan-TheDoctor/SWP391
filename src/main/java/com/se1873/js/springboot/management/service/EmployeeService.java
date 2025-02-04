@@ -1,21 +1,14 @@
 package com.se1873.js.springboot.management.service;
 
 import com.se1873.js.springboot.management.dto.EmployeeDTO;
-import com.se1873.js.springboot.management.entity.Department;
-import com.se1873.js.springboot.management.entity.Employee;
-import com.se1873.js.springboot.management.entity.Position;
-import com.se1873.js.springboot.management.entity.Role;
-import com.se1873.js.springboot.management.repository.DepartmentRepository;
-import com.se1873.js.springboot.management.repository.EmployeeRepository;
-import com.se1873.js.springboot.management.repository.PositionRepository;
-import com.se1873.js.springboot.management.repository.RoleRepository;
+import com.se1873.js.springboot.management.entity.*;
+import com.se1873.js.springboot.management.repository.*;
 import org.springframework.stereotype.Service;
 
-import java.util.Comparator;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.text.DecimalFormat;
+import java.util.*;
 import java.util.function.Function;
+import java.util.stream.Collectors;
 
 @Service
 public class EmployeeService {
@@ -23,12 +16,18 @@ public class EmployeeService {
   private final DepartmentRepository departmentRepository;
   private final PositionRepository positionRepository;
   private final RoleRepository roleRepository;
+  private final SalaryRepository salaryRepository;
 
-  public EmployeeService(EmployeeRepository employeeRepository, DepartmentRepository departmentRepository, PositionRepository positionRepository, RoleRepository roleRepository) {
+  public EmployeeService(EmployeeRepository employeeRepository, DepartmentRepository departmentRepository, PositionRepository positionRepository, RoleRepository roleRepository, SalaryRepository salaryRepository) {
     this.employeeRepository = employeeRepository;
     this.departmentRepository = departmentRepository;
     this.positionRepository = positionRepository;
     this.roleRepository = roleRepository;
+    this.salaryRepository = salaryRepository;
+  }
+
+  public Salary getSalaryByEmployeeId(Integer employeeId) {
+    return salaryRepository.findByEmployee_EmployeeIdAndIsPresent(employeeId, true);
   }
 
   public Role getRoleByEmployeeId(Integer employeeId) {
@@ -63,6 +62,27 @@ public class EmployeeService {
       .toList();
   }
 
+  public List<EmployeeDTO> filterEmployees(List<EmployeeDTO> employees, String filteredField, Integer value) {
+    return employees.stream()
+      .filter(employeeDTO -> {
+        switch (filteredField.toLowerCase()) {
+          case "department":
+            return employeeDTO.getDepartmentId() == value;
+          case "position":
+            return employeeDTO.getPositionId() == value;
+          case "role":
+            return employeeDTO.getRoleId() == value;
+          case "status":
+            return employeeDTO.getIsPresent() == (value == 1);
+          case "employee":
+            return Objects.equals(employeeDTO.getEmployeeId(), value);
+          default:
+            return true;
+        }
+      })
+      .toList();
+  }
+
   public void updateEmployee(EmployeeDTO employeeDTO) {
     Employee employee = employeeRepository.findEmployeeByEmployeeId(employeeDTO.getEmployeeId());
     employee.setEmployeeCode(employeeDTO.getEmployeeCode());
@@ -70,7 +90,7 @@ public class EmployeeService {
     employee.setEmployeeAddress(employeeDTO.getEmployeeAddress());
     employee.setEmployeeEmail(employeeDTO.getEmployeeEmail());
     employee.setEmployeePhone(employeeDTO.getEmployeePhone());
-
+    employee.setPresent(employeeDTO.getIsPresent());
     employeeRepository.save(employee);
   }
 
@@ -78,6 +98,8 @@ public class EmployeeService {
     Department department = getDepartmentByEmployeeId(employee.getEmployeeId());
     Position position = getPositionByEmployeeId(employee.getEmployeeId());
     Role role = getRoleByEmployeeId(employee.getEmployeeId());
+    Salary salary = getSalaryByEmployeeId(employee.getEmployeeId());
+
     return EmployeeDTO.builder()
       .employeeId(employee.getEmployeeId())
       .employeeCode(employee.getEmployeeCode())
@@ -91,9 +113,17 @@ public class EmployeeService {
       .positionName(position.getPositionName())
       .roleId(role.getRoleId())
       .roleName(role.getRoleName())
+      .salaryId(salary.getSalaryId())
+      .salaryAmount(formatSalaryAmount(salary.getSalaryAmount()))
+      .salaryStartDate(salary.getStartDate())
+      .salaryEndDate(salary.getEndDate())
+      .isPresent(employee.getIsPresent())
       .build();
   }
-
+  public String formatSalaryAmount(Double salaryAmount) {
+    DecimalFormat formatter = new DecimalFormat("#,###");
+    return formatter.format(salaryAmount);
+  }
   private Function<EmployeeDTO, Comparable> fieldsMap(String field) {
     Map<String, Function<EmployeeDTO, Comparable>> fieldsMap = new HashMap<>();
     fieldsMap.put("employeeCode", EmployeeDTO::getEmployeeCode);
@@ -101,6 +131,8 @@ public class EmployeeService {
     fieldsMap.put("departmentName", EmployeeDTO::getDepartmentName);
     fieldsMap.put("positionName", EmployeeDTO::getPositionName);
     fieldsMap.put("roleName", EmployeeDTO::getRoleName);
+    fieldsMap.put("salaryAmount", EmployeeDTO::getSalaryAmount);
+    fieldsMap.put("isPresent", EmployeeDTO::getIsPresent);
     return fieldsMap.get(field);
   }
 

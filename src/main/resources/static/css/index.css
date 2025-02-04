@@ -82,3 +82,34 @@ html, body {
     width: 30%;
     background-color: rgba(18,8,30,255);
 }
+
+tr {
+    text-align: center;
+    height: 40px;
+}
+
+.employee-statistic {
+    margin: 20px;
+    display: flex;
+    justify-content: space-around;
+}
+
+.employee-statistic-div {
+    background: linear-gradient(0.35turn, white, rgba(247,254,20,0.63));
+    border-radius: 8px;
+    border-color: rgba(247,254,20,0.63);
+}
+
+@keyframes colorTransition {
+    0% {
+        background-color: white;
+    }
+    50% {
+        background-color: black;
+    }
+    100% {
+        background-color: white;
+    }
+}
+    
+}

@@ -28,8 +28,8 @@ public class DepartmentEmployeeService {
     if (de == null) {
       throw new RuntimeException("DepartmentEmployee with employeeId " + employeeId + " not found.");
     }
-    de.setEndDate(String.valueOf(Date.valueOf(LocalDate.now())));
-    de.setPresent(false);
+    de.setEndDate(LocalDate.now());
+    de.setIsPresent(false);
 
     departmentEmployeeRepository.save(de);
   }
@@ -46,7 +46,7 @@ public class DepartmentEmployeeService {
       .department(department)
       .position(position)
       .role(role)
-      .startDate(String.valueOf(Date.valueOf(LocalDate.now())))
+      .startDate(LocalDate.now())
       .endDate(null)
       .isPresent(true)
       .build();

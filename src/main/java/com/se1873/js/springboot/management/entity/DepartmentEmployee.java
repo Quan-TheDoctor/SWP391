@@ -7,6 +7,8 @@ import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
+import java.time.LocalDate;
+
 @Entity
 @Table(name = "department_employees")
 @Data
@@ -36,10 +38,10 @@ public class DepartmentEmployee {
   private Employee employee;
 
   @Column(name = "start_date")
-  private String startDate;
+  private LocalDate startDate;
 
   @Column(name = "end_date")
-  private String endDate;
+  private LocalDate endDate;
 
   @Column(name = "created_at")
   private String createdAt;
@@ -49,4 +51,11 @@ public class DepartmentEmployee {
 
   @Column(name = "is_deleted")
   private boolean isDeleted;
+
+  public boolean getIsPresent() {
+    return isPresent;
+  }
+  public void setIsPresent(Boolean isPresent) {
+    this.isPresent = isPresent;
+  }
 }

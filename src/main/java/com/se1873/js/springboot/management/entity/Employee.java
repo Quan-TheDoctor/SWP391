@@ -50,6 +50,9 @@ public class Employee {
   @OneToMany(mappedBy = "employee", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
   private Set<DepartmentEmployee> departmentEmployees;
 
+  @OneToMany(mappedBy = "employee", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
+  private Set<Salary> salaries;
+
   public boolean getIsPresent() {
     return isPresent;
   }

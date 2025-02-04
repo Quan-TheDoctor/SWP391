@@ -5,6 +5,7 @@ import com.se1873.js.springboot.management.entity.Department;
 import com.se1873.js.springboot.management.entity.Position;
 import com.se1873.js.springboot.management.entity.Role;
 import com.se1873.js.springboot.management.service.*;
+import jakarta.annotation.PostConstruct;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.*;
@@ -20,13 +21,15 @@ public class EmployeeController {
   private final PositionService positionService;
   private final DepartmentEmployeeService departmentEmployeeService;
   private final RoleService roleService;
+  private final SalaryService salaryService;
 
-  public EmployeeController(EmployeeService employeeService, DepartmentService departmentService, PositionService positionService, DepartmentEmployeeService departmentEmployeeService, RoleService roleService) {
+  public EmployeeController(EmployeeService employeeService, DepartmentService departmentService, PositionService positionService, DepartmentEmployeeService departmentEmployeeService, RoleService roleService, SalaryService salaryService) {
     this.employeeService = employeeService;
     this.departmentService = departmentService;
     this.positionService = positionService;
     this.departmentEmployeeService = departmentEmployeeService;
     this.roleService = roleService;
+    this.salaryService = salaryService;
   }
 
   List<EmployeeDTO> employees = new ArrayList<>();
@@ -36,16 +39,21 @@ public class EmployeeController {
 
   private static final String bodyContent = "bodyContent";
   private static final String index = "index";
-  @RequestMapping()
-  public String index(Model model) {
+
+  @PostConstruct
+  public void init() {
     employees = employeeService.getAllEmployees();
     departments = departmentService.findAll();
     positions = positionService.findAll();
     roles = roleService.findAll();
+  }
 
+  @RequestMapping()
+  public String index(Model model) {
     model.addAttribute("positions", positions);
     model.addAttribute("departments", departments);
     model.addAttribute("employees", employees);
+    model.addAttribute("allEmployees", employees);
     model.addAttribute("roles", roles);
     model.addAttribute("field", "");
     model.addAttribute("sorted", false);
@@ -77,9 +85,25 @@ public class EmployeeController {
                      @RequestParam("sortedField") String sortedField,
                      @RequestParam("direction") String direction) {
 
+    model.addAttribute("allEmployees", employees);
     model.addAttribute("sortedField", sortedField);
     model.addAttribute("direction", direction);
     model.addAttribute("employees", employeeService.sortEmployees(employees, sortedField, direction));
+    model.addAttribute("page", "employee");
+    model.addAttribute(bodyContent, "fragments/employee");
+    return index;
+  }
+
+  @GetMapping(value = "/filter")
+  public String filter(Model model,
+                       @RequestParam("filteredField") String filteredField,
+                       @RequestParam("value") Integer value) {
+    model.addAttribute("allEmployees", employees);
+    model.addAttribute("employees", employeeService.filterEmployees(employees, filteredField, value));
+    model.addAttribute("filteredField", filteredField);
+    model.addAttribute("positions", positions);
+    model.addAttribute("departments", departments);
+    model.addAttribute("roles", roles);
     model.addAttribute("page", "employee");
     model.addAttribute(bodyContent, "fragments/employee");
     return index;
@@ -93,7 +117,29 @@ public class EmployeeController {
     } else if("job-information".equalsIgnoreCase(editSection)) {
       departmentEmployeeService.updateDepartmentEmployee(employee.getEmployeeId());
       departmentEmployeeService.save(employee.getEmployeeId(), employee.getDepartmentId(), employee.getPositionId(), employee.getRoleId());
+    } else if("salary-information".equalsIgnoreCase(editSection)) {
+      salaryService.updateSalary(employee.getEmployeeId());
+      salaryService.save(employee);
     }
+    init();
     return "redirect:/employee";
+  }
+
+  @GetMapping("/search")
+  public String search(Model model,
+                       @RequestParam("field") String field,
+                       @RequestParam("id") Integer id) {
+
+
+    model.addAttribute("employees", employeeService.filterEmployees(employees, field, id));
+    model.addAttribute("allEmployees", employees);
+    model.addAttribute("positions", positions);
+    model.addAttribute("departments", departments);
+    model.addAttribute("roles", roles);
+    model.addAttribute("field", "");
+    model.addAttribute("sorted", false);
+    model.addAttribute("page", "employee");
+    model.addAttribute(bodyContent, "fragments/employee");
+    return index;
   }
 }
