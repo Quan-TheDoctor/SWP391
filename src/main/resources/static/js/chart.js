@@ -2,6 +2,7 @@ function employeeChart() {
     const employeeChart = document.getElementById('employeeChart');
     const departmentChart = document.getElementById('departmentChart');
     const positionChart = document.getElementById('positionChart');
+    const isPresentChart = document.getElementById('isPresentChart');
 
     const employeeLabels = Object.keys(getCountByJoiningDate());
     const employeeDatas = Object.values(getCountByJoiningDate());
@@ -12,9 +13,13 @@ function employeeChart() {
     const positionLabels = Object.keys(getCountByPosition());
     const positionDatas = Object.values(getCountByPosition());
 
+    const isPresentLabels = Object.keys(getCountByIsPresent());
+    const isPresentDatas = Object.keys(getCountByIsPresent());
+
     initChart(employeeChart, 'line', employeeLabels, employeeDatas);
     initChart(departmentChart, 'doughnut', departmentLabels, departmentDatas);
     initChart(positionChart, 'doughnut', positionLabels, positionDatas)
+    initChart(isPresentChart, 'doughnut', isPresentLabels, isPresentDatas)
 }
 
 function initChart(name, type, label, data) {
@@ -48,6 +53,20 @@ function initChart(name, type, label, data) {
             }
         }
     });
+}
+
+function getCountByIsPresent() {
+    const countByIsPresent = employees.reduce((acc, { isPresent }) => {
+        acc[isPresent] = (acc[isPresent] || 0) + 1;
+        return acc;
+    }, {});
+
+    return Object.keys(countByIsPresent)
+        .sort()
+        .reduce((acc, isPresent) => {
+            acc[isPresent] = countByIsPresent[isPresent];
+            return acc;
+        }, {})
 }
 
 function getCountByDepartment() {

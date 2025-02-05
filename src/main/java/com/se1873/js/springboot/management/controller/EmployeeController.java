@@ -39,7 +39,7 @@ public class EmployeeController {
   List<Position> positions = new ArrayList<>();
   List<Role> roles = new ArrayList<>();
 
-  private static final String BODY_CONTENT = "BODY_CONTENT";
+  private static final String BODY_CONTENT = "bodyContent";
   private static final String INDEX = "index";
   private static final String EMPLOYEE = "employee";
 
@@ -77,8 +77,7 @@ public class EmployeeController {
   }
 
   @PostMapping(value = "/sort")
-  public String sort(Model model,
-                     @RequestParam("sortedField") String sortedField,
+  public String sort(@RequestParam("sortedField") String sortedField,
                      @RequestParam("direction") String direction,
                      RedirectAttributes redirectAttributes) {
     var tempList = employeeService.sortEmployees(employees, sortedField, direction);
