@@ -1,0 +1,24 @@
+<!DOCTYPE html>
+<html class="m-0" xmlns="http://www.w3.org/1999/xhtml" xmlns:th="https://www.thymeleaf.org"
+      xmlns:sec="https://www.thymeleaf.org/thymeleaf-extras-springsecurity6">
+<head>
+    <title>Hello World!</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/semantic-ui/2.4.1/semantic.min.css">
+    <script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.3.1/jquery.min.js"></script>
+    <script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/semantic-ui/2.4.1/semantic.min.js"></script>
+    <link th:href="@{/main.css}" rel="stylesheet"/>
+    <link th:href="@{/css/style.css}" rel="stylesheet"/>
+    <script type="text/javascript" th:src="@{/js/AddPart.js}"></script>
+</head>
+<body>
+<div class="flex gap-2 h-screen">
+<!--    header      -->
+    <div th:replace="~{${header}}"></div>
+<!--    container   -->
+    <div class="flex-1 h-screen flex flex-col gap-2 rounded-lg">
+        <div th:replace="~{fragments/search :: search-bar}"></div>
+        <div th:replace="~{${page}}"></div>
+    </div>
+</div>
+</body>
+</html>
