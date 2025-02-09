@@ -9,9 +9,7 @@ import org.springframework.format.annotation.DateTimeFormat;
 
 import java.time.LocalDate;
 import java.time.LocalDateTime;
-import java.util.ArrayList;
 import java.util.HashSet;
-import java.util.List;
 import java.util.Set;
 
 @Entity
@@ -21,13 +19,13 @@ import java.util.Set;
 @AllArgsConstructor
 @NoArgsConstructor
 public class Employee {
+  @Version
+  private Long version;
+
   @Id
   @GeneratedValue(strategy = GenerationType.IDENTITY)
   @Column(name = "employee_id")
   private Integer employeeId;
-
-  @Version
-  private Long version;
 
   @Column(name = "employee_code", unique = true, nullable = false)
   private String employeeCode;
@@ -85,34 +83,34 @@ public class Employee {
   private Set<Dependent> dependents = new HashSet<>();
 
   @OneToMany(mappedBy = "employee", cascade = CascadeType.ALL, fetch = FetchType.LAZY, orphanRemoval = true)
-  private List<Contract> contracts = new ArrayList<>();
+  private Set<Contract> contracts = new HashSet<>();
 
   @OneToMany(mappedBy = "employee", cascade = CascadeType.ALL, fetch = FetchType.LAZY, orphanRemoval = true)
-  private List<EmploymentHistory> employmentHistories = new ArrayList<>();
+  private Set<EmploymentHistory> employmentHistories = new HashSet<>();
 
   @OneToMany(mappedBy = "employee", cascade = CascadeType.ALL, fetch = FetchType.LAZY, orphanRemoval = true)
-  private List<TrainingRecord> trainingRecords = new ArrayList<>();
+  private Set<TrainingRecord> trainingRecords = new HashSet<>();
 
   @OneToMany(mappedBy = "employee", cascade = CascadeType.ALL, fetch = FetchType.LAZY, orphanRemoval = true)
-  private List<EmployeeSkill> employeeSkills = new ArrayList<>();
+  private Set<EmployeeSkill> employeeSkills = new HashSet<>();
 
   @OneToMany(mappedBy = "employee", cascade = CascadeType.ALL, fetch = FetchType.LAZY, orphanRemoval = true)
-  private List<Qualification> qualifications = new ArrayList<>();
+  private Set<Qualification> qualifications = new HashSet<>();
 
   @OneToMany(mappedBy = "employee", cascade = CascadeType.ALL, fetch = FetchType.LAZY, orphanRemoval = true)
-  private List<PerformanceReview> performanceReviews = new ArrayList<>();
+  private Set<PerformanceReview> performanceReviews = new HashSet<>();
 
   @OneToMany(mappedBy = "employee", cascade = CascadeType.ALL, fetch = FetchType.LAZY, orphanRemoval = true)
-  private List<SalaryRecord> salaryRecords = new ArrayList<>();
+  private Set<SalaryRecord> salaryRecords = new HashSet<>();
 
   @OneToMany(mappedBy = "employee", cascade = CascadeType.ALL, fetch = FetchType.LAZY, orphanRemoval = true)
-  private List<Leave> leaves = new ArrayList<>();
+  private Set<Leave> leaves = new HashSet<>();
 
   @OneToMany(mappedBy = "employee", cascade = CascadeType.ALL, fetch = FetchType.LAZY, orphanRemoval = true)
-  private List<Attendance> attendances = new ArrayList<>();
+  private Set<Attendance> attendances = new HashSet<>();
 
   @OneToMany(mappedBy = "employee", cascade = CascadeType.ALL, fetch = FetchType.LAZY, orphanRemoval = true)
-  private List<Allowance> allowances = new ArrayList<>();
+  private Set<Allowance> allowances = new HashSet<>();
 
   @OneToOne(mappedBy = "employee", cascade = CascadeType.ALL)
   private User user;
@@ -126,16 +124,6 @@ public class Employee {
   @PreUpdate
   protected void onUpdate() {
     updatedAt = LocalDateTime.now();
-  }
-
-  public void addDependent(Dependent dependent) {
-    dependents.add(dependent);
-    dependent.setEmployee(this);
-  }
-
-  public void removeDependent(Dependent dependent) {
-    dependents.remove(dependent);
-    dependent.setEmployee(null);
   }
 
   @Override

@@ -7,8 +7,8 @@ import lombok.Data;
 import lombok.NoArgsConstructor;
 
 import java.time.LocalDateTime;
-import java.util.ArrayList;
-import java.util.List;
+import java.util.HashSet;
+import java.util.Set;
 
 @Entity
 @Table(name = "positions")
@@ -17,6 +17,9 @@ import java.util.List;
 @AllArgsConstructor
 @NoArgsConstructor
 public class Position {
+  @Version
+  private Long version;
+
   @Id
   @GeneratedValue(strategy = GenerationType.IDENTITY)
   @Column(name = "position_id")
@@ -38,7 +41,7 @@ public class Position {
   private LocalDateTime createdAt;
 
   @OneToMany(mappedBy = "position", cascade = CascadeType.ALL)
-  private List<EmploymentHistory> employmentHistory = new ArrayList<>();
+  private Set<EmploymentHistory> employmentHistory = new HashSet<>();
 
   @PrePersist
   protected void onCreate() {
