@@ -1,0 +1,15 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Title</title>
+</head>
+<body>
+<div th:fragment="segment-icon(color)" class="self-stretch">
+    <svg xmlns="http://www.w3.org/2000/svg" width="auto" height="2" viewBox="0 0 153 2" fill="none">
+        <path d="M0 1H153" th:stroke="${color}"
+              stroke-width="2"/>
+    </svg>
+</div>
+</body>
+</html>

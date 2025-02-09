@@ -1,16 +1,5 @@
 {
-  "name": "frontend",
-  "private": true,
-  "scripts": {
-    "build": "tailwindcss -i ../resources/static/css/output.css -o ../resources/static/main.css --watch",
-    "dev": "tailwindcss -i ../resources/static/css/output.css -o ../resources/static/main.css --minify"
-  },
   "devDependencies": {
-    "tailwindcss": "^3.2.2"
-  },
-  "version": "1.0.0",
-  "main": "index.js",
-  "author": "",
-  "license": "ISC",
-  "description": ""
+    "tailwindcss": "^3.4.17"
+  }
 }

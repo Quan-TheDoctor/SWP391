@@ -1,15 +1,16 @@
 package com.se1873.js.springboot.project.entity;
 
 import jakarta.persistence.*;
-import lombok.*;
+import lombok.AllArgsConstructor;
+import lombok.Builder;
+import lombok.Data;
+import lombok.NoArgsConstructor;
 import org.springframework.format.annotation.DateTimeFormat;
 
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
-import java.util.HashSet;
 import java.util.List;
-import java.util.Set;
 
 @Entity
 @Table(name = "employees")
@@ -18,13 +19,13 @@ import java.util.Set;
 @AllArgsConstructor
 @NoArgsConstructor
 public class Employee {
+  @Version
+  private Long version;
+
   @Id
   @GeneratedValue(strategy = GenerationType.IDENTITY)
   @Column(name = "employee_id")
   private Integer employeeId;
-
-  @Version
-  private Long version;
 
   @Column(name = "employee_code", unique = true, nullable = false)
   private String employeeCode;
@@ -78,37 +79,37 @@ public class Employee {
   @Column(name = "updated_at")
   private LocalDateTime updatedAt;
 
-  @OneToMany(mappedBy = "employee", cascade = CascadeType.ALL, fetch = FetchType.LAZY, orphanRemoval = true)
-  private Set<Dependent> dependents = new HashSet<>();
+  @OneToMany(mappedBy = "employee", cascade = CascadeType.ALL, fetch = FetchType.EAGER, orphanRemoval = true)
+  private List<Dependent> dependents = new ArrayList<>();
 
-  @OneToMany(mappedBy = "employee", cascade = CascadeType.ALL, fetch = FetchType.LAZY, orphanRemoval = true)
+  @OneToMany(mappedBy = "employee", cascade = CascadeType.ALL, fetch = FetchType.EAGER, orphanRemoval = true)
   private List<Contract> contracts = new ArrayList<>();
 
-  @OneToMany(mappedBy = "employee", cascade = CascadeType.ALL, fetch = FetchType.LAZY, orphanRemoval = true)
+  @OneToMany(mappedBy = "employee", cascade = CascadeType.ALL, fetch = FetchType.EAGER, orphanRemoval = true)
   private List<EmploymentHistory> employmentHistories = new ArrayList<>();
 
-  @OneToMany(mappedBy = "employee", cascade = CascadeType.ALL, fetch = FetchType.LAZY, orphanRemoval = true)
+  @OneToMany(mappedBy = "employee", cascade = CascadeType.ALL, fetch = FetchType.EAGER, orphanRemoval = true)
   private List<TrainingRecord> trainingRecords = new ArrayList<>();
 
-  @OneToMany(mappedBy = "employee", cascade = CascadeType.ALL, fetch = FetchType.LAZY, orphanRemoval = true)
+  @OneToMany(mappedBy = "employee", cascade = CascadeType.ALL, fetch = FetchType.EAGER, orphanRemoval = true)
   private List<EmployeeSkill> employeeSkills = new ArrayList<>();
 
-  @OneToMany(mappedBy = "employee", cascade = CascadeType.ALL, fetch = FetchType.LAZY, orphanRemoval = true)
+  @OneToMany(mappedBy = "employee", cascade = CascadeType.ALL, fetch = FetchType.EAGER, orphanRemoval = true)
   private List<Qualification> qualifications = new ArrayList<>();
 
-  @OneToMany(mappedBy = "employee", cascade = CascadeType.ALL, fetch = FetchType.LAZY, orphanRemoval = true)
+  @OneToMany(mappedBy = "employee", cascade = CascadeType.ALL, fetch = FetchType.EAGER, orphanRemoval = true)
   private List<PerformanceReview> performanceReviews = new ArrayList<>();
 
-  @OneToMany(mappedBy = "employee", cascade = CascadeType.ALL, fetch = FetchType.LAZY, orphanRemoval = true)
+  @OneToMany(mappedBy = "employee", cascade = CascadeType.ALL, fetch = FetchType.EAGER, orphanRemoval = true)
   private List<SalaryRecord> salaryRecords = new ArrayList<>();
 
-  @OneToMany(mappedBy = "employee", cascade = CascadeType.ALL, fetch = FetchType.LAZY, orphanRemoval = true)
+  @OneToMany(mappedBy = "employee", cascade = CascadeType.ALL, fetch = FetchType.EAGER, orphanRemoval = true)
   private List<Leave> leaves = new ArrayList<>();
 
-  @OneToMany(mappedBy = "employee", cascade = CascadeType.ALL, fetch = FetchType.LAZY, orphanRemoval = true)
+  @OneToMany(mappedBy = "employee", cascade = CascadeType.ALL, fetch = FetchType.EAGER, orphanRemoval = true)
   private List<Attendance> attendances = new ArrayList<>();
 
-  @OneToMany(mappedBy = "employee", cascade = CascadeType.ALL, fetch = FetchType.LAZY, orphanRemoval = true)
+  @OneToMany(mappedBy = "employee", cascade = CascadeType.ALL, fetch = FetchType.EAGER, orphanRemoval = true)
   private List<Allowance> allowances = new ArrayList<>();
 
   @OneToOne(mappedBy = "employee", cascade = CascadeType.ALL)
@@ -123,16 +124,6 @@ public class Employee {
   @PreUpdate
   protected void onUpdate() {
     updatedAt = LocalDateTime.now();
-  }
-
-  public void addDependent(Dependent dependent) {
-    dependents.add(dependent);
-    dependent.setEmployee(this);
-  }
-
-  public void removeDependent(Dependent dependent) {
-    dependents.remove(dependent);
-    dependent.setEmployee(null);
   }
 
   @Override
