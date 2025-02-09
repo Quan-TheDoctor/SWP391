@@ -1,6 +1,6 @@
-<div class="p-2 bg-blue-50 h-full">
+<div class="p-8 bg-blue-50 h-full">
     <div class="segments">
-        <!--/*@thymesVar id="employee" type="com.se1873.js.springboot.management.entity.Employee"*/-->
+        <!--/*@thymesVar id="employee" type="com.se1873.js.springboot.project.entity.Employee"*/-->
         <a th:href="@{/employee/view(employeeId=${employee.getEmployeeId()}, tab='personal', edit=${edit})}"
            class="segment-tab">
             <div th:class="${tab == 'personal' ? 'text-[#5E5ADB] title-3rem' : 'title-3rem'}">Personal and Contact</div>
@@ -31,617 +31,548 @@
                 </svg>
             </div>
         </a>
+        <a th:href="@{/employee/view(employeeId=${employee.getEmployeeId()}, tab='skillsAndQualifications', edit=${edit})}"
+           class="segment-tab">
+            <div th:class="${tab == 'skillsAndQualifications' ? 'text-[#5E5ADB] title-3rem' : 'title-3rem'}">Skills and Qualifications</div>
+            <div class="self-stretch">
+                <svg xmlns="http://www.w3.org/2000/svg" width="auto" height="2" viewBox="0 0 153 2" fill="none">
+                    <path d="M0 1H153" th:stroke="${tab == 'skillsAndQualifications' ? '#5E5ADB' : '#464F60'}"
+                          stroke-width="2"/>
+                </svg>
+            </div>
+        </a>
     </div>
-    <div class="segment-btns">
-        <div th:switch="${edit}">
-            <div th:case="${false}">
-                <a th:href="@{/employee/view(employeeId=${employee.getEmployeeId()}, tab = ${tab}, edit = true)}"
-                   th:text="Edit"
-                   class="add-btn-disabled"/>
-                <a th:href="@{/employee}"
-                   class="add-btn-disabled">Back to main</a>
-            </div>
-            <div th:case="${true}">
-                <a th:href="@{/employee/update}"
-                   th:text="Save"
-                   class="add-btn-enabled"/>
-                <a th:href="@{/employee/view(employeeId=${employee.getEmployeeId()}, tab = ${tab}, edit = ${!edit})}"
-                   class="add-btn-enabled">Cancel</a>
-            </div>
+    <div class="flex">
+        <div class="avatar-sections shrink-0 w-1/6">
+            Avatar HERE
         </div>
-    </div>
-    <div class="segment-content">
-        <div th:if="${tab == 'personal'}" class="scrollable-div">
-            <div class="tieu-de-section-va-btns-col">
-                <span class="title-3rem">Personal</span>
-                <div class="flex justify-start items-start self-stretch gap-[10rem]">
-                    <div class="">
-                        <div class="title-of-field">First name</div>
-                        <label>
-                            <input class="input-fields"
-                                   type="text"
-                                   placeholder="Input your data..."
-                                   th:field="*{employee.firstName}"
-                                   th:readonly="${!edit}">
-                        </label>
+        <div class="segment-content flex-grow">
+            <form th:action="@{/employee/update}"
+                  method="GET"
+                  th:object="${employee}">
+                <input type="hidden" th:name="employeeId" th:value="${employee.getEmployeeId()}"/>
+                <div class="segment-btns">
+                    <div th:switch="${edit}">
+                        <div th:case="${false}">
+                            <a th:href="@{/employee/view(employeeId=${employee.getEmployeeId()}, tab = ${tab}, edit = true)}"
+                               th:text="Edit"
+                               class="add-btn-disabled"/>
+                            <a th:href="@{/employee}"
+                               class="add-btn-disabled">Back to main</a>
+                        </div>
+                        <div th:case="${true}">
+                            <a th:href="@{/employee/update}"
+                               th:text="Save"
+                               class="add-btn-enabled"/>
+                            <a th:href="@{/employee/view(employeeId=${employee.getEmployeeId()}, tab = ${tab}, edit = ${!edit})}"
+                               class="add-btn-enabled">Cancel</a>
+                        </div>
                     </div>
                 </div>
-            </div>
+                <div th:if="${tab == 'personal'}" class="scrollable-div">
+                    <div class="tieu-de-section-va-btns-col">
+                        <span class="title-3rem">Personal</span>
+                        <div class="input-section">
+                            <div class="split-div">
+                                <div class="">
+                                    <label class="title-of-field">First name
+                                    </label>
+                                    <input class="input-fields"
+                                           type="text"
+                                           placeholder="Input your data..."
+                                           th:field="*{firstName}"
+                                           th:readonly="${!edit}">
+                                </div>
+                                <div class="">
+                                    <label class="title-of-field">Last name
+                                    </label>
+                                    <input class="input-fields"
+                                           type="text"
+                                           placeholder="Input your data..."
+                                           th:field="*{lastName}"
+                                           th:readonly="${!edit}">
+                                </div>
+                            </div>
+                            <div class="split-div">
+                                <div class="">
+                                    <label class="title-of-field">Birth date
+                                    </label>
+                                    <input class="input-fields"
+                                           type="text"
+                                           placeholder="Input your data..."
+                                           th:field="*{birthDate}"
+                                           th:readonly="${!edit}">
+                                </div>
+                                <div class="">
+                                    <label class="title-of-field">Gender
+                                    </label>
+                                    <input class="input-fields"
+                                           type="text"
+                                           placeholder="Input your data..."
+                                           th:field="*{gender}"
+                                           th:readonly="${!edit}">
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="tieu-de-section-va-btns-col">
+                        <span class="title-3rem">Contact</span>
+                        <div class="input-section">
+                            <div class="split-div">
+                                <div class="">
+                                    <label class="title-of-field">Address
+                                    </label>
+                                    <input class="input-fields"
+                                           type="text"
+                                           placeholder="Input your data..."
+                                           th:field="*{permanentAddress}"
+                                           th:readonly="${!edit}">
+                                </div>
+                                <div class="">
+                                    <label class="title-of-field">Temporary Address
+                                    </label>
+                                    <input class="input-fields"
+                                           type="text"
+                                           placeholder="Input your data..."
+                                           th:field="*{temporaryAddress}"
+                                           th:readonly="${!edit}">
+                                </div>
+                            </div>
+                            <div class="split-div">
+                                <div class="">
+                                    <label class="title-of-field">E-mail
+                                    </label>
+                                    <input class="input-fields"
+                                           type="text"
+                                           placeholder="Input your data..."
+                                           th:field="*{personalEmail}"
+                                           th:readonly="${!edit}">
+                                </div>
+                                <div class="">
+                                    <label class="title-of-field">Company E-mail
+                                    </label>
+                                    <input class="input-fields"
+                                           type="text"
+                                           placeholder="Input your data..."
+                                           th:field="*{companyEmail}"
+                                           th:readonly="${!edit}">
+                                </div>
+                            </div>
+                            <div class="split-div">
+                                <div class="">
+                                    <label class="title-of-field">Phone number
+                                    </label>
+                                    <input class="input-fields"
+                                           type="text"
+                                           placeholder="Input your data..."
+                                           th:field="*{phoneNumber}"
+                                           th:readonly="${!edit}">
+                                </div>
+                                <div class="">
+                                    <label class="title-of-field">Marital Status
+                                    </label>
+                                    <input class="input-fields"
+                                           type="text"
+                                           placeholder="Input your data..."
+                                           th:field="*{maritalStatus}"
+                                           th:readonly="${!edit}">
+                                </div>
+                            </div>
+                        </div>
+                        <div class="tieu-de-section-va-btns-col">
+                            <span class="title-3rem">Financial</span>
+                            <div class="input-section">
+                                <div class="split-div">
+
+                                    <div class="">
+                                        <label class="title-of-field">Bank name
+                                        </label>
+                                        <input class="input-fields"
+                                               type="text"
+                                               placeholder="Input your data..."
+                                               th:field="*{bankName}"
+                                               th:readonly="${!edit}">
+                                    </div>
+                                    <div class="">
+                                        <label class="title-of-field">Bank Account
+                                        </label>
+                                        <input class="input-fields"
+                                               type="text"
+                                               placeholder="Input your data..."
+                                               th:field="*{bankAccount}"
+                                               th:readonly="${!edit}">
+                                    </div>
+                                </div>
+                                <div class="split-div">
+                                    <div class="">
+                                        <label class="title-of-field">Tax code
+                                        </label>
+                                        <input class="input-fields"
+                                               type="text"
+                                               placeholder="Input your data..."
+                                               th:field="*{taxCode}"
+                                               th:readonly="${!edit}">
+                                    </div>
+                                    <div class="">
+                                        <label class="title-of-field">ID No
+                                        </label>
+                                        <input class="input-fields"
+                                               type="text"
+                                               placeholder="Input your data..."
+                                               th:field="*{idNumber}"
+                                               th:readonly="${!edit}">
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <!--/*@thymesVar id="employee" type="com.se1873.js.springboot.project.entity.Employee"*/-->
+                <div th:if="${tab == 'job'}" class="scrollable-div">
+                    <div class="tieu-de-section-va-btns-col">
+                        <span class="title-3rem">Work</span>
+                        <div class="input-section">
+                            <div class="split-div">
+                                <div class="">
+                                    <label class="title-of-field">Employee no
+                                    </label>
+                                    <input class="input-fields"
+                                           type="text"
+                                           placeholder="Input your data..."
+                                           th:field="*{employeeCode}"
+                                           th:readonly="${!edit}">
+                                </div>
+                                <div class="" th:each="history, stat : ${employee.employmentHistories}"
+                                     th:if="${history.isCurrent}">
+                                    <label class="title-of-field">Department name</label>
+                                    <input class="input-fields"
+                                           type="text"
+                                           placeholder="Input your data..."
+                                           th:name="|employmentHistories[${stat.index}].department.departmentName|"
+                                           th:value="${history.department.departmentName}"
+                                           th:readonly="${!edit}">
+
+                                    <input type="hidden" th:name="|employmentHistories[${stat.index}].historyId|"
+                                           th:value="${history.historyId}"/>
+                                    <input type="hidden" th:name="|employmentHistories[${stat.index}].isCurrent|"
+                                           th:value="${history.isCurrent}"/>
+                                </div>
+                            </div>
+                            <div class="split-div">
+                                <div class="" th:each="history, stat : ${employee.employmentHistories}"
+                                     th:if="${history.isCurrent}">
+                                    <label class="title-of-field">Position name</label>
+                                    <input class="input-fields"
+                                           type="text"
+                                           placeholder="Input your data..."
+                                           th:name="|employmentHistories[${stat.index}].position.positionName|"
+                                           th:value="${history.position.positionName}"
+                                           th:readonly="${!edit}">
+
+                                    <input type="hidden" th:name="|employmentHistories[${stat.index}].historyId|"
+                                           th:value="${history.historyId}"/>
+                                    <input type="hidden" th:name="|employmentHistories[${stat.index}].isCurrent|"
+                                           th:value="${history.isCurrent}"/>
+                                </div>
+                                <div class="" th:each="history, stat : ${employee.employmentHistories}"
+                                     th:if="${history.isCurrent}">
+                                    <label class="title-of-field">Since</label>
+                                    <input class="input-fields"
+                                           type="text"
+                                           placeholder="Input your data..."
+                                           th:name="|employmentHistories[${stat.index}].startDate|"
+                                           th:value="${history.startDate}"
+                                           th:readonly="${!edit}">
+
+                                    <input type="hidden" th:name="|employmentHistories[${stat.index}].historyId|"
+                                           th:value="${history.historyId}"/>
+                                    <input type="hidden" th:name="|employmentHistories[${stat.index}].isCurrent|"
+                                           th:value="${history.isCurrent}"/>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="tieu-de-section-va-btns-col">
+                        <span class="title-3rem">Contract</span>
+                        <div class="input-section">
+                            <div class="split-div">
+                                <div class="" th:each="contract, stat : ${employee.contracts}"
+                                     th:if="${contract.isPresent()}">
+                                    <label class="title-of-field">Base Salary</label>
+                                    <input class="input-fields"
+                                           type="text"
+                                           placeholder="Input your data..."
+                                           th:name="|contracts[${stat.index}].baseSalary|"
+                                           th:value="${T(java.lang.String).format('%,.0f', contract.baseSalary)}"
+                                           th:readonly="${!edit}">
+
+                                    <input type="hidden" th:name="|contracts[${stat.index}].contractId|"
+                                           th:value="${contract.getContractId()}"/>
+                                    <input type="hidden" th:name="|contracts[${stat.index}].isPresent|"
+                                           th:value="${contract.isPresent()}"/>
+                                </div>
+                                <div class="" th:each="contract, stat : ${employee.contracts}"
+                                     th:if="${contract.isPresent()}">
+                                    <label class="title-of-field">Type</label>
+                                    <input class="input-fields"
+                                           type="text"
+                                           placeholder="Input your data..."
+                                           th:name="|contracts[${stat.index}].contractType|"
+                                           th:value="${contract.contractType}"
+                                           th:readonly="${!edit}">
+
+                                    <input type="hidden" th:name="|contracts[${stat.index}].contractId|"
+                                           th:value="${contract.getContractId()}"/>
+                                    <input type="hidden" th:name="|contracts[${stat.index}].isPresent|"
+                                           th:value="${contract.isPresent()}"/>
+                                </div>
+                            </div>
+                            <div class="split-div">
+                                <div class="" th:each="contract, stat : ${employee.contracts}"
+                                     th:if="${contract.isPresent()}">
+                                    <label class="title-of-field">From</label>
+                                    <input class="input-fields"
+                                           type="text"
+                                           placeholder="Input your data..."
+                                           th:name="|contracts[${stat.index}].startDate|"
+                                           th:value="${contract.startDate}"
+                                           th:readonly="${!edit}">
+
+                                    <input type="hidden" th:name="|contracts[${stat.index}].contractId|"
+                                           th:value="${contract.getContractId()}"/>
+                                    <input type="hidden" th:name="|contracts[${stat.index}].isPresent|"
+                                           th:value="${contract.isPresent()}"/>
+                                </div>
+                                <div class="" th:each="contract, stat : ${employee.contracts}"
+                                     th:if="${contract.isPresent()}">
+                                    <label class="title-of-field">To</label>
+                                    <input class="input-fields"
+                                           type="text"
+                                           placeholder="Input your data..."
+                                           th:name="|contracts[${stat.index}].endDate|"
+                                           th:value="${contract.endDate}"
+                                           th:readonly="${!edit}">
+
+                                    <input type="hidden" th:name="|contracts[${stat.index}].contractId|"
+                                           th:value="${contract.getContractId()}"/>
+                                    <input type="hidden" th:name="|contracts[${stat.index}].isPresent|"
+                                           th:value="${contract.isPresent()}"/>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div th:if="${tab == 'dependent'}" class="scrollable-div">
+                    <div class="tieu-de-section-va-btns-col">
+                        <div class="flex justify-start w-full">
+                            <span class="title-3rem">Dependents</span>
+                            <button class="add-btn-enabled" th:if="${edit}" type="button" id="add-dependent-btn">ADD
+                            </button>
+                        </div>
+                        <div id="dependent-container">
+                            <div class="input-section" th:each="dependent, stat : ${employee.dependents}">
+                                <input type="hidden" th:name="|dependents[${stat.index}].dependentId|"
+                                       th:value="${dependent.dependentId}"/>
+                                <div class="split-div">
+                                    <div class="">
+                                        <label class="title-of-field">Name</label>
+                                        <input class="input-fields"
+                                               type="text"
+                                               placeholder="Input your data..."
+                                               th:name="|dependents[${stat.index}].fullName|"
+                                               th:value="${dependent.fullName}"
+                                               th:readonly="${!edit}">
+                                    </div>
+                                    <div class="">
+                                        <label class="title-of-field">Birth date</label>
+                                        <input class="input-fields"
+                                               type="text"
+                                               placeholder="Input your data..."
+                                               th:name="|dependents[${stat.index}].birthDate|"
+                                               th:value="${dependent.birthDate}"
+                                               th:readonly="${!edit}">
+                                    </div>
+                                </div>
+                                <div class="split-div">
+                                    <div class="">
+                                        <label class="title-of-field">ID no</label>
+                                        <input class="input-fields"
+                                               type="text"
+                                               placeholder="Input your data..."
+                                               th:name="|dependents[${stat.index}].idNumber|"
+                                               th:value="${dependent.idNumber}"
+                                               th:readonly="${!edit}">
+                                    </div>
+                                    <div class="">
+                                        <label class="title-of-field">Proficiency Level</label>
+                                        <input class="input-fields"
+                                               type="text"
+                                               placeholder="Input your data..."
+                                               th:name="|dependents[${stat.index}].relationship|"
+                                               th:value="${dependent.relationship}"
+                                               th:readonly="${!edit}">
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div th:if="${tab == 'skillsAndQualifications'}" class="scrollable-div">
+                    <div class="tieu-de-section-va-btns-col">
+                        <span class="title-3rem">Qualifications</span>
+                        <div class="input-section" th:each="qualification, stat : ${employee.qualifications}">
+                            <input type="hidden" th:name="|qualifications[${stat.index}].qualificationId|"
+                                   th:value="${qualification.qualificationId}"/>
+                            <div class="split-div">
+                                <div class="">
+                                    <label class="title-of-field">Name</label>
+                                    <input class="input-fields"
+                                           type="text"
+                                           placeholder="Input your data..."
+                                           th:name="|qualifications[${stat.index}].qualificationName|"
+                                           th:value="${qualification.qualificationName}"
+                                           th:readonly="${!edit}">
+                                </div>
+                                <div class="">
+                                    <label class="title-of-field">Type</label>
+                                    <input class="input-fields"
+                                           type="text"
+                                           placeholder="Input your data..."
+                                           th:name="|qualifications[${stat.index}].qualificationType|"
+                                           th:value="${qualification.qualificationType}"
+                                           th:readonly="${!edit}">
+                                </div>
+                            </div>
+                            <div class="split-div">
+                                <div class="">
+                                    <label class="title-of-field">Institution</label>
+                                    <input class="input-fields"
+                                           type="text"
+                                           placeholder="Input your data..."
+                                           th:name="|qualifications[${stat.index}].institution|"
+                                           th:value="${qualification.institution}"
+                                           th:readonly="${!edit}">
+                                </div>
+                                <div class="">
+                                    <label class="title-of-field">Description</label>
+                                    <input class="input-fields"
+                                           type="text"
+                                           placeholder="Input your data..."
+                                           th:name="|qualifications[${stat.index}].description|"
+                                           th:value="${qualification.description}"
+                                           th:readonly="${!edit}">
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="tieu-de-section-va-btns-col">
+                        <span class="title-3rem">Skills</span>
+                        <div class="input-section" th:each="skill, stat : ${employee.employeeSkills}">
+                            <input type="hidden" th:name="|employeeSkills[${stat.index}].skillId|"
+                                   th:value="${skill.skillId}"/>
+                            <div class="split-div">
+                                <div class="">
+                                    <label class="title-of-field">Name</label>
+                                    <input class="input-fields"
+                                           type="text"
+                                           placeholder="Input your data..."
+                                           th:name="|employeeSkills[${stat.index}].skillName|"
+                                           th:value="${skill.skillName}"
+                                           th:readonly="${!edit}">
+                                </div>
+                                <div class="">
+                                    <label class="title-of-field">Description</label>
+                                    <input class="input-fields"
+                                           type="text"
+                                           placeholder="Input your data..."
+                                           th:name="|employeeSkills[${stat.index}].qualificationType|"
+                                           th:value="${skill.description}"
+                                           th:readonly="${!edit}">
+                                </div>
+                            </div>
+                            <div class="split-div">
+                                <div class="">
+                                    <label class="title-of-field">Years of Experiences</label>
+                                    <input class="input-fields"
+                                           type="text"
+                                           placeholder="Input your data..."
+                                           th:name="|employeeSkills[${stat.index}].yearsOfExperience|"
+                                           th:value="${skill.yearsOfExperience}"
+                                           th:readonly="${!edit}">
+                                </div>
+                                <div class="">
+                                    <label class="title-of-field">Proficiency Level</label>
+                                    <input class="input-fields"
+                                           type="text"
+                                           placeholder="Input your data..."
+                                           th:name="|employeeSkills[${stat.index}].proficiencyLevel|"
+                                           th:value="${skill.proficiencyLevel}"
+                                           th:readonly="${!edit}">
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </form>
         </div>
     </div>
 </div>
-<!--<script>-->
-<!--    document.addEventListener('DOMContentLoaded', function () {-->
+<script>
+    document.addEventListener('DOMContentLoaded', function () {
+        DependentHandler.initialize();
+    });
+</script>
 
-
-<!--        DependentHandler.initialize();-->
-<!--    });-->
-<!--</script>-->
-<!--&lt;!&ndash;/*@thymesVar id="employee" type="com.se1873.js.springboot.project.dto.EmployeeDTO"*/&ndash;&gt;-->
-<!--<div class="p-2 bg-blue-50 h-full">-->
-<!--    <div class="flex h-full">-->
-<!--        <div class="flex flex-col shrink-0 mt-[10rem] mx-[5rem]">-->
-<!--            &lt;!&ndash; Set fixed size for the avatar and prevent shrinking &ndash;&gt;-->
-<!--            &lt;!&ndash;            <img class="bg-gray-200 w-[15rem] shrink-0" th:src="${employee.getEmployeeAvatarUrl()}">&ndash;&gt;-->
-<!--        </div>-->
-<!--        <div class="w-full p-2">-->
-<!--            <div class="flex items-start gap-[4rem] self-stretch p-2">-->
-<!--                <a th:href="@{/employee/view(employeeId=${employee.getEmployeeId()}, tab='personal', edit=${edit})}"-->
-<!--                   class="flex flex-col justify-center items-center gap-2 ">-->
-<!--                    <div class="title-3rem ${tab == 'personal' ? 'text-[#5E5ADB]' : ''}">Personal and Contact</div>-->
-<!--                    <div class="self-stretch">-->
-<!--                        <svg xmlns="http://www.w3.org/2000/svg" width="auto" height="2" viewBox="0 0 153 2" fill="none">-->
-<!--                            <path d="M0 1H153" th:stroke="${tab == 'personal' ? '#5E5ADB' : '#464F60'}"-->
-<!--                                  stroke-width="2"/>-->
-<!--                        </svg>-->
-<!--                    </div>-->
-<!--                </a>-->
-<!--                <a th:href="@{/employee/view(employeeId=${employee.getEmployeeId()}, tab='job', edit=${edit})}"-->
-<!--                   class="flex flex-col justify-center items-center gap-2 ">-->
-<!--                    <div class="title-3rem ${tab == 'job' ? 'text-[#5E5ADB]' : ''}">Job Information</div>-->
-<!--                    <div class="self-stretch">-->
-<!--                        <svg xmlns="http://www.w3.org/2000/svg" width="auto" height="2" viewBox="0 0 153 2" fill="none">-->
-<!--                            <path d="M0 1H153" th:stroke="${tab == 'job' ? '#5E5ADB' : '#464F60'}"-->
-<!--                                  stroke-width="2"/>-->
-<!--                        </svg>-->
-<!--                    </div>-->
-<!--                </a>-->
-<!--                <a th:href="@{/employee/view(employeeId=${employee.getEmployeeId()}, tab='dependant', edit=${edit})}"-->
-<!--                   class="flex flex-col justify-center items-center gap-2 ">-->
-<!--                    <div class="title-3rem ${tab == 'dependant' ? 'text-[#5E5ADB]' : ''}">Dependants</div>-->
-<!--                    <div class="self-stretch">-->
-<!--                        <svg xmlns="http://www.w3.org/2000/svg" width="auto" height="2" viewBox="0 0 153 2" fill="none">-->
-<!--                            <path d="M0 1H153" th:stroke="${tab == 'dependant' ? '#5E5ADB' : '#464F60'}"-->
-<!--                                  stroke-width="2"/>-->
-<!--                        </svg>-->
-<!--                    </div>-->
-<!--                </a>-->
-<!--                <a th:href="@{/employee/view(employeeId=${employee.getEmployeeId()}, tab='dependant', edit=${edit})}"-->
-<!--                   class="flex flex-col justify-center items-center gap-2 ">-->
-<!--                    <div class="title-3rem ${tab == 'dependant' ? 'text-[#5E5ADB]' : ''}">Dependants</div>-->
-<!--                    <div class="self-stretch">-->
-<!--                        <svg xmlns="http://www.w3.org/2000/svg" width="auto" height="2" viewBox="0 0 153 2" fill="none">-->
-<!--                            <path d="M0 1H153" th:stroke="${tab == 'dependant' ? '#5E5ADB' : '#464F60'}"-->
-<!--                                  stroke-width="2"/>-->
-<!--                        </svg>-->
-<!--                    </div>-->
-<!--                </a>-->
-<!--            </div>-->
-<!--            <form th:action="@{/employee/update(id=${employee.getEmployeeId()})}"-->
-<!--                  th:method="GET"-->
-<!--                  th:object="${employee}">-->
-<!--                <div th:switch="${edit}">-->
-<!--                    <div th:case="${false}" class="flex items-end justify-end gap-[4rem] mx-[2rem]">-->
-<!--                        <a class="bg-red-200 px-5 py-2 text-right rounded"-->
-<!--                           th:href="@{/employee/view(edit=true, id=${employee.getEmployeeId()}, tab=${tab})}"-->
-<!--                           th:text="Edit"></a>-->
-<!--                        <a class="bg-gray-200 px-5 py-2 text-right rounded"-->
-<!--                           th:href="@{/employee}"-->
-<!--                           th:text="Close"></a>-->
-<!--                    </div>-->
-<!--                    <div th:case="${true}" class="flex items-end justify-end gap-[4rem] mx-[2rem]">-->
-<!--                        <button class="bg-red-200 px-5 py-2 text-right rounded"-->
-<!--                                th:text="Save"-->
-<!--                                id="saveBtn"></button>-->
-<!--                        <a class="bg-gray-200 px-5 py-2 text-right rounded"-->
-<!--                           th:href="@{/employee/view(edit=false, id=${employee.getEmployeeId()})}"-->
-<!--                           th:text="Cancel"></a>-->
-<!--                    </div>-->
-<!--                </div>-->
-<!--                <input type="hidden" th:field="*{employee.employeeId}">-->
-<!--                <div th:class="${tab != 'personal' ? 'hidden ' : ''}">-->
-<!--                    <div class="tieu-de-section-va-btns-col scrollable-div">-->
-<!--                        <span class="title-3rem">Personal</span>-->
-<!--                        <div class="flex justify-start items-start self-stretch gap-[10rem]">-->
-<!--                            <div class="">-->
-<!--                                <div class="title-of-field">First name</div>-->
-<!--                                <label>-->
-<!--                                    <input class="input-fields"-->
-<!--                                           type="text"-->
-<!--                                           placeholder="Input your data..."-->
-<!--                                           th:field="*{employee.firstName}"-->
-<!--                                           th:readonly="${!edit}">-->
-<!--                                </label>-->
-<!--                            </div>-->
-<!--                            <div class="">-->
-<!--                                <div class="title-of-field">Last name</div>-->
-<!--                                <label>-->
-<!--                                    <input class="input-fields"-->
-<!--                                           type="text"-->
-<!--                                           placeholder="Input your data..."-->
-<!--                                           th:field="*{employee.lastName}"-->
-<!--                                           th:readonly="${!edit}">-->
-<!--                                </label>-->
-<!--                            </div>-->
-<!--                            <div class="flex flex-col">-->
-<!--                                <div class="title-of-field">Gender</div>-->
-<!--                                <label>-->
-<!--                                    <select class="px-4 py-2 w-[20rem] flex shrink-0 items-center content-center rounded-lg"-->
-<!--                                            th:readonly="${!edit}">-->
-<!--                                        <option value="male" th:selected="*{employee.gender == 'male'}">Male</option>-->
-<!--                                        <option value="female" th:selected="*{employee.gender == 'female'}">Female-->
-<!--                                        </option>-->
-<!--                                    </select>-->
-<!--                                </label>-->
-<!--                            </div>-->
-<!--                            <div class="">-->
-<!--                                <div class="title-of-field">Birth date</div>-->
-<!--                                <label>-->
-<!--                                    <input class="input-fields"-->
-<!--                                           type="date"-->
-<!--                                           placeholder="Input your data..."-->
-<!--                                           th:field="*{employee.birthDate}"-->
-<!--                                           th:value="${{employee.getBirthDate()}}"-->
-<!--                                           th:readonly="${!edit}">-->
-<!--                                </label>-->
-<!--                            </div>-->
-<!--                        </div>-->
-<!--                        <div class="flex justify-start items-start self-stretch gap-[10rem]">-->
-<!--                            <div class="">-->
-<!--                                <div class="title-of-field">ID no</div>-->
-<!--                                <label>-->
-<!--                                    <input class="input-fields"-->
-<!--                                           type="text"-->
-<!--                                           placeholder="Input your data..."-->
-<!--                                           th:field="*{employee.idNumber}"-->
-<!--                                           th:readonly="${!edit}">-->
-<!--                                </label>-->
-<!--                            </div>-->
-<!--                            <div class="">-->
-<!--                                <div class="title-of-field">Tax code</div>-->
-<!--                                <label>-->
-<!--                                    <input class="input-fields"-->
-<!--                                           type="text"-->
-<!--                                           placeholder="Input your data..."-->
-<!--                                           th:field="*{employee.taxCode}"-->
-<!--                                           th:readonly="${!edit}">-->
-<!--                                </label>-->
-<!--                            </div>-->
-<!--                            <div class="flex flex-col">-->
-<!--                                <div class="title-of-field">Marital Status</div>-->
-<!--                                <label>-->
-<!--                                    <select class="px-4 py-2 w-[20rem] flex shrink-0 items-center content-center rounded-lg"-->
-<!--                                            th:readonly="${!edit}">-->
-<!--                                        <option value="Độc thân" th:selected="*{employee.maritalStatus == 'Độc thân'}">-->
-<!--                                            Độc-->
-<!--                                            thân-->
-<!--                                        </option>-->
-<!--                                        <option value="Đã kết hôn"-->
-<!--                                                th:selected="*{employee.maritalStatus == 'Đã kết hôn'}">Đã-->
-<!--                                            kết hôn-->
-<!--                                        </option>-->
-<!--                                    </select>-->
-<!--                                </label>-->
-<!--                            </div>-->
-<!--                        </div>-->
-<!--                            <div class="tieu-de-section-va-btns-col">-->
-<!--                                <span class="title-3rem">Contact</span>-->
-<!--                                <div class="flex justify-start items-start self-stretch gap-[10rem]">-->
-<!--                                    <div class="">-->
-<!--                                        <div class="title-of-field">Address</div>-->
-<!--                                        <label>-->
-<!--                                            <input class="input-fields"-->
-<!--                                                   type="text"-->
-<!--                                                   placeholder="Input your data..."-->
-<!--                                                   th:field="*{employee.permanentAddress}"-->
-<!--                                                   th:readonly="${!edit}">-->
-<!--                                        </label>-->
-<!--                                    </div>-->
-<!--                                    <div class="">-->
-<!--                                        <div class="title-of-field">Temporary Address</div>-->
-<!--                                        <label>-->
-<!--                                            <input class="input-fields"-->
-<!--                                                   type="text"-->
-<!--                                                   placeholder="Input your data..."-->
-<!--                                                   th:field="*{employee.temporaryAddress}"-->
-<!--                                                   th:readonly="${!edit}">-->
-<!--                                        </label>-->
-<!--                                    </div>-->
-<!--                                    <div class="">-->
-<!--                                        <div class="title-of-field">Personal email</div>-->
-<!--                                        <label>-->
-<!--                                            <input class="input-fields"-->
-<!--                                                   type="text"-->
-<!--                                                   placeholder="Input your data..."-->
-<!--                                                   th:field="*{employee.personalEmail}"-->
-<!--                                                   th:readonly="${!edit}">-->
-<!--                                        </label>-->
-<!--                                    </div>-->
-<!--                                    <div class="">-->
-<!--                                        <div class="title-of-field">Company email</div>-->
-<!--                                        <label>-->
-<!--                                            <input class="input-fields"-->
-<!--                                                   type="text"-->
-<!--                                                   placeholder="Input your data..."-->
-<!--                                                   th:field="*{employee.companyEmail}"-->
-<!--                                                   th:readonly="${!edit}">-->
-<!--                                        </label>-->
-<!--                                    </div>-->
-<!--                                </div>-->
-<!--                                <div class="flex justify-start items-start self-stretch gap-[10rem]">-->
-<!--                                    <div class="">-->
-<!--                                        <div class="title-of-field">Phone number</div>-->
-<!--                                        <label>-->
-<!--                                            <input class="input-fields"-->
-<!--                                                   type="text"-->
-<!--                                                   placeholder="Input your data..."-->
-<!--                                                   th:field="*{employee.phoneNumber}"-->
-<!--                                                   th:readonly="${!edit}">-->
-<!--                                        </label>-->
-<!--                                    </div>-->
-<!--                                </div>-->
-<!--                            </div>-->
-<!--                            <div class="tieu-de-section-va-btns-col">-->
-<!--                                <span class="title-3rem">Banking</span>-->
-<!--                                <div class="flex justify-start items-start self-stretch gap-[10rem]">-->
-<!--                                    <div class="">-->
-<!--                                        <div class="title-of-field">Bank account</div>-->
-<!--                                        <label>-->
-<!--                                            <input class="input-fields"-->
-<!--                                                   type="text"-->
-<!--                                                   placeholder="Input your data..."-->
-<!--                                                   th:field="*{employee.bankAccount}"-->
-<!--                                                   th:readonly="${!edit}">-->
-<!--                                        </label>-->
-<!--                                    </div>-->
-<!--                                    <div class="">-->
-<!--                                        <div class="title-of-field">Bank name</div>-->
-<!--                                        <label>-->
-<!--                                            <input class="input-fields"-->
-<!--                                                   type="text"-->
-<!--                                                   placeholder="Input your data..."-->
-<!--                                                   th:field="*{employee.bankName}"-->
-<!--                                                   th:readonly="${!edit}">-->
-<!--                                        </label>-->
-<!--                                    </div>-->
-<!--                                </div>-->
-<!--                            </div>-->
-<!--                        </div>-->
-<!--                </div>-->
-<!--                <div th:class="${tab != 'job' ? 'hidden' : ''}">-->
-<!--                    <div class="scrollable-div">-->
-<!--                        <div class="tieu-de-section-va-btns-col">-->
-<!--                            <span class="title-3rem">Work</span>-->
-<!--                            <div class="flex justify-start items-start self-stretch gap-[10rem]">-->
-<!--                                <div class="">-->
-<!--                                    <div class="title-of-field">Employee no</div>-->
-<!--                                    <label>-->
-<!--                                        <input class="input-fields"-->
-<!--                                               type="text"-->
-<!--                                               placeholder="Input your data..."-->
-<!--                                               th:field="*{employee.employeeCode}"-->
-<!--                                               th:readonly="${!edit}">-->
-<!--                                    </label>-->
-<!--                                </div>-->
-<!--                                <div class="">-->
-<!--                                    <div class="title-of-field">Department</div>-->
-<!--                                    <div th:switch="${edit}">-->
-<!--                                        <label th:case="${false}">-->
-<!--                                            <input class="input-fields"-->
-<!--                                                   type="text"-->
-<!--                                                   placeholder="Input your data..."-->
-<!--                                                   th:field="*{department.departmentName}"-->
-<!--                                                   th:readonly="${!edit}">-->
-<!--                                        </label>-->
-<!--                                        <label th:case="${true}">-->
-<!--                                            &lt;!&ndash;/*@thymesVar id="d" type="com.se1873.js.springboot.project.entity.Department"*/&ndash;&gt;-->
-<!--                                            <select class="px-4 py-2 w-[20rem] flex shrink-0 items-center content-center rounded-lg"-->
-<!--                                                    th:readonly="${!edit}">-->
-<!--                                                <option th:each="d : ${departments}"-->
-<!--                                                        th:value="${d.getDepartmentId()}"-->
-<!--                                                        th:text="${d.getDepartmentName()}">-->
-<!--                                                </option>-->
-<!--                                            </select>-->
-<!--                                        </label>-->
-<!--                                    </div>-->
-<!--                                </div>-->
-<!--                                <div class="">-->
-<!--                                    <div class="title-of-field">Position</div>-->
-<!--                                    <div th:switch="${edit}">-->
-<!--                                        <label th:case="${false}">-->
-<!--                                            <input class="input-fields"-->
-<!--                                                   type="text"-->
-<!--                                                   placeholder="Input your data..."-->
-<!--                                                   th:field="*{position.positionName}"-->
-<!--                                                   th:readonly="${!edit}">-->
-<!--                                        </label>-->
-<!--                                        <label th:case="${true}">-->
-<!--                                            &lt;!&ndash;/*@thymesVar id="p" type="com.se1873.js.springboot.project.entity.Position"*/&ndash;&gt;-->
-<!--                                            <select class="px-4 py-2 w-[20rem] flex shrink-0 items-center content-center rounded-lg"-->
-<!--                                                    th:readonly="${!edit}">-->
-<!--                                                <option th:each="p : ${positions}"-->
-<!--                                                        th:value="${p.getPositionId()}"-->
-<!--                                                        th:text="${p.getPositionName()}">-->
-<!--                                                </option>-->
-<!--                                            </select>-->
-<!--                                        </label>-->
-<!--                                    </div>-->
-<!--                                </div>-->
-<!--                                <div class="">-->
-<!--                                    <div class="title-of-field">Since</div>-->
-<!--                                    <label>-->
-<!--                                        <input class="input-fields"-->
-<!--                                               type="text"-->
-<!--                                               placeholder="Input your data..."-->
-<!--                                               th:field="*{currentEmploymentHistory.startDate}"-->
-<!--                                               th:readonly="${!edit}">-->
-<!--                                    </label>-->
-<!--                                </div>-->
-<!--                            </div>-->
-<!--                        </div>-->
-<!--                        <div class="tieu-de-section-va-btns-col">-->
-<!--                            <span class="title-3rem">Contract</span>-->
-<!--                            <div class="flex justify-start items-start self-stretch gap-[10rem]">-->
-<!--                                <div class="">-->
-<!--                                    <div class="title-of-field">Contract no</div>-->
-<!--                                    <label>-->
-<!--                                        <input class="input-fields"-->
-<!--                                               type="text"-->
-<!--                                               placeholder="Input your data..."-->
-<!--                                               th:field="*{currentContract.contractCode}"-->
-<!--                                               th:readonly="${!edit}">-->
-<!--                                    </label>-->
-<!--                                </div>-->
-<!--                                <div class="">-->
-<!--                                    <div class="title-of-field">Type</div>-->
-<!--                                    <label>-->
-<!--                                        <input class="input-fields"-->
-<!--                                               type="text"-->
-<!--                                               placeholder="Input your data..."-->
-<!--                                               th:field="*{currentContract.contractType}"-->
-<!--                                               th:readonly="${!edit}">-->
-<!--                                    </label>-->
-<!--                                </div>-->
-<!--                                <div class="">-->
-<!--                                    <input type="hidden" th:field="*{currentContract.baseSalary}">-->
-<!--                                    <div class="title-of-field">Base Salary</div>-->
-<!--                                    <label>-->
-<!--                                        <input class="input-fields"-->
-<!--                                               type="text"-->
-<!--                                               placeholder="Input your data..."-->
-<!--                                               th:value="${T(java.lang.String).format('%,.0f', employee.getCurrentContract().getBaseSalary())}"-->
-<!--                                               th:readonly="${!edit}">-->
-<!--                                    </label>-->
-<!--                                </div>-->
-<!--                                <div class="">-->
-<!--                                    <div class="title-of-field">Sign date</div>-->
-<!--                                    <label>-->
-<!--                                        <input class="input-fields"-->
-<!--                                               type="text"-->
-<!--                                               placeholder="Input your data..."-->
-<!--                                               th:field="*{currentContract.signDate}"-->
-<!--                                               th:readonly="${!edit}">-->
-<!--                                    </label>-->
-<!--                                </div>-->
-<!--                            </div>-->
-<!--                        </div>-->
-<!--                        <div class="tieu-de-section-va-btns-col">-->
-<!--                            <span class="title-3rem">Qualification</span>-->
-<!--                            <div class="tieu-de-section-va-btns-col"-->
-<!--                                 th:each="qualification, iterateStat : ${employee.getQualifications()}">-->
-<!--                                <div class="flex justify-start items-start self-stretch gap-[10rem]">-->
-<!--                                    <input type="hidden"-->
-<!--                                           th:field="*{qualifications[__${iterateStat.index}__].qualificationId}"/>-->
-<!--                                    <div class="">-->
-<!--                                        <div class="title-of-field">Name</div>-->
-<!--                                        <label>-->
-<!--                                            <input class="input-fields"-->
-<!--                                                   type="text"-->
-<!--                                                   placeholder="Input your data..."-->
-<!--                                                   th:field="*{qualifications[__${iterateStat.index}__].qualificationName}"-->
-<!--                                                   th:readonly="${!edit}">-->
-<!--                                        </label>-->
-<!--                                    </div>-->
-<!--                                    <div class="">-->
-<!--                                        <div class="title-of-field">Type</div>-->
-<!--                                        <label>-->
-<!--                                            <input class="input-fields"-->
-<!--                                                   type="text"-->
-<!--                                                   placeholder="Input your data..."-->
-<!--                                                   th:field="*{qualifications[__${iterateStat.index}__].qualificationType}"-->
-<!--                                                   th:readonly="${!edit}">-->
-<!--                                        </label>-->
-<!--                                    </div>-->
-<!--                                    <div class="">-->
-<!--                                        <div class="title-of-field">Institution</div>-->
-<!--                                        <label>-->
-<!--                                            <input class="input-fields"-->
-<!--                                                   type="text"-->
-<!--                                                   placeholder="Input your data..."-->
-<!--                                                   th:field="*{qualifications[__${iterateStat.index}__].institution}"-->
-<!--                                                   th:readonly="${!edit}">-->
-<!--                                        </label>-->
-<!--                                    </div>-->
-<!--                                </div>-->
-<!--                            </div>-->
-<!--                        </div>-->
-<!--                        <div class="tieu-de-section-va-btns-col">-->
-<!--                            <span class="title-3rem">Skills</span>-->
-<!--                            <div class="tieu-de-section-va-btns-col"-->
-<!--                                 th:each="skill, iterateStat : ${employee.getEmployeeSkills()}">-->
-<!--                                <div class="flex justify-start items-start self-stretch gap-[10rem]">-->
-<!--                                    <input type="hidden"-->
-<!--                                           th:field="*{employeeSkills[__${iterateStat.index}__].skillId}"/>-->
-<!--                                    <div class="">-->
-<!--                                        <div class="title-of-field">Name</div>-->
-<!--                                        <label>-->
-<!--                                            <input class="input-fields"-->
-<!--                                                   type="text"-->
-<!--                                                   placeholder="Input your data..."-->
-<!--                                                   th:field="*{employeeSkills[__${iterateStat.index}__].skillName}"-->
-<!--                                                   th:readonly="${!edit}">-->
-<!--                                        </label>-->
-<!--                                    </div>-->
-<!--                                    <div class="">-->
-<!--                                        <div class="title-of-field">Description</div>-->
-<!--                                        <label>-->
-<!--                                            <input class="input-fields"-->
-<!--                                                   type="text"-->
-<!--                                                   placeholder="Input your data..."-->
-<!--                                                   th:field="*{employeeSkills[__${iterateStat.index}__].description}"-->
-<!--                                                   th:readonly="${!edit}">-->
-<!--                                        </label>-->
-<!--                                    </div>-->
-<!--                                    <div class="">-->
-<!--                                        <div class="title-of-field">Proficiency Level</div>-->
-<!--                                        <label>-->
-<!--                                            <input class="input-fields"-->
-<!--                                                   type="text"-->
-<!--                                                   placeholder="Input your data..."-->
-<!--                                                   th:field="*{employeeSkills[__${iterateStat.index}__].proficiencyLevel}"-->
-<!--                                                   th:readonly="${!edit}">-->
-<!--                                        </label>-->
-<!--                                    </div>-->
-<!--                                    <div class="">-->
-<!--                                        <div class="title-of-field">Years</div>-->
-<!--                                        <label>-->
-<!--                                            <input class="input-fields"-->
-<!--                                                   type="text"-->
-<!--                                                   placeholder="Input your data..."-->
-<!--                                                   th:field="*{employeeSkills[__${iterateStat.index}__].yearsOfExperience}"-->
-<!--                                                   th:readonly="${!edit}">-->
-<!--                                        </label>-->
-<!--                                    </div>-->
-<!--                                </div>-->
-<!--                            </div>-->
-<!--                        </div>-->
-<!--                    </div>-->
-<!--                </div>-->
-<!--                <div th:class="${tab != 'dependant' ? 'hidden' : ''}">-->
-<!--                        <div class="scrollable-div">-->
-<!--                            <div class="tieu-de-section-va-btns">-->
-<!--                                <span class="title-3rem">Dependents</span>-->
-<!--                                <button th:class="${edit ? 'add-btn-enabled' : 'add-btn-disabled'}"-->
-<!--                                        id="add-dependent-btn"-->
-<!--                                        type="button"-->
-<!--                                        th:disabled="${!edit}">Add Dependent-->
-<!--                                </button>-->
-<!--                            </div>-->
-<!--                            <div class="tieu-de-section-va-btns-col" id="dependent-container">-->
-<!--                                <div th:each="dependent, iterateStat : ${employee.getDependents()}"-->
-<!--                                     class="flex justify-start items-end self-stretch gap-[10rem]">-->
-<!--                                    <input type="hidden"-->
-<!--                                           th:field="*{dependents[__${iterateStat.index}__].dependentId}"/>-->
-<!--                                    <div class="">-->
-<!--                                        <div class="title-of-field">Dependent name</div>-->
-<!--                                        <label>-->
-<!--                                            <input class="input-fields"-->
-<!--                                                   type="text"-->
-<!--                                                   placeholder="Input your data..."-->
-<!--                                                   th:field="*{dependents[__${iterateStat.index}__].fullName}"-->
-<!--                                                   th:readonly="${!edit}">-->
-<!--                                        </label>-->
-<!--                                    </div>-->
-<!--                                    <div class="">-->
-<!--                                        <div class="title-of-field">Birth date</div>-->
-<!--                                        <label>-->
-<!--                                            <input class="input-fields"-->
-<!--                                                   type="text"-->
-<!--                                                   placeholder="Input your data..."-->
-<!--                                                   th:field="*{dependents[__${iterateStat.index}__].birthDate}"-->
-<!--                                                   th:readonly="${!edit}">-->
-<!--                                        </label>-->
-<!--                                    </div>-->
-<!--                                    <div class="">-->
-<!--                                        <div class="title-of-field">ID no</div>-->
-<!--                                        <label>-->
-<!--                                            <input class="input-fields"-->
-<!--                                                   type="text"-->
-<!--                                                   placeholder="Input your data..."-->
-<!--                                                   th:field="*{dependents[__${iterateStat.index}__].idNumber}"-->
-<!--                                                   th:readonly="${!edit}">-->
-<!--                                        </label>-->
-<!--                                    </div>-->
-<!--                                    <div class="">-->
-<!--                                        <div class="title-of-field">Relationship</div>-->
-<!--                                        <label>-->
-<!--                                            <input class="input-fields"-->
-<!--                                                   type="text"-->
-<!--                                                   placeholder="Input your data..."-->
-<!--                                                   th:field="*{dependents[__${iterateStat.index}__].relationship}"-->
-<!--                                                   th:readonly="${!edit}">-->
-<!--                                        </label>-->
-<!--                                    </div>-->
-<!--                                    <button type="button"-->
-<!--                                            th:class="${edit ? 'add-btn-enabled' : 'add-btn-disabled'}"-->
-<!--                                            class="delete-btn"-->
-<!--                                            th:disabled="${!edit}"-->
-<!--                                            onclick="this.closest('.flex').remove()">Delete-->
-<!--                                    </button>-->
-<!--                                </div>-->
-<!--                            </div>-->
-<!--                        </div>-->
-<!--                </div>-->
-<!--            </form>-->
-<!--        </div>-->
-<!--    </div>-->
-<!--</div>-->
-<!--<template id="dependent-template">-->
-<!--    <div class="flex justify-start items-end self-stretch gap-[10rem]">-->
-<!--        <input type="hidden" name="dependents[].dependentId"/>-->
-<!--        <div class="">-->
-<!--            <div class="title-of-field">Dependent name</div>-->
-<!--            <label>-->
-<!--                <input class="input-fields"-->
-<!--                       type="text"-->
-<!--                       placeholder="Input your data..."-->
-<!--                       name="dependents[].fullName"-->
-<!--                       th:readonly="${!edit}"-->
-<!--                       required>-->
-<!--            </label>-->
-<!--        </div>-->
-<!--        <div class="">-->
-<!--            <div class="title-of-field">Birth date</div>-->
-<!--            <label>-->
-<!--                <input class="input-fields"-->
-<!--                       type="text"-->
-<!--                       placeholder="Input your data..."-->
-<!--                       name="dependents[].birthDate"-->
-<!--                       th:readonly="${!edit}"-->
-<!--                       required>-->
-<!--            </label>-->
-<!--        </div>-->
-<!--        <div class="">-->
-<!--            <div class="title-of-field">ID no</div>-->
-<!--            <label>-->
-<!--                <input class="input-fields"-->
-<!--                       type="text"-->
-<!--                       placeholder="Input your data..."-->
-<!--                       name="dependents[].idNumber"-->
-<!--                       th:readonly="${!edit}"-->
-<!--                       required>-->
-<!--            </label>-->
-<!--        </div>-->
-<!--        <div class="">-->
-<!--            <div class="title-of-field">Relationship</div>-->
-<!--            <label>-->
-<!--                <input class="input-fields"-->
-<!--                       type="text"-->
-<!--                       placeholder="Input your data..."-->
-<!--                       name="dependents[].relationship"-->
-<!--                       th:readonly="${!edit}"-->
-<!--                       required>-->
-<!--            </label>-->
-<!--        </div>-->
-<!--    </div>-->
-<!--</template>-->
+<template id="dependent-template">
+    <div class="input-section">
+        <input type="hidden" name="dependents[].dependentId"/>
+        <div class="split-div">
+            <div class="">
+                <div class="title-of-field">Dependent name</div>
+                <label>
+                    <input class="input-fields"
+                           type="text"
+                           placeholder="Input your data..."
+                           name="dependents[].fullName"
+                           th:readonly="${!edit}"
+                           required>
+                </label>
+            </div>
+            <div class="">
+                <div class="title-of-field">Birth date</div>
+                <label>
+                    <input class="input-fields"
+                           type="text"
+                           placeholder="Input your data..."
+                           name="dependents[].birthDate"
+                           th:readonly="${!edit}"
+                           required>
+                </label>
+            </div>
+        </div>
+        <div class="split-div">
+            <div class="">
+                <div class="title-of-field">ID no</div>
+                <label>
+                    <input class="input-fields"
+                           type="text"
+                           placeholder="Input your data..."
+                           name="dependents[].idNumber"
+                           th:readonly="${!edit}"
+                           required>
+                </label>
+            </div>
+            <div class="">
+                <div class="title-of-field">Relationship</div>
+                <label>
+                    <input class="input-fields"
+                           type="text"
+                           placeholder="Input your data..."
+                           name="dependents[].relationship"
+                           th:readonly="${!edit}"
+                           required>
+                </label>
+            </div>
+        </div>
+    </div>
+</template>

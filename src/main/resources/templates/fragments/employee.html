@@ -1,111 +1,115 @@
 <div class="p-2 bg-blue-50 h-full">
-    <a th:href="@{/employee/create}">CREATE</a>
-    <table class="w-full">
-        <thead>
-        <tr class="grid grid-cols-7 gap-4 w-full bg-gray-800 bg-opacity-25 rounded-lg px-2 py-4">
-            <th class="text-gray-500 font-[Roboto] truncate flex items-center gap-1">
-                <form class="flex items-center">
-                    <button>CODE</button>
-                    <svg xmlns="http://www.w3.org/2000/svg" width="16" height="17" viewBox="0 0 16 17" fill="none">
-                        <path d="M8.39043 14.0955C8.19027 14.3457 7.80973 14.3457 7.60957 14.0955L4.64988 10.3958C4.38797 10.0685 4.62106 9.5835 5.04031 9.5835H10.9597C11.3789 9.5835 11.612 10.0685 11.3501 10.3958L8.39043 14.0955Z"
-                              fill="#A1A9B8"/>
-                        <path d="M8.39043 3.07154C8.19027 2.82134 7.80973 2.82134 7.60957 3.07154L4.64988 6.77115C4.38797 7.09853 4.62106 7.5835 5.04031 7.5835H10.9597C11.3789 7.5835 11.612 7.09853 11.3501 6.77115L8.39043 3.07154Z"
-                              fill="#A1A9B8"/>
-                    </svg>
-                </form>
-            </th>
-            <th class="text-gray-500 font-[Roboto] truncate flex items-center gap-1">
-                <form class="flex items-center">
-                    <button>NAME</button>
-                    <svg xmlns="http://www.w3.org/2000/svg" width="16" height="17" viewBox="0 0 16 17" fill="none">
-                        <path d="M8.39043 14.0955C8.19027 14.3457 7.80973 14.3457 7.60957 14.0955L4.64988 10.3958C4.38797 10.0685 4.62106 9.5835 5.04031 9.5835H10.9597C11.3789 9.5835 11.612 10.0685 11.3501 10.3958L8.39043 14.0955Z"
-                              fill="#A1A9B8"/>
-                        <path d="M8.39043 3.07154C8.19027 2.82134 7.80973 2.82134 7.60957 3.07154L4.64988 6.77115C4.38797 7.09853 4.62106 7.5835 5.04031 7.5835H10.9597C11.3789 7.5835 11.612 7.09853 11.3501 6.77115L8.39043 3.07154Z"
-                              fill="#A1A9B8"/>
-                    </svg>
-                </form>
-            </th>
-            <th class="text-gray-500 font-[Roboto] truncate flex items-center gap-1">
-                <form class="flex items-center">
-                    <button>CONTACT</button>
-                    <svg xmlns="http://www.w3.org/2000/svg" width="16" height="17" viewBox="0 0 16 17" fill="none">
-                        <path d="M8.39043 14.0955C8.19027 14.3457 7.80973 14.3457 7.60957 14.0955L4.64988 10.3958C4.38797 10.0685 4.62106 9.5835 5.04031 9.5835H10.9597C11.3789 9.5835 11.612 10.0685 11.3501 10.3958L8.39043 14.0955Z"
-                              fill="#A1A9B8"/>
-                        <path d="M8.39043 3.07154C8.19027 2.82134 7.80973 2.82134 7.60957 3.07154L4.64988 6.77115C4.38797 7.09853 4.62106 7.5835 5.04031 7.5835H10.9597C11.3789 7.5835 11.612 7.09853 11.3501 6.77115L8.39043 3.07154Z"
-                              fill="#A1A9B8"/>
-                    </svg>
-                </form>
-            </th>
-            <th class="text-gray-500 font-[Roboto] truncate flex items-center gap-1">
-                <form class="flex items-center">
-                    <button>POSITION</button>
-                    <svg xmlns="http://www.w3.org/2000/svg" width="16" height="17" viewBox="0 0 16 17" fill="none">
-                        <path d="M8.39043 14.0955C8.19027 14.3457 7.80973 14.3457 7.60957 14.0955L4.64988 10.3958C4.38797 10.0685 4.62106 9.5835 5.04031 9.5835H10.9597C11.3789 9.5835 11.612 10.0685 11.3501 10.3958L8.39043 14.0955Z"
-                              fill="#A1A9B8"/>
-                        <path d="M8.39043 3.07154C8.19027 2.82134 7.80973 2.82134 7.60957 3.07154L4.64988 6.77115C4.38797 7.09853 4.62106 7.5835 5.04031 7.5835H10.9597C11.3789 7.5835 11.612 7.09853 11.3501 6.77115L8.39043 3.07154Z"
-                              fill="#A1A9B8"/>
-                    </svg>
-                </form>
-            </th>
-            <th class="text-gray-500 font-[Roboto] truncate flex items-center gap-1">
-                <form class="flex items-center">
-                    <button>DEPARTMENT</button>
-                    <svg xmlns="http://www.w3.org/2000/svg" width="16" height="17" viewBox="0 0 16 17" fill="none">
-                        <path d="M8.39043 14.0955C8.19027 14.3457 7.80973 14.3457 7.60957 14.0955L4.64988 10.3958C4.38797 10.0685 4.62106 9.5835 5.04031 9.5835H10.9597C11.3789 9.5835 11.612 10.0685 11.3501 10.3958L8.39043 14.0955Z"
-                              fill="#A1A9B8"/>
-                        <path d="M8.39043 3.07154C8.19027 2.82134 7.80973 2.82134 7.60957 3.07154L4.64988 6.77115C4.38797 7.09853 4.62106 7.5835 5.04031 7.5835H10.9597C11.3789 7.5835 11.612 7.09853 11.3501 6.77115L8.39043 3.07154Z"
-                              fill="#A1A9B8"/>
-                    </svg>
-                </form>
-            </th>
-            <th class="text-gray-500 font-[Roboto] truncate flex items-center gap-1">
-                <form class="flex items-center">
-                    <button>SALARY</button>
-                    <svg xmlns="http://www.w3.org/2000/svg" width="16" height="17" viewBox="0 0 16 17" fill="none">
-                        <path d="M8.39043 14.0955C8.19027 14.3457 7.80973 14.3457 7.60957 14.0955L4.64988 10.3958C4.38797 10.0685 4.62106 9.5835 5.04031 9.5835H10.9597C11.3789 9.5835 11.612 10.0685 11.3501 10.3958L8.39043 14.0955Z"
-                              fill="#A1A9B8"/>
-                        <path d="M8.39043 3.07154C8.19027 2.82134 7.80973 2.82134 7.60957 3.07154L4.64988 6.77115C4.38797 7.09853 4.62106 7.5835 5.04031 7.5835H10.9597C11.3789 7.5835 11.612 7.09853 11.3501 6.77115L8.39043 3.07154Z"
-                              fill="#A1A9B8"/>
-                    </svg>
-                </form>
-            </th>
-            <th class="text-gray-500 font-[Roboto] truncate flex items-center gap-1">
-                <form class="flex items-center">
-                    <button>JOINED DATE</button>
-                    <svg xmlns="http://www.w3.org/2000/svg" width="16" height="17" viewBox="0 0 16 17" fill="none">
-                        <path d="M8.39043 14.0955C8.19027 14.3457 7.80973 14.3457 7.60957 14.0955L4.64988 10.3958C4.38797 10.0685 4.62106 9.5835 5.04031 9.5835H10.9597C11.3789 9.5835 11.612 10.0685 11.3501 10.3958L8.39043 14.0955Z"
-                              fill="#A1A9B8"/>
-                        <path d="M8.39043 3.07154C8.19027 2.82134 7.80973 2.82134 7.60957 3.07154L4.64988 6.77115C4.38797 7.09853 4.62106 7.5835 5.04031 7.5835H10.9597C11.3789 7.5835 11.612 7.09853 11.3501 6.77115L8.39043 3.07154Z"
-                              fill="#A1A9B8"/>
-                    </svg>
-                </form>
-            </th>
-        </tr>
-        </thead>
-        <tbody>
-        <script>
-            document.addEventListener("DOMContentLoaded", function () {
-                const rows = document.querySelectorAll('.clickable');
-                rows.forEach(row => {
-                    row.addEventListener('click', function () {
-                        const employeeId = this.querySelector('input').value;
-                        window.location.href = `/employee/view?employeeId=${employeeId}&edit=false`;
+    <div class="flex flex-col">
+        <div class="segment-btns">
+            <a class="add-btn-enabled" th:href="@{/employee/create}">CREATE</a>
+        </div>
+        <table class="w-full">
+            <thead>
+            <tr class="grid grid-cols-7 gap-4 w-full bg-gray-800 bg-opacity-25 rounded-lg px-2 py-4">
+                <th class="text-gray-500 font-[Roboto] truncate flex items-center gap-1">
+                    <div class="flex items-center">
+                        <a th:href="@{/employee/sort(field='employeeCode', direction = ${direction == 'desc' ? 'asc' : 'desc'})}">CODE</a>
+                        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="17" viewBox="0 0 16 17" fill="none">
+                            <path d="M8.39043 14.0955C8.19027 14.3457 7.80973 14.3457 7.60957 14.0955L4.64988 10.3958C4.38797 10.0685 4.62106 9.5835 5.04031 9.5835H10.9597C11.3789 9.5835 11.612 10.0685 11.3501 10.3958L8.39043 14.0955Z"
+                                  fill="#A1A9B8"/>
+                            <path d="M8.39043 3.07154C8.19027 2.82134 7.80973 2.82134 7.60957 3.07154L4.64988 6.77115C4.38797 7.09853 4.62106 7.5835 5.04031 7.5835H10.9597C11.3789 7.5835 11.612 7.09853 11.3501 6.77115L8.39043 3.07154Z"
+                                  fill="#A1A9B8"/>
+                        </svg>
+                    </div>
+                </th>
+                <th class="text-gray-500 font-[Roboto] truncate flex items-center gap-1">
+                    <div class="flex items-center">
+                        <a th:href="@{/employee/sort(field='lastName', direction = ${direction == 'desc' ? 'asc' : 'desc'})}">NAME</a>
+                        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="17" viewBox="0 0 16 17" fill="none">
+                            <path d="M8.39043 14.0955C8.19027 14.3457 7.80973 14.3457 7.60957 14.0955L4.64988 10.3958C4.38797 10.0685 4.62106 9.5835 5.04031 9.5835H10.9597C11.3789 9.5835 11.612 10.0685 11.3501 10.3958L8.39043 14.0955Z"
+                                  fill="#A1A9B8"/>
+                            <path d="M8.39043 3.07154C8.19027 2.82134 7.80973 2.82134 7.60957 3.07154L4.64988 6.77115C4.38797 7.09853 4.62106 7.5835 5.04031 7.5835H10.9597C11.3789 7.5835 11.612 7.09853 11.3501 6.77115L8.39043 3.07154Z"
+                                  fill="#A1A9B8"/>
+                        </svg>
+                    </div>
+                </th>
+                <th class="text-gray-500 font-[Roboto] truncate flex items-center gap-1">
+                    <form class="flex items-center">
+                        <a th:href="@{/employee/sort(field='phoneNumber', direction = ${direction == 'desc' ? 'asc' : 'desc'})}">CONTACT</a>
+                        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="17" viewBox="0 0 16 17" fill="none">
+                            <path d="M8.39043 14.0955C8.19027 14.3457 7.80973 14.3457 7.60957 14.0955L4.64988 10.3958C4.38797 10.0685 4.62106 9.5835 5.04031 9.5835H10.9597C11.3789 9.5835 11.612 10.0685 11.3501 10.3958L8.39043 14.0955Z"
+                                  fill="#A1A9B8"/>
+                            <path d="M8.39043 3.07154C8.19027 2.82134 7.80973 2.82134 7.60957 3.07154L4.64988 6.77115C4.38797 7.09853 4.62106 7.5835 5.04031 7.5835H10.9597C11.3789 7.5835 11.612 7.09853 11.3501 6.77115L8.39043 3.07154Z"
+                                  fill="#A1A9B8"/>
+                        </svg>
+                    </form>
+                </th>
+                <th class="text-gray-500 font-[Roboto] truncate flex items-center gap-1">
+                    <form class="flex items-center">
+                        <a th:href="@{/employee/sort(field='getDepartment().getDepartmentName()', direction = ${direction == 'desc' ? 'asc' : 'desc'})}">DEPARTMENT</a>
+                        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="17" viewBox="0 0 16 17" fill="none">
+                            <path d="M8.39043 14.0955C8.19027 14.3457 7.80973 14.3457 7.60957 14.0955L4.64988 10.3958C4.38797 10.0685 4.62106 9.5835 5.04031 9.5835H10.9597C11.3789 9.5835 11.612 10.0685 11.3501 10.3958L8.39043 14.0955Z"
+                                  fill="#A1A9B8"/>
+                            <path d="M8.39043 3.07154C8.19027 2.82134 7.80973 2.82134 7.60957 3.07154L4.64988 6.77115C4.38797 7.09853 4.62106 7.5835 5.04031 7.5835H10.9597C11.3789 7.5835 11.612 7.09853 11.3501 6.77115L8.39043 3.07154Z"
+                                  fill="#A1A9B8"/>
+                        </svg>
+                    </form>
+                </th>
+                <th class="text-gray-500 font-[Roboto] truncate flex items-center gap-1">
+                    <form class="flex items-center">
+                        <button>DEPARTMENT</button>
+                        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="17" viewBox="0 0 16 17" fill="none">
+                            <path d="M8.39043 14.0955C8.19027 14.3457 7.80973 14.3457 7.60957 14.0955L4.64988 10.3958C4.38797 10.0685 4.62106 9.5835 5.04031 9.5835H10.9597C11.3789 9.5835 11.612 10.0685 11.3501 10.3958L8.39043 14.0955Z"
+                                  fill="#A1A9B8"/>
+                            <path d="M8.39043 3.07154C8.19027 2.82134 7.80973 2.82134 7.60957 3.07154L4.64988 6.77115C4.38797 7.09853 4.62106 7.5835 5.04031 7.5835H10.9597C11.3789 7.5835 11.612 7.09853 11.3501 6.77115L8.39043 3.07154Z"
+                                  fill="#A1A9B8"/>
+                        </svg>
+                    </form>
+                </th>
+                <th class="text-gray-500 font-[Roboto] truncate flex items-center gap-1">
+                    <form class="flex items-center">
+                        <button>SALARY</button>
+                        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="17" viewBox="0 0 16 17" fill="none">
+                            <path d="M8.39043 14.0955C8.19027 14.3457 7.80973 14.3457 7.60957 14.0955L4.64988 10.3958C4.38797 10.0685 4.62106 9.5835 5.04031 9.5835H10.9597C11.3789 9.5835 11.612 10.0685 11.3501 10.3958L8.39043 14.0955Z"
+                                  fill="#A1A9B8"/>
+                            <path d="M8.39043 3.07154C8.19027 2.82134 7.80973 2.82134 7.60957 3.07154L4.64988 6.77115C4.38797 7.09853 4.62106 7.5835 5.04031 7.5835H10.9597C11.3789 7.5835 11.612 7.09853 11.3501 6.77115L8.39043 3.07154Z"
+                                  fill="#A1A9B8"/>
+                        </svg>
+                    </form>
+                </th>
+                <th class="text-gray-500 font-[Roboto] truncate flex items-center gap-1">
+                    <form class="flex items-center">
+                        <button>JOINED DATE</button>
+                        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="17" viewBox="0 0 16 17" fill="none">
+                            <path d="M8.39043 14.0955C8.19027 14.3457 7.80973 14.3457 7.60957 14.0955L4.64988 10.3958C4.38797 10.0685 4.62106 9.5835 5.04031 9.5835H10.9597C11.3789 9.5835 11.612 10.0685 11.3501 10.3958L8.39043 14.0955Z"
+                                  fill="#A1A9B8"/>
+                            <path d="M8.39043 3.07154C8.19027 2.82134 7.80973 2.82134 7.60957 3.07154L4.64988 6.77115C4.38797 7.09853 4.62106 7.5835 5.04031 7.5835H10.9597C11.3789 7.5835 11.612 7.09853 11.3501 6.77115L8.39043 3.07154Z"
+                                  fill="#A1A9B8"/>
+                        </svg>
+                    </form>
+                </th>
+            </tr>
+            </thead>
+            <tbody>
+            <script>
+                document.addEventListener("DOMContentLoaded", function () {
+                    const rows = document.querySelectorAll('.clickable');
+                    rows.forEach(row => {
+                        row.addEventListener('click', function () {
+                            const employeeId = this.querySelector('input').value;
+                            window.location.href = `/employee/view?employeeId=${employeeId}&edit=false`;
+                        });
                     });
                 });
-            });
-        </script>
-        <tr class="grid grid-cols-7 gap-4 w-full my-1 px-2 py-2 hover:bg-gray-200 bg-gray-100 rounded clickable hover:cursor-pointer"
-            th:each="e : ${employees}">
-            <!--/*@thymesVar id="e" type="com.se1873.js.springboot.management.entity.Employee"*/-->
-            <input type="hidden" th:id="${e.getEmployeeId()}" th:value="${e.getEmployeeId()}">
-            <td class="truncate" th:text="${e.getEmployeeCode()}"></td>
-            <td class="truncate" th:text="${T(java.lang.String).format('%s %s', e.getFirstName(), e.getLastName())}"></td>
-            <td class="truncate" th:text="${e.getPhoneNumber()}"></td>
-            <td class="truncate" th:each="history : ${e.getEmploymentHistories()}" th:if="${history.isCurrent}" th:text="${history.getPosition().getPositionName()}"></td>
-            <td class="truncate" th:each="history : ${e.getEmploymentHistories()}" th:if="${history.isCurrent}" th:text="${history.getDepartment().getDepartmentName()}"></td>
-            <td class="truncate" th:each="contract : ${e.getContracts()}" th:if="${contract.present}" th:text="${T(java.lang.String).format('%,.0f', contract.baseSalary)}"></td>
-            <td class="truncate" th:each="contract : ${e.getContracts()}" th:if="${contract.present}" th:text="${contract.startDate}"></td>
-        </tr>
-        </tbody>
-    </table>
+            </script>
+            <tr class="grid grid-cols-7 gap-4 w-full my-1 px-2 py-2 hover:bg-gray-200 bg-gray-100 rounded clickable hover:cursor-pointer"
+                th:each="e : ${employees}">
+                <!--/*@thymesVar id="e" type="com.se1873.js.springboot.management.dto.employeeDTO"*/-->
+                <input type="hidden" th:id="${e.getEmployee().getEmployeeId()}" th:value="${e.getEmployee().getEmployeeId()}">
+                <td class="truncate" th:text="${e.getEmployee().getEmployeeCode()}"></td>
+                <td class="truncate"
+                    th:text="${T(java.lang.String).format('%s %s', e.getEmployee().getFirstName(), e.getEmployee().getLastName())}"></td>
+                <td class="truncate" th:text="${e.getEmployee().getPhoneNumber()}"></td>
+                <td class="truncate" th:text="${e.getDepartment().getDepartmentName()}"></td>
+                <td class="truncate" th:text="${e.getPosition().getPositionName()}"></td>
+<!--                ${T(java.lang.String).format('%,.0f', contract.baseSalary)}-->
+            </tr>
+            </tbody>
+        </table>
+    </div>
 </div>

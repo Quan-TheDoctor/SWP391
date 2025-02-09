@@ -15,7 +15,10 @@ const DependentHandler = {
         }
 
         this.setupExistingDependents();
-        this.addButton.addEventListener('click', () => this.addNewDependent());
+        this.addButton.addEventListener('click', () => {
+
+            this.addNewDependent()
+        });
     },
 
     setupExistingDependents() {
@@ -50,7 +53,7 @@ const DependentHandler = {
         deleteBtn.className = 'delete-btn bg-purple-300 px-5 py-2 text-right rounded';
         deleteBtn.textContent = 'Delete';
         deleteBtn.addEventListener('click', function () {
-            this.closest('.flex').remove();
+            this.closest('.input-section').remove();
         });
         return deleteBtn;
     }
