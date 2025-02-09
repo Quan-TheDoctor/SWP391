@@ -3,16 +3,27 @@
 @tailwind utilities;
 
 @layer components {
+    .segments {
+        @apply flex items-start gap-[4rem] self-stretch p-2
+    }
+
+    .segment-tab {
+        @apply flex flex-col justify-center items-center gap-2
+    }
+
+    .segment-btns {
+        @apply p-2 flex justify-end
+    }
+
     .title-of-field {
         @apply text-[2rem] font-medium text-[#464F60]
     }
 
-
     .add-btn-disabled {
-        @apply bg-gray-400 px-5 py-2 rounded-lg
+        @apply bg-gray-400 px-5 py-4 rounded-lg
     }
     .add-btn-enabled {
-        @apply bg-purple-300 px-5 py-2 rounded-lg
+        @apply bg-purple-300 px-5 py-4 rounded-lg
     }
 
     .tieu-de-section-va-btns {

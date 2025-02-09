@@ -83,28 +83,28 @@
         </tr>
         </thead>
         <tbody>
-        <!--/*@thymesVar id="e" type="com.se1873.js.springboot.project.dto.EmployeeDTO"*/-->
         <script>
             document.addEventListener("DOMContentLoaded", function () {
                 const rows = document.querySelectorAll('.clickable');
                 rows.forEach(row => {
                     row.addEventListener('click', function () {
                         const employeeId = this.querySelector('input').value;
-                        window.location.href = `/employee/view?id=${employeeId}&edit=false`;
+                        window.location.href = `/employee/view?employeeId=${employeeId}&edit=false`;
                     });
                 });
             });
         </script>
         <tr class="grid grid-cols-7 gap-4 w-full my-1 px-2 py-2 hover:bg-gray-200 bg-gray-100 rounded clickable hover:cursor-pointer"
             th:each="e : ${employees}">
-            <input type="hidden" th:id="${e.getEmployee().getEmployeeId()}" th:value="${e.getEmployee().getEmployeeId()}">
-            <td class="truncate" th:text="${e.getEmployee().getEmployeeCode()}"></td>
-            <td class="truncate" th:text="${T(java.lang.String).format('%s %s', e.getEmployee().getFirstName(), e.getEmployee().getLastName())}"></td>
-            <td class="truncate" th:text="${e.getEmployee().getPhoneNumber()}"></td>
-            <td class="truncate" th:text="${e.getPosition().getPositionName()}"></td>
-            <td class="truncate" th:text="${e.getDepartment().getDepartmentName()}"></td>
-            <td class="truncate" th:text="${T(java.lang.String).format('%,.0f', e.getCurrentContract().getBaseSalary())}"></td>
-            <td class="truncate" th:text="${e.getCurrentContract().getStartDate()}"></td>
+            <!--/*@thymesVar id="e" type="com.se1873.js.springboot.management.entity.Employee"*/-->
+            <input type="hidden" th:id="${e.getEmployeeId()}" th:value="${e.getEmployeeId()}">
+            <td class="truncate" th:text="${e.getEmployeeCode()}"></td>
+            <td class="truncate" th:text="${T(java.lang.String).format('%s %s', e.getFirstName(), e.getLastName())}"></td>
+            <td class="truncate" th:text="${e.getPhoneNumber()}"></td>
+            <td class="truncate" th:each="history : ${e.getEmploymentHistories()}" th:if="${history.isCurrent}" th:text="${history.getPosition().getPositionName()}"></td>
+            <td class="truncate" th:each="history : ${e.getEmploymentHistories()}" th:if="${history.isCurrent}" th:text="${history.getDepartment().getDepartmentName()}"></td>
+            <td class="truncate" th:each="contract : ${e.getContracts()}" th:if="${contract.present}" th:text="${T(java.lang.String).format('%,.0f', contract.baseSalary)}"></td>
+            <td class="truncate" th:each="contract : ${e.getContracts()}" th:if="${contract.present}" th:text="${contract.startDate}"></td>
         </tr>
         </tbody>
     </table>

@@ -7,8 +7,8 @@ import lombok.Data;
 import lombok.NoArgsConstructor;
 
 import java.time.LocalDateTime;
-import java.util.HashSet;
-import java.util.Set;
+import java.util.ArrayList;
+import java.util.List;
 
 @Entity
 @Table(name = "departments")
@@ -41,7 +41,7 @@ public class Department {
   private LocalDateTime createdAt;
 
   @OneToMany(mappedBy = "department", cascade = CascadeType.ALL)
-  private Set<EmploymentHistory> employmentHistory = new HashSet<>();
+  private List<EmploymentHistory> employmentHistory = new ArrayList<>();
 
   @PrePersist
   protected void onCreate() {
