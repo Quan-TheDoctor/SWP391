@@ -1,7 +1,7 @@
 package com.se1873.js.springboot.project.controller;
 
-import com.se1873.js.springboot.management.entity.Employee;
-import com.se1873.js.springboot.management.service.EmployeeService;
+import com.se1873.js.springboot.project.entity.Employee;
+import com.se1873.js.springboot.project.service.EmployeeService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;

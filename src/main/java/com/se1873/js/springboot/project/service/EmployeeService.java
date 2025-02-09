@@ -1,7 +1,7 @@
 package com.se1873.js.springboot.project.service;
 
-import com.se1873.js.springboot.management.entity.Employee;
-import com.se1873.js.springboot.management.repository.EmployeeRepository;
+import com.se1873.js.springboot.project.entity.Employee;
+import com.se1873.js.springboot.project.repository.EmployeeRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
