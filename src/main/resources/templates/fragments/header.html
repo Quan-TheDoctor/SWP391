@@ -1,16 +1,24 @@
-<div class="menu">
-    <a href="/" th:classappend="${page == 'homepage' ? 'active' : ''}" class="menu-item">Homepage</a>
-    <a href="/employee" th:classappend="${page == 'employee' ? 'active' : ''}" class="menu-item">Employee</a>
-    <a href="/attendance" th:classappend="${page == 'attendance' ? 'active' : ''}" class="menu-item">Attendance</a>
-    <a href="/payroll" th:classappend="${page == 'payroll' ? 'active' : ''}" class="menu-item">Payroll</a>
-    <a href="/log" th:classappend="${page == 'log' ? 'active' : ''}" class="menu-item">Log</a>
+<div class="h-screen bg-white lg:w-64">
+    <div class="flex flex-col p-2 gap-2 h-full bg-blue-50 justify-center">
+        <a th:href="@{/homepage}" class="py-2 lg:px-8 px-4 hover:bg-gray-400 bg-blue-200 rounded-lg truncate
+                 transition-all duration-300 ease-in-out text-center">
+            Menu Item
+        </a>
+        <a th:href="@{/employee}" class="py-2 lg:px-8 px-4 hover:bg-gray-400 bg-blue-200 rounded-lg truncate
+                 transition-all duration-300 ease-in-out text-center">
+            Menu Item
+        </a>
+        <a href="#" class="py-2 lg:px-8 px-4 hover:bg-gray-400 bg-blue-200 rounded-lg truncate
+                 transition-all duration-300 ease-in-out text-center">
+            Menu Item
+        </a>
+        <a href="#" class="py-2 lg:px-8 px-4 hover:bg-gray-400 bg-blue-200 rounded-lg truncate
+                 transition-all duration-300 ease-in-out text-center">
+            Menu Item
+        </a>
+        <a href="#" class="py-2 lg:px-8 px-4 hover:bg-gray-400 bg-blue-200 rounded-lg truncate
+                 transition-all duration-300 ease-in-out text-center">
+            Menu Item
+        </a>
+    </div>
 </div>
-
-<script>
-    // Toggle the submenu visibility when the Employee menu is clicked
-    document.getElementById('employeeMenu').addEventListener('click', function(e) {
-        e.preventDefault();
-        var submenu = document.getElementById('employeeSubMenu');
-        submenu.style.display = submenu.style.display === 'none' ? 'block' : 'none';
-    });
-</script>

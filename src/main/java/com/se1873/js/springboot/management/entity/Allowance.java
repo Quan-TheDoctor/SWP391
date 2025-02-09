@@ -7,37 +7,44 @@ import lombok.Data;
 import lombok.NoArgsConstructor;
 
 import java.time.LocalDate;
+import java.time.LocalDateTime;
 
 @Entity
-@Table(name = "salaries")
+@Table(name = "allowances")
 @Data
 @Builder
 @AllArgsConstructor
 @NoArgsConstructor
-public class Salary {
+public class Allowance {
   @Id
   @GeneratedValue(strategy = GenerationType.IDENTITY)
-  @Column(name = "salary_id")
-  private Integer salaryId;
+  @Column(name = "allowance_id")
+  private Integer allowanceId;
 
   @ManyToOne(cascade = CascadeType.ALL, fetch = FetchType.LAZY)
   @JoinColumn(name = "employee_id")
   private Employee employee;
 
-  @Column(name = "salary_amount")
-  private Double salaryAmount;
+  @Column(name = "allowance_type", nullable = false)
+  private String allowanceType;
 
-  @Column(name = "start_date")
+  @Column(name = "amount", nullable = false)
+  private Double amount;
+
+  @Column(name = "start_date", nullable = false)
   private LocalDate startDate;
 
   @Column(name = "end_date")
   private LocalDate endDate;
 
-  @Column(name = "is_present")
-  private Boolean isPresent;
+  @Column(name = "description")
+  private String description;
 
-  public boolean getIsPresent() {
-    return isPresent;
+  @Column(name = "created_at")
+  private LocalDateTime createdAt;
+
+  @PrePersist
+  protected void onCreate() {
+    createdAt = LocalDateTime.now();
   }
-  public void setIsPresent(Boolean isPresent) { this.isPresent = isPresent; }
 }

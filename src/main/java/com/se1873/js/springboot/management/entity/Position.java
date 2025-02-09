@@ -6,26 +6,42 @@ import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
-import java.util.Set;
+import java.time.LocalDateTime;
+import java.util.ArrayList;
+import java.util.List;
 
 @Entity
 @Table(name = "positions")
 @Data
 @Builder
-@NoArgsConstructor
 @AllArgsConstructor
+@NoArgsConstructor
 public class Position {
   @Id
   @GeneratedValue(strategy = GenerationType.IDENTITY)
   @Column(name = "position_id")
   private Integer positionId;
 
-  @Column(name = "position_name")
+  @Column(name = "position_name", nullable = false)
   private String positionName;
 
-  @Column(name = "is_deleted")
-  private Boolean isDeleted;
+  @Column(name = "position_code", unique = true, nullable = false)
+  private String positionCode;
 
-  @OneToMany(mappedBy = "position", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
-  private Set<DepartmentEmployee> departmentEmployees;
+  @Column(name = "level", nullable = false)
+  private Integer level;
+
+  @Column(name = "description")
+  private String description;
+
+  @Column(name = "created_at")
+  private LocalDateTime createdAt;
+
+  @OneToMany(mappedBy = "position", cascade = CascadeType.ALL)
+  private List<EmploymentHistory> employmentHistory = new ArrayList<>();
+
+  @PrePersist
+  protected void onCreate() {
+    this.createdAt = LocalDateTime.now();
+  }
 }

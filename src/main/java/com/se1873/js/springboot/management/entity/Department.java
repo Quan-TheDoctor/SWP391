@@ -6,7 +6,9 @@ import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
-import java.util.Set;
+import java.time.LocalDateTime;
+import java.util.ArrayList;
+import java.util.List;
 
 @Entity
 @Table(name = "departments")
@@ -18,17 +20,28 @@ public class Department {
   @Id
   @GeneratedValue(strategy = GenerationType.IDENTITY)
   @Column(name = "department_id")
-  private int departmentId;
+  private Integer departmentId;
+
+  @Column(name = "department_code")
+  private String departmentCode;
 
   @Column(name = "department_name")
   private String departmentName;
 
-  @Column(name = "manager_id")
-  private int managerId;
+  @Column(name = "parent_department_id")
+  private Integer parentDepartmentId;
 
-  @Column(name = "is_deleted")
-  private boolean isDeleted;
+  @Column(name = "description")
+  private String description;
 
-  @OneToMany(mappedBy = "department", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
-  private Set<DepartmentEmployee> departmentEmployees;
+  @Column(name = "created_at")
+  private LocalDateTime createdAt;
+
+  @OneToMany(mappedBy = "department", cascade = CascadeType.ALL)
+  private List<EmploymentHistory> employmentHistory = new ArrayList<>();
+
+  @PrePersist
+  protected void onCreate() {
+    this.createdAt = LocalDateTime.now();
+  }
 }

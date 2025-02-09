@@ -5,8 +5,13 @@ import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
+import org.springframework.format.annotation.DateTimeFormat;
 
 import java.time.LocalDate;
+import java.time.LocalDateTime;
+import java.util.ArrayList;
+import java.util.HashSet;
+import java.util.List;
 import java.util.Set;
 
 @Entity
@@ -19,43 +24,130 @@ public class Employee {
   @Id
   @GeneratedValue(strategy = GenerationType.IDENTITY)
   @Column(name = "employee_id")
-  private int employeeId;
+  private Integer employeeId;
 
-  @Column(name = "employee_code")
+  @Version
+  private Long version;
+
+  @Column(name = "employee_code", unique = true, nullable = false)
   private String employeeCode;
 
-  @Column(name = "employee_avatar_url")
-  private String employeeAvatarUrl;
+  @Column(name = "first_name", nullable = false)
+  private String firstName;
 
-  @Column(name = "employee_name")
-  private String employeeName;
+  @Column(name = "last_name", nullable = false)
+  private String lastName;
 
-  @Column(name = "employee_phone")
-  private String employeePhone;
+  @DateTimeFormat(pattern="yyyy-MM-dd")
+  @Column(name = "birth_date", nullable = false)
+  private LocalDate birthDate;
 
-  @Column(name = "employee_email")
-  private String employeeEmail;
+  @Column(name = "gender")
+  private String gender;
 
-  @Column(name = "employee_address")
-  private String employeeAddress;
+  @Column(name = "id_number", unique = true, nullable = false)
+  private String idNumber;
 
-  @Column(name = "joining_date")
-  private LocalDate joiningDate;
+  @Column(name = "permanent_address")
+  private String permanentAddress;
 
-  @Column(name = "is_present")
-  private boolean isPresent;
+  @Column(name = "temporary_address")
+  private String temporaryAddress;
 
-  @Column(name = "is_deleted")
-  private boolean isDeleted;
+  @Column(name = "personal_email")
+  private String personalEmail;
 
-  @OneToMany(mappedBy = "employee", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
-  private Set<DepartmentEmployee> departmentEmployees;
+  @Column(name = "company_email", unique = true)
+  private String companyEmail;
 
-  @OneToMany(mappedBy = "employee", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
-  private Set<Salary> salaries;
+  @Column(name = "phone_number")
+  private String phoneNumber;
 
-  public boolean getIsPresent() {
-    return isPresent;
+  @Column(name = "marital_status")
+  private String maritalStatus;
+
+  @Column(name = "bank_account")
+  private String bankAccount;
+
+  @Column(name = "bank_name")
+  private String bankName;
+
+  @Column(name = "tax_code")
+  private String taxCode;
+
+  @Column(name = "created_at")
+  private LocalDateTime createdAt;
+
+  @Column(name = "updated_at")
+  private LocalDateTime updatedAt;
+
+  @OneToMany(mappedBy = "employee", cascade = CascadeType.ALL, fetch = FetchType.LAZY, orphanRemoval = true)
+  private Set<Dependent> dependents = new HashSet<>();
+
+  @OneToMany(mappedBy = "employee", cascade = CascadeType.ALL, fetch = FetchType.LAZY, orphanRemoval = true)
+  private List<Contract> contracts = new ArrayList<>();
+
+  @OneToMany(mappedBy = "employee", cascade = CascadeType.ALL, fetch = FetchType.LAZY, orphanRemoval = true)
+  private List<EmploymentHistory> employmentHistories = new ArrayList<>();
+
+  @OneToMany(mappedBy = "employee", cascade = CascadeType.ALL, fetch = FetchType.LAZY, orphanRemoval = true)
+  private List<TrainingRecord> trainingRecords = new ArrayList<>();
+
+  @OneToMany(mappedBy = "employee", cascade = CascadeType.ALL, fetch = FetchType.LAZY, orphanRemoval = true)
+  private List<EmployeeSkill> employeeSkills = new ArrayList<>();
+
+  @OneToMany(mappedBy = "employee", cascade = CascadeType.ALL, fetch = FetchType.LAZY, orphanRemoval = true)
+  private List<Qualification> qualifications = new ArrayList<>();
+
+  @OneToMany(mappedBy = "employee", cascade = CascadeType.ALL, fetch = FetchType.LAZY, orphanRemoval = true)
+  private List<PerformanceReview> performanceReviews = new ArrayList<>();
+
+  @OneToMany(mappedBy = "employee", cascade = CascadeType.ALL, fetch = FetchType.LAZY, orphanRemoval = true)
+  private List<SalaryRecord> salaryRecords = new ArrayList<>();
+
+  @OneToMany(mappedBy = "employee", cascade = CascadeType.ALL, fetch = FetchType.LAZY, orphanRemoval = true)
+  private List<Leave> leaves = new ArrayList<>();
+
+  @OneToMany(mappedBy = "employee", cascade = CascadeType.ALL, fetch = FetchType.LAZY, orphanRemoval = true)
+  private List<Attendance> attendances = new ArrayList<>();
+
+  @OneToMany(mappedBy = "employee", cascade = CascadeType.ALL, fetch = FetchType.LAZY, orphanRemoval = true)
+  private List<Allowance> allowances = new ArrayList<>();
+
+  @OneToOne(mappedBy = "employee", cascade = CascadeType.ALL)
+  private User user;
+
+  @PrePersist
+  protected void onCreate() {
+    createdAt = LocalDateTime.now();
+    updatedAt = LocalDateTime.now();
   }
 
+  @PreUpdate
+  protected void onUpdate() {
+    updatedAt = LocalDateTime.now();
+  }
+
+  public void addDependent(Dependent dependent) {
+    dependents.add(dependent);
+    dependent.setEmployee(this);
+  }
+
+  public void removeDependent(Dependent dependent) {
+    dependents.remove(dependent);
+    dependent.setEmployee(null);
+  }
+
+  @Override
+  public boolean equals(Object o) {
+    if (this == o) return true;
+    if (!(o instanceof Employee)) return false;
+    Employee employee = (Employee) o;
+    return employeeId != null && employeeId.equals(employee.employeeId);
+  }
+
+  @Override
+  public int hashCode() {
+    return getClass().hashCode();
+  }
 }
