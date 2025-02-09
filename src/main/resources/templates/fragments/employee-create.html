@@ -1,0 +1,295 @@
+<!--/*@thymesVar id="employee" type="com.se1873.js.springboot.project.dto.EmployeeDTO"*/-->
+<div class="p-2 bg-blue-50 h-full">
+    <div class="flex h-full">
+        <div class="flex flex-col shrink-0 mt-[10rem] mx-[5rem]">
+            <!-- Set fixed size for the avatar and prevent shrinking -->
+            <!--            <img class="bg-gray-200 w-[15rem] shrink-0" th:src="${employee.getEmployee().getEmployeeAvatarUrl()}">-->
+        </div>
+        <div class="w-full p-2">
+            <div class="flex items-start gap-[4rem] self-stretch p-2">
+                <a th:href="@{/employee/view(tab='personal', edit=false)}"
+                   class="flex flex-col justify-center items-center gap-2 ">
+                    <div class="text-[3rem] ${tab == 'personal' ? 'text-[#5E5ADB]' : ''}">Personal and Contact</div>
+                    <div class="self-stretch">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="auto" height="2" viewBox="0 0 153 2" fill="none">
+                            <path d="M0 1H153" th:stroke="${tab == 'personal' ? '#5E5ADB' : '#464F60'}"
+                                  stroke-width="2"/>
+                        </svg>
+                    </div>
+                </a>
+                <a th:href="@{/employee/view(tab='job', edit=false)}"
+                   class="flex flex-col justify-center items-center gap-2 ">
+                    <div class="text-[3rem] ${tab == 'job' ? 'text-[#5E5ADB]' : ''}">Job Information</div>
+                    <div class="self-stretch">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="auto" height="2" viewBox="0 0 153 2" fill="none">
+                            <path d="M0 1H153" th:stroke="${tab == 'job' ? '#5E5ADB' : '#464F60'}"
+                                  stroke-width="2"/>
+                        </svg>
+                    </div>
+                </a>
+                <a th:href="@{/employee/view(tab='dependant', edit=false)}"
+                   class="flex flex-col justify-center items-center gap-2 ">
+                    <div class="text-[3rem] ${tab == 'dependant' ? 'text-[#5E5ADB]' : ''}">Dependants</div>
+                    <div class="self-stretch">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="auto" height="2" viewBox="0 0 153 2" fill="none">
+                            <path d="M0 1H153" th:stroke="${tab == 'dependant' ? '#5E5ADB' : '#464F60'}"
+                                  stroke-width="2"/>
+                        </svg>
+                    </div>
+                </a>
+            </div>
+            <form th:action="@{/employee/insert}"
+                  th:method="GET"
+                  th:object="${employee}">
+                <div th:class="${tab != 'personal' ? 'hidden ' : ''}">
+                    <div class="flex flex-col items-start gap-[3rem] self-stretch p-2">
+                        <div class="flex justify-start items-start self-stretch gap-[10rem]">
+                            <div class="">
+                                <div class="title-of-field">First name</div>
+                                <label>
+                                    <input class="px-2 py-2 w-[20rem] flex shrink-0 items-center content-center rounded-lg"
+                                           type="text"
+                                           placeholder="Input your data..."
+                                           th:field="*{employee.firstName}">
+                                </label>
+                            </div>
+                            <div class="">
+                                <div class="title-of-field">Last name</div>
+                                <label>
+                                    <input class="px-2 py-2 w-[20rem] flex shrink-0 items-center content-center rounded-lg"
+                                           type="text"
+                                           placeholder="Input your data..."
+                                           th:field="*{employee.lastName}">
+                                </label>
+                            </div>
+                            <div class="flex flex-col">
+                                <div class="title-of-field" th:field="*{employee.gender}">Gender</div>
+                                <label>
+                                    <select class="px-4 py-2 w-[20rem] flex shrink-0 items-center content-center rounded-lg">
+                                        <option value="male" th:selected="*{employee.gender == 'male'}">Male</option>
+                                        <option value="female" th:selected="*{employee.gender == 'female'}">Female
+                                        </option>
+                                    </select>
+                                </label>
+                            </div>
+                            <div class="">
+                                <div class="title-of-field">Birth date</div>
+                                <label>
+                                    <input class="px-2 py-2 w-[20rem] flex shrink-0 items-center content-center rounded-lg"
+                                           type="date"
+                                           placeholder="Input your data..."
+                                           th:field="*{employee.birthDate}">
+                                </label>
+                            </div>
+                        </div>
+                        <div class="flex justify-start items-start self-stretch gap-[10rem]">
+                            <div class="">
+                                <div class="title-of-field">ID no</div>
+                                <label>
+                                    <input class="px-2 py-2 w-[20rem] flex shrink-0 items-center content-center rounded-lg"
+                                           type="text"
+                                           placeholder="Input your data..."
+                                           th:field="*{employee.idNumber}">
+                                </label>
+                            </div>
+                            <div class="">
+                                <div class="title-of-field">Phone number</div>
+                                <label>
+                                    <input class="px-2 py-2 w-[20rem] flex shrink-0 items-center content-center rounded-lg"
+                                           type="text"
+                                           placeholder="Input your data..."
+                                           th:field="*{employee.phoneNumber}">
+                                </label>
+                            </div>
+                            <div class="">
+                                <div class="title-of-field">Address</div>
+                                <label>
+                                    <input class="px-2 py-2 w-[20rem] flex shrink-0 items-center content-center rounded-lg"
+                                           type="text"
+                                           placeholder="Input your data..."
+                                           th:field="*{employee.permanentAddress}">
+                                </label>
+                            </div>
+                            <div class="">
+                                <div class="title-of-field">Temporary Address</div>
+                                <label>
+                                    <input class="px-2 py-2 w-[20rem] flex shrink-0 items-center content-center rounded-lg"
+                                           type="text"
+                                           placeholder="Input your data..."
+                                           th:field="*{employee.temporaryAddress}">
+                                </label>
+                            </div>
+                        </div>
+                        <div class="flex justify-start items-start self-stretch gap-[10rem]">
+                            <div class="">
+                                <div class="title-of-field">Personal email</div>
+                                <label>
+                                    <input class="px-2 py-2 w-[20rem] flex shrink-0 items-center content-center rounded-lg"
+                                           type="text"
+                                           placeholder="Input your data..."
+                                           th:field="*{employee.personalEmail}">
+                                </label>
+                            </div>
+                            <div class="">
+                                <div class="title-of-field">Company email</div>
+                                <label>
+                                    <input class="px-2 py-2 w-[20rem] flex shrink-0 items-center content-center rounded-lg"
+                                           type="text"
+                                           placeholder="Input your data..."
+                                           th:field="*{employee.companyEmail}">
+                                </label>
+                            </div>
+                            <div class="flex flex-col">
+                                <div class="title-of-field">Marital Status</div>
+                                <label>
+                                    <select class="px-4 py-2 w-[20rem] flex shrink-0 items-center content-center rounded-lg" th:field="*{employee.maritalStatus}">
+                                        <option value="Độc thân" th:selected="*{employee.maritalStatus == 'Độc thân'}">
+                                            Độc
+                                            thân
+                                        </option>
+                                        <option value="Đã kết hôn"
+                                                th:selected="*{employee.maritalStatus == 'Đã kết hôn'}">Đã
+                                            kết hôn
+                                        </option>
+                                    </select>
+                                </label>
+                            </div>
+                            <div class="flex justify-start items-start self-stretch gap-[10rem]">
+                                <div class="">
+                                    <div class="title-of-field">Tax code</div>
+                                    <label>
+                                        <input class="px-2 py-2 w-[20rem] flex shrink-0 items-center content-center rounded-lg"
+                                               type="text"
+                                               placeholder="Input your data..."
+                                               th:field="*{employee.taxCode}"
+                                        >
+                                    </label>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <!--                Half right -->
+                    <div class="flex flex-col items-start gap-[3rem] self-stretch p-2">
+                        <div class="flex justify-start items-start self-stretch gap-[10rem]">
+                            <div class="">
+                                <div class="title-of-field">Bank account</div>
+                                <label>
+                                    <input class="px-2 py-2 w-[20rem] flex shrink-0 items-center content-center rounded-lg"
+                                           type="text"
+                                           placeholder="Input your data..."
+                                           th:field="*{employee.bankAccount}">
+                                </label>
+                            </div>
+                            <div class="">
+                                <div class="title-of-field">Bank name</div>
+                                <label>
+                                    <input class="px-2 py-2 w-[20rem] flex shrink-0 items-center content-center rounded-lg"
+                                           type="text"
+                                           placeholder="Input your data..."
+                                           th:field="*{employee.bankName}">
+                                </label>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div th:class="${tab != 'job' ? 'hidden' : ''}">
+                    <div class="flex flex-col items-start gap-[3rem] self-stretch p-2">
+                        <div class="flex flex-col">
+                            <span class="text-[3rem]">Job related</span>
+                            <div class="flex justify-start items-start self-stretch gap-[10rem]">
+                                <div class="">
+                                    <div class="title-of-field">Employee no</div>
+                                    <label>
+                                        <input class="px-2 py-2 w-[20rem] flex shrink-0 items-center content-center rounded-lg"
+                                               type="text"
+                                               placeholder="Input your data..."
+                                               th:field="*{employee.employeeCode}"
+                                        >
+                                    </label>
+                                </div>
+                                <div class="">
+                                    <div class="title-of-field">Department</div>
+                                    <label>
+                                        <input class="px-2 py-2 w-[20rem] flex shrink-0 items-center content-center rounded-lg"
+                                               type="text"
+                                               placeholder="Input your data..."
+                                               th:field="*{department.departmentName}"
+                                        >
+                                    </label>
+                                </div>
+                                <div class="">
+                                    <div class="title-of-field">Position</div>
+                                    <label>
+                                        <input class="px-2 py-2 w-[20rem] flex shrink-0 items-center content-center rounded-lg"
+                                               type="text"
+                                               placeholder="Input your data..."
+                                               th:field="*{position.positionName}"
+                                        >
+                                    </label>
+                                </div>
+                                <div class="">
+                                    <div class="title-of-field">Since</div>
+                                    <label>
+                                        <input class="px-2 py-2 w-[20rem] flex shrink-0 items-center content-center rounded-lg"
+                                               type="text"
+                                               placeholder="Input your data..."
+                                               th:field="*{currentEmploymentHistory.startDate}"
+                                        >
+                                    </label>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="flex flex-col">
+                            <span class="text-[3rem]">Contract</span>
+                            <div class="flex justify-start items-start self-stretch gap-[10rem]">
+                                <div class="">
+                                    <div class="title-of-field">Contract no</div>
+                                    <label>
+                                        <input class="px-2 py-2 w-[20rem] flex shrink-0 items-center content-center rounded-lg"
+                                               type="text"
+                                               placeholder="Input your data..."
+                                               th:field="*{currentContract.contractCode}"
+                                        >
+                                    </label>
+                                </div>
+                                <div class="">
+                                    <div class="title-of-field">Type</div>
+                                    <label>
+                                        <input class="px-2 py-2 w-[20rem] flex shrink-0 items-center content-center rounded-lg"
+                                               type="text"
+                                               placeholder="Input your data..."
+                                               th:field="*{currentContract.contractType}"
+                                        >
+                                    </label>
+                                </div>
+                                <div class="">
+                                    <input type="hidden" th:field="*{currentContract.baseSalary}">
+                                    <div class="title-of-field">Base Salary</div>
+                                    <label>
+                                        <input class="px-2 py-2 w-[20rem] flex shrink-0 items-center content-center rounded-lg"
+                                               type="text"
+                                               placeholder="Input your data..."
+                                               th:value="${T(java.lang.String).format('%,.0f', employee.getCurrentContract().getBaseSalary())}"
+                                        >
+                                    </label>
+                                </div>
+                                <div class="">
+                                    <div class="title-of-field">Sign date</div>
+                                    <label>
+                                        <input class="px-2 py-2 w-[20rem] flex shrink-0 items-center content-center rounded-lg"
+                                               type="text"
+                                               placeholder="Input your data..."
+                                               th:field="*{currentContract.signDate}"
+                                        >
+                                    </label>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <button type="submit">SUBMIT</button>
+            </form>
+        </div>
+    </div>
+</div>
+</div>

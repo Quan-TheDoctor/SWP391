@@ -1,0 +1,35 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer components {
+    .title-of-field {
+        @apply text-[2rem] font-medium text-[#464F60]
+    }
+
+
+    .add-btn-disabled {
+        @apply bg-gray-400 px-5 py-2 rounded-lg
+    }
+    .add-btn-enabled {
+        @apply bg-purple-300 px-5 py-2 rounded-lg
+    }
+
+    .tieu-de-section-va-btns {
+        @apply flex justify-between items-center gap-[3rem] self-stretch p-2
+    }
+
+    .tieu-de-section-va-btns-col {
+        @apply flex flex-col items-start gap-[3rem] self-stretch p-2
+    }
+
+    .scrollable-div {
+        @apply flex flex-col items-start gap-[3rem] self-stretch p-2 overflow-y-auto max-h-[70vh]
+    }
+    .title-3rem {
+        @apply text-[3rem]
+    }
+    .input-fields {
+        @apply px-2 py-2 w-[20rem] flex shrink-0 items-center content-center rounded-lg
+    }
+}
