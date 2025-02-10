@@ -38,41 +38,42 @@ public class EmployeeService {
       .toList();
   }
 
-  public List<EmployeeDTO> filter(String field,Integer value){
+  public List<EmployeeDTO> filter(String field, Integer value) {
     List<EmploymentHistory> employmentHistories = new ArrayList<>();
     List<EmployeeDTO> employeeDTOS = new ArrayList<>();
-    if("departmentID".equals(field)){
-      if(value == null){
+    if ("departmentID".equals(field)) {
+      if (value == null) {
         employmentHistories = employmentHistoryRepository.findAll();
-        for(EmploymentHistory eh : employmentHistories){
+        for (EmploymentHistory eh : employmentHistories) {
+          if(!eh.getIsCurrent()) continue;
           EmployeeDTO employeeDTO = convertEmployeeToEmployeeDTO(eh.getEmployee());
           employeeDTOS.add(employeeDTO);
         }
-      }else{
+      } else {
         employmentHistories = employmentHistoryRepository.findEmployeeByDepartmentID(value);
-        for(EmploymentHistory eh : employmentHistories){
+        for (EmploymentHistory eh : employmentHistories) {
+          if(!eh.getIsCurrent()) continue;
           EmployeeDTO employeeDTO = convertEmployeeToEmployeeDTO(eh.getEmployee());
           employeeDTOS.add(employeeDTO);
         }
       }
-
-    }else if("positionID".equals(field)){
-      if(value == null){
+    } else if ("positionID".equals(field)) {
+      if (value == null) {
         employmentHistories = employmentHistoryRepository.findAll();
-        for(EmploymentHistory eh : employmentHistories){
+        for (EmploymentHistory eh : employmentHistories) {
+          if(!eh.getIsCurrent()) continue;
           EmployeeDTO employeeDTO = convertEmployeeToEmployeeDTO(eh.getEmployee());
           employeeDTOS.add(employeeDTO);
         }
-      }else{
+      } else {
         employmentHistories = employmentHistoryRepository.findEmployeeByPostionID(value);
-        for(EmploymentHistory eh : employmentHistories){
+        for (EmploymentHistory eh : employmentHistories) {
+          if(!eh.getIsCurrent()) continue;
           EmployeeDTO employeeDTO = convertEmployeeToEmployeeDTO(eh.getEmployee());
           employeeDTOS.add(employeeDTO);
         }
       }
     }
-
-
     return employeeDTOS;
   }
 
@@ -137,16 +138,16 @@ public class EmployeeService {
     Position position = null;
     Contract contract = null;
 
-    for(var emp : employee.getEmploymentHistories()) {
-      if(emp.getIsCurrent()) {
+    for (var emp : employee.getEmploymentHistories()) {
+      if (emp.getIsCurrent()) {
         employmentHistory = emp;
         department = emp.getDepartment();
         position = emp.getPosition();
       }
     }
 
-    for(var cont : employee.getContracts()) {
-      if(cont.isPresent()) {
+    for (var cont : employee.getContracts()) {
+      if (cont.isPresent()) {
         contract = cont;
       }
     }
