@@ -1,10 +1,7 @@
 package com.se1873.js.springboot.project.entity;
 
 import jakarta.persistence.*;
-import lombok.AllArgsConstructor;
-import lombok.Builder;
-import lombok.Data;
-import lombok.NoArgsConstructor;
+import lombok.*;
 
 import java.time.LocalDateTime;
 
@@ -20,6 +17,7 @@ public class EmployeeSkill {
   @Column(name = "skill_id")
   private Integer skillId;
 
+  @ToString.Exclude
   @ManyToOne(cascade = CascadeType.ALL, fetch = FetchType.LAZY)
   @JoinColumn(name = "employee_id")
   private Employee employee;
