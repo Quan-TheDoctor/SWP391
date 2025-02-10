@@ -442,7 +442,7 @@ VALUES (3, 'Phụ cấp ăn trưa', 1000000, '2020-01-15', NULL, 'Phụ cấp ă
 WITH date_range AS (
     SELECT generate_series(
                    date_trunc('month', CURRENT_DATE) + '1 day'::interval,
-                   date_trunc('month', CURRENT_DATE) + '20 days'::interval,
+                   date_trunc('month', CURRENT_DATE) + '365 days'::interval,
                    '1 day'::interval
            )::date AS work_date
 )
