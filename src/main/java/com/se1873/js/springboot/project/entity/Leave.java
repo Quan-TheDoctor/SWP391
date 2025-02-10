@@ -1,10 +1,7 @@
 package com.se1873.js.springboot.project.entity;
 
 import jakarta.persistence.*;
-import lombok.AllArgsConstructor;
-import lombok.Builder;
-import lombok.Data;
-import lombok.NoArgsConstructor;
+import lombok.*;
 
 import java.time.LocalDate;
 import java.time.LocalDateTime;
@@ -21,6 +18,7 @@ public class Leave {
   @Column(name = "leave_id")
   private Integer leaveId;
 
+  @ToString.Exclude
   @ManyToOne(cascade = CascadeType.ALL, fetch = FetchType.LAZY)
   @JoinColumn(name = "employee_id")
   private Employee employee;
@@ -43,6 +41,7 @@ public class Leave {
   @Column(name = "reason")
   private String reason;
 
+  @ToString.Exclude
   @ManyToOne(cascade = CascadeType.ALL, fetch = FetchType.LAZY)
   @JoinColumn(name = "approved_by")
   private Employee approval;
