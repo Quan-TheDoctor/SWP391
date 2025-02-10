@@ -13,5 +13,7 @@ public interface EmploymentHistoryRepository extends JpaRepository<EmploymentHis
   EmploymentHistory findEmploymentHistoryByIsCurrentAndEmployee_EmployeeId(Boolean isCurrent, Integer employeeEmployeeId);
 
   @Query("SELECT eh FROM EmploymentHistory eh WHERE eh.department.departmentId = :departmentId AND eh.isCurrent = true")
-  List<EmploymentHistory> finds(@Param("departmentId") Integer departmentId);
+  List<EmploymentHistory> findEmployeeByDepartmentID(@Param("departmentId") Integer departmentId);
+  @Query("SELECT eh FROM EmploymentHistory eh WHERE eh.position.positionId = :positionId AND eh.isCurrent = true")
+  List<EmploymentHistory> findEmployeeByPostionID(@Param("positionId") Integer positionId);
 }
