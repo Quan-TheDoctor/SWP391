@@ -6,6 +6,8 @@ import com.se1873.js.springboot.project.repository.*;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.dao.DataIntegrityViolationException;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.stereotype.Service;
@@ -13,6 +15,7 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDateTime;
 import java.util.ArrayList;
+import java.util.Comparator;
 import java.util.List;
 
 @Slf4j
@@ -76,6 +79,40 @@ public class EmployeeService {
     }
     return employeeDTOS;
   }
+  public List<EmployeeDTO> sort(String direction,String field){
+    List<EmployeeDTO> employeeDTOS = new ArrayList<>();
+    if("Name".equals(field)){
+      Sort sort = (direction.equals("asc")) ?
+              Sort.by(Sort.Direction.ASC,"firstName","lastName"):
+              Sort.by(Sort.Direction.DESC,"firstName","lastName");
+      List<Employee> employeeDTO = employeeRepository.findAll(sort);
+      for(Employee e : employeeDTO){
+        EmployeeDTO employeeDTO1 = convertEmployeeToEmployeeDTO(e);
+        employeeDTOS.add(employeeDTO1);
+      }
+    }else if("Code".equals(field)){
+      Sort sort = (direction.equals("asc")) ?
+              Sort.by(Sort.Direction.ASC,"employeeCode"):
+              Sort.by(Sort.Direction.DESC,"employeeCode");
+      List<Employee> employeeDTO = employeeRepository.findAll(sort);
+      for(Employee e : employeeDTO){
+        EmployeeDTO employeeDTO1 = convertEmployeeToEmployeeDTO(e);
+        employeeDTOS.add(employeeDTO1);
+      }
+    }else if("Department".equals(field)){
+      Sort sort = (direction.equals("asc")) ?
+              Sort.by(Sort.Direction.ASC,"employeeCode"):
+              Sort.by(Sort.Direction.DESC,"employeeCode");
+      List<Department> employeeDTO = departmentRepository.findAll(sort);
+      for(Department d : employeeDTO){
+        EmployeeDTO employeeDTO1 = convertDepartmentToEmployeeDTO(d);
+        employeeDTOS.add(employeeDTO1);
+      }
+      }
+    return employeeDTOS;
+    }
+
+
 
   @Transactional
   public void insertEmployee(EmployeeDTO employeeDTO) {
@@ -162,4 +199,25 @@ public class EmployeeService {
       .contract(contract)
       .build();
   }
+  private EmployeeDTO convertDepartmentToEmployeeDTO(Department department) {
+    if (department == null) {
+      return null;
+    }
+
+    List<Employee> employees = new ArrayList<>();
+    List<EmploymentHistory> employmentHistories = department.getEmploymentHistory();
+
+    for (EmploymentHistory history : employmentHistories) {
+      if (history.getIsCurrent()) {
+        employees.add(history.getEmployee());
+      }
+    }
+
+    return EmployeeDTO.builder()
+            .department(department)
+            .employmentHistories(employmentHistories)
+            .employee((Employee) employees) // Cần đảm bảo EmployeeDTO có danh sách Employees
+            .build();
+  }
+
 }

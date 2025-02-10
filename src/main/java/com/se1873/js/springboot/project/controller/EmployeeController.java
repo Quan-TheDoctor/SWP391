@@ -37,10 +37,12 @@ public class EmployeeController {
   }
 
   @RequestMapping
-  public String employee(Model model) {
+  public String employee(Model model,
+                         @RequestParam(value = "direction", required = false, defaultValue = "asc") String direction) {
     log.info("[EMPLOYEE] - employee 323page");
     List<EmployeeDTO> employees = employeeService.getAllEmployees();
 
+    model.addAttribute("direction", direction);
     model.addAttribute("employees", employees);
     model.addAttribute("departments", departments);
     model.addAttribute("positions", positions);
@@ -79,6 +81,18 @@ public class EmployeeController {
     Integer intValue = "all".equals(value) ? null : Integer.parseInt(value);
     List<EmployeeDTO> employees =  employeeService.filter(field,intValue);
 
+    model.addAttribute("employees", employees);
+    model.addAttribute("departments", departments);
+    model.addAttribute("positions", positions);
+    return "employee";
+  }
+
+  @RequestMapping("/sort")
+  public String sort(@RequestParam("field") String field,
+                     @RequestParam(value = "direction", defaultValue = "asc",required = false) String direction,
+                     Model model){
+    List<EmployeeDTO> employees = employeeService.sort(direction,field);
+    model.addAttribute("direction",direction);
     model.addAttribute("employees", employees);
     model.addAttribute("departments", departments);
     model.addAttribute("positions", positions);
