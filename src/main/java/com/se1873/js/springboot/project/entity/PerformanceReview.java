@@ -1,10 +1,7 @@
 package com.se1873.js.springboot.project.entity;
 
 import jakarta.persistence.*;
-import lombok.AllArgsConstructor;
-import lombok.Builder;
-import lombok.Data;
-import lombok.NoArgsConstructor;
+import lombok.*;
 
 import java.time.LocalDateTime;
 
@@ -19,11 +16,12 @@ public class PerformanceReview {
   @GeneratedValue(strategy = GenerationType.IDENTITY)
   @Column(name = "review_id")
   private Integer reviewId;
-
+  @ToString.Exclude
   @ManyToOne(cascade = CascadeType.ALL, fetch = FetchType.LAZY)
   @JoinColumn(name = "employee_id")
   private Employee employee;
 
+  @ToString.Exclude
   @ManyToOne(cascade = CascadeType.ALL, fetch = FetchType.LAZY)
   @JoinColumn(name = "reviewer_id")
   private Employee reviewer;

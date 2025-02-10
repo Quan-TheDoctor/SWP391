@@ -1,10 +1,7 @@
 package com.se1873.js.springboot.project.entity;
 
 import jakarta.persistence.*;
-import lombok.AllArgsConstructor;
-import lombok.Builder;
-import lombok.Data;
-import lombok.NoArgsConstructor;
+import lombok.*;
 
 import java.time.LocalDateTime;
 
@@ -19,7 +16,7 @@ public class SalaryRecord {
   @GeneratedValue(strategy = GenerationType.IDENTITY)
   @Column(name = "salary_id")
   private Integer salaryId;
-
+  @ToString.Exclude
   @ManyToOne(cascade = CascadeType.ALL, fetch = FetchType.LAZY)
   @JoinColumn(name = "employee_id")
   private Employee employee;

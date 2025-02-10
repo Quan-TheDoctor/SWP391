@@ -1,10 +1,7 @@
 package com.se1873.js.springboot.project.entity;
 
 import jakarta.persistence.*;
-import lombok.AllArgsConstructor;
-import lombok.Builder;
-import lombok.Data;
-import lombok.NoArgsConstructor;
+import lombok.*;
 
 import java.time.LocalDateTime;
 import java.util.ArrayList;
@@ -37,6 +34,7 @@ public class Position {
   @Column(name = "created_at")
   private LocalDateTime createdAt;
 
+  @ToString.Exclude
   @OneToMany(mappedBy = "position", cascade = CascadeType.ALL)
   private List<EmploymentHistory> employmentHistory = new ArrayList<>();
 
