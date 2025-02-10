@@ -37,6 +37,14 @@ public class EmployeeService {
       .toList();
   }
 
+  public List<EmployeeDTO> filter(Integer field){
+    for(var i : employmentHistoryRepository.finds(field)) {
+      log.info(i.getHistoryId().toString());
+    }
+
+    return null;
+  }
+
   @Transactional
   public void insertEmployee(EmployeeDTO employeeDTO) {
     try {
