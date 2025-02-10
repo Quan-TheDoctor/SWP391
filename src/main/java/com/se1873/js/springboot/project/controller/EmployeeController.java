@@ -74,8 +74,9 @@ public class EmployeeController {
   }
   @RequestMapping("/filter")
   public String filter(Model model,
+                       @RequestParam("field") String field,
                        @RequestParam("value") Integer value){
-   List<EmployeeDTO> employees =  employeeService.filter(value);
+    List<EmployeeDTO> employees =  employeeService.filter(field,value);
 
     model.addAttribute("employees", employees);
     model.addAttribute("departments", departments);

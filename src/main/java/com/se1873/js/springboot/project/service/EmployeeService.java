@@ -12,6 +12,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDateTime;
+import java.util.ArrayList;
 import java.util.List;
 
 @Slf4j
@@ -37,12 +38,25 @@ public class EmployeeService {
       .toList();
   }
 
-  public List<EmployeeDTO> filter(Integer field){
-    for(var i : employmentHistoryRepository.finds(field)) {
-      log.info(i.getHistoryId().toString());
+  public List<EmployeeDTO> filter(String field,Integer value){
+    List<EmploymentHistory> employmentHistories = new ArrayList<>();
+    List<EmployeeDTO> employeeDTOS = new ArrayList<>();
+    if("departmentID".equals(field)){
+      employmentHistories = employmentHistoryRepository.findEmployeeByDepartmentID(value);
+      for(EmploymentHistory eh : employmentHistories){
+        EmployeeDTO employeeDTO = convertEmployeeToEmployeeDTO(eh.getEmployee());
+        employeeDTOS.add(employeeDTO);
+      }
+    }else if("positionID".equals(field)){
+      employmentHistories = employmentHistoryRepository.findEmployeeByPostionID(value);
+      for(EmploymentHistory eh : employmentHistories){
+        EmployeeDTO employeeDTO = convertEmployeeToEmployeeDTO(eh.getEmployee());
+        employeeDTOS.add(employeeDTO);
+      }
     }
 
-    return null;
+
+    return employeeDTOS;
   }
 
   @Transactional
