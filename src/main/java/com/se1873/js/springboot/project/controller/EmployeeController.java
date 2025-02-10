@@ -2,7 +2,6 @@ package com.se1873.js.springboot.project.controller;
 
 import com.se1873.js.springboot.project.dto.EmployeeDTO;
 import com.se1873.js.springboot.project.entity.Department;
-import com.se1873.js.springboot.project.entity.Employee;
 import com.se1873.js.springboot.project.entity.Position;
 import com.se1873.js.springboot.project.repository.ContractRepository;
 import com.se1873.js.springboot.project.service.DepartmentService;
@@ -17,7 +16,6 @@ import org.springframework.web.bind.annotation.ModelAttribute;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 
-import java.util.ArrayList;
 import java.util.List;
 
 @Controller
