@@ -18,15 +18,15 @@ import org.springframework.web.bind.annotation.RequestParam;
 
 import java.util.List;
 
-@Controller
 @Slf4j
+@Controller
 @RequiredArgsConstructor
 @RequestMapping("/employee")
 public class EmployeeController {
   private final DepartmentService departmentService;
   private final PositionService positionService;
-  private final EmployeeService employeeService;
   private final ContractRepository contractRepository;
+  private final EmployeeService employeeService;
   private List<Department> departments;
   private List<Position> positions;
 
@@ -38,8 +38,7 @@ public class EmployeeController {
 
   @RequestMapping
   public String employee(Model model) {
-    log.info("[EMPLOYEE] - employee page");
-
+    log.info("[EMPLOYEE] - employee 323page");
     List<EmployeeDTO> employees = employeeService.getAllEmployees();
 
     model.addAttribute("employees", employees);
@@ -69,8 +68,18 @@ public class EmployeeController {
   @RequestMapping("/insert")
   public String insert(Model model,
                        @ModelAttribute("employee") EmployeeDTO employeeDTO) {
-    log.info("[INSERT] - employee insert");
+    log.info("[INSERT] - employee add");
     employeeService.insertEmployee(employeeDTO);
     return "redirect:/employee";
+  }
+  @RequestMapping("/filter")
+  public String filter(Model model,
+                       @RequestParam("value") Integer value){
+   List<EmployeeDTO> employees =  employeeService.filter(value);
+
+    model.addAttribute("employees", employees);
+    model.addAttribute("departments", departments);
+    model.addAttribute("positions", positions);
+    return "employee";
   }
 }

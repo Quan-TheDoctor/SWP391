@@ -6,7 +6,7 @@
 </head>
 <body>
 <a th:href="@{/employee/employee-insert}">INSERT</a>
-<form class="bg" th:action="@{/employee/filter}" method="get">
+<form th:action="@{/employee/filter}" method="get">
     <input type="hidden" name="field" value="departmentId"/>
     <label>Filter Department:
         <select name="value" onchange="this.form.submit()">
