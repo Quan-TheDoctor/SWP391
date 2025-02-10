@@ -16,9 +16,6 @@ import java.time.LocalDateTime;
 @AllArgsConstructor
 @NoArgsConstructor
 public class Dependent {
-  @Version
-  private Long version;
-
   @Id
   @GeneratedValue(strategy = GenerationType.IDENTITY)
   @Column(name = "dependent_id")

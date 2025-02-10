@@ -1,0 +1,213 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <title>Title</title>
+    <script type="text/javascript" th:src="@{/js/employee.js}"></script>
+</head>
+<body>
+<!--/*@thymesVar id="employee" type="com.se1873.js.springboot.project.dto.EmployeeDTO"*/-->
+<form th:object="${employee}"
+      th:action="@{/employee/insert}"
+      style="display: flex; justify-content: space-between">
+    <input type="hidden" name="service" value="insert">
+    <div>
+        <input type="hidden" id="employeeCreatedAt" th:field="*{employee.createdAt}"/>
+        <input type="hidden" id="employeeUpdatedAt" th:field="*{employee.updatedAt}"/>
+        <h2>Personal Data</h2>
+        <div>
+            <label>Name:</label>
+            <input id="employeeFirstName" th:field="*{employee.firstName}" required/>
+        </div>
+        <div>
+            <label>Name:</label>
+            <input id="employeeLastName" th:field="*{employee.lastName}" required/>
+        </div>
+        <div>
+            <label>Birth Date:</label>
+            <input id="employeeBirthDate" type="date" th:field="*{employee.birthDate}" required/>
+        </div>
+        <div>
+            <label>Gender:</label>
+            <div>
+                <label for="male">Male</label>
+                <input type="radio" id="male" th:field="*{employee.gender}" value="Male" required/>
+            </div>
+            <div>
+                <label for="female">Female</label>
+                <input type="radio" id="female" th:field="*{employee.gender}" value="Female" required/>
+            </div>
+        </div>
+        <div>
+            <label>ID no:</label>
+            <input id="employeeIdNumber" th:field="*{employee.idNumber}" required/>
+        </div>
+        <div>
+            <label>Phone number:</label>
+            <input id="employeePhoneNumber" th:field="*{employee.phoneNumber}" required/>
+        </div>
+        <div>
+            <label>Personal E-mail:</label>
+            <input id="employeePersonalEmail" th:field="*{employee.personalEmail}" required/>
+        </div>
+        <div>
+            <label>Company E-mail:</label>
+            <input id="employeeCompanyEmail" th:field="*{employee.companyEmail}" readonly/>
+        </div>
+        <div>
+            <label>Permanent address:</label>
+            <input id="employeePermanentAddress" th:field="*{employee.permanentAddress}" required/>
+        </div>
+        <div>
+            <label>Temporary address</label>
+            <input id="employeeTemporaryAddress" th:field="*{employee.temporaryAddress}" th:default="null"/>
+        </div>
+        <div>
+            <label>Gender:</label>
+            <div>
+                <label for="single">Single</label>
+                <input type="radio" id="single" th:field="*{employee.maritalStatus}" value="single" required/>
+            </div>
+            <div>
+                <label for="married">Married</label>
+                <input type="radio" id="married" th:field="*{employee.maritalStatus}" value="married" required/>
+            </div>
+        </div>
+        <div>
+            <label>Bank Account:</label>
+            <input id="bankAccountName" th:field="*{employee.bankName}" required/>
+        </div>
+        <div>
+            <label>Bank Code:</label>
+            <input id="bankAccountCode" th:field="*{employee.bankAccount}" required/>
+        </div>
+        <div>
+            <label>Tax no:</label>
+            <input id="employeeTaxNumber" th:field="*{employee.taxCode}" required/>
+        </div>
+    </div>
+    <div>
+        <input type="hidden" id="employmentHistoryIsPresent" th:field="*{employmentHistory.isCurrent}"/>
+        <input type="hidden" id="employmentHistoryCreatedAt" th:field="*{employmentHistory.createdAt}"/>
+        <h2>Work Data</h2>
+        <div>
+            <label>Employee no:</label>
+            <input id="employeeCode" th:field="*{employee.employeeCode}" required/>
+        </div>
+        <div>
+            <label>Department:
+                <select id="employmentHistoryDepartmentCode" th:field="*{employmentHistory.department.departmentCode}">
+                    <option th:each="d : ${departments}" th:value="${d.departmentCode}" th:text="${d.departmentName}" required/>
+                </select>
+            </label>
+        </div>
+        <div>
+            <label>Position:
+                <select id="employmentHistoryPositionCode" th:field="*{employmentHistory.position.positionCode}">
+                    <option th:each="p : ${positions}" th:value="${p.positionCode}" th:text="${p.positionName}"/>
+                </select>
+            </label>
+        </div>
+        <div>
+            <label>Since:</label>
+            <input id="employmentHistoryStartDate" th:field="*{employmentHistory.startDate}" required/>
+        </div>
+    </div>
+    <div>
+        <input type="hidden" id="contractIsPresent" th:field="*{contract.present}"/>
+        <input type="hidden" id="contractCreatedAt" th:field="*{contract.createdAt}"/>
+        <input type="hidden" id="contractSignDate" th:field="*{contract.signDate}"/>
+        <h2>Contract</h2>
+        <div>
+            <label>Contract no:</label>
+            <input id="contractCode" th:field="*{contract.contractCode}"/>
+        </div>
+        <label>Type:
+            <select id="contractType" th:field="*{contract.contractType}">
+                <option th:value="0">Lựa chọn loại hợp đồng</option>
+                <option th:value="3">HĐ Thực tập 3 tháng</option>
+                <option th:value="12">HĐ chính thức 1 năm</option>
+                <option th:value="24">HĐ chính thức 2 năm</option>
+            </select>
+        </label>
+        <div>
+            <label>Salary:</label>
+            <input id="contractBaseSalary" th:field="*{contract.baseSalary}" required/>
+        </div>
+        <div>
+            <label>From:</label>
+            <input id="contractStartDate" th:field="*{contract.startDate}" required/>
+        </div>
+        <div>
+            <label>To:</label>
+            <input id="contractEndDate" th:field="*{contract.endDate}" required/>
+        </div>
+    </div>
+    <div id="qualificationContainer">
+        <h2>Qualifications</h2>
+        <button id="qualificationAddBtn" type="button">Add qualification</button>
+
+        <div th:each="qualification, stat : ${employee.qualifications}" class="qualification-item">
+            <div>
+                <label>Qualification name:</label>
+                <input th:field="*{qualifications[__${stat.index}__].qualificationName}" required/>
+            </div>
+            <div>
+                <label>Institution:</label>
+                <input th:field="*{qualifications[__${stat.index}__].institution}" required/>
+            </div>
+            <div>
+                <label>Description:</label>
+                <input th:field="*{qualifications[__${stat.index}__].description}" required/>
+            </div>
+            <div>
+                <label>Type:</label>
+                <input th:field="*{qualifications[__${stat.index}__].qualificationType}" required/>
+            </div>
+            <div>
+                <label>Issue date:</label>
+                <input th:field="*{qualifications[__${stat.index}__].issueDate}" required/>
+            </div>
+            <div>
+                <label>Expiry date:</label>
+                <input th:field="*{qualifications[__${stat.index}__].expiryDate}" required/>
+            </div>
+            <button type="button" class="delete-qualification">Delete</button>
+        </div>
+    </div>
+    <button type="submit">Submit</button>
+</form>
+<input id="totalEmployee" name="totalEmployee" th:value="${totalEmployee}" type="hidden">
+<input id="countContract" name="countContract" th:value="${countContract}" type="hidden">
+</body>
+</html>
+
+<template id="qualificationTemplate">
+    <div class="qualification-item">
+        <div>
+            <label>Qualification name:</label>
+            <input name="qualifications[].qualificationName" required/>
+        </div>
+        <div>
+            <label>Institution:</label>
+            <input name="qualifications[].institution" required/>
+        </div>
+        <div>
+            <label>Description:</label>
+            <input name="qualifications[].description" required/>
+        </div>
+        <div>
+            <label>Type:</label>
+            <input name="qualifications[].qualificationType" required/>
+        </div>
+        <div>
+            <label>Issue date:</label>
+            <input name="qualifications[].issueDate" required/>
+        </div>
+        <div>
+            <label>Expiry date:</label>
+            <input name="qualifications[].expiryDate" required/>
+        </div>
+        <button type="button" class="delete-qualification">Delete</button>
+    </div>
+</template>

@@ -16,9 +16,6 @@ import java.time.LocalDateTime;
 @AllArgsConstructor
 @NoArgsConstructor
 public class Leave {
-  @Version
-  private Long version;
-
   @Id
   @GeneratedValue(strategy = GenerationType.IDENTITY)
   @Column(name = "leave_id")
