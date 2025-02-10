@@ -3,15 +3,23 @@ package com.se1873.js.springboot.project.service;
 import com.se1873.js.springboot.project.dto.EmployeeDTO;
 import com.se1873.js.springboot.project.entity.*;
 import com.se1873.js.springboot.project.repository.*;
+import jakarta.persistence.criteria.Join;
+import jakarta.persistence.criteria.Predicate;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.dao.DataIntegrityViolationException;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
+import org.springframework.data.jpa.domain.Specification;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDateTime;
+import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 
 @Slf4j
@@ -30,11 +38,67 @@ public class EmployeeService {
     return convertEmployeeToEmployeeDTO(employeeRepository.findByEmployeeId(employeeId));
   }
 
-  public List<EmployeeDTO> getAllEmployees() {
-    return employeeRepository.findAll(Sort.by(Sort.Direction.ASC, "employeeId"))
-      .stream()
-      .map(this::convertEmployeeToEmployeeDTO)
-      .toList();
+  public Page<EmployeeDTO> getAllEmployees(Pageable pageable) {
+    return employeeRepository.findAll(pageable)
+      .map(this::convertEmployeeToEmployeeDTO);
+  }
+
+  public Page<EmployeeDTO> filter(String field, Integer value, Pageable pageable) {
+    Specification<Employee> spec = (root, query, cb) -> {
+      // Join với employment history và lọc bản ghi hiện tại
+      Join<Employee, EmploymentHistory> employmentHistoryJoin = root.join("employmentHistories");
+      Predicate isCurrentPredicate = cb.equal(employmentHistoryJoin.get("isCurrent"), true);
+
+
+      if (field != null && value != null) {
+        switch (field.toLowerCase()) { // Điều kiện filter dựa trên field và value
+          case "departmentid":
+            Predicate departmentPredicate = cb.equal(employmentHistoryJoin.get("department").get("id"), value);
+            return cb.and(isCurrentPredicate, departmentPredicate);
+          case "positionid":
+            Predicate positionPredicate = cb.equal(employmentHistoryJoin.get("position").get("id"), value);
+            return cb.and(isCurrentPredicate, positionPredicate);
+          default:
+            throw new IllegalArgumentException("Invalid filter field: " + field);
+        }
+      }
+      return isCurrentPredicate;
+    };
+
+    return employeeRepository.findAll(spec, pageable)
+      .map(this::convertEmployeeToEmployeeDTO);
+  }
+
+  public Page<EmployeeDTO> sort(String direction, String field, Pageable pageable) {
+    if (!Arrays.asList("name", "code", "department", "position").contains(field.toLowerCase())) {
+      throw new IllegalArgumentException("Invalid sort field");
+    }
+
+    Sort sort = Sort.by(Sort.Direction.fromString(direction), getSortProperty(field));
+
+    Pageable sortedPageable = PageRequest.of(
+      pageable.getPageNumber(),
+      pageable.getPageSize(),
+      sort
+    );
+
+    Specification<Employee> spec = (root, query, cb) -> {
+      Join<Employee, EmploymentHistory> historyJoin = root.join("employmentHistories");
+      return cb.equal(historyJoin.get("isCurrent"), true);
+    };
+
+    return employeeRepository.findAll(spec, sortedPageable)
+      .map(this::convertEmployeeToEmployeeDTO);
+  }
+
+  private String getSortProperty(String field) {
+    switch (field.toLowerCase()) {
+      case "name": return "firstName";
+      case "code": return "employeeCode";
+      case "department": return "employmentHistories.department.departmentName";
+      case "position": return "employmentHistories.position.positionName";
+      default: throw new IllegalArgumentException();
+    }
   }
 
   @Transactional
@@ -89,7 +153,6 @@ public class EmployeeService {
       log.error("Employee with ID {} already exists. Error: {}", employeeDTO.getEmployee().getEmployeeId(), e.getMessage());
       throw new DataIntegrityViolationException(employeeDTO.toString());
     }
-    //employeeRepository.saveAndFlush(employeeDTO.getEmployee());
   }
 
   private EmployeeDTO convertEmployeeToEmployeeDTO(Employee employee) {
@@ -98,16 +161,16 @@ public class EmployeeService {
     Position position = null;
     Contract contract = null;
 
-    for(var emp : employee.getEmploymentHistories()) {
-      if(emp.getIsCurrent()) {
+    for (var emp : employee.getEmploymentHistories()) {
+      if (emp.getIsCurrent()) {
         employmentHistory = emp;
         department = emp.getDepartment();
         position = emp.getPosition();
       }
     }
 
-    for(var cont : employee.getContracts()) {
-      if(cont.isPresent()) {
+    for (var cont : employee.getContracts()) {
+      if (cont.isPresent()) {
         contract = cont;
       }
     }
@@ -122,4 +185,26 @@ public class EmployeeService {
       .contract(contract)
       .build();
   }
+
+  private EmployeeDTO convertDepartmentToEmployeeDTO(Department department) {
+    if (department == null) {
+      return null;
+    }
+
+    List<Employee> employees = new ArrayList<>();
+    List<EmploymentHistory> employmentHistories = department.getEmploymentHistory();
+
+    for (EmploymentHistory history : employmentHistories) {
+      if (history.getIsCurrent()) {
+        employees.add(history.getEmployee());
+      }
+    }
+
+    return EmployeeDTO.builder()
+      .department(department)
+      .employmentHistories(employmentHistories)
+      .employee((Employee) employees) // Cần đảm bảo EmployeeDTO có danh sách Employees
+      .build();
+  }
+
 }

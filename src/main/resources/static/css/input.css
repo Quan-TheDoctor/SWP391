@@ -1,3 +1,9 @@
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
+
+@layer components {
+    .table-header {
+        @apply bg-[#E5BEBE] opacity-50 flex items-center justify-between
+    }
+}
