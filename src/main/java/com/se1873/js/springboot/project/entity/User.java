@@ -15,9 +15,6 @@ import java.time.LocalDateTime;
 @AllArgsConstructor
 @NoArgsConstructor
 public class User {
-  @Version
-  private Long version;
-
   @Id
   @GeneratedValue(strategy = GenerationType.IDENTITY)
   @Column(name = "user_id")
@@ -26,7 +23,7 @@ public class User {
   @Column(name = "username")
   private String username;
 
-  @Column(name = "passwordHash")
+  @Column(name = "password_hash")
   private String passwordHash;
 
   @OneToOne(cascade = CascadeType.ALL)

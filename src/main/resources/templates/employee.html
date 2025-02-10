@@ -1,0 +1,52 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <title>Title</title>
+</head>
+<body>
+<a th:href="@{/employee/employee-insert}">INSERT</a>
+<form th:action="@{/employee/filter}" method="get">
+    <input type="hidden" name="field" value="departmentId"/>
+    <label>Filter Department:
+        <select name="value" onchange="this.form.submit()">
+            <option value="all" th:text="All"/>
+            <option th:each="d : ${departments}" th:value="${d.getDepartmentId()}" th:text="${d.getDepartmentName()}"/>
+        </select>
+    </label>
+</form>
+<form th:action="@{/employee/filter}" method="get">
+    <input type="hidden" name="field" value="positionId"/>
+    <label>Filter Position:
+        <select name="value" onchange="this.form.submit()">
+            <option value="all" th:text="All"/>
+            <option th:each="p : ${positions}" th:value="${p.getPositionId()}" th:text="${p.getPositionName()}"/>
+        </select>
+    </label>
+</form>
+
+<table border="1">
+    <thead>
+    <th>Name</th>
+    <th>Code</th>
+    <th>Department</th>
+    <th>Position</th>
+    <th>Since</th>
+    <th>Salary</th>
+    </thead>
+    <tbody><!--/*@thymesVar id="e" type="com.se1873.js.springboot.project.dto.EmployeeDTO"*/-->
+    <tr th:each="e : ${employees}">
+        <td>
+            <a th:href="@{/employee/view(employeeId=${e.getEmployee().getEmployeeId()})}"
+               th:text="${e.getEmployee().getFirstName()}"/>
+        </td>
+        <td th:text="${e.getEmployee().getEmployeeCode()}"/>
+        <td th:text="${e.getDepartment().getDepartmentName()}"/>
+        <td th:text="${e.getPosition().getPositionName()}"/>
+        <td th:text="${e.getEmploymentHistory().getStartDate()}"/>
+        <td th:text="${T(java.lang.String).format('%,.0f', e.getContract().getBaseSalary())}"/>
+    </tr>
+    </tbody>
+</table>
+</body>
+</html>
