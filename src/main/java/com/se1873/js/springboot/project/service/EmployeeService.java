@@ -42,16 +42,33 @@ public class EmployeeService {
     List<EmploymentHistory> employmentHistories = new ArrayList<>();
     List<EmployeeDTO> employeeDTOS = new ArrayList<>();
     if("departmentID".equals(field)){
-      employmentHistories = employmentHistoryRepository.findEmployeeByDepartmentID(value);
-      for(EmploymentHistory eh : employmentHistories){
-        EmployeeDTO employeeDTO = convertEmployeeToEmployeeDTO(eh.getEmployee());
-        employeeDTOS.add(employeeDTO);
+      if(value == null){
+        employmentHistories = employmentHistoryRepository.findAll();
+        for(EmploymentHistory eh : employmentHistories){
+          EmployeeDTO employeeDTO = convertEmployeeToEmployeeDTO(eh.getEmployee());
+          employeeDTOS.add(employeeDTO);
+        }
+      }else{
+        employmentHistories = employmentHistoryRepository.findEmployeeByDepartmentID(value);
+        for(EmploymentHistory eh : employmentHistories){
+          EmployeeDTO employeeDTO = convertEmployeeToEmployeeDTO(eh.getEmployee());
+          employeeDTOS.add(employeeDTO);
+        }
       }
+
     }else if("positionID".equals(field)){
-      employmentHistories = employmentHistoryRepository.findEmployeeByPostionID(value);
-      for(EmploymentHistory eh : employmentHistories){
-        EmployeeDTO employeeDTO = convertEmployeeToEmployeeDTO(eh.getEmployee());
-        employeeDTOS.add(employeeDTO);
+      if(value == null){
+        employmentHistories = employmentHistoryRepository.findAll();
+        for(EmploymentHistory eh : employmentHistories){
+          EmployeeDTO employeeDTO = convertEmployeeToEmployeeDTO(eh.getEmployee());
+          employeeDTOS.add(employeeDTO);
+        }
+      }else{
+        employmentHistories = employmentHistoryRepository.findEmployeeByPostionID(value);
+        for(EmploymentHistory eh : employmentHistories){
+          EmployeeDTO employeeDTO = convertEmployeeToEmployeeDTO(eh.getEmployee());
+          employeeDTOS.add(employeeDTO);
+        }
       }
     }
 
