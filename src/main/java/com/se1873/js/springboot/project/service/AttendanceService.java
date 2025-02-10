@@ -39,17 +39,11 @@ public class AttendanceService {
     }
 
     public List<AttendanceDTO> getAllAttendance() {
-        List<Attendance> attendances = attendanceRepository.findAll();
-        log.info(attendances.toString());
-        List<AttendanceDTO> attendanceDTOs = new ArrayList<>();
-        for (Attendance attendance : attendances) {
-            Employee employee = attendance.getEmployee();
-            AttendanceDTO attendanceDTO = AttendanceDTO.builder()
-                    .employee(employee).attendance(attendance).build();
-
-            attendanceDTOs.add(attendanceDTO);
+        for(var a : attendanceRepository.findAll()) {
+            log.info(a.getAttendanceId().toString());
         }
-        return attendanceDTOs;
+
+        return null;
     }
 
 
