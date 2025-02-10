@@ -68,7 +68,7 @@ public class EmployeeController {
   @RequestMapping("/insert")
   public String insert(Model model,
                        @ModelAttribute("employee") EmployeeDTO employeeDTO) {
-    log.info("[INSERT] - employee insert");
+    log.info("[INSERT] - employee add");
     employeeService.insertEmployee(employeeDTO);
     return "redirect:/employee";
   }
