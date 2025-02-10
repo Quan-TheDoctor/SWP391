@@ -9,7 +9,7 @@
 <form th:action="@{/employee/filter}" method="get">
     <input type="hidden" name="field" value="departmentID">
     <label>Filter Department:
-        <select name="value" onchange="this.form.submit()">
+        <select name="value" onblur="this.form.submit()">
             <option value="all" th:text="All"/>
             <option th:each="d : ${departments}" th:value="${d.getDepartmentId()}" th:text="${d.getDepartmentName()}"/>
         </select>
@@ -18,7 +18,7 @@
 <form th:action="@{/employee/filter}" method="get">
     <input type="hidden" name="field" value="positionID">
     <label>Filter Position:
-        <select name="value" onchange="this.form.submit()">
+        <select name="value" onblur="this.form.submit()">
             <option value="all" th:text="All"/>
             <option th:each="d : ${positions}" th:value="${d.getPositionId()}" th:text="${d.getPositionName()}"/>
         </select>
