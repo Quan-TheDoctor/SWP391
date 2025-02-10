@@ -38,7 +38,9 @@ public class EmployeeService {
   }
 
   public List<EmployeeDTO> filter(Integer field){
-    log.info(employmentHistoryRepository.findAll().toString());
+    for(var i : employmentHistoryRepository.finds(field)) {
+      log.info(i.getHistoryId().toString());
+    }
 
     return null;
   }

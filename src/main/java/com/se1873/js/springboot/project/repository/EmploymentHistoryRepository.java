@@ -12,6 +12,6 @@ import java.util.List;
 public interface EmploymentHistoryRepository extends JpaRepository<EmploymentHistory, Long> {
   EmploymentHistory findEmploymentHistoryByIsCurrentAndEmployee_EmployeeId(Boolean isCurrent, Integer employeeEmployeeId);
 
-  @Query("from EmploymentHistory eh where eh.department.departmentId = :departmentId and eh.isCurrent = true")
+  @Query("SELECT eh FROM EmploymentHistory eh WHERE eh.department.departmentId = :departmentId AND eh.isCurrent = true")
   List<EmploymentHistory> finds(@Param("departmentId") Integer departmentId);
 }

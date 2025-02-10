@@ -26,7 +26,7 @@
     </thead>
     <tbody><!--/*@thymesVar id="e" type="com.se1873.js.springboot.project.dto.EmployeeDTO"*/-->
     <tr th:each="e : ${employees}">
-        <td>
+        <td class="">
             <a th:href="@{/employee/view(employeeId=${e.getEmployee().getEmployeeId()})}"
                th:text="${e.getEmployee().getFirstName()}"/>
         </td>
