@@ -1,0 +1,149 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <title>Attendance Management</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+</head>
+<body class="bg-gray-100 min-h-screen p-6">
+<div class="w-2/3 bg-white rounded-lg shadow-sm p-6 space-y-8">
+    <div class="flex justify-between items-center pb-4 border-b">
+        <div>
+            <h1 class="text-2xl font-bold text-gray-800">Nguyễn Văn A</h1>
+            <p class="text-gray-500">Department: Engineering</p>
+        </div>
+        <div class="flex gap-2">
+            <button class="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 flex items-center gap-2">
+                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"/></svg>
+                Export
+            </button>
+            <button class="px-4 py-2 bg-green-600 text-white rounded-md hover:bg-green-700 flex items-center gap-2">
+                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/></svg>
+                Add
+            </button>
+        </div>
+    </div>
+    <div class="flex items-center justify-between bg-gray-50 px-4 py-2 rounded-md">
+        <button class="p-1 hover:bg-gray-200 rounded">‹</button>
+        <span class="font-medium">July 2025</span>
+        <button class="p-1 hover:bg-gray-200 rounded">›</button>
+    </div>
+    <div class="space-y-6">
+        <div class="border rounded-lg p-4">
+            <div class="flex justify-between items-center mb-4">
+                <h3 class="font-medium text-gray-800">Today</h3>
+                <span class="text-sm bg-green-100 text-green-800 px-2 py-1 rounded-full">Approved</span>
+            </div>
+
+            <div class="flex items-center gap-6">
+                <div class="flex flex-col items-start min-w-[120px]">
+                    <span class="text-gray-500 text-sm">Clock-in</span>
+                    <span class="font-medium text-lg">09:00 AM</span>
+                    <span class="text-gray-500 text-sm mt-2">Working time</span>
+                </div>
+
+                <div class="flex-1 relative h-20 bg-gray-100 rounded-lg overflow-hidden">
+                    <div class="absolute inset-0 flex justify-between text-xs text-gray-400 px-2 py-1">
+                        <span>7:00</span>
+                        <span>8:00</span>
+                        <span>9:00</span>
+                        <span>10:00</span>
+                        <span>11:00</span>
+                        <span>12:00</span>
+                        <span>13:00</span>
+                        <span>14:00</span>
+                        <span>15:00</span>
+                        <span>16:00</span>
+                        <span>17:00</span>
+                        <span>18:00</span>
+                        <span>19:00</span>
+                        <span>20:00</span>
+                    </div>
+
+                    <div class="absolute left-[14.28%] right-[14.28%] h-full bg-blue-200/50 border-l-2 border-r-2 border-blue-500"></div>
+                </div>
+
+<!--                <div class="flex-1 relative">-->
+<!--                    <div class="flex justify-between text-xs text-gray-400 mb-1 px-2">-->
+<!--        <span th:each="hour : ${#numbers.sequence(7, 20, 2)}"-->
+<!--              th:text="${hour} + ':00'">-->
+<!--        </span>-->
+<!--                    </div>-->
+
+<!--                    <div class="relative h-12 bg-gray-100 rounded-lg overflow-hidden">-->
+<!--                        <div class="absolute inset-y-0 left-[15.38%] w-[23.07%] bg-blue-200/50"></div>-->
+
+<!--                        <div class="absolute inset-y-0 left-[38.46%] w-[7.69%] bg-yellow-300/50"></div>-->
+
+<!--                        <div class="absolute inset-y-0 left-[46.15%] w-[38.46%] bg-blue-200/50"></div>-->
+
+<!--                        <div class="absolute inset-y-0 left-[84.61%] w-[15.38%] bg-red-300/50"></div>-->
+
+<!--                        <div class="absolute inset-0 flex justify-between">-->
+<!--                            <div th:each="hour : ${#numbers.sequence(7, 20)}"-->
+<!--                                 class="w-[1px] h-full bg-gray-200"-->
+<!--                                 :style="'left: ' + ((hour - 7) * 7.69) + '%'">-->
+<!--                            </div>-->
+<!--                        </div>-->
+<!--                    </div>-->
+<!--                </div>-->
+
+                <div class="flex flex-col items-end min-w-[120px]">
+                    <span class="text-gray-500 text-sm">Clock-out</span>
+                    <span class="font-medium text-lg">18:00 PM</span>
+                    <div class="mt-2 text-sm bg-blue-100 text-blue-800 px-2 py-1 rounded-full">Duration: 8h</div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Yesterday Entry -->
+        <div class="border rounded-lg p-4">
+            <!-- ... Similar structure as above ... -->
+        </div>
+    </div>
+
+    <!-- Approved Section -->
+    <div class="bg-green-50 p-4 rounded-lg">
+        <h3 class="font-medium text-green-800 mb-3">Approved Records</h3>
+        <div class="grid grid-cols-2 gap-4">
+            <div class="bg-white p-3 rounded">
+                <div class="text-gray-500 text-sm">Total Hours</div>
+                <div class="font-medium text-xl">176h</div>
+            </div>
+            <div class="bg-white p-3 rounded">
+                <div class="text-gray-500 text-sm">Overtime</div>
+                <div class="font-medium text-xl">16h</div>
+            </div>
+        </div>
+    </div>
+</div>
+</body>
+</html>
+
+<!--Tính toán thời gian trong controller sau đó truyền mảng segments vào model như dưới-->
+
+<!--List<TimeSegment> segments = Arrays.asList(-->
+<!--    new TimeSegment(LocalTime.of(9,0), LocalTime.of(12,0), "working"),-->
+<!--    new TimeSegment(LocalTime.of(12,0), LocalTime.of(13,0), "break"),-->
+<!--    new TimeSegment(LocalTime.of(13,0), LocalTime.of(18,0), "working"),-->
+<!--    new TimeSegment(LocalTime.of(18,0), LocalTime.of(20,0), "overtime")-->
+<!--    );-->
+
+<!--<div th:each="segment : ${segments}"-->
+<!--     class="absolute inset-y-0"-->
+<!--     :style="'left: ' + ${segment.startPercent} + '%; width: ' + ${segment.widthPercent} + '%;'"-->
+<!--     :class="{-->
+<!--         'bg-blue-200/50': ${segment.type} == 'working',-->
+<!--         'bg-yellow-300/50': ${segment.type} == 'break',-->
+<!--         'bg-red-300/50': ${segment.type} == 'overtime'-->
+<!--     }">-->
+<!--</div>-->
+
+<!--Javascript tính thời gian xác thực real-time-->
+
+<!--function calculatePosition(startTime, endTime) {-->
+<!--const totalMinutes = 13 * 60; // 7h-20h-->
+<!--const startOffset = (startTime - 7*60) / totalMinutes * 100;-->
+<!--const width = (endTime - startTime) / totalMinutes * 100;-->
+<!--return { start: startOffset, width: width };-->
+<!--}-->
