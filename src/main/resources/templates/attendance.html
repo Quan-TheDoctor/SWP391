@@ -1,0 +1,34 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Title</title>
+</head>
+<body>
+    <table border = "1">
+        <thead>
+        <th>#</th>
+        <th>Employee Name</th>
+        <th>Date</th>
+        <th>Clock-in</th>
+        <th>Clock-out</th>
+        <th>Time out</th>
+        <th>Note</th>
+        </thead>
+        <tbody><!--/*@thymesVar id="a" type="com.se1873.js.springboot.project.dto.AttendanceDTO"*/-->
+        <tr th:each="a : ${attendances}">
+            <td type="checkbox"></td>
+            <td>
+                <a th:href="@{/employee/view(employeeId=${a.getAttendance().getEmployee()})}"
+                   th:text="${a.getEmployee().getFirstName() + a.getEmployee().getLastName()}"/>
+            </td>
+            <td th:text="${a.getAttendance().getDate()}"/>
+            <td th:text="${a.getAttendance().getCheckIn()}"/>
+            <td th:text="${a.getAttendance().getCheckOut()}"/>
+            <td>Time out</td>
+            <td th:text="${a.getAttendance().getNote()}"/>
+        </tr>
+        </tbody>
+    </table>
+</body>
+</html>
