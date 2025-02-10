@@ -6,21 +6,11 @@
 </head>
 <body>
 <a th:href="@{/employee/employee-insert}">INSERT</a>
-<form th:action="@{/employee/filter}" method="get">
-    <input type="hidden" name="field" value="departmentId"/>
+<form th:action="@{/employee/filter(field='departmentID')}" method="get">
     <label>Filter Department:
         <select name="value" onchange="this.form.submit()">
             <option value="all" th:text="All"/>
             <option th:each="d : ${departments}" th:value="${d.getDepartmentId()}" th:text="${d.getDepartmentName()}"/>
-        </select>
-    </label>
-</form>
-<form th:action="@{/employee/filter}" method="get">
-    <input type="hidden" name="field" value="positionId"/>
-    <label>Filter Position:
-        <select name="value" onchange="this.form.submit()">
-            <option value="all" th:text="All"/>
-            <option th:each="p : ${positions}" th:value="${p.getPositionId()}" th:text="${p.getPositionName()}"/>
         </select>
     </label>
 </form>
