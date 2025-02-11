@@ -24,7 +24,9 @@ public interface EmployeeRepository extends JpaRepository<Employee, Long> , JpaS
 
   List<Employee> sortByDepartment(Pageable pageable);
 
-  @Query("SELECT e FROM Employee e WHERE lower(concat(e.firstName, ' ', e.lastName)) like lower(concat('%', replace(:Name, ' ', '%'), '%'))")
+  @Query("SELECT e FROM Employee e " +
+          "WHERE lower(concat(e.firstName, ' ', e.lastName)) " +
+          "like lower(concat('%', replace(:Name, ' ', '%'), '%'))")
   Page<Employee> searchEmployeesByFirstNameAndLastName(@Param("Name") String Name, Pageable pageable);
 
 }

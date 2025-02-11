@@ -109,4 +109,9 @@ public class AttendanceService {
       .build();
   }
 
+  public Page<AttendanceDTO> search(String Name,Pageable pageable){
+
+    var attendance = attendanceRepository.searchAttendanceByEmployeeName(Name,pageable);
+    return attendance.map(this::convertAttendanceToAttendanceDTO);
+  }
 }

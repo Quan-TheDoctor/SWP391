@@ -12,6 +12,10 @@
                 →
             </button>
         </form>
+        <form action="/search" th:action="@{/attendance/search}" method="get">
+            <input type="text" name="search" placeholder="Search employee by name" th:value="${employeeName}" />
+            <button type="submit">Search</button>
+        </form>
 
         <div class="mt-4">
             <form th:action="@{/attendance/filter}" method="get" class="flex items-center gap-2">
