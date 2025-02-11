@@ -41,7 +41,11 @@
             <a th:href="@{/employee/employee-export}" class="mt-4 px-4 py-2 bg-[#5E5ADB] text-white rounded hover:bg-blue-600 transition-colors">Export to Excel</a>
         </div>
     </div>
-
+    <!--search-->
+    <form th:action = "@{/employee/search}">
+        <input type="text" name="search" >
+        <button type="submit">search</button>
+    </form>
 
     <div class="bg-white rounded-lg shadow-sm overflow-hidden">
         <table class="w-full">

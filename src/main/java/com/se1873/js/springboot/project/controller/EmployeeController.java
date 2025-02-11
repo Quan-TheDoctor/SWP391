@@ -138,4 +138,17 @@ public class EmployeeController {
     model.addAttribute("fragments", "fragments/employee");
     return "index";
   }
+  @RequestMapping("/search")
+  public String search(Model model,
+                       @RequestParam("search") String search,
+                       @RequestParam(value = "page", defaultValue = "0") Integer page,
+                       @RequestParam(value = "size", defaultValue = "10") Integer size){
+    Pageable pageable = PageRequest.of(page, size, Sort.by("employeeId").ascending());
+    Page<EmployeeDTO> employees = employeeService.search(search,pageable);
+    model.addAttribute("employees",employees);
+    model.addAttribute("departments", departments);
+    model.addAttribute("positions", positions);
+    model.addAttribute("fragments", "fragments/employee");
+    return "index";
+  }
 }
