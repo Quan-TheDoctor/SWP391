@@ -1,149 +1,158 @@
-<!DOCTYPE html>
-<html lang="en" xmlns:th="http://www.thymeleaf.org">
-<head>
-    <meta charset="UTF-8">
-    <title>Attendance Management</title>
-    <script src="https://cdn.tailwindcss.com"></script>
-</head>
-<body class="bg-gray-100 min-h-screen p-6">
-<div class="w-2/3 bg-white rounded-lg shadow-sm p-6 space-y-8">
-    <div class="flex justify-between items-center pb-4 border-b">
-        <div>
-            <h1 class="text-2xl font-bold text-gray-800">Nguyễn Văn A</h1>
-            <p class="text-gray-500">Department: Engineering</p>
-        </div>
-        <div class="flex gap-2">
-            <button class="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 flex items-center gap-2">
-                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"/></svg>
-                Export
-            </button>
-            <button class="px-4 py-2 bg-green-600 text-white rounded-md hover:bg-green-700 flex items-center gap-2">
-                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/></svg>
-                Add
-            </button>
+<div class="flex gap-6 h-[calc(100vh-48px)]">
+
+    <div class="w-1/3 bg-white rounded-lg shadow-sm flex flex-col">
+        <form th:action="@{/attendance/view/getEmployees}"
+                class="p-4 border-b">
+            <input type="hidden" name="field" value="departmentId">
+            <h2 class="text-xl font-bold text-gray-800 mb-3">Employee List</h2>
+            <select name="value" class="w-full p-2 border rounded-md focus:ring-2 focus:ring-blue-500"
+            onchange="this.form.submit()">
+                <option value="all"
+                    th:selected="${(param.value == null) || (param.value[0] == 'all')}">All Departments
+                <option th:each="dept : ${departments}"
+                        th:value="${dept.getDepartmentId()}"
+                        th:text="${dept.getDepartmentName()}"
+                        th:selected="${(param.value != null) && (param.value[0] == T(java.lang.String).valueOf(dept.getDepartmentId()))}"></option>
+            </select>
+        </form>
+        <div class="flex-1 overflow-y-auto">
+            <div class="divide-y">
+                <div th:each="emp : ${employees}"
+                     class="p-4 hover:bg-blue-50 cursor-pointer transition-colors"
+                     onclick="selectEmployee(this)">
+                    <!--/*@thymesVar id="emp" type="com.se1873.js.springboot.project.dto.EmployeeDTO"*/-->
+                    <a th:href="@{/attendance/view/detail(employeeId=${emp.getEmployee().getEmployeeId()})}">
+                        <div class="font-medium text-gray-800" th:text="${T(java.lang.String).format('%s %s', emp.getEmployee().getFirstName(), emp.getEmployee().getLastName())}"></div>
+                        <div class="text-sm text-gray-500" th:text="${emp.getPosition().getPositionName()}"></div>
+                    </a>
+                </div>
+            </div>
         </div>
     </div>
-    <div class="flex items-center justify-between bg-gray-50 px-4 py-2 rounded-md">
-        <button class="p-1 hover:bg-gray-200 rounded">‹</button>
-        <span class="font-medium">July 2025</span>
-        <button class="p-1 hover:bg-gray-200 rounded">›</button>
-    </div>
-    <div class="space-y-6">
-        <div class="border rounded-lg p-4">
-            <div class="flex justify-between items-center mb-4">
-                <h3 class="font-medium text-gray-800">Today</h3>
-                <span class="text-sm bg-green-100 text-green-800 px-2 py-1 rounded-full">Approved</span>
+
+
+    <div th:if="${employee != null}" class="w-2/3 bg-white rounded-lg shadow-sm flex flex-col">
+
+        <div class="p-6 pb-0 border-b bg-white">
+            <div class="flex justify-between items-center mb-6">
+                <div>
+                    <h1 class="text-2xl font-bold text-gray-800" id="employeeName" th:text="${T(java.lang.String).format('%s %s', employee.getEmployee().getFirstName(), employee.getEmployee().getLastName())}"/>
+                    <div class="text-gray-500" id="employeeDept" th:text="${employee.getDepartment.getDepartmentName()}"></div>
+                </div>
+                <div class="flex gap-2">
+                    <button class="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 flex items-center gap-2">
+                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"/>
+                        </svg>
+                        Export
+                    </button>
+                    <button class="px-4 py-2 bg-green-600 text-white rounded-md hover:bg-green-700 flex items-center gap-2">
+                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/>
+                        </svg>
+                        Add
+                    </button>
+                </div>
             </div>
 
-            <div class="flex items-center gap-6">
-                <div class="flex flex-col items-start min-w-[120px]">
-                    <span class="text-gray-500 text-sm">Clock-in</span>
-                    <span class="font-medium text-lg">09:00 AM</span>
-                    <span class="text-gray-500 text-sm mt-2">Working time</span>
-                </div>
 
-                <div class="flex-1 relative h-20 bg-gray-100 rounded-lg overflow-hidden">
-                    <div class="absolute inset-0 flex justify-between text-xs text-gray-400 px-2 py-1">
-                        <span>7:00</span>
-                        <span>8:00</span>
-                        <span>9:00</span>
-                        <span>10:00</span>
-                        <span>11:00</span>
-                        <span>12:00</span>
-                        <span>13:00</span>
-                        <span>14:00</span>
-                        <span>15:00</span>
-                        <span>16:00</span>
-                        <span>17:00</span>
-                        <span>18:00</span>
-                        <span>19:00</span>
-                        <span>20:00</span>
+            <div class="flex items-center justify-between bg-gray-50 px-4 py-2 rounded-md mb-6">
+                <button class="p-1 hover:bg-gray-200 rounded">‹</button>
+                <span class="font-medium" th:text="${dateInText}"></span>
+                <button class="p-1 hover:bg-gray-200 rounded">›</button>
+            </div>
+        </div>
+
+
+        <div class="flex-1 overflow-y-auto p-6 pt-0">
+            <div th:each="attendance : ${attendances}" class="space-y-6 pt-6">
+
+                <div class="border rounded-lg p-4">
+                    <div class="flex justify-between items-center mb-4">
+                        <!--/*@thymesVar id="attendance" type="com.se1873.js.springboot.project.dto.AttendanceDTO"*/-->
+                        <h3 class="font-medium text-gray-800" th:text="${attendance.getAttendance().getDate()}"></h3>
+                        <span class="text-sm bg-green-100 text-green-800 px-2 py-1 rounded-full">Approved</span>
                     </div>
 
-                    <div class="absolute left-[14.28%] right-[14.28%] h-full bg-blue-200/50 border-l-2 border-r-2 border-blue-500"></div>
-                </div>
 
-<!--                <div class="flex-1 relative">-->
-<!--                    <div class="flex justify-between text-xs text-gray-400 mb-1 px-2">-->
-<!--        <span th:each="hour : ${#numbers.sequence(7, 20, 2)}"-->
-<!--              th:text="${hour} + ':00'">-->
-<!--        </span>-->
-<!--                    </div>-->
+                    <div class="flex items-stretch gap-4">
 
-<!--                    <div class="relative h-12 bg-gray-100 rounded-lg overflow-hidden">-->
-<!--                        <div class="absolute inset-y-0 left-[15.38%] w-[23.07%] bg-blue-200/50"></div>-->
+                        <div class="flex flex-col justify-between min-w-[120px]">
+                            <div class="space-y-1">
+                                <span class="text-gray-500 text-sm">Clock-in</span>
+                                <span class="font-medium text-lg" th:text="${#temporals.format(attendance.getAttendance().getCheckIn(), 'HH:mm:ss')}"></span>
+                            </div>
+                            <div class="text-gray-500 text-sm">Working time</div>
+                        </div>
 
-<!--                        <div class="absolute inset-y-0 left-[38.46%] w-[7.69%] bg-yellow-300/50"></div>-->
+                        <div class="flex-1 relative">
+                            <div class="flex justify-between text-xs text-gray-400 mb-1 px-2">
+                                <span>7:00</span><span>9:00</span><span>11:00</span>
+                                <span>13:00</span><span>15:00</span><span>17:00</span>
+                                <span>19:00</span><span>20:00</span>
+                            </div>
+                            <div class="relative h-12 bg-gray-100 rounded-lg overflow-hidden">
 
-<!--                        <div class="absolute inset-y-0 left-[46.15%] w-[38.46%] bg-blue-200/50"></div>-->
+                                <div th:each="segment : ${segments}"
+                                     class="absolute h-full"
+                                     th:style="'left: ' + ${segment.startPercent} + '%; width: ' + ${segment.widthPercent} + '%;'"
+                                     th:class="{
+                                         'bg-blue-200/50': ${segment.type} == 'working',
+                                         'bg-yellow-300/50': ${segment.type} == 'break',
+                                         'bg-red-300/50': ${segment.type} == 'overtime'
+                                     }">
+                                </div>
+                            </div>
+                        </div>
 
-<!--                        <div class="absolute inset-y-0 left-[84.61%] w-[15.38%] bg-red-300/50"></div>-->
 
-<!--                        <div class="absolute inset-0 flex justify-between">-->
-<!--                            <div th:each="hour : ${#numbers.sequence(7, 20)}"-->
-<!--                                 class="w-[1px] h-full bg-gray-200"-->
-<!--                                 :style="'left: ' + ((hour - 7) * 7.69) + '%'">-->
-<!--                            </div>-->
-<!--                        </div>-->
-<!--                    </div>-->
-<!--                </div>-->
-
-                <div class="flex flex-col items-end min-w-[120px]">
-                    <span class="text-gray-500 text-sm">Clock-out</span>
-                    <span class="font-medium text-lg">18:00 PM</span>
-                    <div class="mt-2 text-sm bg-blue-100 text-blue-800 px-2 py-1 rounded-full">Duration: 8h</div>
+                        <div class="flex flex-col justify-between min-w-[120px] text-right">
+                            <div class="space-y-1">
+                                <span class="text-gray-500 text-sm">Clock-out</span>
+                                <span class="font-medium text-lg" th:text="${#temporals.format(attendance.getAttendance().getCheckOut(), 'HH:mm:ss')}"></span>
+                            </div>
+                            <!--/*@thymesVar id="attendance" type="com.se1873.js.springboot.project.dto.AttendanceDTO"*/-->
+                            <div class="text-sm bg-blue-100 text-blue-800 px-2 py-1 rounded-full text-center" th:text="${attendance.getAttendance().getOvertimeHours()}">h</div>
+                        </div>
+                    </div>
                 </div>
             </div>
         </div>
 
-        <!-- Yesterday Entry -->
-        <div class="border rounded-lg p-4">
-            <!-- ... Similar structure as above ... -->
-        </div>
-    </div>
 
-    <!-- Approved Section -->
-    <div class="bg-green-50 p-4 rounded-lg">
-        <h3 class="font-medium text-green-800 mb-3">Approved Records</h3>
-        <div class="grid grid-cols-2 gap-4">
-            <div class="bg-white p-3 rounded">
-                <div class="text-gray-500 text-sm">Total Hours</div>
-                <div class="font-medium text-xl">176h</div>
-            </div>
-            <div class="bg-white p-3 rounded">
-                <div class="text-gray-500 text-sm">Overtime</div>
-                <div class="font-medium text-xl">16h</div>
+        <div class="bg-green-50 p-4 rounded-lg m-6 mt-0 border-t">
+            <h3 class="font-medium text-green-800 mb-3">Approved Records</h3>
+            <div class="grid grid-cols-2 gap-4">
+                <div class="bg-white p-3 rounded shadow-sm">
+                    <div class="text-gray-500 text-sm">Total Hours</div>
+                    <div class="font-medium text-xl" id="totalHourValue"
+                         th:if="${totalWorkingTimes != null}" th:text="${totalWorkingTimes}"></div>
+                </div>
+                <div class="bg-white p-3 rounded shadow-sm">
+                    <div class="text-gray-500 text-sm">Overtime</div>
+                    <div class="font-medium text-xl"
+                         th:if="${totalOverHours != null}" th:text="${totalOverHours}"></div>
+                </div>
             </div>
         </div>
     </div>
 </div>
-</body>
-</html>
 
-<!--Tính toán thời gian trong controller sau đó truyền mảng segments vào model như dưới-->
+<script>
+    document.addEventListener('DOMContentLoaded', function () {
 
-<!--List<TimeSegment> segments = Arrays.asList(-->
-<!--    new TimeSegment(LocalTime.of(9,0), LocalTime.of(12,0), "working"),-->
-<!--    new TimeSegment(LocalTime.of(12,0), LocalTime.of(13,0), "break"),-->
-<!--    new TimeSegment(LocalTime.of(13,0), LocalTime.of(18,0), "working"),-->
-<!--    new TimeSegment(LocalTime.of(18,0), LocalTime.of(20,0), "overtime")-->
-<!--    );-->
+    })
+    function selectEmployee(element) {
 
-<!--<div th:each="segment : ${segments}"-->
-<!--     class="absolute inset-y-0"-->
-<!--     :style="'left: ' + ${segment.startPercent} + '%; width: ' + ${segment.widthPercent} + '%;'"-->
-<!--     :class="{-->
-<!--         'bg-blue-200/50': ${segment.type} == 'working',-->
-<!--         'bg-yellow-300/50': ${segment.type} == 'break',-->
-<!--         'bg-red-300/50': ${segment.type} == 'overtime'-->
-<!--     }">-->
-<!--</div>-->
+        document.querySelectorAll('.employee-item').forEach(item => {
+            item.classList.remove('bg-blue-100', 'border-blue-300');
+        });
 
-<!--Javascript tính thời gian xác thực real-time-->
+        element.classList.add('bg-blue-100', 'border-blue-300');
 
-<!--function calculatePosition(startTime, endTime) {-->
-<!--const totalMinutes = 13 * 60; // 7h-20h-->
-<!--const startOffset = (startTime - 7*60) / totalMinutes * 100;-->
-<!--const width = (endTime - startTime) / totalMinutes * 100;-->
-<!--return { start: startOffset, width: width };-->
-<!--}-->
+        const name = element.querySelector('.font-medium').textContent;
+        const dept = element.querySelector('.text-gray-500').textContent;
+        document.getElementById('employeeName').textContent = name;
+        document.getElementById('employeeDept').textContent = `Department: ${dept}`;
+    }
+</script>

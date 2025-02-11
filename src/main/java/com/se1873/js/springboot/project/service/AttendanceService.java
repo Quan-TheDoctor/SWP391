@@ -91,6 +91,16 @@ public class AttendanceService {
     return attendancePage.map(this::convertAttendanceToAttendanceDTO);
   }
 
+  public List<AttendanceDTO> findAttendancesByEmployeeId(Integer employeeId) {
+    return attendanceRepository.findAttendancesByEmployee_EmployeeId(employeeId)
+      .stream().map(this::convertAttendanceToAttendanceDTO).collect(Collectors.toList());
+  }
+
+  public List<AttendanceDTO> findAttendancesByEmployeeIdInSpecifictime(Integer employeeId, int year, int month) {
+    return attendanceRepository.findAttendancesByEmployeeIdAndSpecificTime(employeeId, year, month)
+      .stream().map(this::convertAttendanceToAttendanceDTO).collect(Collectors.toList());
+  }
+
   private AttendanceDTO convertAttendanceToAttendanceDTO(Attendance attendance) {
     Employee employee = attendance.getEmployee();
     return AttendanceDTO.builder()

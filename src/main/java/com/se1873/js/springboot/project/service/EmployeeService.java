@@ -115,18 +115,15 @@ public class EmployeeService {
       if (saveEmployee.getEmployeeId() != null) {
         saveEmployee.setEmployeeId(null);
       }
-      log.info("Employee before save: {}", saveEmployee);
-      log.info("employeeCode: {}", saveEmployee.getEmployeeCode());
-      log.info("idNumber: {}", saveEmployee.getIdNumber());
-      log.info("companyEmail: {}", saveEmployee.getCompanyEmail());
+
       employeeRepository.save(saveEmployee);
-      log.info("2");
+
       Employee employee = employeeRepository.findByEmployeeCode(employeeDTO.getEmployee().getEmployeeCode());
-      log.info("3");
+
       Department department = departmentRepository.findByDepartmentCode(employeeDTO.getEmploymentHistory().getDepartment().getDepartmentCode());
-      log.info("4");
+
       Position position = positionRepository.findByPositionCode(employeeDTO.getEmploymentHistory().getPosition().getPositionCode());
-      log.info("5");
+
       EmploymentHistory employmentHistory = employeeDTO.getEmploymentHistory();
       employmentHistory.setEmployee(employee);
       employmentHistory.setDepartment(department);
@@ -149,14 +146,8 @@ public class EmployeeService {
       contractRepository.save(contract);
       userRepository.save(user);
       employmentHistoryRepository.save(employmentHistory);
-
-      log.info(employee.getEmployeeId().toString());
-      log.info(department.getDepartmentId().toString());
-      log.info(position.getPositionId().toString());
-
     } catch (DataIntegrityViolationException e) {
-      log.error("Employee with ID {} already exists. Error: {}", employeeDTO.getEmployee().getEmployeeId(), e.getMessage());
-      throw new DataIntegrityViolationException(employeeDTO.toString());
+      log.error("Root cause: " + e.getCause().getMessage());
     }
   }
 

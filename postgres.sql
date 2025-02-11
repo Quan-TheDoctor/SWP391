@@ -8,10 +8,10 @@ CREATE TABLE employees
 (
     employee_id       SERIAL PRIMARY KEY,
     employee_code     text UNIQUE NOT NULL,
-    first_name        VARCHAR(50)        NOT NULL,
-    last_name         VARCHAR(50)        NOT NULL,
+    first_name        VARCHAR(50) NOT NULL,
+    last_name         VARCHAR(50) NOT NULL,
     picture           bytea,
-    birth_date        DATE               NOT NULL,
+    birth_date        DATE        NOT NULL,
     gender            VARCHAR(10),
     id_number         text UNIQUE NOT NULL,
     permanent_address TEXT,
@@ -219,11 +219,13 @@ CREATE TABLE dependents
 
 create table users
 (
-    user_id      SERIAL PRIMARY KEY,
-    employee_id  INTEGER REFERENCES employees (employee_id),
-    username     text NOT NULL,
+    user_id       SERIAL PRIMARY KEY,
+    employee_id   INTEGER REFERENCES employees (employee_id),
+    username      text NOT NULL,
     password_hash text NOT NULL,
-    created_at   TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+    email         text,
+    role          text default 'USER',
+    created_at    TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
 
 INSERT INTO employees (employee_code, first_name, last_name, birth_date, gender,
@@ -323,7 +325,7 @@ VALUES (1, 'Nguyễn Thị Bình', 'Vợ', '1992-08-20', '001092123456', true),
 -- Generate attendance records for all employees (20 days each)
 WITH date_range AS (SELECT generate_series(
                                    date_trunc('month', CURRENT_DATE) + '1 day'::interval,
-                                   date_trunc('month', CURRENT_DATE) + '20 days'::interval,
+                                   date_trunc('month', CURRENT_DATE) + '100 days'::interval,
                                    '1 day'::interval
                            )::date AS work_date)
 INSERT
@@ -386,7 +388,8 @@ VALUES (1, 'Bằng đại học', 'Kỹ sư CNTT', 'Đại học Bách Khoa Hà 
        (1, 'Chứng chỉ', 'AWS Solution Architect', 'Amazon', '2022-01-15', '2025-01-15',
         'Chứng chỉ AWS cấp độ Professional'),
        (2, 'Bằng đại học', 'Kỹ sư Phần mềm', 'Đại học FPT', '2014-06-20', NULL, 'Chuyên ngành Công nghệ phần mềm'),
-       (2, 'Chứng chỉ', 'AWS Solution Architect', 'Amazon', '2021-03-12', '2024-03-12', 'Chứng chỉ AWS cấp độ Professional');
+       (2, 'Chứng chỉ', 'AWS Solution Architect', 'Amazon', '2021-03-12', '2024-03-12',
+        'Chứng chỉ AWS cấp độ Professional');
 
 -- Salary Records (10 records)
 INSERT INTO salary_records (employee_id, month, year, base_salary, total_allowance,
@@ -439,14 +442,13 @@ VALUES (3, 'Phụ cấp ăn trưa', 1000000, '2020-01-15', NULL, 'Phụ cấp ă
        (3, 'Phụ cấp xăng xe', 800000, '2021-01-01', NULL, 'Phụ cấp xăng xe hàng tháng');
 
 -- Insert attendance records for current month (similar to existing pattern)
-WITH date_range AS (
-    SELECT generate_series(
-                   date_trunc('month', CURRENT_DATE) + '1 day'::interval,
-                   date_trunc('month', CURRENT_DATE) + '365 days'::interval,
-                   '1 day'::interval
-           )::date AS work_date
-)
-INSERT INTO attendance (employee_id, date, check_in, check_out, status, overtime_hours)
+WITH date_range AS (SELECT generate_series(
+                                   date_trunc('month', CURRENT_DATE) + '1 day'::interval,
+                                   date_trunc('month', CURRENT_DATE) + '365 days'::interval,
+                                   '1 day'::interval
+                           )::date AS work_date)
+INSERT
+INTO attendance (employee_id, date, check_in, check_out, status, overtime_hours)
 SELECT 3,
        d.work_date,
        d.work_date + '08:00:00'::interval + (random() * interval '30 minutes'),
