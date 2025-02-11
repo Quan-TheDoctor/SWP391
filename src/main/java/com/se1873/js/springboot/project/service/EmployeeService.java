@@ -100,6 +100,11 @@ public class EmployeeService {
       default: throw new IllegalArgumentException();
     }
   }
+  public Page<EmployeeDTO> search(String Name,Pageable pageable){
+    var employees = employeeRepository.searchEmployeesByFirstNameAndLastName(Name,pageable);
+
+    return employees.map(this::convertEmployeeToEmployeeDTO);
+  }
 
   @Transactional
   public void insertEmployee(EmployeeDTO employeeDTO) {
@@ -186,25 +191,6 @@ public class EmployeeService {
       .build();
   }
 
-  private EmployeeDTO convertDepartmentToEmployeeDTO(Department department) {
-    if (department == null) {
-      return null;
-    }
 
-    List<Employee> employees = new ArrayList<>();
-    List<EmploymentHistory> employmentHistories = department.getEmploymentHistory();
-
-    for (EmploymentHistory history : employmentHistories) {
-      if (history.getIsCurrent()) {
-        employees.add(history.getEmployee());
-      }
-    }
-
-    return EmployeeDTO.builder()
-      .department(department)
-      .employmentHistories(employmentHistories)
-      .employee((Employee) employees) // Cần đảm bảo EmployeeDTO có danh sách Employees
-      .build();
-  }
 
 }
