@@ -18,17 +18,24 @@ public class WebSecurityConfig {
   @Bean
   public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
     http
-      .authorizeHttpRequests((requests) ->
-        requests.requestMatchers("/")
-          .permitAll()
-          .anyRequest()
-          .authenticated()  //No auth required for these URL
-      )
-      .formLogin((form) ->
-        form.loginPage("/login")
-          .permitAll()      //No auth required for these URL
-      )
-      .logout((logout) -> logout.permitAll()); //No auth required for logging out
+            .authorizeHttpRequests((requests) ->
+                    requests
+                            .requestMatchers("/", "/home", "/login", "/css/**", "/js/**").permitAll() // Cho phép truy cập các trang này
+                            .anyRequest().authenticated() // Các trang khác yêu cầu đăng nhập
+            )
+            .formLogin((form) ->
+                    form
+                            .loginPage("/login") // Chỉ định trang login tùy chỉnh
+                            .defaultSuccessUrl("/dashboard", true) // Chuyển hướng sau khi đăng nhập thành công
+                            .failureUrl("/login?error=true") // Xử lý lỗi đăng nhập
+                            .permitAll()
+            )
+            .logout((logout) -> logout
+                    .logoutUrl("/logout")
+                    .logoutSuccessUrl("/login?logout=true") // Chuyển hướng sau khi đăng xuất
+                    .permitAll()
+            );
+
     return http.build();
   }
 
