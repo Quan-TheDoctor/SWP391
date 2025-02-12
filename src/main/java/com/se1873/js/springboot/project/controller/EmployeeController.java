@@ -62,6 +62,8 @@ public class EmployeeController {
   public String view(Model model,
                      @RequestParam("employeeId") Integer employeeId) {
     EmployeeDTO employeeDTO = employeeService.getEmployeeByEmployeeId(employeeId);
+    model.addAttribute("departments", departments);
+    model.addAttribute("positions", positions);
     model.addAttribute("employee", employeeDTO);
     model.addAttribute("fragments", "fragments/employee-details");
     return "index";

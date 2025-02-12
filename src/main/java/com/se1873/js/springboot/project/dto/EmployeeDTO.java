@@ -20,4 +20,5 @@ public class EmployeeDTO {
   private Contract contract;
   private List<Qualification> qualifications;
   private List<EmploymentHistory> employmentHistories;
+  private List<Attendance> attendances;
 }

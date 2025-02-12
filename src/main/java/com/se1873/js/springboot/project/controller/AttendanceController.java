@@ -2,6 +2,7 @@ package com.se1873.js.springboot.project.controller;
 
 import com.se1873.js.springboot.project.dto.AttendanceDTO;
 import com.se1873.js.springboot.project.dto.EmployeeDTO;
+import com.se1873.js.springboot.project.dto.TimeSegmentDTO;
 import com.se1873.js.springboot.project.entity.Attendance;
 import com.se1873.js.springboot.project.entity.Department;
 import com.se1873.js.springboot.project.service.AttendanceService;
@@ -23,7 +24,7 @@ import java.time.Duration;
 import java.time.LocalDate;
 import java.time.Month;
 import java.time.format.TextStyle;
-import java.time.temporal.ChronoUnit;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Locale;
 
@@ -156,6 +157,58 @@ public class AttendanceController {
       String formattedTime = getTotalHourInString(totalWorkingTime);
       model.addAttribute("totalOverHours", formattedOverHours);
       model.addAttribute("totalWorkingTimes", formattedTime);
+
+
+      for(var att : attendanceDTO) {
+        int checkInHour = att.getAttendance().getCheckIn().getHour();
+        int checkInMinute = att.getAttendance().getCheckIn().getMinute();
+        int totalCheckInMinutes = checkInHour * 60 + checkInMinute;
+
+        int checkOutHour = att.getAttendance().getCheckOut().getHour();
+        int checkOutMinute = att.getAttendance().getCheckOut().getMinute();
+        int totalCheckOutMinutes = checkOutHour * 60 + checkOutMinute;
+
+        List<TimeSegmentDTO> segments = new ArrayList<>();
+
+        TimeSegmentDTO segment = null;
+        TimeSegmentDTO segment1 = null;
+        TimeSegmentDTO segment2 = null;
+        TimeSegmentDTO segment3 = null;
+        TimeSegmentDTO segment4 = null;
+        if(totalCheckInMinutes > 480) {
+          segment = new TimeSegmentDTO(480,
+            totalCheckInMinutes, "overtime");
+          segment1 = new TimeSegmentDTO(totalCheckInMinutes,
+            720, "working");
+          segment2 = new TimeSegmentDTO(720,
+              780, "break");
+          segments.add(segment);
+        } else {
+          segment1 = new TimeSegmentDTO(totalCheckInMinutes,
+            720, "working");
+          segment2 = new TimeSegmentDTO(720,
+            780, "break");
+        }
+        totalCheckOutMinutes -= 60;
+        if(totalCheckOutMinutes > 1020) {
+          segment3 = new TimeSegmentDTO(780,
+            1020, "working");
+          segment4 = new TimeSegmentDTO(1020,
+              totalCheckOutMinutes, "overtime");
+        } else {
+          segment3 = new TimeSegmentDTO(780,
+            totalCheckOutMinutes, "working");
+          segment4 = new TimeSegmentDTO(0,
+            0, "overtime");
+        }
+
+        segments.add(segment1);
+        segments.add(segment2);
+        segments.add(segment3);
+        segments.add(segment4);
+
+        att.setSegments(segments);
+      }
     }
     model.addAttribute("dateInText", dateInText);
     model.addAttribute("selectedDate", filterDate);
@@ -183,8 +236,8 @@ public class AttendanceController {
                        @RequestParam(value = "page", defaultValue = "0") Integer page,
                        @RequestParam(value = "size", defaultValue = "10") Integer size){
     Pageable pageable = PageRequest.of(page, size, Sort.by("employeeId").ascending());
-    Page<AttendanceDTO> attendance = attendanceService.search(search, pageable);
-    model.addAttribute("attendance",attendance);
+//    Page<AttendanceDTO> attendance = attendanceService.search(search, pageable);
+//    model.addAttribute("attendance",attendance);
     model.addAttribute("departments", departments);
 
     model.addAttribute("fragments", "fragments/employee");

@@ -333,13 +333,13 @@ INTO attendance (employee_id, date, check_in, check_out, status, overtime_hours)
 SELECT e.employee_id,
        d.work_date,
        d.work_date + '08:00:00'::interval + (random() * interval '30 minutes'),
-       d.work_date + '17:30:00'::interval + (random() * interval '90 minutes'),
+       d.work_date + '18:00:00'::interval + (random() * interval '120 minutes'),
        CASE
            WHEN random() < 0.9 THEN 'Đúng giờ'
            ELSE 'Đi muộn'
            END,
        CASE
-           WHEN random() < 0.3 THEN round((random() * 2)::numeric, 1)
+           WHEN random() < 0.1 THEN round((random() * 1)::numeric, 1)
            ELSE 0
            END
 FROM employees e

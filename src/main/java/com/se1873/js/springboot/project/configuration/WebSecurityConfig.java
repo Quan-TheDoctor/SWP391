@@ -26,7 +26,7 @@ public class WebSecurityConfig {
             .formLogin((form) ->
                     form
                             .loginPage("/login") // Chỉ định trang login tùy chỉnh
-                            .defaultSuccessUrl("/dashboard", true) // Chuyển hướng sau khi đăng nhập thành công
+                            .defaultSuccessUrl("/employee", true) // Chuyển hướng sau khi đăng nhập thành công
                             .failureUrl("/login?error=true") // Xử lý lỗi đăng nhập
                             .permitAll()
             )

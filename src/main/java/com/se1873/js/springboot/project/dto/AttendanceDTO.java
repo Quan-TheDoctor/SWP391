@@ -7,6 +7,8 @@ import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
+import java.util.List;
+
 @Data
 @Builder
 @AllArgsConstructor
@@ -14,5 +16,5 @@ import lombok.NoArgsConstructor;
 public class AttendanceDTO {
     private Employee employee;
     private Attendance attendance;
-
+    private List<TimeSegmentDTO> segments;
 }
