@@ -177,4 +177,17 @@ public class AttendanceController {
     return String.format("%02d giờ %02d phút", hours, minutes);
   }
 
+  @RequestMapping("/search")
+  public String search(Model model,
+                       @RequestParam("search") String search,
+                       @RequestParam(value = "page", defaultValue = "0") Integer page,
+                       @RequestParam(value = "size", defaultValue = "10") Integer size){
+    Pageable pageable = PageRequest.of(page, size, Sort.by("employeeId").ascending());
+    Page<AttendanceDTO> attendance = attendanceService.search(search, pageable);
+    model.addAttribute("attendance",attendance);
+    model.addAttribute("departments", departments);
+
+    model.addAttribute("fragments", "fragments/employee");
+    return "attendance";
+  }
 }

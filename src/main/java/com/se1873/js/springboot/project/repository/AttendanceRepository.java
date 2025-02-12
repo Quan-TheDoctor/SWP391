@@ -1,6 +1,7 @@
 package com.se1873.js.springboot.project.repository;
 
 import com.se1873.js.springboot.project.entity.Attendance;
+import com.se1873.js.springboot.project.entity.Employee;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
@@ -44,4 +45,12 @@ public interface AttendanceRepository extends JpaRepository<Attendance, Long>, J
                                                         @Param("month") int month);
 
   List<Attendance> findAttendancesByEmployee_EmployeeId(Integer employeeEmployeeId);
+
+  @Query("SELECT a FROM Attendance a JOIN a.employee e " +
+          "WHERE LOWER(CONCAT(e.firstName, ' ', e.lastName)) LIKE LOWER(CONCAT('%', REPLACE(:Name, ' ', '%'), '%')) " +
+          "ORDER BY e.employeeId ASC")
+  Page<Attendance> searchAttendanceByEmployeeName(@Param("Name") String Name, Pageable pageable);
+//chạy thử xem?
+// đc chưa a? // yên tao merge cod đã
+
 }
