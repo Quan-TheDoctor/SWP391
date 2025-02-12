@@ -42,9 +42,9 @@
         </div>
     </div>
     <!--search-->
-    <form th:action = "@{/employee/search}">
-        <input type="text" name="search" >
-        <button type="submit">search</button>
+    <form class="flex justify-self self-center gap-2 p-2" th:action = "@{/employee/search}">
+        <input class="w-[20rem] p-2 border rounded-md min-h-[40px] overflow-y-auto focus:ring-2 focus:ring-blue-500" type="text" name="search" >
+        <button class="" type="submit">search</button>
     </form>
 
     <div class="bg-white rounded-lg shadow-sm overflow-hidden">

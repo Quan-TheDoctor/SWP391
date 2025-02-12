@@ -46,11 +46,8 @@ public interface AttendanceRepository extends JpaRepository<Attendance, Long>, J
 
   List<Attendance> findAttendancesByEmployee_EmployeeId(Integer employeeEmployeeId);
 
-  @Query("SELECT a FROM Attendance a JOIN a.employee e " +
-          "WHERE LOWER(CONCAT(e.firstName, ' ', e.lastName)) LIKE LOWER(CONCAT('%', REPLACE(:Name, ' ', '%'), '%')) " +
-          "ORDER BY e.employeeId ASC")
-  Page<Attendance> searchAttendanceByEmployeeName(@Param("Name") String Name, Pageable pageable);
-//chạy thử xem?
-// đc chưa a? // yên tao merge cod đã
-
+  @Query("SELECT e FROM Employee e JOIN Attendance a ON a.employee.employeeId = e.employeeId " +
+    "WHERE LOWER(CONCAT(e.firstName, ' ', e.lastName)) LIKE LOWER(CONCAT('%', REPLACE(:Name, ' ', '%'), '%')) " +
+    "ORDER BY e.employeeId ASC")
+  Page<Employee> searchAttendanceByEmployeeName(@Param("Name") String Name, Pageable pageable);
 }

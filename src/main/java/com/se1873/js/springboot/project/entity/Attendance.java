@@ -19,7 +19,7 @@ public class Attendance {
   private Integer attendanceId;
 
   @ToString.Exclude
-  @ManyToOne(cascade = CascadeType.ALL, fetch = FetchType.LAZY)
+  @ManyToOne(cascade = CascadeType.ALL)
   @JoinColumn(name = "employee_id")
   private Employee employee;
 

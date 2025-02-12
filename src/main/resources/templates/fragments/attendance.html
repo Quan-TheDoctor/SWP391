@@ -58,7 +58,7 @@
                     <input class="checkboxes rounded border-gray-300" type="checkbox"/>
                 </td>
                 <td class="col-span-3">
-                    <a th:href="@{/employee/view(employeeId=${a.getAttendance().getEmployee()})}"
+                    <a th:href="@{/attendance/view/detail(employeeId=${a.getEmployee().getEmployeeId()})}"
                        class="text-blue-600 hover:underline"
                        th:text="${a.getEmployee().getFirstName() + ' ' + a.getEmployee().getLastName()}"/>
                 </td>
