@@ -1,0 +1,119 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org"
+      xmlns:sec="http://www.thymeleaf.org/extras/spring-security">
+<head>
+    <meta charset="UTF-8">
+    <title>Attendance Management</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script type="text/javascript" src="https://cdn.jsdelivr.net/jquery/latest/jquery.min.js"></script>
+    <script type="text/javascript" src="https://cdn.jsdelivr.net/momentjs/latest/moment.min.js"></script>
+    <script type="text/javascript" src="https://cdn.jsdelivr.net/npm/daterangepicker/daterangepicker.min.js"></script>
+    <link rel="stylesheet" type="text/css" href="https://cdn.jsdelivr.net/npm/daterangepicker/daterangepicker.css"/>
+</head>
+<body>
+<div class="flex flex-col justify-center gap-5">
+    <input id="#daterange" name="dates">
+    <form th:action="@{/payroll/filter(field='startSalary,endSalary')}">
+        <input type="hidden" name="field" value="startSalary,endSalary"/>
+        <span>Salary range:</span>
+        <select name="value" onblur="this.form.submit()">
+            <option value="0,10000000" th:selected="${(param.value != null) && (param.value[0] == '0,10000000')}">0 ~
+                10,000,000
+            </option>
+            <option value="10000000,20000000"
+                    th:selected="${(param.value != null) && (param.value[0] == '10000000,20000000')}">10,000,000 ~
+                20,000,000
+            </option>
+            <option value="20000000,50000000"
+                    th:selected="${(param.value != null) && (param.value[0] == '20000000,50000000')}">20,000,000 ~
+                50,000,000
+            </option>
+            <!--            th:selected="${(param.value != null) && (param.value[0] == T(java.lang.String).valueOf(dept.getDepartmentId()))}"></option>-->
+        </select>
+    </form>
+    <form th:action="@{/payroll/filter(field='paymentStatus')}">
+        <input type="hidden" name="field" value="paymentStatus"/>
+        <span>Payment Status:</span>
+        <select name="value" onblur="this.form.submit()">
+            <option value="Chưa thanh toán"
+                    th:selected="${(param.value != null) && (param.value[0] == 'Chưa thanh toán')}">Chưa thanh toán
+            </option>
+            <option value="Đã thanh toán" th:selected="${(param.value != null) && (param.value[0] == 'Đã thanh toán')}">
+                Đã thanh toán
+            </option>
+        </select>
+    </form>
+    <table>
+        <thead>
+        <tr class="flex justify-between gap-5 mx-2 my-5 p-2">
+            <td><input name="mainCheckbox" type="checkbox" id="selectAllCheckboxes"/></td>
+            <th>
+                <a th:href="@{/payroll/sort(field='employee.firstName', direction = ${direction == 'asc' ? 'desc' : 'asc'})}">Name</a>
+            </th>
+            <th><a th:href="@{/payroll/sort(field='baseSalary', direction = ${direction == 'asc' ? 'desc' : 'asc'})}">Base
+                salary</a></th>
+            <th><a th:href="@{/payroll/sort(field='netSalary', direction = ${direction == 'asc' ? 'desc' : 'asc'})}">Net
+                salary</a></th>
+            <th>
+                <a th:href="@{/payroll/sort(field='deductions,insuranceDeduction', direction = ${direction == 'asc' ? 'desc' : 'asc'})}">Total
+                    deduction</a></th>
+            <th><a th:href="@{/payroll/sort(field='month,year', direction = ${direction == 'asc' ? 'desc' : 'asc'})}">Paid
+                date</a></th>
+            <th>
+                <a th:href="@{/payroll/sort(field='paymentStatus', direction = ${direction == 'asc' ? 'desc' : 'asc'})}">Payment
+                    status</a></th>
+        </tr>
+        </thead>
+        <tbody>
+        <tr th:each="p : ${payrolls}" class="flex justify-between gap-5 mx-2 my-5 p-2">
+            <!--/*@thymesVar id="p" type="com.se1873.js.springboot.project.dto.PayrollDTO"*/-->
+            <td><input name="subCheckbox" type="checkbox"/></td>
+            <td th:text="${T(java.lang.String).format('%s %s',p.getEmployee().getFirstName(), p.getEmployee().getLastName())}"></td>
+            <td th:text="${T(java.lang.String).format('%,.0f', p.getSalaryRecord().getBaseSalary())}"></td>
+            <td th:text="${T(java.lang.String).format('%,.0f', p.getSalaryRecord().getNetSalary())}"></td>
+            <td th:text="${T(java.lang.String).format('%,.0f', (p.getSalaryRecord().getInsuranceDeduction()+p.getSalaryRecord().getDeductions()))}"></td>
+            <td th:text="${T(java.lang.String).format('%d/%d', p.getSalaryRecord().getMonth(), p.getSalaryRecord().getYear())}"></td>
+            <td th:text="${p.getSalaryRecord().getPaymentStatus()}"></td>
+        </tr>
+        </tbody>
+    </table>
+</div>
+</body>
+</html>
+
+<script>
+    document.addEventListener("DOMContentLoaded", function () {
+        const urlParams = window.location.search.substr(1);
+        const regex = /[?&]dates=([^&]*)/;
+        const match = regex.exec(urlParams);
+        var dates, startDate, endDate;
+        if(match != null) {
+            dates = decodeURIComponent(match[1]);
+
+            const [startDateString, endDateString] = dates.split(',')
+
+            startDate = new Date(startDateString);
+            endDate = new Date(endDateString);
+        }
+
+
+        $('input[name="dates"]').daterangepicker({
+            opens: 'center',
+            drops: 'down',
+            autoApply: true,
+            linkedCalendars: true,
+            autoUpdateInput: true,
+            showDropdowns: true,
+            startDate: startDate != null ? startDate : '02/13/2025',
+            endDate: endDate != null ? endDate : '02/13/2025',
+            ranges: {
+                'Last 30 Days': [moment().subtract(29, 'days'), moment()],
+                'Last 3 Months': [moment().subtract(3, 'month').startOf('month'), moment().subtract(3, 'month').endOf('month')],
+                'Last Year': [moment().subtract(1, 'year').startOf('year'), moment().subtract(1, 'year').endOf('year')]
+            }
+        }, function (start, end) {
+            console.log(`${start} - ${end}`);
+            window.location.href = `/payroll/filter?field=startDate,endDate&dates=${start},${end}`;
+        });
+    })
+</script>

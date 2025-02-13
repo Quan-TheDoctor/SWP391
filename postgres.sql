@@ -169,34 +169,6 @@ CREATE TABLE qualifications
     created_at         TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
 
--- Bảng kỹ năng nhân viên
-CREATE TABLE employee_skills
-(
-    skill_id            SERIAL PRIMARY KEY,
-    employee_id         INTEGER REFERENCES employees (employee_id),
-    skill_name          VARCHAR(100) NOT NULL,
-    proficiency_level   VARCHAR(20)  NOT NULL,
-    years_of_experience DECIMAL(4, 1),
-    description         TEXT,
-    created_at          TIMESTAMP DEFAULT CURRENT_TIMESTAMP
-);
-
--- Bảng đào tạo
-CREATE TABLE training_records
-(
-    training_id   SERIAL PRIMARY KEY,
-    employee_id   INTEGER REFERENCES employees (employee_id),
-    training_name VARCHAR(100) NOT NULL,
-    training_type VARCHAR(50)  NOT NULL,
-    start_date    DATE         NOT NULL,
-    end_date      DATE         NOT NULL,
-    trainer       VARCHAR(100),
-    status        VARCHAR(20)  NOT NULL,
-    result        VARCHAR(20),
-    comments      TEXT,
-    created_at    TIMESTAMP DEFAULT CURRENT_TIMESTAMP
-);
-
 -- Indexes
 CREATE INDEX idx_employee_code ON employees (employee_code);
 CREATE INDEX idx_department_code ON departments (department_code);
@@ -224,8 +196,30 @@ create table users
     username      text NOT NULL,
     password_hash text NOT NULL,
     email         text,
-    role          text default 'USER',
+    role          text      default 'USER',
+    updated_at    TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     created_at    TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);
+
+create table audit_logs
+(
+    log_id      SERIAL PRIMARY KEY,
+    user_id     INTEGER REFERENCES users (user_id),
+    action_type text,
+    action_info text,
+    created_at  TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);
+
+CREATE TABLE requests
+(
+    request_id serial primary key,
+    requester_id INTEGER REFERENCES users (user_id),
+    request_type text,
+    request_id_list json,
+    approval_id INTEGER REFERENCES users(user_id),
+    status text,
+    is_process bool default false,
+    created_at  TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
 
 INSERT INTO employees (employee_code, first_name, last_name, birth_date, gender,
@@ -352,12 +346,7 @@ INSERT INTO allowances (employee_id, allowance_type, amount, start_date, end_dat
 VALUES (1, 'Phụ cấp nhiên liệu', 1500000, '2023-01-01', NULL, 'Phụ cấp xăng xe hàng tháng'),
        (1, 'Phụ cấp chức vụ', 3000000, '2023-01-01', NULL, 'Phụ cấp cho vị trí quản lý'),
        (2, 'Phụ cấp chức vụ', 5000000, '2021-06-01', NULL, 'Phụ cấp cho chức vụ cao hơn');
--- Employee Skills (10 records)
-INSERT INTO employee_skills (employee_id, skill_name, proficiency_level, years_of_experience, description)
-VALUES (1, 'Java Programming', 'Expert', 5.5, 'Spring Boot, Hibernate, Microservices'),
-       (1, 'Project Management', 'Advanced', 3.0, 'Agile, Scrum, Jira'),
-       (2, 'Java Programming', 'Expert', 6.0, 'Spring Boot, Hibernate, Microservices'),
-       (2, 'Project Management', 'Advanced', 4.0, 'Agile, Scrum, Jira');
+
 -- Additional Employment History (10 records)
 INSERT INTO employment_history (employee_id, department_id, position_id, start_date, end_date, is_current,
                                 transfer_reason, decision_number)
@@ -498,24 +487,6 @@ VALUES (3, 'Bằng đại học', 'Cử nhân Marketing',
         'Đại học Kinh tế TP.HCM', '2014-06-15', NULL, 'Tốt nghiệp loại Giỏi'),
        (3, 'Chứng chỉ', 'Digital Marketing Professional',
         'Google', '2020-03-20', '2023-03-20', 'Google Digital Marketing Certification');
-
--- Insert employee skills
-INSERT INTO employee_skills (employee_id, skill_name, proficiency_level,
-                             years_of_experience, description)
-VALUES (3, 'Digital Marketing', 'Thành thạo',
-        4.5, 'Thành thạo các công cụ digital marketing'),
-       (3, 'Content Writing', 'Khá',
-        3.0, 'Kỹ năng viết content marketing'),
-       (3, 'SEO', 'Thành thạo',
-        4.0, 'Kinh nghiệm tối ưu SEO');
-
--- Insert training records
-INSERT INTO training_records (employee_id, training_name, training_type,
-                              start_date, end_date, trainer, status, result)
-VALUES (3, 'Advanced Digital Marketing', 'Online',
-        '2023-05-10', '2023-06-10', 'Marketing Institute', 'Hoàn thành', 'Xuất sắc'),
-       (3, 'Leadership Skills', 'Offline',
-        '2023-08-15', '2023-08-16', 'HR Training Center', 'Hoàn thành', 'Tốt');
 
 -- Insert dependents
 INSERT INTO dependents (employee_id, full_name, relationship,
