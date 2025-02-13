@@ -1,13 +1,11 @@
 package com.se1873.js.springboot.project.controller;
 
 import com.se1873.js.springboot.project.dto.PayrollDTO;
+import com.se1873.js.springboot.project.entity.SalaryRecord;
 import com.se1873.js.springboot.project.service.SalaryRecordService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.data.domain.Page;
-import org.springframework.data.domain.PageRequest;
-import org.springframework.data.domain.Pageable;
-import org.springframework.data.domain.Sort;
+import org.springframework.data.domain.*;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -18,8 +16,11 @@ import java.time.LocalDateTime;
 import java.time.ZonedDateTime;
 import java.time.format.DateTimeFormatter;
 import java.time.format.DateTimeParseException;
+import java.util.Comparator;
 import java.util.List;
 import java.util.Locale;
+import java.util.Optional;
+import java.util.stream.Collectors;
 
 @Controller
 @RequiredArgsConstructor
@@ -27,13 +28,20 @@ import java.util.Locale;
 @Slf4j
 public class PayrollController {
   private final SalaryRecordService salaryRecordService;
-
+  Double totalNetSalary = 0.0;
+  Double unpaidSalary = 0.0;
+  Page<PayrollDTO> payrolls = null;
   @RequestMapping
   public String payroll(Model model) {
-    Pageable page = PageRequest.of(0, 10);
-    Page<PayrollDTO> payrolls = salaryRecordService.findAll(page);
-    log.info(payrolls.toString());
-    model.addAttribute("payrolls", payrolls);
+    Pageable pageable = PageRequest.of(0, 10);
+    payrolls = salaryRecordService.findAll(pageable);
+
+    Page<PayrollDTO> payrollDTOPage = payrolls;
+    getTotalNetSalary(payrolls);
+
+    model.addAttribute("totalNetSalary", totalNetSalary);
+    model.addAttribute("unpaidSalary", unpaidSalary);
+    model.addAttribute("payrolls", payrollDTOPage);
     return "fragments/payroll";
   }
 
@@ -44,29 +52,19 @@ public class PayrollController {
                      @RequestParam(value = "dates", required = false) LocalDate dates,
                      @RequestParam(value = "page", defaultValue = "0") Integer page,
                      @RequestParam(value = "size", defaultValue = "10") Integer size) {
-    Pageable pageable = null;
-    List<String> fields = List.of(field.split(","));
-    log.info(fields.toString());
-    if ("all".equals(fields.get(0))) {
-      pageable = PageRequest.of(page, size);
-    } else if ("month,year".equals(field) || "deductions,insuranceDeduction".equals(field)) {
-      Sort sort = direction.equals("asc") ?
-        Sort.by(Sort.Order.asc(fields.get(1)), Sort.Order.asc(fields.get(0)))
-        : Sort.by(Sort.Order.desc(fields.get(1)), Sort.Order.desc(fields.get(0)));
-      pageable = PageRequest.of(page, size, sort);
-    } else if ("netSalary".equals(field) || "baseSalary".equals(field) || "employee.firstName".equals(field) || "paymentStatus".equals(field)) {
-      Sort sort = direction.equals("asc") ? Sort.by(Sort.Direction.ASC, fields.get(0)) : Sort.by(Sort.Direction.DESC, fields.get(0));
-      pageable = PageRequest.of(page, size, sort);
-    }
+    List<PayrollDTO> payrollDTOS = salaryRecordService.sortByField(field, direction, payrolls.getContent());
+    Pageable pageable = PageRequest.of(page, size);
 
-    Page<PayrollDTO> payrolls = salaryRecordService.findAll(pageable);
+    Page<PayrollDTO> payrollDTOPage = new PageImpl<>(payrollDTOS, pageable, payrolls.getTotalElements());
+    getTotalNetSalary(payrolls);
 
-    model.addAttribute("payrolls", payrolls);
+    model.addAttribute("totalNetSalary", totalNetSalary);
+    model.addAttribute("unpaidSalary", unpaidSalary);
+    model.addAttribute("payrolls", payrollDTOPage);
     model.addAttribute("field", field);
     model.addAttribute("direction", direction);
     return "fragments/payroll";
   }
-
 
   @RequestMapping("/filter")
   public String filter(Model model,
@@ -77,12 +75,10 @@ public class PayrollController {
                        @RequestParam(value = "page", defaultValue = "0") Integer page,
                        @RequestParam(value = "size", defaultValue = "10") Integer size) {
     Pageable pageable = null;
-    Page<PayrollDTO> payrolls = null;
     List<String> fields = List.of(field.split(","));
     String[] dates = date.split(",");
-    log.info(date);
-    log.info(fields.toString());
-    if ("all".equals(fields.get(0))) {
+
+    if ("all".equals(value)) {
       pageable = PageRequest.of(page, size);
       payrolls = salaryRecordService.findAll(pageable);
     } else if("startDate,endDate".equals(field)) {
@@ -108,12 +104,28 @@ public class PayrollController {
       payrolls = salaryRecordService.findByPaymentStatus(value, pageable);
     }
 
+    List<PayrollDTO> payrollDTOS = payrolls.getContent();
+    Page<PayrollDTO> payrollDTOPage = new PageImpl<>(payrollDTOS, pageable, payrolls.getTotalElements());
 
-    model.addAttribute("payrolls", payrolls);
+    getTotalNetSalary(payrolls);
+
+    model.addAttribute("totalNetSalary", totalNetSalary);
+    model.addAttribute("unpaidSalary", unpaidSalary);
+    model.addAttribute("payrolls", payrollDTOPage);
     model.addAttribute("field", field);
     model.addAttribute("value", value);
     model.addAttribute("direction", direction);
     return "fragments/payroll";
+  }
+
+  private void getTotalNetSalary(Page<PayrollDTO> payrolls) {
+    totalNetSalary = 0.0;
+    unpaidSalary = 0.0;
+
+    for(PayrollDTO p : payrolls) {
+      if(p.getSalaryRecord().getPaymentStatus().equals("Đã thanh toán"))totalNetSalary += p.getSalaryRecord().getNetSalary();
+      if(p.getSalaryRecord().getPaymentStatus().equals("Chưa thanh toán")) unpaidSalary += p.getSalaryRecord().getNetSalary();
+    }
   }
   private LocalDate parseDate(String dateString) {
     try {
