@@ -8,11 +8,16 @@ import com.se1873.js.springboot.project.repository.SalaryRecordRepository;
 import com.se1873.js.springboot.project.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.logging.log4j.util.PropertySource;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
+import org.springframework.util.comparator.Comparators;
 
 import java.time.LocalDate;
+import java.util.*;
+import java.util.function.Function;
+import java.util.stream.Collectors;
 
 @Slf4j
 @Service
@@ -43,11 +48,10 @@ public class SalaryRecordService {
     int endMonth = endDate.getMonthValue();
 
 
-
     auditLogService.save(AuditLog.builder()
       .user(userRepository.findByUserId(1))
-        .actionInfo("Filter payrolls by date range")
-        .actionType("SELECT")
+      .actionInfo("Filter payrolls by date range")
+      .actionType("SELECT")
       .build());
 
     return salaryRecordRepository.findByYearMonthRange(
@@ -82,5 +86,97 @@ public class SalaryRecordService {
       .employee(salaryRecord.getEmployee())
       .salaryRecord(salaryRecord)
       .build();
+  }
+
+  public List<PayrollDTO> sortByField(String field, String direction, List<PayrollDTO> payrollDTOS) {
+    if ("paymentStatus".equals(field)) {
+      payrollDTOS = payrollDTOS.stream()
+        .sorted(Comparator.comparing(
+          (PayrollDTO p) ->
+            Optional.ofNullable(p.getSalaryRecord())
+              .map(SalaryRecord::getPaymentStatus)
+              .orElse("")
+              .toLowerCase(),
+          direction.equals("asc") ? Comparator.nullsLast(Comparator.naturalOrder()) : Comparator.nullsLast(Comparator.reverseOrder())
+        ))
+        .toList();
+    } else if ("baseSalary".equals(field)) {
+      payrollDTOS = payrollDTOS.stream()
+        .sorted(Comparator.comparing(
+          (PayrollDTO p) ->
+            Optional.ofNullable(p.getSalaryRecord())
+              .map(SalaryRecord::getBaseSalary)
+              .orElse(null),
+          direction.equals("asc") ? Comparator.nullsLast(Comparator.naturalOrder()) : Comparator.nullsLast(Comparator.reverseOrder())
+        ))
+        .toList();
+    } else if ("netSalary".equals(field)) {
+      payrollDTOS = payrollDTOS.stream()
+        .sorted(Comparator.comparing(
+          (PayrollDTO p) ->
+            Optional.ofNullable(p.getSalaryRecord())
+              .map(SalaryRecord::getNetSalary)
+              .orElse(null),
+          direction.equals("asc") ? Comparator.nullsLast(Comparator.naturalOrder()) : Comparator.nullsLast(Comparator.reverseOrder())
+        ))
+        .toList();
+    } else if ("employee.firstName".equals(field)) {
+      payrollDTOS = payrollDTOS.stream()
+        .sorted(Comparator.comparing(
+          (PayrollDTO p) ->
+            Optional.ofNullable(p.getEmployee())
+              .map(Employee::getFirstName)
+              .orElse("")
+              .toLowerCase(),
+          direction.equals("asc") ? Comparator.nullsLast(Comparator.naturalOrder()) : Comparator.nullsLast(Comparator.reverseOrder())
+        ))
+        .toList();
+    } else if ("employee.lastName".equals(field)) {
+      payrollDTOS = payrollDTOS.stream()
+        .sorted(Comparator.comparing(
+          (PayrollDTO p) ->
+            Optional.ofNullable(p.getEmployee())
+              .map(Employee::getLastName)
+              .orElse("")
+              .toLowerCase(),
+          direction.equals("asc") ? Comparator.nullsLast(Comparator.naturalOrder()) : Comparator.nullsLast(Comparator.reverseOrder())
+        ))
+        .toList();
+    } else if ("month,year".equals(field)) {
+      payrollDTOS = payrollDTOS.stream()
+        .sorted(Comparator.comparing(
+          (PayrollDTO p) ->
+            Optional.ofNullable(p.getSalaryRecord())
+              .map(SalaryRecord::getMonth)
+              .orElse(null),
+          direction.equals("asc") ? Comparator.nullsLast(Comparator.naturalOrder()) : Comparator.nullsLast(Comparator.reverseOrder())
+        ))
+        .sorted(Comparator.comparing(
+          (PayrollDTO p) ->
+            Optional.ofNullable(p.getSalaryRecord())
+              .map(SalaryRecord::getYear)
+              .orElse(null),
+          direction.equals("asc") ? Comparator.nullsLast(Comparator.naturalOrder()) : Comparator.nullsLast(Comparator.reverseOrder())
+        ))
+        .toList();
+    } else if ("deductions,insuranceDeduction".equals(field)) {
+      payrollDTOS = payrollDTOS.stream()
+        .sorted(Comparator.comparing(
+          (PayrollDTO p) ->
+            Optional.ofNullable(p.getSalaryRecord())
+              .map(SalaryRecord::getDeductions)
+              .orElse(null),
+          direction.equals("asc") ? Comparator.nullsLast(Comparator.naturalOrder()) : Comparator.nullsLast(Comparator.reverseOrder())
+        ))
+        .sorted(Comparator.comparing(
+          (PayrollDTO p) ->
+            Optional.ofNullable(p.getSalaryRecord())
+              .map(SalaryRecord::getInsuranceDeduction)
+              .orElse(null),
+          direction.equals("asc") ? Comparator.nullsLast(Comparator.naturalOrder()) : Comparator.nullsLast(Comparator.reverseOrder())
+        ))
+        .toList();
+    }
+    return payrollDTOS;
   }
 }
