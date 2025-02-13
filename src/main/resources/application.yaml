@@ -1,5 +1,28 @@
 spring:
   application:
     name: project
+  security:
+    user:
+      name: nat
+      password: 1
+      roles: ADMINISTRATOR
+  datasource:
+    driver-class-name: org.postgresql.Driver
+    url: jdbc:postgresql://localhost:5432/postgres
+    username: postgres
+    password: 123
+  jpa:
+    hibernate:
+      ddl-auto: update
+  thymeleaf:
+    prefix: classpath:/templates/
+    suffix: .html
+    mode: HTML
+    cache: false
+  devtools:
+    livereload:
+      enabled: true
+    restart:
+      enabled: true
 server:
   port: 8081
