@@ -28,6 +28,10 @@ public class SalaryRecordService {
   private final AuditLogService auditLogService;
   private final UserRepository userRepository;
 
+  public List<PayrollDTO> findAlls() {
+    return salaryRecordRepository.findAll().stream().map(this::convertSalaryRecordToPayrollDTO).toList();
+  }
+
   public Page<PayrollDTO> findAll(Pageable pageable) {
     auditLogService.save(AuditLog.builder()
       .user(userRepository.findByUserId(1))

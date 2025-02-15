@@ -1,19 +1,14 @@
+
+
 <div class="container mx-auto p-6 max-w-7xl">
     <div class="bg-white rounded-lg shadow-sm p-4 mb-6">
-        <form th:action="@{/attendance(filterDate=${filterDate})}" method="get" class="flex items-center gap-4">
-            <button type="submit" onclick="navigateMonth(-1)"
-                    class="px-4 py-2 bg-blue-500 text-white rounded hover:bg-blue-600 transition-colors">
-                ←
-            </button>
-            <span class="font-medium text-gray-700"
-                  th:text="${#temporals.format(filterDate, 'dd/MM/yyyy')}"></span>
-            <button type="submit" onclick="navigateMonth(1)"
-                    class="px-4 py-2 bg-blue-500 text-white rounded hover:bg-blue-600 transition-colors">
-                →
-            </button>
-        </form>
+        <div class="space-y-2">
+            <label class="block text-sm font-medium text-gray-700">Date Range</label>
+            <input id="daterange" name="dates" class="w-full p-2 border rounded-md cursor-pointer">
+        </div>
+
         <form action="/search" th:action="@{/attendance/search}" method="get">
-            <input type="text" name="search" placeholder="Search employee by name" th:value="${employeeName}" />
+            <input type="text" name="search" placeholder="Search employee by name" th:value="${employeeName}"/>
             <button type="submit">Search</button>
         </form>
 
@@ -34,7 +29,14 @@
             </form>
         </div>
     </div>
-
+    <div class="mt-8 mb-6 flex justify-end">
+        <button class="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700">
+            Export dữ liệu
+        </button>
+        <button id="createBtn" class="ml-3 px-4 py-2 bg-gray-200 text-gray-800 rounded-md hover:bg-gray-300">
+            Thêm mới
+        </button>
+    </div>
     <div class="bg-white rounded-lg shadow-sm overflow-hidden">
         <table class="w-full">
             <thead class="bg-gray-50">
@@ -55,18 +57,18 @@
             <tr th:each="a, iterStat : ${attendances.content}"
                 class="grid grid-cols-12 gap-x-4 py-3 px-4 hover:bg-gray-50 transition-colors">
                 <td class="col-span-1 flex items-center">
-                    <input class="checkboxes rounded border-gray-300" type="checkbox"/>
+                    <input class="checkboxes rounded border-gray-300" type="checkbox" th:value="${a.getEmployeeId()}"/>
                 </td>
                 <td class="col-span-3">
-                    <a th:href="@{/attendance/view/detail(employeeId=${a.getEmployee().getEmployeeId()})}"
+                    <a th:href="@{/attendance/view/detail(employeeId=${a.getEmployeeId()})}"
                        class="text-blue-600 hover:underline"
-                       th:text="${a.getEmployee().getFirstName() + ' ' + a.getEmployee().getLastName()}"/>
+                       th:text="${a.getFirstName() + ' ' + a.getLastName()}"/>
                 </td>
-                <td class="col-span-2" th:text="${a.getAttendance().getDate()}"></td>
-                <td class="col-span-2" th:text="${#temporals.format(a.getAttendance().getCheckIn(), 'HH:mm:ss')}"></td>
-                <td class="col-span-2" th:text="${#temporals.format(a.getAttendance().getCheckOut(), 'HH:mm:ss')}"></td>
-                <td class="col-span-1" th:text="${a.getAttendance().getOvertimeHours()}"></td>
-                <td class="col-span-1 truncate" th:text="${a.getAttendance().getNote()}"></td>
+                <td class="attendanceDates col-span-2" th:text="${a.getAttendanceDate()}"></td>
+                <td class="attendanceCheckIn col-span-2" th:text="${#temporals.format(a.getAttendanceCheckIn(), 'HH:mm:ss')}"></td>
+                <td class="attendanceCheckOut col-span-2" th:text="${#temporals.format(a.getAttendanceCheckOut(), 'HH:mm:ss')}"></td>
+                <td class="col-span-1" th:text="${a.getAttendanceStatus()}"></td>
+                <td class="col-span-1 truncate" th:text="${a.getAttendanceNote()}"></td>
             </tr>
             </tbody>
         </table>
@@ -75,7 +77,7 @@
             <div class="flex items-center justify-between">
                 <div class="flex gap-2">
                         <span th:if="${attendances.hasPrevious()}">
-                            <a th:href="@{/attendance(filterDate=${filterDate}, page=${attendances.number - 1})}"
+                            <a th:href="@{/attendance(dates=${dates}, page=${attendances.number - 1})}"
                                class="px-3 py-1 rounded border text-gray-700 hover:bg-gray-100 transition-colors">
                                 Previous
                             </a>
@@ -85,7 +87,7 @@
                 <div class="flex gap-1">
                         <span th:each="i : ${#numbers.sequence(0, attendances.totalPages - 1)}">
                             <a th:if="${i != attendances.number}"
-                               th:href="@{/attendance(filterDate=${filterDate}, page=${i})}"
+                               th:href="@{/attendance(dates=${dates}, page=${i})}"
                                class="px-3 py-1 rounded border text-gray-700 hover:bg-gray-100 transition-colors"
                                th:text="${i + 1}"></a>
                             <span th:unless="${i != attendances.number}"
@@ -96,7 +98,7 @@
 
                 <div class="flex gap-2">
                         <span th:if="${attendances.hasNext()}">
-                            <a th:href="@{/attendance(filterDate=${filterDate}, page=${attendances.number + 1})}"
+                            <a th:href="@{/attendance(dates=${dates}, page=${attendances.number + 1})}"
                                class="px-3 py-1 rounded border text-gray-700 hover:bg-gray-100 transition-colors">
                                 Next
                             </a>
@@ -116,24 +118,61 @@
                 checkbox.checked = !checkbox.checked;
             }
         });
+
+        var createBtn = document.getElementById("createBtn");
+        createBtn.addEventListener("click", function () {
+            var checkboxes = document.getElementsByClassName("checkboxes");
+            var attendanceDates = document.getElementsByClassName("attendanceDates");
+            var attendanceCheckIn = document.getElementsByClassName("attendanceCheckIn")
+            var attendanceCheckOut = document.getElementsByClassName("attendanceCheckOut")
+            var ids = [];
+            var dates = [];
+            var checkIns = [];
+            var checkOuts = [];
+
+            for (var i = 0; i < checkboxes.length; i++) {
+                if (checkboxes[i].checked) {
+                    ids.push(checkboxes[i].value);
+                    dates.push(attendanceDates[i].textContent.trim());
+                    checkIns.push(attendanceCheckIn[i].textContent.trim())
+                    checkOuts.push(attendanceCheckOut[i].textContent.trim())
+                }
+            }
+
+            window.location.href =
+                `/attendance/create/form?employeeIds=${encodeURIComponent(ids.join(','))}&dates=${encodeURIComponent(dates.join(','))}&checkIns=${encodeURIComponent(checkIns.join(','))}&checkOuts=${encodeURIComponent(checkOuts.join(','))}`;
+        });
+
+        const urlParams = new URLSearchParams(window.location.search);
+        const datesParam = urlParams.get('dates');
+
+        let startDate = moment().subtract(29, 'days');
+        let endDate = moment();
+
+        if (datesParam) {
+            const [startStr, endStr] = datesParam.split(',');
+            startDate = moment(startStr);
+            endDate = moment(endStr);
+        }
+
+        $('#daterange').daterangepicker({
+            opens: 'center',
+            autoApply: true,
+            startDate: startDate,
+            endDate: endDate,
+            locale: {
+                format: 'MM/DD/YYYY'
+            },
+            ranges: {
+                'today':[moment()],
+                'Last 7 Days': [moment().subtract(7, 'days'), moment()],
+                'Last 30 Days': [moment().subtract(29, 'days'), moment()],
+                'Last 3 Months': [moment().subtract(2, 'month').startOf('month'), moment().endOf('month')],
+                'Last Year': [moment().subtract(1, 'year').startOf('year'), moment().subtract(1, 'year').endOf('year')]
+            }
+        }, function (start, end) {
+            window.location.href = `/attendance/filter?field=startDate,endDate&dates=${start.format('YYYY-MM-DD')},${end.format('YYYY-MM-DD')}`;
+        });
+
     });
-
-    function navigateMonth(direction) {
-        const currentDate = new Date('[[${filterDate}]]');
-        const newDate = new Date(currentDate.getFullYear(), currentDate.getMonth() + direction, 1);
-
-        const year = newDate.getFullYear();
-        const month = String(newDate.getMonth() + 1).padStart(2, '0');
-        const day = `01`;
-
-        const currentPage = [[${attendances.number}]];
-        this.document.querySelector('form').action = `/attendance?filterDate=${currentDate.getFullYear()}-${String(currentDate.getMonth() + 1).padStart(2, '0')}-${day}&page=${currentPage}`;
-        const hiddenInput = document.createElement('input');
-        hiddenInput.type = 'hidden';
-        hiddenInput.name = 'filterDate';
-        hiddenInput.value = `${year}-${month}-${day}`;
-        this.document.querySelector('form').appendChild(hiddenInput);
-
-        this.document.querySelector('form').submit();
-    }
 </script>
