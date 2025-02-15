@@ -21,4 +21,5 @@ public class EmployeeDTO {
   private List<Qualification> qualifications;
   private List<EmploymentHistory> employmentHistories;
   private List<Attendance> attendances;
+  private User user;
 }

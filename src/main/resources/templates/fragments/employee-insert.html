@@ -169,6 +169,13 @@
                 </select>
             </div>
             <div class="space-y-1">
+                <label>Role:</label>
+                    <select th:field ="*{user.role}">
+                        <option value="ADMIN">admin</option>
+                        <option value="USER">user</option>
+                    </select>
+            </div>
+            <div class="space-y-1">
                 <label class="block font-medium text-gray-700">Company E-mail:</label>
                 <input id="employeeCompanyEmail" th:field="*{employee.companyEmail}"
                        class="w-full p-2 border rounded-md min-h-[40px] overflow-y-auto focus:ring-2 focus:ring-blue-500" readonly>
