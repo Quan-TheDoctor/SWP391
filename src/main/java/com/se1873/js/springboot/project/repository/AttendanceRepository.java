@@ -73,4 +73,12 @@ public interface AttendanceRepository extends JpaRepository<Attendance, Long>, J
   Optional<Attendance> findByEmployee_EmployeeIdAndDate(Integer employeeEmployeeId, LocalDate date);
 
   Page<Attendance> findAllByDateBetween(LocalDate dateAfter, LocalDate dateBefore, Pageable pageable);
+
+  Attendance getAttendanceByEmployee_EmployeeIdAndDateBetween(Integer employeeEmployeeId, LocalDate dateAfter, LocalDate dateBefore);
+
+  Attendance findAttendanceByEmployee_EmployeeIdAndDate(Integer employeeEmployeeId, LocalDate date);
+
+  List<Attendance> findAttendancesByEmployee_EmployeeIdAndDateBetween(Integer employeeEmployeeId, LocalDate dateAfter, LocalDate dateBefore);
+
+  Page<Attendance> findAttendancesByEmployee_EmployeeIdAndDateBetween(Integer employeeEmployeeId, LocalDate dateAfter, LocalDate dateBefore, Pageable pageable);
 }
