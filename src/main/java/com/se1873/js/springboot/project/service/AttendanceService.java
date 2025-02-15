@@ -37,32 +37,36 @@ public class AttendanceService {
       Page<Employee> employees = employeeRepository.findAll(pageable);
 
       List<Attendance> allAttendances = new ArrayList<>();
+      long totalElements = 0;
 
       for (Employee e : employees.getContent()) {
         Page<Attendance> employeeAttendances = attendanceRepository.findAttendancesByEmployee_EmployeeIdAndDateBetween(
           e.getEmployeeId(),
           startDate,
           endDate,
-          pageable
+          Pageable.unpaged()
         );
-        log.info(employeeAttendances.toString());
+
+        totalElements += employeeAttendances.getTotalElements();
 
         if (employeeAttendances.isEmpty()) {
-          Attendance newAttendance = createNewAttendance(e, LocalDate.now(), LocalTime.of(8, 0), LocalTime.of(17, 0));
+          Attendance newAttendance = createNewAttendance(e, LocalDate.now(), LocalTime.of(8, 0), LocalTime.of(17, 30));
           allAttendances.add(newAttendance);
-        }
-        else {
+          totalElements += 1;
+        } else {
           allAttendances.addAll(employeeAttendances.getContent());
         }
       }
 
-      Page<Attendance> attendancePage = new PageImpl<>(
-        allAttendances,
-        PageRequest.of(pageable.getPageNumber(), pageable.getPageSize(), Sort.by(Sort.Direction.ASC, "attendanceDate")),
-        allAttendances.size()
-      );
+      return new PageImpl<>(
+        allAttendances.stream()
+          .skip(pageable.getOffset())
+          .limit(pageable.getPageSize())
+          .collect(Collectors.toList()),
+        pageable,
+        totalElements
+      ).map(this::convertAttendanceToAttendanceDTO);
 
-      return attendancePage.map(this::convertAttendanceToAttendanceDTO);
     } catch (Exception e) {
       log.error("Error fetching attendances: {}", e.getMessage());
       return Page.empty();

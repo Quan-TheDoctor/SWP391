@@ -84,12 +84,12 @@ public class AttendanceController {
     if(dates == null) {
       attendances = attendanceService.getEmployeesAndAttendances(LocalDate.now(), LocalDate.now(), PageRequest.of(page, size));
     } else {
-      log.debug(page.toString());
-      log.debug(size.toString());
+      log.error(page.toString());
+      log.error(size.toString());
       LocalDate startDate = LocalDate.parse(dates[0].trim());
       LocalDate endDate = LocalDate.parse(dates[1].trim());
-      log.debug(startDate.toString());
-      log.debug(endDate.toString());
+      log.error(startDate.toString());
+      log.error(endDate.toString());
       attendances = attendanceService.getEmployeesAndAttendances(startDate, endDate, PageRequest.of(page, size));
       log.info(attendances.toString());
     }
