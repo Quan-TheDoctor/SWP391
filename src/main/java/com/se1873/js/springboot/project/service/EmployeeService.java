@@ -134,12 +134,13 @@ public class EmployeeService {
       contract.setPresent(true);
 
       BCryptPasswordEncoder passwordEncoder = new BCryptPasswordEncoder();
-      String hashedPassword = passwordEncoder.encode("test");
+      String hashedPassword = passwordEncoder.encode("1");
 
       User user = User.builder()
         .createdAt(LocalDateTime.now())
         .employee(employee)
         .passwordHash(hashedPassword)
+              .role(employeeDTO.getUser().getRole())
         .username(employeeDTO.getEmployee().getCompanyEmail())
         .build();
 
