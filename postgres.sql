@@ -166,7 +166,7 @@ create table users
     username      text NOT NULL,
     password_hash text NOT NULL,
     email         text,
-    role          text      default 'USER',
+    role          text      default 'ADMIN',
     updated_at    TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     created_at    TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
