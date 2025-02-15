@@ -16,11 +16,8 @@ import java.time.LocalDateTime;
 import java.time.ZonedDateTime;
 import java.time.format.DateTimeFormatter;
 import java.time.format.DateTimeParseException;
-import java.util.Comparator;
 import java.util.List;
 import java.util.Locale;
-import java.util.Optional;
-import java.util.stream.Collectors;
 
 @Controller
 @RequiredArgsConstructor
@@ -31,18 +28,36 @@ public class PayrollController {
   Double totalNetSalary = 0.0;
   Double unpaidSalary = 0.0;
   Page<PayrollDTO> payrolls = null;
+
   @RequestMapping
-  public String payroll(Model model) {
-    Pageable pageable = PageRequest.of(0, 10);
+  public String payroll(Model model,
+                        @RequestParam(value = "page", defaultValue = "0") Integer page,
+                        @RequestParam(value = "size", defaultValue = "5") Integer size) {
+    Pageable pageable = PageRequest.of(page, size);
+    totalNetSalary = 0.0;
+    unpaidSalary = 0.0;
+    var pays = salaryRecordService.findAlls();
+    for (PayrollDTO p : pays) {
+      if (p.getSalaryRecord().getPaymentStatus().equals("Đã thanh toán"))
+        totalNetSalary += p.getSalaryRecord().getNetSalary();
+      if (p.getSalaryRecord().getPaymentStatus().equals("Chưa thanh toán"))
+        unpaidSalary += p.getSalaryRecord().getNetSalary();
+    }
+
     payrolls = salaryRecordService.findAll(pageable);
 
     Page<PayrollDTO> payrollDTOPage = payrolls;
-    getTotalNetSalary(payrolls);
 
     model.addAttribute("totalNetSalary", totalNetSalary);
     model.addAttribute("unpaidSalary", unpaidSalary);
     model.addAttribute("payrolls", payrollDTOPage);
     return "fragments/payroll";
+  }
+
+  @RequestMapping("/create-form")
+  public String createForm(Model model) {
+
+    return "fragments/payroll-create";
   }
 
   @RequestMapping("/sort")
@@ -51,7 +66,7 @@ public class PayrollController {
                      @RequestParam(value = "direction", required = false, defaultValue = "asc") String direction,
                      @RequestParam(value = "dates", required = false) LocalDate dates,
                      @RequestParam(value = "page", defaultValue = "0") Integer page,
-                     @RequestParam(value = "size", defaultValue = "10") Integer size) {
+                     @RequestParam(value = "size", defaultValue = "5") Integer size) {
     List<PayrollDTO> payrollDTOS = salaryRecordService.sortByField(field, direction, payrolls.getContent());
     Pageable pageable = PageRequest.of(page, size);
 
@@ -73,7 +88,7 @@ public class PayrollController {
                        @RequestParam(value = "dates", required = false, defaultValue = "all") String date,
                        @RequestParam(value = "value", defaultValue = "0") String value,
                        @RequestParam(value = "page", defaultValue = "0") Integer page,
-                       @RequestParam(value = "size", defaultValue = "10") Integer size) {
+                       @RequestParam(value = "size", defaultValue = "5") Integer size) {
     Pageable pageable = null;
     List<String> fields = List.of(field.split(","));
     String[] dates = date.split(",");
@@ -81,7 +96,7 @@ public class PayrollController {
     if ("all".equals(value)) {
       pageable = PageRequest.of(page, size);
       payrolls = salaryRecordService.findAll(pageable);
-    } else if("startDate,endDate".equals(field)) {
+    } else if ("startDate,endDate".equals(field)) {
       pageable = PageRequest.of(page, size);
       LocalDate startDate = parseDate(dates[0].trim());
       LocalDate endDate = parseDate(dates[1].trim());
@@ -90,14 +105,14 @@ public class PayrollController {
         throw new IllegalArgumentException("Invalid date parameters");
       }
       payrolls = salaryRecordService.findByStartDateAndEndDate(startDate, endDate, pageable);
-    } else if("startSalary,endSalary".equals(field)) {
+    } else if ("startSalary,endSalary".equals(field)) {
       String[] values = value.split(",");
       Sort sort = direction.equals("asc") ? Sort.by(Sort.Direction.ASC, "baseSalary") : Sort.by(Sort.Direction.DESC, "baseSalary");
       pageable = PageRequest.of(page, size, sort);
 
       payrolls = salaryRecordService.findByRangeBaseSalary(Double.parseDouble(values[0]), Double.parseDouble(values[1]), pageable);
-    } else if("paymentStatus".equals(field)) {
-      if(value == null) {
+    } else if ("paymentStatus".equals(field)) {
+      if (value == null) {
         throw new IllegalArgumentException("Invalid payment status");
       }
       pageable = PageRequest.of(page, size);
@@ -122,11 +137,14 @@ public class PayrollController {
     totalNetSalary = 0.0;
     unpaidSalary = 0.0;
 
-    for(PayrollDTO p : payrolls) {
-      if(p.getSalaryRecord().getPaymentStatus().equals("Đã thanh toán"))totalNetSalary += p.getSalaryRecord().getNetSalary();
-      if(p.getSalaryRecord().getPaymentStatus().equals("Chưa thanh toán")) unpaidSalary += p.getSalaryRecord().getNetSalary();
+    for (PayrollDTO p : payrolls) {
+      if (p.getSalaryRecord().getPaymentStatus().equals("Đã thanh toán"))
+        totalNetSalary += p.getSalaryRecord().getNetSalary();
+      if (p.getSalaryRecord().getPaymentStatus().equals("Chưa thanh toán"))
+        unpaidSalary += p.getSalaryRecord().getNetSalary();
     }
   }
+
   private LocalDate parseDate(String dateString) {
     try {
       DateTimeFormatter formatter = DateTimeFormatter.ofPattern(

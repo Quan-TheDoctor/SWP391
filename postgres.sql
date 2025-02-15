@@ -98,8 +98,8 @@ CREATE TABLE attendance
     attendance_id  SERIAL PRIMARY KEY,
     employee_id    INTEGER REFERENCES employees (employee_id),
     date           DATE NOT NULL,
-    check_in       TIMESTAMP,
-    check_out      TIMESTAMP,
+    check_in       TIME,
+    check_out      TIME,
     status         VARCHAR(20),
     overtime_hours DECIMAL(4, 2),
     note           TEXT,
@@ -137,36 +137,6 @@ CREATE TABLE salary_records
     net_salary          DECIMAL(15, 2) NOT NULL,
     payment_status      VARCHAR(20)    NOT NULL,
     created_at          TIMESTAMP DEFAULT CURRENT_TIMESTAMP
-);
-
--- Bảng đánh giá KPI
-CREATE TABLE performance_reviews
-(
-    review_id     SERIAL PRIMARY KEY,
-    employee_id   INTEGER REFERENCES employees (employee_id),
-    reviewer_id   INTEGER REFERENCES employees (employee_id),
-    review_period VARCHAR(20)   NOT NULL,
-    review_year   INTEGER       NOT NULL,
-    overall_score DECIMAL(3, 2) NOT NULL,
-    strengths     TEXT,
-    improvements  TEXT,
-    comments      TEXT,
-    status        VARCHAR(20)   NOT NULL,
-    created_at    TIMESTAMP DEFAULT CURRENT_TIMESTAMP
-);
-
--- Bảng bằng cấp và chứng chỉ
-CREATE TABLE qualifications
-(
-    qualification_id   SERIAL PRIMARY KEY,
-    employee_id        INTEGER REFERENCES employees (employee_id),
-    qualification_type VARCHAR(50)  NOT NULL,
-    qualification_name VARCHAR(100) NOT NULL,
-    institution        VARCHAR(100) NOT NULL,
-    issue_date         DATE         NOT NULL,
-    expiry_date        DATE,
-    description        TEXT,
-    created_at         TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
 
 -- Indexes
@@ -212,15 +182,37 @@ create table audit_logs
 
 CREATE TABLE requests
 (
-    request_id serial primary key,
-    requester_id INTEGER REFERENCES users (user_id),
-    request_type text,
+    request_id      serial primary key,
+    requester_id    INTEGER REFERENCES users (user_id),
+    request_type    text,
     request_id_list json,
-    approval_id INTEGER REFERENCES users(user_id),
-    status text,
-    is_process bool default false,
-    created_at  TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+    approval_id     INTEGER REFERENCES users (user_id),
+    status          text,
+    is_process      bool      default false,
+    created_at      TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
+
+create table financial_policies
+(
+    financial_policy_id     serial primary key,
+    financial_policy_name   text,
+    financial_policy_type   text,
+    financial_policy_amount DECIMAL
+);
+
+insert into financial_policies(financial_policy_name, financial_policy_type, financial_policy_amount)
+VALUES ('BHYT cá nhân trả', 'RATE', 1.5),
+       ('BHYT doanh nghiệp trả', 'RATE', 1.5),
+       ('BHXH cá nhân trả', 'RATE', 8),
+       ('BHXH doanh nghiệp trả', 'RATE', 17.5),
+       ('KPCĐ cá nhân trả', 'RATE', 1),
+       ('KPCĐ doanh nghiệp trả', 'RATE', 1),
+       ('BHTN cá nhân trả', 'RATE', 1),
+       ('BHTN doanh nghiệp trả', 'RATE', 1),
+       ('Lương làm thêm ngày thường', 'RATE', 1.5),
+       ('Giảm trừ cá nhân', 'FIXED', 11000000),
+       ('Giảm trừ phụ thuộc', 'FIXED', 4000000),
+       ('Số ngày tính công', 'FIXED', 26);
 
 INSERT INTO employees (employee_code, first_name, last_name, birth_date, gender,
                        id_number, permanent_address, temporary_address,
@@ -236,7 +228,7 @@ VALUES ('NV001', 'Nguyễn', 'Văn An', '1990-05-15', 'Nam',
         'Đã kết hôn', '2345678901', 'Vietcombank', '0234567890');
 
 INSERT INTO users (employee_id, username, password_hash)
-VALUES (1, 'annguyen', '1'),
+VALUES (1, 'admin', '1'),
        (2, 'annguyen', '1');
 
 INSERT INTO departments (department_name, department_code, description, parent_department_id)
@@ -318,27 +310,32 @@ VALUES (1, 'Nguyễn Thị Bình', 'Vợ', '1992-08-20', '001092123456', true),
 
 -- Generate attendance records for all employees (20 days each)
 WITH date_range AS (SELECT generate_series(
-                                   date_trunc('month', CURRENT_DATE) + '1 day'::interval,
-                                   date_trunc('month', CURRENT_DATE) + '100 days'::interval,
-                                   '1 day'::interval
+                                   (date_trunc('month',
+                                               (CURRENT_TIMESTAMP AT TIME ZONE 'Asia/Ho_Chi_Minh'))::date), -- Ngày đầu tháng
+                                   (date_trunc('month', (CURRENT_TIMESTAMP AT TIME ZONE 'Asia/Ho_Chi_Minh'))::date +
+                                    INTERVAL '20 days'), -- +20 ngày
+                                   INTERVAL '1 day'
                            )::date AS work_date)
 INSERT
 INTO attendance (employee_id, date, check_in, check_out, status, overtime_hours)
 SELECT e.employee_id,
        d.work_date,
-       d.work_date + '08:00:00'::interval + (random() * interval '30 minutes'),
-       d.work_date + '18:00:00'::interval + (random() * interval '120 minutes'),
+       (d.work_date + INTERVAL '8 hours' + (random() * INTERVAL '30 minutes')) AT TIME ZONE 'Asia/Ho_Chi_Minh',
+       (d.work_date + INTERVAL '17 hours 30 minutes' + (random() * INTERVAL '90 minutes')) AT TIME ZONE
+       'Asia/Ho_Chi_Minh',
        CASE
            WHEN random() < 0.9 THEN 'Đúng giờ'
            ELSE 'Đi muộn'
            END,
        CASE
-           WHEN random() < 0.1 THEN round((random() * 1)::numeric, 1)
+           WHEN random() < 0.3 THEN round((random() * 2)::numeric, 1)
            ELSE 0
            END
 FROM employees e
          CROSS JOIN date_range d
-WHERE extract(dow from d.work_date) BETWEEN 1 AND 5;
+WHERE EXTRACT(DOW FROM d.work_date) BETWEEN 1 AND 5 -- Thứ 2 đến thứ 6
+   OR d.work_date = (CURRENT_TIMESTAMP AT TIME ZONE 'Asia/Ho_Chi_Minh')::date;
+-- Thêm ngày hiện tại dù là thứ mấy
 
 -- Thêm phụ cấp cho cả hai nhân viên
 -- Allowances for employees (10 records)
@@ -358,27 +355,6 @@ VALUES (1, 8, 1, '2020-01-01', '2021-06-30', false, 'Thăng chức', 'QD001/2020
 INSERT INTO leaves (employee_id, leave_type, start_date, end_date, total_days, status, reason, approved_by)
 VALUES (1, 'Nghỉ phép năm', '2023-07-10', '2023-07-14', 5, 'Đã duyệt', 'Nghỉ mát cùng gia đình', 2),
        (1, 'Nghỉ không lương', '2023-10-01', '2023-10-05', 5, 'Từ chối', 'Việc cá nhân', 2);
--- Performance Reviews (10 records)
-INSERT INTO performance_reviews (employee_id, reviewer_id, review_period, review_year, overall_score, strengths,
-                                 improvements, comments, status)
-VALUES (1, 2, 'Q2', 2020, 4.5, 'Kỹ năng lãnh đạo tốt, delivery đúng hạn', 'Cần cải thiện kỹ năng giao tiếp',
-        'Hoàn thành xuất sắc các mục tiêu', 'Đã duyệt'),
-       (1, 2, 'Q3', 2020, 4.3, 'Quản lý dự án hiệu quả', 'Cần cải thiện deadline management', 'Hoàn thành tốt',
-        'Đã duyệt'),
-       (2, 1, 'Q2', 2021, 4.7, 'Lãnh đạo tốt, hoàn thành xuất sắc công việc', 'Cải thiện quản lý thời gian',
-        'Thực hiện rất tốt', 'Đã duyệt'),
-       (2, 1, 'Q3', 2021, 4.5, 'Quản lý dự án hiệu quả', 'Cải thiện kỹ năng giao tiếp', 'Hoàn thành tốt',
-        'Đã duyệt');
--- Qualifications (10 records)
-INSERT INTO qualifications (employee_id, qualification_type, qualification_name, institution, issue_date, expiry_date,
-                            description)
-VALUES (1, 'Bằng đại học', 'Kỹ sư CNTT', 'Đại học Bách Khoa Hà Nội', '2015-06-15', NULL,
-        'Chuyên ngành Công nghệ phần mềm'),
-       (1, 'Chứng chỉ', 'AWS Solution Architect', 'Amazon', '2022-01-15', '2025-01-15',
-        'Chứng chỉ AWS cấp độ Professional'),
-       (2, 'Bằng đại học', 'Kỹ sư Phần mềm', 'Đại học FPT', '2014-06-20', NULL, 'Chuyên ngành Công nghệ phần mềm'),
-       (2, 'Chứng chỉ', 'AWS Solution Architect', 'Amazon', '2021-03-12', '2024-03-12',
-        'Chứng chỉ AWS cấp độ Professional');
 
 -- Salary Records (10 records)
 INSERT INTO salary_records (employee_id, month, year, base_salary, total_allowance,
@@ -387,112 +363,6 @@ VALUES (1, 6, 2020, 25000000, 4500000, 1500000, 500000, 2250000, 2800000, 254500
        (1, 7, 2020, 25000000, 4500000, 2000000, 500000, 2250000, 2900000, 25850000, 'Đã thanh toán'),
        (2, 6, 2021, 12000000, 5000000, 2000000, 600000, 2500000, 3200000, 16000000, 'Đã thanh toán'),
        (2, 7, 2021, 12000000, 5000000, 1800000, 600000, 2500000, 3100000, 15800000, 'Đã thanh toán');
-
--- Insert basic employee information
-INSERT INTO employees (employee_id, employee_code, first_name, last_name, birth_date, gender,
-                       id_number, permanent_address, temporary_address,
-                       personal_email, company_email, phone_number,
-                       marital_status, bank_account, bank_name, tax_code)
-VALUES (3, 'NV003', 'Lê', 'Thị Mai', '1992-08-25', 'Nữ',
-        '003092123456', '789 Điện Biên Phủ, Q.3, TP.HCM', '789 Điện Biên Phủ, Q.3, TP.HCM',
-        'lethimai@gmail.com', 'mai.le@company.com', '0903456789',
-        'Độc thân', '3456789012', 'Techcombank', '0345678901');
-
--- Insert user account
-INSERT INTO users (employee_id, username, password_hash)
-VALUES (3, 'maile', '1');
-
--- Insert employment history
-INSERT INTO employment_history (employee_id, department_id, position_id, start_date, end_date,
-                                is_current, transfer_reason, decision_number)
-VALUES (3, 13, 9, '2021-07-01', NULL,
-        true, NULL, 'QD001/2021'),
-       (3, 14, 9, '2020-01-15', '2021-06-30',
-        false, 'Chuyển đổi vị trí công tác', 'QD002/2020');
-
--- Insert contracts
-INSERT INTO contracts (employee_id, contract_type, contract_code,
-                       start_date, end_date, base_salary,
-                       sign_date, is_present)
-VALUES (3, 'Thử việc', 'HD001/2020-TV',
-        '2020-01-15', '2020-04-15', 8000000,
-        '2020-01-10', false),
-       (3, '1 năm', 'HD002/2020',
-        '2020-04-15', '2021-04-15', 10000000,
-        '2020-04-10', false),
-       (3, '2 năm', 'HD003/2021',
-        '2021-04-15', '2023-04-15', 15000000,
-        '2021-04-10', true);
-
--- Insert allowances
-INSERT INTO allowances (employee_id, allowance_type, amount, start_date, end_date, description)
-VALUES (3, 'Phụ cấp ăn trưa', 1000000, '2020-01-15', NULL, 'Phụ cấp ăn trưa hàng tháng'),
-       (3, 'Phụ cấp điện thoại', 500000, '2020-01-15', NULL, 'Phụ cấp điện thoại hàng tháng'),
-       (3, 'Phụ cấp xăng xe', 800000, '2021-01-01', NULL, 'Phụ cấp xăng xe hàng tháng');
-
--- Insert attendance records for current month (similar to existing pattern)
-WITH date_range AS (SELECT generate_series(
-                                   date_trunc('month', CURRENT_DATE) + '1 day'::interval,
-                                   date_trunc('month', CURRENT_DATE) + '365 days'::interval,
-                                   '1 day'::interval
-                           )::date AS work_date)
-INSERT
-INTO attendance (employee_id, date, check_in, check_out, status, overtime_hours)
-SELECT 3,
-       d.work_date,
-       d.work_date + '08:00:00'::interval + (random() * interval '30 minutes'),
-       d.work_date + '17:30:00'::interval + (random() * interval '90 minutes'),
-       CASE
-           WHEN random() < 0.9 THEN 'Đúng giờ'
-           ELSE 'Đi muộn'
-           END,
-       CASE
-           WHEN random() < 0.3 THEN round((random() * 2)::numeric, 1)
-           ELSE 0
-           END
-FROM date_range d
-WHERE extract(dow from d.work_date) BETWEEN 1 AND 5;
-
--- Insert leaves
-INSERT INTO leaves (employee_id, leave_type, start_date, end_date,
-                    total_days, status, reason, approved_by)
-VALUES (3, 'Nghỉ phép năm', '2023-07-10', '2023-07-12',
-        3, 'Đã duyệt', 'Về quê giải quyết việc gia đình', 1),
-       (3, 'Nghỉ ốm', '2023-10-05', '2023-10-06',
-        2, 'Đã duyệt', 'Nghỉ ốm có giấy bác sĩ', 1);
-
--- Insert salary records
-INSERT INTO salary_records (employee_id, month, year, base_salary,
-                            total_allowance, overtime_pay, deductions,
-                            insurance_deduction, tax_amount, net_salary, payment_status)
-VALUES (3, 1, 2024, 15000000,
-        2300000, 450000, 0,
-        1500000, 750000, 15500000, 'Đã thanh toán'),
-       (3, 12, 2023, 15000000,
-        2300000, 600000, 0,
-        1500000, 750000, 15650000, 'Đã thanh toán');
-
--- Insert performance reviews
-INSERT INTO performance_reviews (employee_id, reviewer_id, review_period,
-                                 review_year, overall_score, strengths,
-                                 improvements, comments, status)
-VALUES (3, 1, 'Q4',
-        2023, 4.2, 'Kỹ năng giao tiếp tốt, khả năng thích nghi cao',
-        'Cần cải thiện kỹ năng quản lý thời gian', 'Nhân viên có tiềm năng phát triển', 'Hoàn thành');
-
--- Insert qualifications
-INSERT INTO qualifications (employee_id, qualification_type, qualification_name,
-                            institution, issue_date, expiry_date, description)
-VALUES (3, 'Bằng đại học', 'Cử nhân Marketing',
-        'Đại học Kinh tế TP.HCM', '2014-06-15', NULL, 'Tốt nghiệp loại Giỏi'),
-       (3, 'Chứng chỉ', 'Digital Marketing Professional',
-        'Google', '2020-03-20', '2023-03-20', 'Google Digital Marketing Certification');
-
--- Insert dependents
-INSERT INTO dependents (employee_id, full_name, relationship,
-                        birth_date, id_number, is_tax_dependent)
-VALUES (3, 'Lê Văn Nam', 'Con',
-        '2019-05-15', NULL, true);
 
 select de
 from employment_history de
