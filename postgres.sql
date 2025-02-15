@@ -228,8 +228,8 @@ VALUES ('NV001', 'Nguyễn', 'Văn An', '1990-05-15', 'Nam',
         'Đã kết hôn', '2345678901', 'Vietcombank', '0234567890');
 
 INSERT INTO users (employee_id, username, password_hash)
-VALUES (1, 'admin', '1'),
-       (2, 'annguyen', '1');
+VALUES (1, 'annguyen', '1'),
+       (2, 'hungtran', '1');
 
 INSERT INTO departments (department_name, department_code, description, parent_department_id)
 VALUES ('Khối Công nghệ', 'TECH', 'Khối công nghệ thông tin', null),

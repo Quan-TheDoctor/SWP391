@@ -11,14 +11,11 @@ import jakarta.persistence.criteria.Join;
 import jakarta.persistence.criteria.Predicate;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.data.domain.Page;
-import org.springframework.data.domain.PageImpl;
-import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.*;
 import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Service;
 
 import javax.swing.text.html.Option;
-import java.text.SimpleDateFormat;
 import java.time.DateTimeException;
 import java.time.LocalDate;
 import java.time.LocalTime;
@@ -35,59 +32,49 @@ public class AttendanceService {
   private final AttendanceRepository attendanceRepository;
   private final EmployeeRepository employeeRepository;
 
+  public Page<AttendanceDTO> getEmployeesAndAttendances(LocalDate startDate, LocalDate endDate, Pageable pageable) {
+    try {
+      Page<Employee> employees = employeeRepository.findAll(pageable);
+
+      List<Attendance> allAttendances = new ArrayList<>();
+
+      for (Employee e : employees.getContent()) {
+        Page<Attendance> employeeAttendances = attendanceRepository.findAttendancesByEmployee_EmployeeIdAndDateBetween(
+          e.getEmployeeId(),
+          startDate,
+          endDate,
+          pageable
+        );
+        log.info(employeeAttendances.toString());
+
+        if (employeeAttendances.isEmpty()) {
+          Attendance newAttendance = createNewAttendance(e, LocalDate.now(), LocalTime.of(8, 0), LocalTime.of(17, 0));
+          allAttendances.add(newAttendance);
+        }
+        else {
+          allAttendances.addAll(employeeAttendances.getContent());
+        }
+      }
+
+      Page<Attendance> attendancePage = new PageImpl<>(
+        allAttendances,
+        PageRequest.of(pageable.getPageNumber(), pageable.getPageSize(), Sort.by(Sort.Direction.ASC, "attendanceDate")),
+        allAttendances.size()
+      );
+
+      return attendancePage.map(this::convertAttendanceToAttendanceDTO);
+    } catch (Exception e) {
+      log.error("Error fetching attendances: {}", e.getMessage());
+      return Page.empty();
+    }
+  }
+
   public Page<AttendanceDTO> findByStartDateAndEndDate(LocalDate startDate, LocalDate endDate, Pageable pageable) {
     return attendanceRepository.findAllByDateBetween(startDate, endDate, pageable).map(this::convertAttendanceToAttendanceDTO);
   }
 
   public Page<AttendanceDTO> getAll(Pageable pageable) {
     return attendanceRepository.findAll(pageable).map(this::convertAttendanceToAttendanceDTO);
-  }
-  public Page<AttendanceDTO> getEmployeesAndAttendances(LocalDate date, Pageable pageable) {
-    try {
-      var employees = employeeRepository.findAll(pageable);
-
-      Page<Attendance> attendanceDTOS = null;
-      List<Attendance> attendances = new ArrayList<>();
-      for (var e : employees.getContent()) {
-        Attendance attendance = Optional.ofNullable(attendanceRepository.getAttendanceByEmployee_EmployeeIdAndDate(e.getEmployeeId(), date))
-          .orElse(createNewAttendance(e, LocalDate.now(), LocalTime.now(), LocalTime.now()));
-        attendances.add(attendance);
-        log.info(attendance.toString());
-      }
-      attendanceDTOS = new PageImpl<>(attendances, pageable, attendances.size());
-      log.info(attendanceDTOS.toString());
-      return attendanceDTOS.map(this::convertAttendanceToAttendanceDTO);
-    } catch (Exception e) {
-      log.error("LOI");
-    }
-    return null;
-  }
-
-  public Page<AttendanceDTO> filterAttendancesByField(String field, Integer value, Pageable pageable) {
-    Specification<Attendance> spec = (root, query, cb) -> {
-      Join<Attendance, Employee> employeeJoin = root.join("employee");
-      Join<Employee, EmploymentHistory> employmentHistoryJoin = employeeJoin.join("employmentHistories");
-
-      Predicate isCurrentPredicate = cb.equal(employmentHistoryJoin.get("isCurrent"), true);
-
-      if (field != null && value != null) {
-        switch (field.toLowerCase()) {
-          case "department":
-            Predicate departmentPredicate = cb.equal(employmentHistoryJoin.get("department").get("id"), value);
-            return cb.and(isCurrentPredicate, departmentPredicate);
-          case "position":
-            Predicate positionPredicate = cb.equal(employmentHistoryJoin.get("position").get("id"), value);
-            return cb.and(isCurrentPredicate, positionPredicate);
-          default:
-            throw new IllegalArgumentException("Invalid filter field: " + field);
-        }
-      }
-      return isCurrentPredicate;
-    };
-
-    Page<Attendance> attendances = attendanceRepository.findAll(spec, pageable);
-
-    return attendances.map(this::convertAttendanceToAttendanceDTO);
   }
 
   public Page<AttendanceDTO> getAttendanceByMonth(int year, int month, int day, Pageable pageable) {
@@ -145,7 +132,10 @@ public class AttendanceService {
 
   public AttendanceDTO getTodayAttendanceByEmployeeId(Integer employeeId, LocalDate date, LocalTime checkIn, LocalTime checkOut) {
     Employee employee = employeeRepository.findByEmployeeId(employeeId);
-    Attendance attendance = createNewAttendance(employee, date, checkIn, checkOut);
+    log.info(employee.getEmployeeId().toString());
+    Attendance attendance = Optional
+      .ofNullable(attendanceRepository.findAttendanceByEmployee_EmployeeIdAndDate(employeeId, date))
+      .orElse(createNewAttendance(employee, date, checkIn, checkOut));
     AttendanceDTO attendanceDTO = convertAttendanceToAttendanceDTO(attendance);
     return Optional.ofNullable(attendanceDTO).orElse(new AttendanceDTO());
   }

@@ -77,7 +77,7 @@
             <div class="flex items-center justify-between">
                 <div class="flex gap-2">
                         <span th:if="${attendances.hasPrevious()}">
-                            <a th:href="@{/attendance(dates=${dates}, page=${attendances.number - 1})}"
+                            <a th:href="@{/attendance/filter(dates=${#strings.listJoin(dates, ',')}, page=${attendances.number - 1})}"
                                class="px-3 py-1 rounded border text-gray-700 hover:bg-gray-100 transition-colors">
                                 Previous
                             </a>
@@ -87,7 +87,7 @@
                 <div class="flex gap-1">
                         <span th:each="i : ${#numbers.sequence(0, attendances.totalPages - 1)}">
                             <a th:if="${i != attendances.number}"
-                               th:href="@{/attendance(dates=${dates}, page=${i})}"
+                               th:href="@{/attendance/filter(dates=${#strings.listJoin(dates, ',')}, page=${i})}"
                                class="px-3 py-1 rounded border text-gray-700 hover:bg-gray-100 transition-colors"
                                th:text="${i + 1}"></a>
                             <span th:unless="${i != attendances.number}"
@@ -98,7 +98,7 @@
 
                 <div class="flex gap-2">
                         <span th:if="${attendances.hasNext()}">
-                            <a th:href="@{/attendance(dates=${dates}, page=${attendances.number + 1})}"
+                            <a th:href="@{/attendance/filter(dates=${#strings.listJoin(dates, ',')}, page=${attendances.number + 1})}"
                                class="px-3 py-1 rounded border text-gray-700 hover:bg-gray-100 transition-colors">
                                 Next
                             </a>
