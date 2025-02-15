@@ -3,6 +3,7 @@ package com.se1873.js.springboot.project.controller;
 import com.se1873.js.springboot.project.dto.EmployeeDTO;
 import com.se1873.js.springboot.project.entity.Department;
 import com.se1873.js.springboot.project.entity.Position;
+import com.se1873.js.springboot.project.entity.User;
 import com.se1873.js.springboot.project.repository.ContractRepository;
 import com.se1873.js.springboot.project.service.DepartmentService;
 import com.se1873.js.springboot.project.service.EmployeeService;
@@ -14,6 +15,7 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.ModelAttribute;
@@ -44,7 +46,8 @@ public class EmployeeController {
   public String employee(Model model,
                          @RequestParam(value = "direction", required = false, defaultValue = "asc") String direction,
                          @RequestParam(value = "page", defaultValue = "0") Integer page,
-                         @RequestParam(value = "size", defaultValue = "10") Integer size) {
+                         @RequestParam(value = "size", defaultValue = "10") Integer size,
+                         @AuthenticationPrincipal EmployeeDTO user) {
     log.info("[EMPLOYEE] - employee 323page");
 
     Pageable pageable = PageRequest.of(page, size, Sort.by("employeeId").ascending());
@@ -52,6 +55,12 @@ public class EmployeeController {
 
     model.addAttribute("direction", direction);
     model.addAttribute("employees", employees);
+    model.addAttribute("user",user);
+    if (user != null) {
+      log.info(user.toString());
+    } else {
+      log.info("User is null (chưa đăng nhập)");
+    }
     model.addAttribute("departments", departments);
     model.addAttribute("positions", positions);
     model.addAttribute("fragments", "fragments/employee");
