@@ -16,6 +16,7 @@ import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
+import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.ModelAttribute;
@@ -47,7 +48,7 @@ public class EmployeeController {
                          @RequestParam(value = "direction", required = false, defaultValue = "asc") String direction,
                          @RequestParam(value = "page", defaultValue = "0") Integer page,
                          @RequestParam(value = "size", defaultValue = "10") Integer size,
-                         @AuthenticationPrincipal EmployeeDTO user) {
+                         @AuthenticationPrincipal UserDetails user) {
     log.info("[EMPLOYEE] - employee 323page");
 
     Pageable pageable = PageRequest.of(page, size, Sort.by("employeeId").ascending());
