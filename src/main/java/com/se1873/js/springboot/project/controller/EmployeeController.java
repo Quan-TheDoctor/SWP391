@@ -47,8 +47,7 @@ public class EmployeeController {
   public String employee(Model model,
                          @RequestParam(value = "direction", required = false, defaultValue = "asc") String direction,
                          @RequestParam(value = "page", defaultValue = "0") Integer page,
-                         @RequestParam(value = "size", defaultValue = "10") Integer size,
-                         @AuthenticationPrincipal UserDetails user) {
+                         @RequestParam(value = "size", defaultValue = "10") Integer size) {
     log.info("[EMPLOYEE] - employee 323page");
 
     Pageable pageable = PageRequest.of(page, size, Sort.by("employeeId").ascending());
@@ -56,12 +55,7 @@ public class EmployeeController {
 
     model.addAttribute("direction", direction);
     model.addAttribute("employees", employees);
-    model.addAttribute("user",user);
-    if (user != null) {
-      log.info(user.toString());
-    } else {
-      log.info("User is null (chưa đăng nhập)");
-    }
+
     model.addAttribute("departments", departments);
     model.addAttribute("positions", positions);
     model.addAttribute("fragments", "fragments/employee");
