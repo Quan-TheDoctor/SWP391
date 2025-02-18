@@ -1,5 +1,6 @@
 <!DOCTYPE html>
-<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<html xmlns:th="http://www.thymeleaf.org"
+      xmlns:sec="http://www.thymeleaf.org/extras/spring-security">
 <head>
     <meta charset="UTF-8">
     <title>Employee Management</title>
@@ -21,7 +22,7 @@
         </div>
 
         <!-- Create Button -->
-        <div class="flex gap-2">
+        <div sec:authorize="hasAnyRole('ADMIN','MANAGER')" class="flex gap-2">
             <a th:href="@{/employee/create/form}"
                class="px-4 py-2 bg-green-600 text-white rounded-md hover:bg-green-700 flex items-center gap-2">
                 <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">

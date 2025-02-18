@@ -10,6 +10,7 @@ import jakarta.annotation.PostConstruct;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.validation.BindingResult;
@@ -80,5 +81,22 @@ public class EmployeeController {
     employeeService.saveEmployee(employeeDTO);
 
     return "redirect:/employee";
+  }
+  @RequestMapping("/filter")
+  public String filter(Model model,
+                       @RequestParam("field") String field,
+                       @RequestParam("value") String value,
+                       @RequestParam(value = "page",defaultValue = "0")  int page,
+                       @RequestParam(value = "size", defaultValue = "10") int size){
+    Pageable pageable = PageRequest.of(page,size);
+  var employeeDTOS = employeeService.filterByField(field,value,pageable);
+  var totalEmployees = employeeDTOS.getTotalElements();
+  var avgSalary = employeeDTOS.getContent().stream().mapToDouble(EmployeeDTO::getContractBaseSalary).average().orElse(0.0);
+  model.addAttribute("totalEmployees", totalEmployees);
+  model.addAttribute("avgSalary", avgSalary);
+  model.addAttribute("departments", departments);
+  model.addAttribute("employees",employeeDTOS);
+
+    return "employee";
   }
 }

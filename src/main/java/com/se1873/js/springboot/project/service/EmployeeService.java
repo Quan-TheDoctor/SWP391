@@ -12,6 +12,8 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDate;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Objects;
 
 @Service
@@ -142,6 +144,22 @@ public class EmployeeService {
     employee.setCompanyEmail(employeeDTO.getEmployeeCompanyEmail());
 
     return employee;
+  }
+
+  public Page<EmployeeDTO> filterByField(String field,String value,Pageable pageable){
+    Page<Employee> employees = Page.empty();
+    switch (field){
+      case "department":
+        employees = employeeRepository.findEmployeesByDepartmentName(value,pageable);
+        break;
+      case "position":
+        employees = employeeRepository.findEmployeesByPositionName(value,pageable);
+        break;
+      default:
+        throw new IllegalArgumentException("not found");
+    }
+
+    return employees.map(this :: convertEmployeeToDTO);
   }
 
   private EmployeeDTO convertEmployeeToDTO(Employee employee) {
