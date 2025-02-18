@@ -11,6 +11,6 @@ import java.util.List;
 @Builder
 @AllArgsConstructor
 @NoArgsConstructor
-public class AttendanceCreationDTO {
+public class AttendanceDTOList {
   private List<AttendanceDTO> attendances;
 }

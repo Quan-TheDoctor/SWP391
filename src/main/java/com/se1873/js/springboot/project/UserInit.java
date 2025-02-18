@@ -9,6 +9,8 @@ import org.springframework.boot.ApplicationRunner;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Component;
 
+import java.util.List;
+
 @Component
 @Slf4j
 @RequiredArgsConstructor
@@ -19,10 +21,12 @@ public class UserInit implements ApplicationRunner {
 
   @Override
   public void run(ApplicationArguments args) throws Exception {
-    User user = new User();
-    user.setUsername("admin");
-    user.setPasswordHash(passwordEncoder.encode("1"));
-    user.setRole("ADMIN");
-    userRepository.save(user);
+    List<User> user = userRepository.findUsersByUsername("admin");
+    if(!user.isEmpty()) return;
+    User admin = new User();
+    admin.setUsername("admin");
+    admin.setPasswordHash(passwordEncoder.encode("1"));
+    admin.setRole("ADMIN");
+    userRepository.save(admin);
   }
 }
