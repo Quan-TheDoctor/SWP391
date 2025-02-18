@@ -146,20 +146,19 @@ public class EmployeeService {
     return employee;
   }
 
-  public Page<EmployeeDTO> filterByField(String field,String value,Pageable pageable){
-    Page<Employee> employees = Page.empty();
-    switch (field){
-      case "department":
-        employees = employeeRepository.findEmployeesByDepartmentName(value,pageable);
-        break;
-      case "position":
-        employees = employeeRepository.findEmployeesByPositionName(value,pageable);
-        break;
-      default:
-        throw new IllegalArgumentException("not found");
+  public Page<EmployeeDTO> filterByField(String field, String value, Pageable pageable) {
+    Page<Employee> employees;
+    if ("all".equals(value)) {
+      employees = employeeRepository.findAll(pageable);
+    } else if ("department".equals(field)) {
+      employees = employeeRepository.findEmployeesByDepartmentName(value, pageable);
+    } else if ("position".equals(field)) {
+      employees = employeeRepository.findEmployeesByPositionName(value, pageable);
+    } else {
+      throw new IllegalArgumentException("Invalid field: " + field);
     }
 
-    return employees.map(this :: convertEmployeeToDTO);
+    return employees.map(this::convertEmployeeToDTO);
   }
 
   private EmployeeDTO convertEmployeeToDTO(Employee employee) {
