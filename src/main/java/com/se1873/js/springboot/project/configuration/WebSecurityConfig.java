@@ -31,7 +31,7 @@ public class WebSecurityConfig {
             .authorizeHttpRequests((requests) ->
                     requests
                             .requestMatchers("/", "/home", "/login", "/css/**", "/js/**").permitAll() // Cho phép truy cập các trang này
-                            .requestMatchers("/payroll").hasRole("ADMIN")
+                            .requestMatchers("/payroll","/employee/employee-insert").hasRole("ADMIN")
                             .anyRequest().authenticated() // Các trang khác yêu cầu đăng nhập
             )
             .formLogin((form) ->
