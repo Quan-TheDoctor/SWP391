@@ -34,4 +34,6 @@ public interface EmployeeRepository extends JpaRepository<Employee, Long> {
           "join eh.position p " +
           "where p.positionName = :positionName and eh.isCurrent = true")
   Page<Employee> findEmployeesByPositionName(@Param("positionName") String position, Pageable pageable);
+
+  Page<Employee> findAll(Pageable pageable);
 }
