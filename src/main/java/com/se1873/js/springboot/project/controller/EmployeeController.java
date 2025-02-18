@@ -3,8 +3,10 @@ package com.se1873.js.springboot.project.controller;
 import com.se1873.js.springboot.project.dto.EmployeeDTO;
 import com.se1873.js.springboot.project.entity.Department;
 import com.se1873.js.springboot.project.entity.Employee;
+import com.se1873.js.springboot.project.entity.Position;
 import com.se1873.js.springboot.project.repository.DepartmentRepository;
 import com.se1873.js.springboot.project.repository.EmployeeRepository;
+import com.se1873.js.springboot.project.repository.PositionRepository;
 import com.se1873.js.springboot.project.service.EmployeeService;
 import jakarta.annotation.PostConstruct;
 import lombok.RequiredArgsConstructor;
@@ -29,10 +31,13 @@ public class EmployeeController {
   private final EmployeeService employeeService;
   private final DepartmentRepository departmentRepository;
   private final EmployeeRepository employeeRepository;
+  private final PositionRepository positionRepository;
   private List<Department> departments;
+  private List<Position> positions;
 
   @PostConstruct
   public void init() {
+    positions = positionRepository.findAll();
     departments = departmentRepository.findAll();
   }
 
@@ -46,6 +51,7 @@ public class EmployeeController {
     model.addAttribute("totalEmployees", totalEmployees);
     model.addAttribute("avgSalary", avgSalary);
     model.addAttribute("departments", departments);
+    model.addAttribute("positions",positions);
     model.addAttribute("employees", employees);
     return "employee";
   }
@@ -95,6 +101,7 @@ public class EmployeeController {
   model.addAttribute("totalEmployees", totalEmployees);
   model.addAttribute("avgSalary", avgSalary);
   model.addAttribute("departments", departments);
+  model.addAttribute("positions",positions);
   model.addAttribute("employees",employeeDTOS);
 
     return "employee";
