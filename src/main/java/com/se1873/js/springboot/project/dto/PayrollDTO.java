@@ -1,13 +1,25 @@
 package com.se1873.js.springboot.project.dto;
 
-import com.se1873.js.springboot.project.entity.Employee;
-import com.se1873.js.springboot.project.entity.SalaryRecord;
-import lombok.Builder;
-import lombok.Data;
+import lombok.*;
 
-@Builder
 @Data
+@Builder
+@AllArgsConstructor
+@NoArgsConstructor
 public class PayrollDTO {
-  private Employee employee;
-  private SalaryRecord salaryRecord;
+  private Integer employeeId;
+  private String employeeFirstName;
+  private String employeeLastName;
+
+  private Integer salaryRecordId;
+  private Integer salaryRecordMonth;
+  private Integer salaryRecordYear;
+  private Double salaryRecordBaseSalary;
+  private Double salaryRecordTotalAllowance;
+  private Double salaryRecordOvertimePay;
+  private Double salaryRecordDeductions;
+  private Double salaryRecordInsuranceDeduction;
+  private Double salaryRecordTaxAmount;
+  private Double salaryRecordNetSalary;
+  private String salaryRecordPaymentStatus;
 }

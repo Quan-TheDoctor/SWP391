@@ -1,19 +1,4 @@
-<form th:action="@{/attendance/create/getEmployees}"
-      class="p-4 border-b">
-    <input type="hidden" name="field" value="departmentId">
-    <h2 class="text-xl font-bold text-gray-800 mb-3">Employee List</h2>
-    <select name="value" class="w-full p-2 border rounded-md focus:ring-2 focus:ring-blue-500"
-            onchange="this.form.submit()">
-        <option value="all"
-                th:selected="${(param.value == null) || (param.value[0] == 'all')}">All Departments
-        <option th:each="dept : ${departments}"
-                th:value="${dept.getDepartmentId()}"
-                th:text="${dept.getDepartmentName()}"
-                th:selected="${(param.value != null) && (param.value[0] == T(java.lang.String).valueOf(dept.getDepartmentId()))}"></option>
-    </select>
-</form>
-
-<form th:action="@{/attendance/create/save}" th:object="${attendanceCreationDTO}" method="post">
+<form th:action="@{/attendance/create/save}" th:object="${attendanceDTOList}" method="post">
     <table>
         <thead>
         <tr>
@@ -29,7 +14,7 @@
             <input type="hidden" th:field="*{attendances[__${stat.index}__].employeeId}"/>
             <input type="hidden" th:field="*{attendances[__${stat.index}__].attendanceId}"/>
             <td>
-                <input th:field="*{attendances[__${stat.index}__].lastName}">
+                <input th:value="${T(java.lang.String).format('%s %s', attendance.getEmployeeFirstName(), attendance.getEmployeeLastName())}">
             </td>
             <td>
                 <input type="date"
@@ -55,9 +40,3 @@
     </table>
     <button type="submit">SUBMIT</button>
 </form>
-
-<script>
-    document.addEventListener("DOMContentLoaded", function() {
-
-    })
-</script>

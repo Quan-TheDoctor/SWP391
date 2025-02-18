@@ -27,10 +27,10 @@ public class Attendance {
   @DateTimeFormat(pattern = "yyyy-MM-dd")
   @Column(name = "date", nullable = false)
   private LocalDate date;
-  @DateTimeFormat(pattern = "HH:mm:ss")
+  @DateTimeFormat(pattern = "HH:mm")
   @Column(name = "check_in")
   private LocalTime checkIn;
-  @DateTimeFormat(pattern = "HH:mm:ss")
+  @DateTimeFormat(pattern = "HH:mm")
   @Column(name = "check_out")
   private LocalTime checkOut;
 

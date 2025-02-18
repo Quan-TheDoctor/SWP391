@@ -1,0 +1,11 @@
+<form th:action="@{/payroll/policies/save}" method="POST">
+    <div th:each="policy : ${policies}">
+        <label th:text="${policy.getFinancialPolicyName()}"></label>
+        <input th:if="${policy.getFinancialPolicyType().equals('RATE')}" type="text"
+               th:value="${T(java.lang.String).format('%,.0f', policy.getFinancialPolicyAmount())}">
+        <input th:if="${policy.getFinancialPolicyType().equals('FIXED')}" type="text"
+               th:value="${T(java.lang.String).format('%,.0f', policy.getFinancialPolicyAmount())}">
+    </div>
+    <button type="submit">Submit</button>
+    <button type="submit" name="service" value="cancel">Cancel</button>
+</form>
