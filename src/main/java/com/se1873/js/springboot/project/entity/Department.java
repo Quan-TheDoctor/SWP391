@@ -25,9 +25,6 @@ public class Department {
   @Column(name = "department_name")
   private String departmentName;
 
-  @Column(name = "parent_department_id")
-  private Integer parentDepartmentId;
-
   @Column(name = "description")
   private String description;
 
@@ -36,6 +33,9 @@ public class Department {
   @ToString.Exclude
   @OneToMany(mappedBy = "department", cascade = CascadeType.ALL)
   private List<EmploymentHistory> employmentHistory = new ArrayList<>();
+  @ToString.Exclude
+  @OneToMany(mappedBy = "department", cascade = CascadeType.ALL)
+  private List<Position> positions = new ArrayList<>();
 
   @PrePersist
   protected void onCreate() {

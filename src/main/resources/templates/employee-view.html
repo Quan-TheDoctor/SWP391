@@ -1,0 +1,184 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <title>Employee Form with Tabs</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        function openTab(evt, tabName) {
+            document.querySelectorAll('.tab-content').forEach(content => content.classList.add('hidden'));
+            document.querySelectorAll('.tab-link').forEach(link => link.classList.remove('font-bold', 'text-blue-500'));
+            document.getElementById(tabName).classList.remove('hidden');
+            evt.currentTarget.classList.add('font-bold', 'text-blue-500');
+        }
+    </script>
+</head>
+<body class="bg-gray-100 p-8">
+<form class="w-full max-w-7xl mx-auto bg-white shadow-lg rounded-lg form-container" th:action="@{/employee/create/save}"
+      method="POST"
+      th:object="${employeeDTO}">
+    <input type="hidden" th:field="*{employeeId}"/>
+    <div class="flex gap-6 h-[calc(83vh-24px)] w-full">
+        <!-- Left Section: Employee Image and Basic Info -->
+        <div class="w-1/3 bg-blue-100 p-4 rounded-lg flex flex-col gap-4">
+            <!-- Image -->
+            <div class="flex justify-center">
+                <div class="w-32 h-32 bg-gray-300 rounded-full mb-4">
+                    <div class="w-32 h-32 bg-gray-300 rounded-full"></div>
+                </div>
+
+            </div>
+            <p class="text-center text-gray-600" th:text="${employeeDTO.getEmployeeCode()}"></p>
+            <p class="text-center text-gray-600"
+               th:text="${T(java.lang.String).format('%s %s', employeeDTO.getEmployeeFirstName(), employeeDTO.getEmployeeLastName())}"></p>
+            <p class="text-center text-gray-600" th:text="${employeeDTO.getPositionName()}"></p>
+            <p class="text-center text-gray-600" th:text="${employeeDTO.getDepartmentName()}"></p>
+            <p class="text-center text-gray-600" th:text="${employeeDTO.getEmployeePersonalEmail()}"></p>
+            <p class="text-center text-gray-600" th:text="${employeeDTO.getEmployeeCompanyEmail()}"></p>
+            <p class="text-center text-gray-600" th:text="${employeeDTO.getEmployeePhone()}"></p>
+        </div>
+
+
+        <!-- Right Section: Employee Form -->
+        <div class="w-2/3">
+            <!-- Tab Headers -->
+            <div class="tab-headers flex gap-4 mb-4">
+                <button class="tab-link px-4 py-2" onclick="openTab(event, 'personal')" type="button">Personal and
+                    Contact
+                </button>
+                <button class="tab-link px-4 py-2" onclick="openTab(event, 'work')" type="button">Work Data and Bank
+                </button>
+                <button class="tab-link px-4 py-2" onclick="openTab(event, 'contract')" type="button">Contract</button>
+            </div>
+
+            <div class="tab-container">
+                <!-- Personal and Contact -->
+                <div class="tab-content p-4" id="personal">
+                    <!-- Personal Data Section -->
+                    <div class="flex gap-4">
+                        <div class="w-1/2">
+                            <label>First Name:</label>
+                            <input class="border p-2 w-full" placeholder="First name" th:field="*{employeeFirstName}">
+                        </div>
+                        <div class="w-1/2">
+                            <label>First Name:</label>
+                            <input class="border p-2 w-full" placeholder="First name" th:field="*{employeeLastName}">
+                        </div>
+                    </div>
+                    <label>ID Number:</label><input class="border p-2 w-full" th:field="*{employeeIdNumber}">
+                    <label>Date of Birth:</label><input class="border p-2 w-full" th:field="*{employeeBirthDate}"
+                                                        type="date">
+
+                    <!-- Gender and Marital Status -->
+                    <div class="flex gap-4">
+                        <div class="w-1/2">
+                            <label>Gender:</label><input class="border p-2 w-full" th:field="*{employeeGender}">
+                        </div>
+                        <div class="w-1/2">
+                            <label>Marital Status:</label><input class="border p-2 w-full"
+                                                                 th:field="*{employeeMaritalStatus}">
+                        </div>
+                    </div>
+
+                    <!-- Contact Information -->
+                    <h2 class="text-xl font-bold mt-6 mb-4">Contact Information</h2>
+                    <div class="flex gap-4">
+                        <div class="w-1/2">
+                            <label>Personal E-mail:</label><input class="border p-2 w-full"
+                                                                  th:field="*{employeePersonalEmail}">
+                        </div>
+                        <div class="w-1/2">
+                            <label>Phone Number:</label><input class="border p-2 w-full"
+                                                               th:field="*{employeePhone}">
+                        </div>
+                    </div>
+                    <label>Permanent Address:</label><input class="border p-2 w-full"
+                                                            th:field="*{employeePermanentAddress}">
+                    <label>Temporary Address:</label><input class="border p-2 w-full"
+                                                            th:field="*{employeeTemporaryAddress}">
+                </div>
+
+                <!-- Work Data and Bank -->
+                <div class="tab-content p-4 hidden" id="work">
+                    <h2 class="text-xl font-bold mb-4">Work Data</h2>
+                    <label>Employee ID:</label><input class="border p-2 w-full" th:field="*{employeeCode}">
+                    <div class="flex gap-4">
+                        <div class="w-1/2">
+                            <input type="hidden" th:field="*{positionId}"/>
+                            <label>Position:</label><input class="border p-2 w-full"
+                                                           th:field="*{positionName}">
+                        </div>
+                        <input type="hidden" th:field="*{departmentId}"/>
+                        <div class="w-1/2">
+                            <label>Department:</label><input class="border p-2 w-full"
+                                                             th:field="*{departmentName}">
+                        </div>
+                    </div>
+                    <label>Company E-mail:</label><input class="border p-2 w-full" th:field="*{employeeCompanyEmail}">
+                    <label>Work Start Date</label><input class="border p-2 w-full"
+                                                         th:field="*{employmentHistoryStartDate}">
+
+                    <h2 class="text-xl font-bold mt-6 mb-4">Bank Information</h2>
+                    <label>Bank Name:</label><input class="border p-2 w-full" th:field="*{employeeBankName}">
+                    <label>Bank Account:</label><input class="border p-2 w-full" th:field="*{employeeBankAccount}">
+                    <label>Tax Number:</label><input class="border p-2 w-full" th:field="*{employeeTaxCode}">
+                </div>
+
+                <!-- Contract -->
+                <div class="tab-content p-4 hidden" id="contract">
+                    <h2 class="text-xl font-bold mb-4">Contract Information</h2>
+                    <label>Contract No:</label><input class="border p-2 w-full" th:field="*{contractCode}">
+                    <label>Contract Type:</label><input class="border p-2 w-full" th:field="*{contractType}">
+                    <label>Start Date:</label><input class="border p-2 w-full" th:field="*{contractStartDate}">
+                    <label>End Date:</label><input class="border p-2 w-full" th:field="*{contractEndDate}">
+                    <label>Base Salary:</label><input class="border p-2 w-full" th:field="*{contractBaseSalary}">
+                    <label>Sign Date:</label><input class="border p-2 w-full" th:field="*{contractSignDate}">
+                </div>
+            </div>
+        </div>
+    </div>
+
+
+    <!-- Action Buttons -->
+    <div class="flex justify-end gap-4 mt-8">
+        <button type="submit" class="px-6 py-2 bg-blue-400 text-white rounded-md">Update</button>
+        <a class="px-6 py-2 bg-gray-500 text-white rounded-md" th:href="@{/employee}">Close</a>
+    </div>
+</form>
+
+<script>document.querySelector('.tab-link').click();</script>
+</body>
+</html>
+
+
+<script>
+    function loadPositions(departmentId) {
+        const positionSelect = document.getElementById('positionSelect');
+        positionSelect.innerHTML = '<option value="">-- Chọn chức vụ --</option>';
+
+        if (!departmentId) return;
+
+        positionSelect.disabled = true;
+        positionSelect.innerHTML = '<option value="">Đang tải...</option>';
+
+        fetch(`/api/positions?departmentId=${departmentId}`)
+            .then(response => response.json())
+            .then(positions => {
+                console.log(positions)
+                positionSelect.innerHTML = '<option value="">-- Chọn chức vụ --</option>';
+                positions.forEach(pos => {
+                    const option = document.createElement('option');
+                    option.value = pos.positionId;
+                    option.textContent = pos.positionName;
+                    positionSelect.appendChild(option);
+                    console.log(pos)
+                });
+            })
+            .catch(error => {
+                console.error('Error loading positions:', error);
+                positionSelect.innerHTML = '<option value="">Lỗi tải dữ liệu</option>';
+            })
+            .finally(() => {
+                positionSelect.disabled = false;
+            });
+    }
+</script>

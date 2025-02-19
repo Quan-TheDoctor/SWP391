@@ -1,102 +1,141 @@
 package com.se1873.js.springboot.project.service;
 
 import com.se1873.js.springboot.project.dto.AttendanceDTO;
+import com.se1873.js.springboot.project.dto.AttendanceDTOList;
 import com.se1873.js.springboot.project.dto.EmployeeDTO;
 import com.se1873.js.springboot.project.entity.Attendance;
 import com.se1873.js.springboot.project.entity.Employee;
-import com.se1873.js.springboot.project.entity.EmploymentHistory;
 import com.se1873.js.springboot.project.repository.AttendanceRepository;
 import com.se1873.js.springboot.project.repository.EmployeeRepository;
-import jakarta.persistence.criteria.Join;
-import jakarta.persistence.criteria.Predicate;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.Pageable;
-import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDate;
-import java.util.ArrayList;
-import java.util.List;
+import java.util.*;
+import java.util.function.Function;
 import java.util.stream.Collectors;
 
 @Service
-@RequiredArgsConstructor
+@Transactional
 @Slf4j
+@RequiredArgsConstructor
 public class AttendanceService {
 
+  private final EmployeeService employeeService;
   private final AttendanceRepository attendanceRepository;
+  private final EmployeeRepository employeeRepository;
 
-  public List<AttendanceDTO> getAttendanceByDate(LocalDate date) {
-    List<Attendance> attendances = null;
-    attendances = attendanceRepository.findAttendancesByDate(date);
-    AttendanceDTO attendanceDTO = null;
-    List<AttendanceDTO> attendanceDTOs = new ArrayList<>();
-    for (Attendance attendance : attendances) {
-      Employee employee = attendance.getEmployee();
-      attendanceDTO = AttendanceDTO.builder()
-        .employee(employee).attendance(attendance).build();
-      log.info(attendanceDTO.toString());
+  public Page<AttendanceDTO> getAll(LocalDate startDate, LocalDate endDate, Pageable pageable) {
+    var employees = employeeRepository.findAll();
+    List<EmployeeDTO> employeeDTOS = new ArrayList<>();
 
-      attendanceDTOs.add(attendanceDTO);
+    for(Employee employee : employees) {
+      EmployeeDTO employeeDTO = employeeService.getEmployeeByEmployeeId(employee.getEmployeeId());
+      employeeDTOS.add(employeeDTO);
     }
-    return attendanceDTOs;
-  }
 
-  public List<AttendanceDTO> getAllAttendance() {
-    List<Attendance> attendances = null;
-    attendances = attendanceRepository.findAttendances();
-    AttendanceDTO attendanceDTO = null;
-    List<AttendanceDTO> attendanceDTOs = new ArrayList<>();
-    for (Attendance attendance : attendances) {
-      Employee employee = attendance.getEmployee();
-      attendanceDTO = AttendanceDTO.builder()
-        .employee(employee).attendance(attendance).build();
-      attendanceDTOs.add(attendanceDTO);
-    }
-    return attendanceDTOs;
+    List<AttendanceDTO> attendanceDTOS = new ArrayList<>();
 
-  }
+    for (EmployeeDTO employee : employeeDTOS) {
+      List<Attendance> attendances = attendanceRepository.getAttendanceByDateBetweenAndEmployee_EmployeeId(
+        startDate, endDate, employee.getEmployeeId()
+      );
 
-  public Page<AttendanceDTO> filterAttendancesByField(String field, Integer value, Pageable pageable) {
-    Specification<Attendance> spec = (root, query, cb) -> {
-      Join<Attendance, Employee> employeeJoin = root.join("employee");
-      Join<Employee, EmploymentHistory> employmentHistoryJoin = employeeJoin.join("employmentHistories");
+      Map<LocalDate, Attendance> attendanceMap = attendances.stream()
+        .collect(Collectors.toMap(Attendance::getDate, Function.identity()));
 
-      Predicate isCurrentPredicate = cb.equal(employmentHistoryJoin.get("isCurrent"), true);
+      List<LocalDate> datesInRange = startDate.datesUntil(endDate.plusDays(1))
+        .collect(Collectors.toList());
 
-      if (field != null && value != null) {
-        switch (field.toLowerCase()) {
-          case "department":
-            Predicate departmentPredicate = cb.equal(employmentHistoryJoin.get("department").get("id"), value);
-            return cb.and(isCurrentPredicate, departmentPredicate);
-          case "position":
-            Predicate positionPredicate = cb.equal(employmentHistoryJoin.get("position").get("id"), value);
-            return cb.and(isCurrentPredicate, positionPredicate);
-          default:
-            throw new IllegalArgumentException("Invalid filter field: " + field);
+      for (LocalDate date : datesInRange) {
+        Attendance attendance = attendanceMap.get(date);
+        if (attendance != null) {
+          Employee emp = employeeRepository.getEmployeeByEmployeeId(employee.getEmployeeId());
+          attendanceDTOS.add(convertAttendanceDTO(attendance, emp));
+        } else {
+          attendanceDTOS.add(createDefaultAttendanceDTO(employee, date));
         }
       }
-      return isCurrentPredicate;
-    };
+    }
 
-    Page<Attendance> attendances = attendanceRepository.findAll(spec, pageable);
+    attendanceDTOS.sort(
+      Comparator.comparing(AttendanceDTO::getAttendanceDate)
+        .thenComparing(AttendanceDTO::getAttendanceStatus)
+    );
+    int total = attendanceDTOS.size();
+    int start = (int) pageable.getOffset();
+    int end = Math.min((start + pageable.getPageSize()), total);
 
-    return attendances.map(this::convertAttendanceToAttendanceDTO);
+    return new PageImpl<>(
+      attendanceDTOS.subList(start, end),
+      pageable,
+      total
+    );
   }
 
-  public Page<AttendanceDTO> getAttendanceByMonth(int year, int month, Pageable pageable) {
-    Page<Attendance> attendancePage = attendanceRepository.findByMonthAndYear(year, month, pageable);
-    return attendancePage.map(this::convertAttendanceToAttendanceDTO);
+  public AttendanceDTO getAttendanceByEmployeeIdAndDate(Integer employeeId, LocalDate date) {
+    Employee employee = Optional.ofNullable(employeeRepository.getEmployeeByEmployeeId(employeeId))
+      .orElseThrow(() -> new RuntimeException("Employee not found with id: " + employeeId));
+    EmployeeDTO employeeDTO = employeeService.getEmployeeByEmployeeId(employee.getEmployeeId());
+    Optional<Attendance> attendanceOpt = attendanceRepository.findByDateAndEmployee_EmployeeId(date, employeeId);
+
+    return attendanceOpt
+      .map(attendance -> convertAttendanceDTO(attendance, employee))
+      .orElseGet(() -> createDefaultAttendanceDTO(employeeDTO, date));
   }
 
-  private AttendanceDTO convertAttendanceToAttendanceDTO(Attendance attendance) {
-    Employee employee = attendance.getEmployee();
+  public void saveAttendance(AttendanceDTOList attendanceDTOList) {
+    for (AttendanceDTO dto : attendanceDTOList.getAttendances()) {
+      Employee employee = Optional.ofNullable(employeeRepository.findEmployeeByEmployeeId(dto.getEmployeeId()))
+        .orElseThrow(() -> new RuntimeException("Employee not found: " + dto.getEmployeeId()));
+
+      Attendance attendance = attendanceRepository.findByDateAndEmployee_EmployeeId(
+        dto.getAttendanceDate(),
+        employee.getEmployeeId()
+      ).orElse(new Attendance());
+
+      attendance.setEmployee(employee);
+      attendance.setDate(dto.getAttendanceDate());
+      attendance.setCheckIn(dto.getAttendanceCheckIn());
+      attendance.setCheckOut(dto.getAttendanceCheckOut());
+      attendance.setStatus(dto.getAttendanceStatus());
+      attendance.setOvertimeHours(dto.getAttendanceOvertimeHours());
+
+      attendanceRepository.save(attendance);
+    }
+  }
+
+  private AttendanceDTO createDefaultAttendanceDTO(EmployeeDTO employee, LocalDate date) {
     return AttendanceDTO.builder()
-      .attendance(attendance)
-      .employee(employee)
+      .employeeId(employee.getEmployeeId())
+      .employeeFirstName(employee.getEmployeeFirstName())
+      .employeeLastName(employee.getEmployeeLastName())
+      .employeeCode(employee.getEmployeeCode())
+      .attendanceDate(date)
+      .attendanceStatus("CHƯA CHẤM CÔNG")
+      .attendanceCheckIn(null)
+      .attendanceCheckOut(null)
+      .attendanceOvertimeHours(0.0)
       .build();
   }
 
+  private AttendanceDTO convertAttendanceDTO(Attendance attendance, Employee employee) {
+    return AttendanceDTO.builder()
+      .employeeId(employee.getEmployeeId())
+      .employeeCode(employee.getEmployeeCode())
+      .employeeFirstName(employee.getFirstName())
+      .employeeLastName(employee.getLastName())
+      .attendanceId(attendance.getAttendanceId())
+      .attendanceDate(attendance.getDate())
+      .attendanceCheckIn(attendance.getCheckIn())
+      .attendanceCheckOut(attendance.getCheckOut())
+      .attendanceStatus(attendance.getStatus())
+      .attendanceOvertimeHours(attendance.getOvertimeHours())
+      .build();
+  }
 }

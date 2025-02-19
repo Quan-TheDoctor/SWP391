@@ -2,9 +2,11 @@ package com.se1873.js.springboot.project.entity;
 
 import jakarta.persistence.*;
 import lombok.*;
+import org.springframework.format.annotation.DateTimeFormat;
 
 import java.time.LocalDate;
 import java.time.LocalDateTime;
+import java.time.LocalTime;
 
 @Entity
 @Table(name = "attendance")
@@ -19,18 +21,18 @@ public class Attendance {
   private Integer attendanceId;
 
   @ToString.Exclude
-  @ManyToOne(cascade = CascadeType.ALL, fetch = FetchType.LAZY)
+  @ManyToOne(cascade = CascadeType.ALL)
   @JoinColumn(name = "employee_id")
   private Employee employee;
-
+  @DateTimeFormat(pattern = "yyyy-MM-dd")
   @Column(name = "date", nullable = false)
   private LocalDate date;
-
+  @DateTimeFormat(pattern = "HH:mm")
   @Column(name = "check_in")
-  private LocalDateTime checkIn;
-
+  private LocalTime checkIn;
+  @DateTimeFormat(pattern = "HH:mm")
   @Column(name = "check_out")
-  private LocalDateTime checkOut;
+  private LocalTime checkOut;
 
   @Column(name = "status")
   private String status;

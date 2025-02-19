@@ -2,140 +2,108 @@ package com.se1873.js.springboot.project.controller;
 
 import com.se1873.js.springboot.project.dto.EmployeeDTO;
 import com.se1873.js.springboot.project.entity.Department;
+import com.se1873.js.springboot.project.entity.Employee;
 import com.se1873.js.springboot.project.entity.Position;
-import com.se1873.js.springboot.project.repository.ContractRepository;
-import com.se1873.js.springboot.project.service.DepartmentService;
+import com.se1873.js.springboot.project.repository.DepartmentRepository;
+import com.se1873.js.springboot.project.repository.EmployeeRepository;
+import com.se1873.js.springboot.project.repository.PositionRepository;
 import com.se1873.js.springboot.project.service.EmployeeService;
-import com.se1873.js.springboot.project.service.PositionService;
 import jakarta.annotation.PostConstruct;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
-import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
+import org.springframework.validation.BindingResult;
 import org.springframework.web.bind.annotation.ModelAttribute;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 
 import java.util.List;
 
-@Slf4j
 @Controller
+@Slf4j
 @RequiredArgsConstructor
 @RequestMapping("/employee")
 public class EmployeeController {
-  private final DepartmentService departmentService;
-  private final PositionService positionService;
-  private final ContractRepository contractRepository;
+
   private final EmployeeService employeeService;
+  private final DepartmentRepository departmentRepository;
+  private final EmployeeRepository employeeRepository;
+  private final PositionRepository positionRepository;
   private List<Department> departments;
   private List<Position> positions;
 
   @PostConstruct
   public void init() {
-    departments = departmentService.getAllDepartments();
-    positions = positionService.getAllPositions();
+    positions = positionRepository.findAll();
+    departments = departmentRepository.findAll();
   }
 
   @RequestMapping
-  public String employee(Model model,
-                         @RequestParam(value = "direction", required = false, defaultValue = "asc") String direction,
-                         @RequestParam(value = "page", defaultValue = "0") Integer page,
-                         @RequestParam(value = "size", defaultValue = "10") Integer size) {
-    log.info("[EMPLOYEE] - employee 323page");
+  public String employee(Model model) {
 
-    Pageable pageable = PageRequest.of(page, size, Sort.by("employeeId").ascending());
-    Page<EmployeeDTO> employees = employeeService.getAllEmployees(pageable);
+    var employees = employeeService.getAll(PageRequest.of(0, 10));
+    var totalEmployees = employeeRepository.count();
 
-    model.addAttribute("direction", direction);
-    model.addAttribute("employees", employees);
+    var avgSalary = employees.getContent().stream().mapToDouble(EmployeeDTO::getContractBaseSalary).average().getAsDouble();
+    model.addAttribute("totalEmployees", totalEmployees);
+    model.addAttribute("avgSalary", avgSalary);
     model.addAttribute("departments", departments);
-    model.addAttribute("positions", positions);
-    model.addAttribute("fragments", "fragments/employee");
-    return "index";
+    model.addAttribute("positions",positions);
+    model.addAttribute("employees", employees);
+    return "employee";
   }
 
   @RequestMapping("/view")
   public String view(Model model,
                      @RequestParam("employeeId") Integer employeeId) {
-    EmployeeDTO employeeDTO = employeeService.getEmployeeByEmployeeId(employeeId);
-    model.addAttribute("employee", employeeDTO);
-    model.addAttribute("fragments", "fragments/employee-details");
-    return "index";
-  }
 
-  @RequestMapping("/employee-insert")
-  public String viewInsert(Model model) {
-    log.info("[EMPLOYEE-INSERT] - employee insert page");
+    var employeeDTO = employeeService.getEmployeeByEmployeeId(employeeId);
+    log.error(employeeDTO.toString());
     model.addAttribute("departments", departments);
-    model.addAttribute("positions", positions);
-    model.addAttribute("employee", new EmployeeDTO());
-    model.addAttribute("countContract", contractRepository.count());
-    model.addAttribute("fragments", "fragments/employee-insert");
-    return "index";
+    model.addAttribute("employeeDTO", employeeDTO);
+    return "employee-view";
   }
 
-  @RequestMapping("/insert")
-  public String insert(Model model,
-                       @ModelAttribute("employee") EmployeeDTO employeeDTO) {
-    log.info("[INSERT] - employee add");
-    employeeService.insertEmployee(employeeDTO);
+  @RequestMapping("/create/form")
+  public String createForm(Model model) {
+
+    model.addAttribute("departments", departments);
+    model.addAttribute("employeeDTO", new EmployeeDTO());
+    return "employee-create";
+  }
+
+  @RequestMapping("/create/save")
+  public String createEmployee(Model model,
+                               @ModelAttribute("employeeDTO") EmployeeDTO employeeDTO,
+                               BindingResult bindingResult) {
+    log.info(employeeDTO.toString());
+    if(bindingResult.hasErrors()) {
+      return "redirect:/employee";
+    }
+
+    employeeService.saveEmployee(employeeDTO);
+
     return "redirect:/employee";
   }
-
   @RequestMapping("/filter")
   public String filter(Model model,
                        @RequestParam("field") String field,
                        @RequestParam("value") String value,
-                       @RequestParam(value = "page", defaultValue = "0") Integer page,
-                       @RequestParam(value = "size", defaultValue = "10") Integer size) {
-    log.info("[EMPLOYEE] - employee 323page");
+                       @RequestParam(value = "page",defaultValue = "0")  int page,
+                       @RequestParam(value = "size", defaultValue = "10") int size){
+    Pageable pageable = PageRequest.of(page,size);
+  var employeeDTOS = employeeService.filterByField(field,value,pageable);
+  var totalEmployees = employeeDTOS.getTotalElements();
+  var avgSalary = employeeDTOS.getContent().stream().mapToDouble(EmployeeDTO::getContractBaseSalary).average().orElse(0.0);
+  model.addAttribute("totalEmployees", totalEmployees);
+  model.addAttribute("avgSalary", avgSalary);
+  model.addAttribute("departments", departments);
+  model.addAttribute("positions",positions);
+  model.addAttribute("employees",employeeDTOS);
 
-    Pageable pageable = PageRequest.of(page, size, Sort.by("employeeId").ascending());
-    Integer intValue = "all".equals(value) ? null : Integer.parseInt(value);
-    Page<EmployeeDTO> employees = employeeService.filter(field, intValue, pageable);
-
-    model.addAttribute("value", value);
-    model.addAttribute("employees", employees);
-    model.addAttribute("departments", departments);
-    model.addAttribute("positions", positions);
-    model.addAttribute("fragments", "fragments/employee");
-    return "index";
-  }
-
-  @RequestMapping("/employee-export")
-  public String export(Model model,
-                       @RequestParam(value = "page", defaultValue = "0") Integer page,
-                       @RequestParam(value = "size", defaultValue = "10") Integer size) {
-    log.info("[EXPORT EMPLOYEE] - employee export page");
-
-    Pageable pageable = PageRequest.of(page, size, Sort.by("employeeId").ascending());
-    Page<EmployeeDTO> employees = employeeService.getAllEmployees(pageable);
-
-    model.addAttribute("employees", employees);
-    model.addAttribute("departments", departments);
-    model.addAttribute("positions", positions);
-    model.addAttribute("fragments", "fragments/employee");
-    return "index";
-  }
-
-  @RequestMapping("/sort")
-  public String sort(@RequestParam("field") String field,
-                     @RequestParam(value = "direction", defaultValue = "asc", required = false) String direction,
-                     @RequestParam(value = "page", defaultValue = "0") Integer page,
-                     @RequestParam(value = "size", defaultValue = "10") Integer size,
-                     Model model) {
-    Pageable pageable = PageRequest.of(page, size, Sort.by("employeeId").ascending());
-    Page<EmployeeDTO> employees = employeeService.sort(direction, field, pageable);
-    log.info(employees.toString());
-    model.addAttribute("direction", direction);
-    model.addAttribute("employees", employees);
-    model.addAttribute("departments", departments);
-    model.addAttribute("positions", positions);
-    model.addAttribute("fragments", "fragments/employee");
-    return "index";
+    return "employee";
   }
 }

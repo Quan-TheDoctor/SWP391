@@ -1,3 +1,7 @@
+<html xmlns:th="http://www.thymeleaf.org"
+      xmlns:sec="http://www.thymeleaf.org/extras/spring-security">
+
+
 <div class="container mx-auto p-6 max-w-7xl">
 
     <div class="bg-white opacity-75 rounded-lg shadow-sm p-4 mb-6">
@@ -37,11 +41,18 @@
                     </select>
                 </form>
             </div>
-            <a th:href="@{/employee/employee-insert}" class="mt-4 px-4 py-2 bg-[#5E5ADB] text-white rounded hover:bg-blue-600 transition-colors">Insert Employee</a>
-            <a th:href="@{/employee/employee-export}" class="mt-4 px-4 py-2 bg-[#5E5ADB] text-white rounded hover:bg-blue-600 transition-colors">Export to Excel</a>
+            <!--/*@thymesVar id="user" type="com.se1873.js.springboot.project.dto.EmployeeDTO"*/-->
+            <div sec:authorize="hasRole('ADMIN')">
+                <a th:href="@{/employee/employee-insert}" class="mt-4 px-4 py-2 bg-[#5E5ADB] text-white rounded hover:bg-blue-600 transition-colors">Insert Employee</a>
+                <a th:href="@{/employee/employee-export}" class="mt-4 px-4 py-2 bg-[#5E5ADB] text-white rounded hover:bg-blue-600 transition-colors">Export to Excel</a>
+            </div>
         </div>
     </div>
-
+    <!--search-->
+    <form class="flex justify-self self-center gap-2 p-2" th:action = "@{/employee/search}">
+        <input class="w-[20rem] p-2 border rounded-md min-h-[40px] overflow-y-auto focus:ring-2 focus:ring-blue-500" type="text" name="search" >
+        <button class="" type="submit">search</button>
+    </form>
 
     <div class="bg-white rounded-lg shadow-sm overflow-hidden">
         <table class="w-full">
@@ -122,3 +133,4 @@
         </div>
     </div>
 </div>
+</html>

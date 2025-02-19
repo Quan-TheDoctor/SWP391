@@ -84,19 +84,9 @@ public class Employee {
   @ToString.Exclude
   @OneToMany(mappedBy = "employee", cascade = CascadeType.ALL, fetch = FetchType.LAZY, orphanRemoval = true)
   private List<EmploymentHistory> employmentHistories = new ArrayList<>();
-
-  @ToString.Exclude
-  @OneToMany(mappedBy = "employee", cascade = CascadeType.ALL, fetch = FetchType.LAZY, orphanRemoval = true)
-  private List<TrainingRecord> trainingRecords = new ArrayList<>();
-  @ToString.Exclude
-  @OneToMany(mappedBy = "employee", cascade = CascadeType.ALL, fetch = FetchType.LAZY, orphanRemoval = true)
-  private List<EmployeeSkill> employeeSkills = new ArrayList<>();
   @ToString.Exclude
   @OneToMany(mappedBy = "employee", cascade = CascadeType.ALL, fetch = FetchType.LAZY, orphanRemoval = true)
   private List<Qualification> qualifications = new ArrayList<>();
-  @ToString.Exclude
-  @OneToMany(mappedBy = "employee", cascade = CascadeType.ALL, fetch = FetchType.LAZY, orphanRemoval = true)
-  private List<PerformanceReview> performanceReviews = new ArrayList<>();
   @ToString.Exclude
   @OneToMany(mappedBy = "employee", cascade = CascadeType.ALL, fetch = FetchType.LAZY, orphanRemoval = true)
   private List<SalaryRecord> salaryRecords = new ArrayList<>();
