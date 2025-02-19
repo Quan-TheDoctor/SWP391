@@ -39,17 +39,18 @@ public class WebSecurityConfig {
                             .successHandler((request, response, authentication) -> {
                                 boolean isAdmin = false;
                                 for(GrantedAuthority ga : authentication.getAuthorities()){
-                                    if(ga.getAuthority().equals("ADMIN")){
+                                    if(ga.getAuthority().equals("ROLE_ADMIN")){
                                         isAdmin = true;
                                         break;
                                     }
                                 }
-                                String username = authentication.getName();
-                                Optional<com.se1873.js.springboot.project.entity.User> user = userRepository.findUserByUsername(username);
-                                int id = user.get().getEmployee().getEmployeeId();
+
                                 if (isAdmin){
                                     response.sendRedirect("/employee");
                                 }else{
+                                    String username = authentication.getName();
+                                    Optional<com.se1873.js.springboot.project.entity.User> user = userRepository.findUserByUsername(username);
+                                    int id = user.get().getEmployee().getEmployeeId();
                                     response.sendRedirect("/employee/view?employeeId="+id);
                                 }
                             })
