@@ -13,14 +13,14 @@ import java.time.LocalDate;
 @AllArgsConstructor
 @NoArgsConstructor
 public class RequestDTO {
-    private Integer requestId;
-    private Integer requesterId;
-    private String requesterName;
-    private String requestType;
-    private String requestContent;
-    @DateTimeFormat(pattern = "yyyy-MM-dd")
-    private LocalDate requestDate;
-    private String requestStatus;
+  private Integer requestId;
+  private Integer requesterId;
+  private String requesterName;
+  private String requestType;
+  private String requestContent;
+  @DateTimeFormat(pattern = "yyyy-MM-dd")
+  private LocalDate requestDate;
+  private String requestStatus;
 
-    private String approvalName;
+  private String approvalName;
 }
