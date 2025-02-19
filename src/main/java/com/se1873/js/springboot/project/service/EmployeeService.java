@@ -8,6 +8,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -27,6 +28,8 @@ public class EmployeeService {
   private final PositionRepository positionRepository;
   private final ContractRepository contractRepository;
   private final EmployeeRepository employeeRepository;
+  private final PasswordEncoder passwordEncoder;
+  private final UserRepository userRepository;
 
   public Page<EmployeeDTO> getAll(Pageable pageable) {
     var employees = employeeRepository.findAll(pageable).map(this::convertEmployeeToDTO);
@@ -43,9 +46,17 @@ public class EmployeeService {
     if (employeeDTO.getEmployeeId() == null) {
       Employee employee = new Employee();
       editEmployee(employee, employeeDTO);
-      log.info(employeeDTO.toString());
-      log.info(employee.toString());
+
       employee = employeeRepository.save(employee);
+
+      User user = User.builder()
+        .username(employeeDTO.getEmployeeCompanyEmail())
+        .passwordHash(passwordEncoder.encode("1"))
+        .role("USER")
+        .employee(employee)
+        .build();
+
+      userRepository.save(user);
       employmentHistoryRepository.save(
         EmploymentHistory.builder()
           .employee(employee)

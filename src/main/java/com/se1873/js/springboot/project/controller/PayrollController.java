@@ -59,6 +59,7 @@ public class PayrollController {
     }
     if("save".equals(service)) {
       financialPolicyService.saveAll(financialPolicyDTOList.getFinancialPolicies());
+      model.addAttribute("message", "Update successfully");
     }
     return "policies";
   }

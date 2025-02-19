@@ -22,4 +22,18 @@ public class PayrollDTO {
   private Double salaryRecordTaxAmount;
   private Double salaryRecordNetSalary;
   private String salaryRecordPaymentStatus;
+
+  private Double calculatedEmployeeHealthInsurance;
+  private Double calculatedEmployeeSocialInsurance;
+  private Double calculatedEmployeeUnionFee;
+  private Double calculatedEmployeeUnemploymentInsurance;
+  private Double calculatedEmployerHealthInsurance;
+  private Double calculatedEmployerSocialInsurance;
+  private Double calculatedEmployerUnionFee;
+  private Double calculatedEmployerUnemploymentInsurance;
+  private Double calculatedPersonalInsuranceDeduction;
+  private Double calculatedPersonalDeduction;
+  private Double calculatedPersonalDependentDeduction;
+  private Double totalDeductions;
+
 }
