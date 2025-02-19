@@ -1,5 +1,6 @@
 package com.se1873.js.springboot.project.configuration;
 
+import com.se1873.js.springboot.project.repository.EmployeeRepository;
 import com.se1873.js.springboot.project.repository.UserRepository;
 import jakarta.servlet.http.HttpServletRequest;
 import lombok.RequiredArgsConstructor;
@@ -8,17 +9,15 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
+import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.userdetails.User;
-import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
-import org.springframework.security.crypto.password.NoOpPasswordEncoder;
-import org.springframework.security.crypto.password.PasswordEncoder;
-import org.springframework.security.provisioning.InMemoryUserDetailsManager;
 import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.util.matcher.AntPathRequestMatcher;
-import org.springframework.web.context.request.ServletRequestAttributes;
+
+import java.util.Optional;
 
 @Slf4j
 @Configuration
@@ -26,18 +25,34 @@ import org.springframework.web.context.request.ServletRequestAttributes;
 @RequiredArgsConstructor
 public class WebSecurityConfig {
   @Bean
-  public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
+  public SecurityFilterChain securityFilterChain(HttpSecurity http, UserRepository userRepository, EmployeeRepository employeeRepository) throws Exception {
     http
             .authorizeHttpRequests((requests) ->
                     requests
                             .requestMatchers("/", "/home", "/login", "/css/**", "/js/**").permitAll() // Cho phép truy cập các trang này
-                            .requestMatchers("/payroll","/employee/employee-insert").hasRole("ADMIN")
+                            .requestMatchers("/payroll","/employee/employee-insert","/employee").hasRole("ADMIN")
                             .anyRequest().authenticated() // Các trang khác yêu cầu đăng nhập
             )
             .formLogin((form) ->
                     form
                             .loginPage("/login") // Chỉ định trang login tùy chỉnh
-                            .defaultSuccessUrl("/employee", true) // Chuyển hướng sau khi đăng nhập thành công
+                            .successHandler((request, response, authentication) -> {
+                                boolean isAdmin = false;
+                                for(GrantedAuthority ga : authentication.getAuthorities()){
+                                    if(ga.getAuthority().equals("ADMIN")){
+                                        isAdmin = true;
+                                        break;
+                                    }
+                                }
+                                String username = authentication.getName();
+                                Optional<com.se1873.js.springboot.project.entity.User> user = userRepository.findUserByUsername(username);
+                                int id = user.get().getEmployee().getEmployeeId();
+                                if (isAdmin){
+                                    response.sendRedirect("/employee");
+                                }else{
+                                    response.sendRedirect("/employee/view?employeeId="+id);
+                                }
+                            })
                             .failureUrl("/login?error=true") // Xử lý lỗi đăng nhập
                             .permitAll()
             )
