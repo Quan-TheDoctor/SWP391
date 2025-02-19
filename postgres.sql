@@ -192,7 +192,7 @@ CREATE TABLE requests
     user_id    INTEGER REFERENCES users (user_id),
     request_type    text,
     request_id_list json,
-    approval_id     INTEGER,
+    approval_id     INTEGER REFERENCES users (user_id),
     status          text,
     is_process      bool      default false,
     created_at      TIMESTAMP DEFAULT CURRENT_TIMESTAMP
@@ -365,7 +365,7 @@ VALUES (1, 6, 2020, 25000000, 4500000, 1500000, 500000, 2250000, 2800000, 254500
 
 
 insert into requests(user_id, request_type, request_id_list, approval_id, status)
-VALUES (1, 'Kết toán lương', '1'::json, 3, 'PENDING');
+VALUES (1, 'Kết toán lương', '1'::json, 2, 'PENDING');
 
 select de
 from employment_history de
