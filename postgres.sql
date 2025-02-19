@@ -1,3 +1,9 @@
+select eh
+from employment_history eh
+where eh.employee_id = 2
+  and eh.is_current = true
+
+
 -- Xoá toàn bộ schema và tất cả các đối tượng bên trong
 DROP SCHEMA public CASCADE;
 -- Tạo lại schema public sau khi đã xoá
@@ -30,18 +36,18 @@ CREATE TABLE employees
 -- Bảng phòng ban
 CREATE TABLE departments
 (
-    department_id        SERIAL PRIMARY KEY,
-    department_name      VARCHAR(100)       NOT NULL,
-    department_code      VARCHAR(20) UNIQUE NOT NULL,
-    parent_department_id INTEGER REFERENCES departments (department_id),
-    description          TEXT,
-    created_at           TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+    department_id   SERIAL PRIMARY KEY,
+    department_name VARCHAR(100)       NOT NULL,
+    department_code VARCHAR(20) UNIQUE NOT NULL,
+    description     TEXT,
+    created_at      TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
 
 -- Bảng chức vụ
 CREATE TABLE positions
 (
     position_id   SERIAL PRIMARY KEY,
+    department_id INTEGER REFERENCES departments (department_id),
     position_name VARCHAR(100)       NOT NULL,
     position_code VARCHAR(20) UNIQUE NOT NULL,
     level         INTEGER            NOT NULL,
@@ -183,7 +189,7 @@ create table audit_logs
 CREATE TABLE requests
 (
     request_id      serial primary key,
-    requester_id    INTEGER REFERENCES users (user_id),
+    user_id    INTEGER REFERENCES users (user_id),
     request_type    text,
     request_id_list json,
     approval_id     INTEGER REFERENCES users (user_id),
@@ -231,61 +237,53 @@ INSERT INTO users (employee_id, username, password_hash)
 VALUES (1, 'annguyen', '1'),
        (2, 'hungtran', '1');
 
-INSERT INTO departments (department_name, department_code, description, parent_department_id)
-VALUES ('Khối Công nghệ', 'TECH', 'Khối công nghệ thông tin', null),
-       ('Khối Kinh doanh', 'SALES', 'Khối kinh doanh và marketing', null),
-       ('Khối Hành chính - Nhân sự', 'HR', 'Khối quản lý nhân sự và hành chính', null),
-       ('Khối Tài chính', 'FIN', 'Khối tài chính và kế toán', null),
-       ('Khối Nghiên cứu và Phát triển', 'R&D', 'Khối nghiên cứu và phát triển sản phẩm công nghệ', null),
-       ('Phòng Pháp lý', 'LEGAL', 'Phòng giải quyết các vấn đề pháp lý của công ty', null),
-       ('Phòng Quản lý Dự án', 'PMO', 'Quản lý, giám sát và điều phối các dự án công nghệ', null),
-       --  Khối công nghệ
-       ('Phòng Phát triển Phần mềm', 'DEV', 'Phòng phát triển ứng dụng và phần mềm', 1),
-       ('Phòng An ninh Thông tin', 'SEC', 'Phòng đảm bảo bảo mật cho hệ thống và dữ liệu', 1),
-       ('Phòng Kiểm thử và Đảm bảo Chất lượng', 'QA', 'Phòng kiểm thử phần mềm và đảm bảo chất lượng', 1),
-       ('Phòng Quản trị Hệ thống', 'SYS', 'Quản lý cơ sở hạ tầng công nghệ thông tin', 1),
-       ('Phòng Phân tích Dữ liệu', 'DATA', 'Phòng phân tích dữ liệu và hỗ trợ quyết định', 1),
---  Khối kinh doanh
-       ('Phòng Kinh doanh', 'SLS', 'Phòng tiếp cận và chăm sóc khách hàng', 2),
-       ('Phòng Marketing', 'MKT', 'Phòng xây dựng chiến lược marketing và truyền thông', 2),
-       ('Phòng Hỗ trợ Khách hàng', 'SUP', 'Phòng hỗ trợ và giải quyết khiếu nại khách hàng', 2),
---  Khối Hành chính - nhân sự
-       ('Phòng Nhân sự', 'HRM', 'Quản lý tuyển dụng và phát triển nhân sự', 3),
-       ('Phòng Hành chính', 'ADM', 'Quản lý các công việc hành chính văn phòng', 3),
---  Khối Tài chính
-       ('Phòng Kế toán', 'ACC', 'Quản lý kế toán và báo cáo tài chính', 4),
-       ('Phòng Phân tích Tài chính', 'FIN-ANAL', 'Phân tích tài chính và lập báo cáo tài chính', 4),
---  Khối Nghiên cứu và Phát triển
-       ('Phòng Nghiên cứu', 'RES', 'Nghiên cứu công nghệ và xu hướng mới', 5),
-       ('Phòng Phát triển Sản phẩm', 'PROD', 'Phát triển sản phẩm và chuyển giao từ nghiên cứu', 5);
+INSERT INTO departments (department_name, department_code, description)
+VALUES ('Phòng Phát triển Phần mềm', 'DEV', 'Phòng phát triển ứng dụng và phần mềm'),
+       ('Phòng An ninh Thông tin', 'SEC', 'Phòng đảm bảo bảo mật cho hệ thống và dữ liệu'),
+       ('Phòng Kiểm thử và Đảm bảo Chất lượng', 'QA', 'Phòng kiểm thử phần mềm và đảm bảo chất lượng'),
+       ('Phòng Quản trị Hệ thống', 'SYS', 'Quản lý cơ sở hạ tầng công nghệ thông tin'),
+       ('Phòng Phân tích Dữ liệu', 'DATA', 'Phòng phân tích dữ liệu và hỗ trợ quyết định'),
+
+       ('Phòng Kinh doanh', 'SLS', 'Phòng tiếp cận và chăm sóc khách hàng'),
+       ('Phòng Marketing', 'MKT', 'Phòng xây dựng chiến lược marketing và truyền thông'),
+       ('Phòng Hỗ trợ Khách hàng', 'SUP', 'Phòng hỗ trợ và giải quyết khiếu nại khách hàng'),
+
+       ('Phòng Nhân sự', 'HRM', 'Quản lý tuyển dụng và phát triển nhân sự'),
+       ('Phòng Hành chính', 'ADM', 'Quản lý các công việc hành chính văn phòng'),
+
+       ('Phòng Kế toán', 'ACC', 'Quản lý kế toán và báo cáo tài chính'),
+       ('Phòng Phân tích Tài chính', 'FIN-ANAL', 'Phân tích tài chính và lập báo cáo tài chính'),
+
+       ('Phòng Nghiên cứu', 'RES', 'Nghiên cứu công nghệ và xu hướng mới'),
+       ('Phòng Phát triển Sản phẩm', 'PROD', 'Phát triển sản phẩm và chuyển giao từ nghiên cứu');
 
 -- Thêm chức vụ
-INSERT INTO positions (position_name, position_code, level, description)
+INSERT INTO positions (position_name, department_id, position_code, level, description)
 VALUES
     -- Khối Công nghệ
-    ('Junior Software Developer', 'DEV_POS001', 1, 'Junior level software developer'),
-    ('Mid-level Software Developer', 'DEV_POS002', 2, 'Mid-level software developer'),
-    ('Senior Software Developer', 'DEV_POS003', 3, 'Senior level software developer'),
-    ('Security Analyst', 'SEC_POS001', 2, 'Responsible for ensuring IT security'),
-    ('QA Engineer', 'QA_POS001', 2, 'Quality assurance and testing of software'),
-    ('System Administrator', 'SYS_POS001', 2, 'Responsible for maintaining IT infrastructure'),
-    ('Data Analyst', 'DATA_POS001', 2, 'Analyze data to support decision-making'),
+    ('Junior Software Developer', 1, 'DEV_POS001', 1, 'Junior level software developer'),
+    ('Mid-level Software Developer', 1, 'DEV_POS002', 2, 'Mid-level software developer'),
+    ('Senior Software Developer', 1, 'DEV_POS003', 3, 'Senior level software developer'),
+    ('Security Analyst', 2, 'SEC_POS001', 2, 'Responsible for ensuring IT security'),
+    ('QA Engineer', 3, 'QA_POS001', 2, 'Quality assurance and testing of software'),
+    ('System Administrator', 4, 'SYS_POS001', 2, 'Responsible for maintaining IT infrastructure'),
+    ('Data Analyst', 5, 'DATA_POS001', 2, 'Analyze data to support decision-making'),
     -- Khối Kinh doanh
-    ('Sales Representative', 'SLS_POS001', 1, 'Sales role focusing on customer acquisition'),
-    ('Marketing Specialist', 'MKT_POS001', 1, 'Develop and execute marketing strategies'),
-    ('Customer Support Representative', 'SUP_POS001', 1, 'Provide support and resolve customer issues'),
+    ('Sales Representative', 6, 'SLS_POS001', 1, 'Sales role focusing on customer acquisition'),
+    ('Marketing Specialist', 7, 'MKT_POS001', 1, 'Develop and execute marketing strategies'),
+    ('Customer Support Representative', 8, 'SUP_POS001', 1, 'Provide support and resolve customer issues'),
 
     -- Khối Hành chính - Nhân sự
-    ('Human Resources Specialist', 'HRM_POS001', 1, 'Manage recruitment and employee relations'),
-    ('Office Administrator', 'ADM_POS001', 1, 'Handle office administrative tasks'),
+    ('Human Resources Specialist', 9, 'HRM_POS001', 1, 'Manage recruitment and employee relations'),
+    ('Office Administrator', 10, 'ADM_POS001', 1, 'Handle office administrative tasks'),
 
     -- Khối Tài chính
-    ('Accountant', 'ACC_POS001', 1, 'Manage financial records and reports'),
-    ('Financial Analyst', 'FIN-ANAL_POS001', 2, 'Analyze financial data and generate reports'),
+    ('Accountant', 11, 'ACC_POS001', 1, 'Manage financial records and reports'),
+    ('Financial Analyst', 12, 'FIN-ANAL_POS001', 2, 'Analyze financial data and generate reports'),
 
     -- Khối Nghiên cứu và Phát triển
-    ('Researcher', 'RES_POS001', 1, 'Conduct research to drive technological innovations'),
-    ('Product Developer', 'PROD_POS001', 2, 'Develop products from research outcomes');
+    ('Researcher', 13, 'RES_POS001', 1, 'Conduct research to drive technological innovations'),
+    ('Product Developer', 14, 'PROD_POS001', 2, 'Develop products from research outcomes');
 
 
 -- Thêm hợp đồng
@@ -363,6 +361,11 @@ VALUES (1, 6, 2020, 25000000, 4500000, 1500000, 500000, 2250000, 2800000, 254500
        (1, 7, 2020, 25000000, 4500000, 2000000, 500000, 2250000, 2900000, 25850000, 'Đã thanh toán'),
        (2, 6, 2021, 12000000, 5000000, 2000000, 600000, 2500000, 3200000, 16000000, 'Đã thanh toán'),
        (2, 7, 2021, 12000000, 5000000, 1800000, 600000, 2500000, 3100000, 15800000, 'Đã thanh toán');
+
+
+
+insert into requests(user_id, request_type, request_id_list, approval_id, status)
+VALUES (1, 'Kết toán lương', '1'::json, 2, 'PENDING');
 
 select de
 from employment_history de

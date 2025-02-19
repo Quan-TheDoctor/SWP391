@@ -1,0 +1,153 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org" xmlns:form="http://www.w3.org/1999/html">
+<head>
+    <meta charset="UTF-8">
+    <title>Title</title>
+</head>
+<body>
+    <form th:action="@{/employee/create/save}" method="post" th:object="${employeeDTO}">
+        <input type="hidden" th:field="*{employeeId}"/>
+        <input type="hidden" th:field="*{employmentHistoryId}"/>
+        <input type="hidden" th:field="*{contractId}"/>
+        <div>
+            <label>First name:</label>
+            <input type="text" th:field="*{employeeFirstName}">
+        </div>
+        <div>
+            <label>Last name:</label>
+            <input type="text" th:field="*{employeeLastName}">
+        </div>
+        <div>
+            <label>Birth date:</label>
+            <input type="date" th:field="*{employeeBirthDate}">
+        </div>
+        <div>
+            <label>Gender:</label>
+            <input type="text" th:field="*{employeeGender}">
+        </div>
+        <div>
+            <label>ID no:</label>
+            <input type="text" th:field="*{employeeIdNumber}">
+        </div>
+        <div>
+            <label>Permanent address:</label>
+            <input type="text" th:field="*{employeePermanentAddress}">
+        </div>
+        <div>
+            <label>Temporary address:</label>
+            <input type="text" th:field="*{employeeTemporaryAddress}">
+        </div>
+        <div>
+            <label>Personal Email:</label>
+            <input type="text" th:field="*{employeePersonalEmail}">
+        </div>
+        <div>
+            <label>Phone:</label>
+            <input type="text" th:field="*{employeePhone}">
+        </div>
+        <div>
+            <label>Marital status:</label>
+            <input type="text" th:field="*{employeeMaritalStatus}">
+        </div>
+        <div>
+            <label>Bank account:</label>
+            <input type="text" th:field="*{employeeBankAccount}">
+        </div>
+        <div>
+            <label>Bank name:</label>
+            <input type="text" th:field="*{employeeBankName}">
+        </div>
+        <div>
+            <label>Tax no:</label>
+            <input type="text" th:field="*{employeeTaxCode}">
+        </div>
+        <div>
+            <label>Employee no:</label>
+            <input type="text" th:field="*{employeeCode}">
+        </div>
+        <div>
+            <label>Company email:</label>
+            <input type="text" th:field="*{employeeCompanyEmail}">
+        </div>
+        <div>
+            <label>Department name:</label>
+            <select th:field="*{departmentId}" id="departmentSelect" onchange="loadPositions(this.value)">
+                <option value="">-- Chọn phòng ban --</option>
+                <option th:each="d : ${departments}"
+                        th:value="${d.getDepartmentId()}"
+                        th:text="${d.getDepartmentName()}" />
+            </select>
+        </div>
+        <div>
+            <label>Position name:</label>
+            <select th:field="*{positionId}" id="positionSelect">
+                <option value="">-- Chọn chức vụ --</option>
+            </select>
+        </div>
+        <div>
+            <label>From:</label>
+            <input type="date" th:field="*{employmentHistoryStartDate}">
+        </div>
+        <div>
+            <label>Contract code:</label>
+            <input type="text" th:field="*{contractCode}">
+        </div>
+        <div>
+            <label>Contract type:</label>
+            <input type="text" th:field="*{contractType}">
+        </div>
+        <div>
+            <label>From:</label>
+            <input type="date" th:field="*{contractStartDate}">
+        </div>
+        <div>
+            <label>To:</label>
+            <input type="date" th:field="*{contractEndDate}">
+        </div>
+        <div>
+            <label>Base salary:</label>
+            <input type="text" th:field="*{contractBaseSalary}">
+        </div>
+        <div>
+            <label>Sign date:</label>
+            <input type="date" th:field="*{contractSignDate}">
+        </div>
+
+        <button type="submit">Submit</button>
+    </form>
+</body>
+</html>
+
+
+<script>
+    function loadPositions(departmentId) {
+        const positionSelect = document.getElementById('positionSelect');
+        positionSelect.innerHTML = '<option value="">-- Chọn chức vụ --</option>';
+
+        if (!departmentId) return;
+
+        positionSelect.disabled = true;
+        positionSelect.innerHTML = '<option value="">Đang tải...</option>';
+
+        fetch(`/api/positions?departmentId=${departmentId}`)
+            .then(response => response.json())
+            .then(positions => {
+                console.log(positions)
+                positionSelect.innerHTML = '<option value="">-- Chọn chức vụ --</option>';
+                positions.forEach(pos => {
+                    const option = document.createElement('option');
+                    option.value = pos.positionId;
+                    option.textContent = pos.positionName;
+                    positionSelect.appendChild(option);
+                    console.log(pos)
+                });
+            })
+            .catch(error => {
+                console.error('Error loading positions:', error);
+                positionSelect.innerHTML = '<option value="">Lỗi tải dữ liệu</option>';
+            })
+            .finally(() => {
+                positionSelect.disabled = false;
+            });
+    }
+</script>

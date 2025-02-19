@@ -25,6 +25,14 @@
 
         <!-- Action Buttons -->
         <div class="flex gap-2">
+            <form th:action="@{/payroll/policies}" method="get">
+                <button type="submit" class="px-4 py-2 bg-gray-400 text-white rounded-md hover:bg-green-700 flex items-center gap-2">
+                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/>
+                    </svg>
+                    Setting
+                </button>
+            </form>
             <button class="px-4 py-2 bg-green-600 text-white rounded-md hover:bg-green-700 flex items-center gap-2">
                 <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/>
@@ -183,23 +191,23 @@
                         <input type="checkbox" name="subCheckboxes" class="rounded border-gray-300">
                     </td>
                     <td class="px-6 py-4">
-                        <span th:text="${T(java.lang.String).format('%s %s', p.getEmployee().getFirstName(), p.getEmployee().getLastName())}"></span>
+                        <span th:text="${T(java.lang.String).format('%s %s', p.getEmployeeFirstName(), p.getEmployeeLastName())}"></span>
                     </td>
                     <td class="px-6 py-4 text-right">
-                        <span th:text="${T(java.lang.String).format('%,.0f', p.getSalaryRecord().getBaseSalary())}"></span>
+                        <span th:text="${T(java.lang.String).format('%,.0f', p.getSalaryRecordBaseSalary())}"></span>
                     </td>
                     <td class="px-6 py-4 text-right">
-                        <span th:text="${T(java.lang.String).format('%,.0f', p.getSalaryRecord().getNetSalary())}"></span>
+                        <span th:text="${T(java.lang.String).format('%,.0f', p.getSalaryRecordNetSalary())}"></span>
                     </td>
                     <td class="px-6 py-4 text-right">
-                        <span th:text="${T(java.lang.String).format('%,.0f', (p.getSalaryRecord().getInsuranceDeduction()+p.getSalaryRecord().getDeductions()))}"></span>
+                        <span th:text="${T(java.lang.String).format('%,.0f', (p.getSalaryRecordInsuranceDeduction()+p.getSalaryRecordDeductions()))}"></span>
                     </td>
                     <td class="px-6 py-4 text-center">
-                        <span th:text="${T(java.lang.String).format('%d/%d', p.getSalaryRecord().getMonth(), p.getSalaryRecord().getYear())}"></span>
+                        <span th:text="${T(java.lang.String).format('%d/%d', p.getSalaryRecordMonth(), p.getSalaryRecordYear())}"></span>
                     </td>
                     <td class="px-6 py-4 text-center">
-                                <span th:text="${p.getSalaryRecord().getPaymentStatus()}"
-                                      th:class="${p.getSalaryRecord().getPaymentStatus() == 'Đã thanh toán' ?
+                                <span th:text="${p.getSalaryRecordPaymentStatus()}"
+                                      th:class="${p.getSalaryRecordPaymentStatus() == 'Đã thanh toán' ?
                                           'text-green-600': 'text-red-600'} "></span>
                     </td>
                 </tr>

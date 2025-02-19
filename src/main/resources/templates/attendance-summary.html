@@ -1,0 +1,122 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <title>Attendance Summary</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        .scrollable-table {
+            max-width: calc(100vw - 2rem);
+            overflow-x: auto;
+        }
+
+        .fixed-column {
+            position: sticky;
+            left: 0;
+            z-index: 20;
+            background-color: white;
+        }
+
+        .fixed-column-header {
+            position: sticky;
+            left: 0;
+            z-index: 30;
+            background-color: #f9fafb;
+        }
+    </style>
+</head>
+<body class="bg-gray-100 min-h-screen p-6">
+<div class="max-w-7xl mx-auto space-y-6">
+
+    <div class="flex justify-between items-center">
+        <h1 class="text-2xl font-bold text-gray-800">Attendance Summary</h1>
+        <div class="flex gap-2">
+            <button class="px-4 py-2 bg-green-600 text-white rounded-md hover:bg-green-700 flex items-center gap-2">
+                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/>
+                </svg>
+                Save Summary
+            </button>
+            <button class="px-4 py-2 bg-purple-600 text-white rounded-md hover:bg-purple-700 flex items-center gap-2">
+                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"/>
+                </svg>
+                Export
+            </button>
+        </div>
+    </div>
+
+
+    <div class="bg-white rounded-lg shadow-sm overflow-hidden scrollable-table">
+        <table class="w-full border-collapse">
+            <thead>
+            <tr>
+
+                <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase fixed-column-header w-[200px] min-w-[200px] border-r">
+                    Employee
+                </th>
+                <th class="px-2 py-3 text-center text-xs font-medium text-gray-500 uppercase fixed-column-header w-[80px] min-w-[80px] border-r">
+                    Work
+                    <svg class="w-4 h-4 text-green-600 m-auto" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/>
+                    </svg>
+                </th>
+                <th class="px-2 py-3 text-center text-xs font-medium text-gray-500 uppercase fixed-column-header w-[80px] min-w-[80px] border-r">
+                    Late
+                    <svg class="w-4 h-4 text-yellow-500 m-auto" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20 12H4"/>
+                    </svg>
+                </th>
+                <th class="px-2 py-3 text-center text-xs font-medium text-gray-500 uppercase fixed-column-header w-[80px] min-w-[80px] border-r">
+                    Off
+                    <svg class="w-4 h-4 text-red-600 m-auto" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/>
+                    </svg>
+                </th>
+
+                <th th:each="day : ${#numbers.sequence(1, 30)}"
+                    class="px-2 py-3 text-center text-xs font-medium text-gray-500 uppercase w-[40px] min-w-[40px] bg-gray-50">
+                    <span th:text="${day}">1</span>
+                </th>
+            </tr>
+            </thead>
+            <tbody class="divide-y divide-gray-200">
+            <tr class="hover:bg-gray-50 transition-colors">
+
+                <td class="px-4 py-2 whitespace-nowrap fixed-column w-[200px] min-w-[200px] border-r text-sm">
+                    John Michael Doe
+                </td>
+                <td class="px-2 py-2 text-center fixed-column w-[80px] min-w-[80px] border-r">
+                    <div class="flex items-center justify-center gap-1 text-sm">
+                        <span>15</span>
+                    </div>
+                </td>
+                <td class="px-2 py-2 text-center fixed-column w-[80px] min-w-[80px] border-r">
+                    <div class="flex items-center justify-center gap-1 text-sm">
+                        <span>3</span>
+                    </div>
+                </td>
+                <td class="px-2 py-2 text-center fixed-column w-[80px] min-w-[80px] border-r">
+                    <div class="flex items-center justify-center gap-1 text-sm">
+                        <span>2</span>
+                    </div>
+                </td>
+
+                <td th:each="day : ${#numbers.sequence(1, 30)}" class="px-2 py-2 text-center">
+                    <svg th:if="${day % 3 == 0}" class="w-4 h-4 text-yellow-500 mx-auto" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20 12H4"/>
+                    </svg>
+                    <svg th:if="${day % 5 == 0}" class="w-4 h-4 text-red-600 mx-auto" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/>
+                    </svg>
+                    <svg th:if="${day % 3 != 0 && day % 5 != 0}" class="w-4 h-4 text-green-600 mx-auto" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/>
+                    </svg>
+                </td>
+            </tr>
+            </tbody>
+        </table>
+    </div>
+</div>
+</body>
+</html>
