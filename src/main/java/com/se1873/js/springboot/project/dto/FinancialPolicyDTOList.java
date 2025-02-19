@@ -1,5 +1,6 @@
 package com.se1873.js.springboot.project.dto;
 
+import com.se1873.js.springboot.project.entity.FinancialPolicy;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
@@ -11,6 +12,6 @@ import java.util.List;
 @Builder
 @AllArgsConstructor
 @NoArgsConstructor
-public class AttendanceCreationDTO {
-  private List<AttendanceDTO> attendances;
+public class FinancialPolicyDTOList {
+  List<FinancialPolicy> financialPolicies;
 }
