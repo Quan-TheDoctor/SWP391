@@ -8,6 +8,8 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
+import org.springframework.validation.BindingResult;
+import org.springframework.web.bind.annotation.ModelAttribute;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 
@@ -36,16 +38,26 @@ public class PayrollController {
   @RequestMapping("/policies")
   public String policies(Model model) {
     var policies = financialPolicyService.getAll();
-
-    model.addAttribute("policies", policies);
+    FinancialPolicyDTOList financialPolicyDTOList = new FinancialPolicyDTOList();
+    financialPolicyDTOList.setFinancialPolicies(policies);
+    model.addAttribute("financialPolicyDTOList", financialPolicyDTOList);
     return "policies";
   }
 
   @RequestMapping("/policies/save")
   public String policiesSave(Model model,
-                             @RequestParam(value = "service", required = false) String service) {
+                             @RequestParam(value = "service", required = false) String service,
+                             @ModelAttribute("financialPolicyDTOList") FinancialPolicyDTOList financialPolicyDTOList,
+                             BindingResult bindingResult) {
     if("cancel".equals(service)) {
       return "redirect:/payroll";
+    }
+
+    if(bindingResult.hasErrors()) {
+      return "policies";
+    }
+    if("save".equals(service)) {
+      financialPolicyService.saveAll(financialPolicyDTOList.getFinancialPolicies());
     }
     return "policies";
   }
