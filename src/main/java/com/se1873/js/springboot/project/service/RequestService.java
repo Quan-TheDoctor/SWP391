@@ -54,4 +54,11 @@ public class RequestService {
           .approvalName(request.getApproval().getUsername())
           .build();
     }
+    public Page<RequestDTO> searchRequests(String query, Pageable pageable) {
+        String requesterName = query;
+
+        Page<Request> requests = requestRepository.searchRequestsByRequester(requesterName, pageable);
+        return requests.map(this::convertRequestToDTO);
+    }
+
 }

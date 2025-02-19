@@ -4,12 +4,14 @@ import com.se1873.js.springboot.project.service.RequestService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 
 import java.util.*;
+import java.util.stream.Collectors;
 
 @Controller
 @Slf4j
@@ -66,6 +68,29 @@ public class RequestController {
     model.addAttribute("field", field);
     model.addAttribute("value", value);
     model.addAttribute("requestTypes", requestTypes);
+    return "request";
+  }
+  @RequestMapping("/search")
+  public String search(Model model,
+                       @RequestParam("query") String query,
+                       @RequestParam(value = "page", defaultValue = "0") int page,
+                       @RequestParam(value = "size", defaultValue = "10") int size) {
+    Pageable pageable = PageRequest.of(page, size);
+    var requests = requestService.searchRequests(query, pageable);
+
+    var totalRequests = requests.getTotalElements();
+    long totalPendingRequests = requests.stream().filter(r -> "pending".equalsIgnoreCase(r.getRequestStatus())).count();
+    long totalFinishedRequests = totalRequests - totalPendingRequests;
+
+    Set<String> requestTypes = requests.stream().map(r -> r.getRequestType()).collect(Collectors.toSet());
+
+    model.addAttribute("requests", requests);
+    model.addAttribute("totalRequests", totalRequests);
+    model.addAttribute("totalPendingRequests", totalPendingRequests);
+    model.addAttribute("totalFinishedRequests", totalFinishedRequests);
+    model.addAttribute("requestTypes", requestTypes);
+    model.addAttribute("query", query);  // Lưu query để hiển thị lại trên UI
+
     return "request";
   }
 
