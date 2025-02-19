@@ -1,0 +1,44 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org"
+      xmlns:sec="http://www.thymeleaf.org/extras/spring-security">
+<head>
+    <meta charset="UTF-8">
+    <title>Title</title>
+</head>
+<body>
+<form th:action="@{/request/filter}">
+    <input th:type="hidden" name="field" value="status"/>
+    <select name="value" onchange="this.form.submit()">
+        <option value="">-- Filter by Status --</option>
+        <option value="pending">Pending</option>
+        <option value="approved">Approved</option>
+        <option value="denied">Denied</option>
+        <option />
+    </select>
+</form>
+<form th:action="@{/request/filter}">
+    <input th:type="hidden" name="field" value="type"/>
+    <select name="value" onchange="this.form.submit()">
+        <option value="all">-- All type --</option>
+        <option th:each="type : ${requestTypes}" th:value="${type}" th:text="${type}"></option>
+    </select>
+</form>
+<table>
+    <thead>
+    <th>Name</th>
+    <th>Type</th>
+    <th>Date</th>
+    <th>Status</th>
+    </thead>
+    <tbody>
+    <tr th:each="r : ${requests}" th:object="${r}">
+        <td th:text="*{user.username}"/>
+        <td th:text="*{requestType}"/>
+        <td th:text="*{createdAt}"/>
+        <td th:text="*{status}"/>
+    </tr>
+
+    </tbody>
+</table>
+</body>
+</html>
