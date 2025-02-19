@@ -1,0 +1,125 @@
+
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Bảng Lương Nhân Viên</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      background: linear-gradient(135deg, #c2e9fb, #a1c4fd);
+      margin: 20px;
+      display: flex;
+      justify-content: center;
+    }
+    .container {
+      width: 80%;
+      background: #fff;
+      padding: 20px;
+      border-radius: 12px;
+      box-shadow: 0 4px 8px rgba(0, 0, 0, 0.15);
+    }
+    .header {
+      text-align: center;
+      font-size: 24px;
+      font-weight: bold;
+      color: #5a67d8;
+      margin-bottom: 20px;
+    }
+    .section {
+      margin-bottom: 20px;
+    }
+    .section-title {
+      font-size: 18px;
+      font-weight: bold;
+      color: #333;
+      margin-bottom: 10px;
+    }
+    table {
+      width: 100%;
+      border-collapse: collapse;
+    }
+    td, th {
+      border: 1px solid #ddd;
+      padding: 10px;
+      text-align: left;
+    }
+    tr:nth-child(even) {
+      background: #f9f9f9;
+    }
+    tr:hover {
+      background: rgba(161, 196, 253, 0.3);
+    }
+    .btn-container {
+      display: flex;
+      justify-content: center;
+      gap: 10px;
+    }
+    .btn {
+      background: #5a67d8;
+      color: white;
+      padding: 10px 20px;
+      border: none;
+      border-radius: 6px;
+      cursor: pointer;
+      font-size: 16px;
+    }
+    .btn:hover {
+      background: #434190;
+    }
+  </style>
+</head>
+<body>
+<div class="container" th:if="${payroll != null}">
+  <div class="header">Payroll Detail</div>
+  <div class="section">
+    <div class="section-title">Employee Information</div>
+    <table>
+      <tr><td><strong>Employee Name</strong></td><td th:text="${payroll.employee.getFirstName() + payroll.employee.getLastName()}"></td>
+      </tr>
+      <tr><td><strong>Payroll ID</strong></td><td th:text="${payroll.salaryRecord.getSalaryId()}"></td></tr>
+      <tr><td><strong>Month-Year</strong></td><td th:text="${payroll.salaryRecord.getMonth()+ '-' + payroll.salaryRecord.getYear()}"></td></tr>
+    </table>
+  </div>
+
+  <div class="section">
+    <div class="section-title">Details</div>
+    <table>
+      <tr><td><strong>Basic Salary</strong></td><td th:text="${payroll.salaryRecord.getBaseSalary()}"></td></tr>
+      <tr><td><strong>Total Allowance</strong></td><td th:text="${payroll.salaryRecord.getTotalAllowance()}"></td></tr>
+      <tr><td><strong>Overtime pay</strong></td><td th:text="${payroll.salaryRecord.getOvertimePay()}"></td></tr>
+    </table>
+  </div>
+
+  <div class="section">
+    <div class="section-title">Deduction</div>
+    <table>
+      <tr><td><strong>Personal Deduction</strong></td><td th:text="${payroll.salaryRecord.getBaseSalary()}"></td></tr>
+      <tr><td><strong>Dependent Deduction</strong></td><td>2,500,000 VND</td></tr>
+      <tr><td><strong>Trade Union Fee</strong></td><td>2,500,000 VND</td></tr>
+    </table>
+  </div>
+    <div class="section">
+      <div class="section-title">Health Insurance</div>
+      <table>
+        <tr><td><strong>Health Insurance Employee Contribution</strong></td><td>2,500,000 VND</td></tr>
+        <tr><td><strong>Health Insurance Employer Contribution</strong></td><td>2,500,000 VND</td></tr>
+
+      </table>
+  <div class="section">
+    <div class="section-title">Salary Received</div>
+    <table>
+      <tr><td><strong>Total Salary</strong></td><td>1000000</td></tr>
+      <tr><td><strong>Net Salary</strong></td ><td th:text="${payroll.salaryRecord.getNetSalary()}">13,400,000 VND</td></tr>
+    </table>
+  </div>
+
+  <div class="btn-container">
+    <button class="btn">Xuất PDF</button>
+    <button class="btn">In Bảng Lương</button>
+  </div>
+</div>
+</body>
+</html>
+
