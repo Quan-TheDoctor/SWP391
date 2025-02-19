@@ -1,0 +1,149 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <title>Salary Calculation</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+</head>
+<body class="bg-gray-100 min-h-screen p-6">
+<div class="max-w-7xl mx-auto space-y-6">
+    <!-- Header Section -->
+    <div class="flex justify-between items-center">
+        <h1 class="text-2xl font-bold text-gray-800">Salary Calculation</h1>
+        <div class="flex gap-2">
+            <button class="px-4 py-2 bg-green-600 text-white rounded-md hover:bg-green-700 flex items-center gap-2">
+                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/>
+                </svg>
+                Calculate
+            </button>
+            <button class="px-4 py-2 bg-purple-600 text-white rounded-md hover:bg-purple-700 flex items-center gap-2">
+                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"/>
+                </svg>
+                Export
+            </button>
+        </div>
+    </div>
+
+    <!-- Salary Calculation Section -->
+    <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+        <!-- Employee Information -->
+        <div class="bg-white rounded-lg shadow-sm p-6 space-y-4">
+            <h2 class="text-lg font-semibold text-gray-800">Employee Information</h2>
+            <div class="grid grid-cols-2 gap-4">
+                <div>
+                    <label class="block text-sm font-medium text-gray-700">Employee Name</label>
+                    <p class="mt-1 text-sm text-gray-900">John Michael Doe</p>
+                </div>
+                <div>
+                    <label class="block text-sm font-medium text-gray-700">Base Salary</label>
+                    <p class="mt-1 text-sm text-gray-900">15,000,000 VND</p>
+                </div>
+                <div>
+                    <label class="block text-sm font-medium text-gray-700">Working Days</label>
+                    <p class="mt-1 text-sm text-gray-900">22/26</p>
+                </div>
+                <div>
+                    <label class="block text-sm font-medium text-gray-700">Overtime Hours</label>
+                    <p class="mt-1 text-sm text-gray-900">10 hours</p>
+                </div>
+            </div>
+        </div>
+
+        <!-- Insurance and Deductions -->
+        <div class="bg-white rounded-lg shadow-sm p-6 space-y-4">
+            <h2 class="text-lg font-semibold text-gray-800">Insurance & Deductions</h2>
+            <div class="grid grid-cols-2 gap-4">
+                <!-- Employee Contributions -->
+                <div class="space-y-2">
+                    <h3 class="text-sm font-medium text-gray-700">Employee Contributions</h3>
+                    <div class="text-sm text-gray-900">
+                        <p>Health Insurance (1.5%): <span class="float-right">225,000 VND</span></p>
+                        <p>Social Insurance (8.0%): <span class="float-right">1,200,000 VND</span></p>
+                        <p>Union Fee (1.0%): <span class="float-right">150,000 VND</span></p>
+                        <p>Unemployment Insurance (1.0%): <span class="float-right">150,000 VND</span></p>
+                    </div>
+                </div>
+
+                <!-- Employer Contributions -->
+                <div class="space-y-2">
+                    <h3 class="text-sm font-medium text-gray-700">Employer Contributions</h3>
+                    <div class="text-sm text-gray-900">
+                        <p>Health Insurance (1.5%): <span class="float-right">225,000 VND</span></p>
+                        <p>Social Insurance (17.5%): <span class="float-right">2,625,000 VND</span></p>
+                        <p>Union Fee (1.0%): <span class="float-right">150,000 VND</span></p>
+                        <p>Unemployment Insurance (1.0%): <span class="float-right">150,000 VND</span></p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Salary Breakdown -->
+    <div class="bg-white rounded-lg shadow-sm p-6 space-y-4">
+        <h2 class="text-lg font-semibold text-gray-800">Salary Breakdown</h2>
+        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+            <!-- Earnings -->
+            <div class="space-y-2">
+                <h3 class="text-sm font-medium text-gray-700">Earnings</h3>
+                <div class="text-sm text-gray-900">
+                    <p>Base Salary: <span class="float-right">15,000,000 VND</span></p>
+                    <p>Overtime (10h): <span class="float-right">1,500,000 VND</span></p>
+                    <p class="font-medium">Total Earnings: <span class="float-right">16,500,000 VND</span></p>
+                </div>
+            </div>
+
+            <!-- Deductions -->
+            <div class="space-y-2">
+                <h3 class="text-sm font-medium text-gray-700">Deductions</h3>
+                <div class="text-sm text-gray-900">
+                    <p>Personal Insurance: <span class="float-right">1,725,000 VND</span></p>
+                    <p>Personal Deduction: <span class="float-right">11,000,000 VND</span></p>
+                    <p>Dependent Deduction: <span class="float-right">4,000,000 VND</span></p>
+                    <p class="font-medium">Total Deductions: <span class="float-right">16,725,000 VND</span></p>
+                </div>
+            </div>
+
+            <!-- Net Salary -->
+            <div class="col-span-2 bg-blue-50 p-4 rounded-lg">
+                <div class="space-y-2">
+                    <h3 class="text-sm font-medium text-gray-700">Net Salary</h3>
+                    <div class="text-lg font-semibold text-blue-600">
+                        <p>Total Net Salary: <span class="float-right">-225,000 VND</span></p>
+                    </div>
+                    <p class="text-sm text-gray-600">* Negative value indicates advance payment</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Detailed Calculation -->
+    <div class="bg-white rounded-lg shadow-sm p-6 space-y-4">
+        <h2 class="text-lg font-semibold text-gray-800">Detailed Calculation</h2>
+        <div class="overflow-x-auto">
+            <table class="w-full text-sm text-left text-gray-500">
+                <thead class="text-xs text-gray-700 uppercase bg-gray-50">
+                <tr>
+                    <th scope="col" class="px-6 py-3">Component</th>
+                    <th scope="col" class="px-6 py-3">Rate</th>
+                    <th scope="col" class="px-6 py-3">Base Amount</th>
+                    <th scope="col" class="px-6 py-3">Amount</th>
+                </tr>
+                </thead>
+                <tbody>
+                <!-- Example Rows -->
+                <tr class="bg-white border-b">
+                    <td class="px-6 py-4">Health Insurance (Employee)</td>
+                    <td class="px-6 py-4">1.5%</td>
+                    <td class="px-6 py-4">15,000,000 VND</td>
+                    <td class="px-6 py-4">225,000 VND</td>
+                </tr>
+                <!-- Add more rows as needed -->
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+</body>
+</html>
