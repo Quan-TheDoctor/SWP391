@@ -18,4 +18,8 @@ public class FinancialPolicyService {
   public List<FinancialPolicy> getAll() {
     return financialPolicyRepository.findAll();
   }
+
+  public void saveAll(List<FinancialPolicy> financialPolicies) {
+    financialPolicyRepository.saveAll(financialPolicies);
+  }
 }

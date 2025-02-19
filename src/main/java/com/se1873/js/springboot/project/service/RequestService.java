@@ -45,13 +45,13 @@ public class RequestService {
 
     private RequestDTO convertRequestToDTO(Request request) {
         return RequestDTO.builder()
-                .requestId(request.getRequestId())
-                .requestType(request.getRequestType())
-                .requesterId(request.getUser().getUserId())
-                .requestDate(request.getCreatedAt().toLocalDate())
-                .requestStatus(request.getStatus())
-                .requesterName(request.getUser().getUsername())
-                .approvalName(request.getApproval().getUsername())
-                .build();
+          .requestId(request.getRequestId())
+          .requestType(request.getRequestType())
+          .requesterId(request.getUser().getUserId())
+          .requestDate(request.getCreatedAt().toLocalDate())
+          .requestStatus(request.getStatus())
+          .requesterName(request.getUser().getUsername())
+          .approvalName(request.getApproval().getUsername())
+          .build();
     }
 }

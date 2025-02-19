@@ -13,5 +13,5 @@ import java.util.List;
 @AllArgsConstructor
 @NoArgsConstructor
 public class FinancialPolicyDTOList {
-    List<FinancialPolicy> financialPolicies;
+  List<FinancialPolicy> financialPolicies;
 }
