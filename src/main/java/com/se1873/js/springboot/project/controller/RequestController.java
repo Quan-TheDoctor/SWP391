@@ -9,7 +9,7 @@ import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 
-import java.util.List;
+import java.util.*;
 
 @Controller
 @Slf4j
@@ -18,10 +18,29 @@ import java.util.List;
 public class RequestController {
   private final RequestService requestService;
 
-
+  private Integer totalRequests = 0;
+  private Integer totalPendingRequests = 0;
+  private Integer totalFinishedRequests = 0;
+  private Set<String> requestTypes = new HashSet<>();
   @RequestMapping
   public String request(Model model) {
-  var requests = requestService.getRequests(PageRequest.of(0, 10));
+    var requests = requestService.getRequests(PageRequest.of(0, 10));
+    totalRequests = 0;
+    totalPendingRequests = 0;
+    totalFinishedRequests = 0;
+    for(var request : requests) {
+      totalRequests++;
+      if(request.getRequestStatus().equals("pending")) totalPendingRequests++;
+      else totalFinishedRequests++;
+      requestTypes.add(request.getRequestType());
+    }
+
+
+
+    model.addAttribute("totalRequests", totalRequests);
+    model.addAttribute("totalPendingRequests", totalPendingRequests);
+    model.addAttribute("totalFinishedRequests", totalFinishedRequests);
+    model.addAttribute("requestTypes", requestTypes);
     model.addAttribute("requests", requests);
     return "request";
   }
@@ -30,12 +49,19 @@ public class RequestController {
   public String filter(Model model,
                        @RequestParam("field") String field,
                        @RequestParam("value") String value) {
-    List<String> requestTypes = requestService.getAllRequestTypes();
-  log.info("filter");
-  log.info("field: " + field);
-  log.info("value: " + value);
-
     var requests = requestService.filter(field, value, PageRequest.of(0, 10));
+    totalRequests = 0;
+    totalPendingRequests = 0;
+    totalFinishedRequests = 0;
+    for(var request : requests) {
+      totalRequests++;
+      if(request.getRequestStatus().equals("pending")) totalPendingRequests++;
+      else totalFinishedRequests++;
+      requestTypes.add(request.getRequestType());
+    }
+    model.addAttribute("totalRequests", totalRequests);
+    model.addAttribute("totalPendingRequests", totalPendingRequests);
+    model.addAttribute("totalFinishedRequests", totalFinishedRequests);
     model.addAttribute("requests", requests);
     model.addAttribute("field", field);
     model.addAttribute("value", value);

@@ -1,5 +1,6 @@
 package com.se1873.js.springboot.project.service;
 
+import com.se1873.js.springboot.project.dto.RequestDTO;
 import com.se1873.js.springboot.project.entity.Request;
 import com.se1873.js.springboot.project.repository.RequestRepository;
 import jakarta.transaction.Transactional;
@@ -9,6 +10,7 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 
+import java.time.LocalDate;
 import java.util.List;
 
 @Service
@@ -19,21 +21,21 @@ public class RequestService {
 
     private final RequestRepository requestRepository;
 
-    public Page<Request> getRequests(Pageable pageable) {
-        return requestRepository.findAll(pageable);
+    public Page<RequestDTO> getRequests(Pageable pageable) {
+        return requestRepository.findAll(pageable).map(this::convertRequestToDTO);
     }
-    public Page<Request> filter(String field, String value, Pageable pageable) {
+    public Page<RequestDTO> filter(String field, String value, Pageable pageable) {
         switch (field) {
             case "status":
-                return requestRepository.findRequestsByStatus(value.toLowerCase(), pageable);
+                return requestRepository.findRequestsByStatus(value.toLowerCase(), pageable).map(this::convertRequestToDTO);
             case "type":
                 if (value.equalsIgnoreCase("all")) {
-                    return requestRepository.findAll(pageable);
+                    return requestRepository.findAll(pageable).map(this::convertRequestToDTO);
                 }
-                return requestRepository.findByRequestType(value, pageable);
+                return requestRepository.findByRequestType(value, pageable).map(this::convertRequestToDTO);
             default:
                 log.warn("Unsupported filter field: {}", field);
-                return requestRepository.findAll(pageable);
+                return requestRepository.findAll(pageable).map(this::convertRequestToDTO);
         }
     }
     public List<String> getAllRequestTypes() {
@@ -41,4 +43,15 @@ public class RequestService {
     }
 
 
+    private RequestDTO convertRequestToDTO(Request request) {
+        return RequestDTO.builder()
+                .requestId(request.getRequestId())
+                .requestType(request.getRequestType())
+                .requesterId(request.getUser().getUserId())
+                .requestDate(request.getCreatedAt().toLocalDate())
+                .requestStatus(request.getStatus())
+                .requesterName(request.getUser().getUsername())
+                .approvalName(request.getApproval().getUsername())
+                .build();
+    }
 }
