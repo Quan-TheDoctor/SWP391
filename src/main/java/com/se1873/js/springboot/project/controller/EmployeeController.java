@@ -106,4 +106,20 @@ public class EmployeeController {
 
     return "employee";
   }
+  @RequestMapping("/search")
+  public String search(Model model,
+                       @RequestParam("query") String query,
+                       @RequestParam(value = "page", defaultValue = "0") int page,
+                       @RequestParam(value = "size", defaultValue = "10") int size){
+    Pageable pageable = PageRequest.of(page,size);
+    var employees = employeeService.search(pageable,query);
+    var totalEmployees = employees.getTotalElements();
+    var avgSalary = employees.getContent().stream().mapToDouble(EmployeeDTO::getContractBaseSalary).average().orElse(0.0);
+    model.addAttribute("employees",employees);
+    model.addAttribute("totalEmployees",totalEmployees);
+    model.addAttribute("avgSalary",avgSalary);
+    model.addAttribute("departments",departments);
+    model.addAttribute("positions",positions);
+    return "employee";
+  }
 }

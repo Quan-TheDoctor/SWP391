@@ -11,6 +11,7 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.sql.Array;
 import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.List;
@@ -158,6 +159,21 @@ public class EmployeeService {
       throw new IllegalArgumentException("Invalid field: " + field);
     }
 
+    return employees.map(this::convertEmployeeToDTO);
+  }
+
+  public Page<EmployeeDTO> search(Pageable pageable,String query){
+    String[] searchs = query.trim().split(" ",2);
+    String firstName ;
+    String lastName ;
+    if(searchs.length > 1){
+      firstName = searchs[0];
+      lastName = searchs[1];
+    }else{
+      firstName = query;
+      lastName = query;
+    }
+    Page<Employee> employees = employeeRepository.searchEmployee(firstName,lastName,pageable);
     return employees.map(this::convertEmployeeToDTO);
   }
 
