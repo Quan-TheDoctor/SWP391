@@ -183,7 +183,7 @@
                 </tr>
                 </thead>
                 <tbody class="divide-y divide-gray-200">
-                <tr th:each="p : ${payrolls}"
+                <tr class="cursor-pointer" th:each="p : ${payrolls}"
                     th:onclick="|window.location.href='/payroll/detail?salaryId=' + ${p.getSalaryRecordId()}|">
 
                 <td class="px-6 py-4">
