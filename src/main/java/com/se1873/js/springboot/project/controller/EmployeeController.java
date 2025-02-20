@@ -13,12 +13,17 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
+import org.springframework.http.HttpHeaders;
+import org.springframework.http.MediaType;
+import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.validation.BindingResult;
 import org.springframework.web.bind.annotation.ModelAttribute;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.core.io.Resource;
+import org.springframework.core.io.ByteArrayResource;
 
 import java.util.List;
 
@@ -122,4 +127,39 @@ public class EmployeeController {
     model.addAttribute("positions",positions);
     return "employee";
   }
+
+  @RequestMapping("/export/view")
+  public String exportView(Model model,
+                           @RequestParam(value = "page", defaultValue = "0") int page,
+                           @RequestParam(value = "size", defaultValue = "10") int size) {
+    Pageable pageable = PageRequest.of(page, size);
+    var employees = employeeService.getAll(pageable);
+    var totalEmployees = employeeRepository.count();
+
+    model.addAttribute("totalEmployees", totalEmployees);
+    model.addAttribute("currentPage", page + 1);
+    model.addAttribute("totalPages", employees.getTotalPages());
+    model.addAttribute("departments", departmentRepository.findAll());
+    model.addAttribute("positions", positionRepository.findAll());
+    model.addAttribute("employees", employees.getContent());
+
+    return "employee-export";
+  }
+
+
+  @RequestMapping("/export")
+  public ResponseEntity<Resource> exportEmployees(
+          @RequestParam(value = "department", required = false, defaultValue = "all") String department,
+          @RequestParam(value = "position", required = false, defaultValue = "all") String position) {
+
+    log.info("Exporting employee data to Excel file. Department: {}, Position: {}", department, position);
+    Resource file = employeeService.exportToExcel(department, position);
+
+    return ResponseEntity.ok()
+            .header(HttpHeaders.CONTENT_DISPOSITION, "attachment; filename=employees.xlsx")
+            .contentType(MediaType.APPLICATION_OCTET_STREAM)
+            .body(file);
+  }
+
+
 }
