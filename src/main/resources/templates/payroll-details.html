@@ -38,31 +38,31 @@
                 </div>
                 <div>
                     <label class="block text-sm font-medium text-gray-700">Base Salary</label>
-                    <p class="mt-1 text-sm text-gray-900">15,000,000 VND</p>
+                    <p class="mt-1 text-sm text-gray-900" th:text="${payroll.getSalaryRecordBaseSalary() + ' VND'}"></p>
                 </div>
                 <div>
-                    <label class="block text-sm font-medium text-gray-700">Working Days</label>
-                    <p class="mt-1 text-sm text-gray-900">22/26</p>
+                    <label class="block text-sm font-medium text-gray-700">Month-Year</label>
+                    <p class="mt-1 text-sm text-gray-900" th:text="${payroll.getSalaryRecordMonth()}+ ' '+ ${payroll.getSalaryRecordYear()}"></p>
                 </div>
                 <div>
-                    <label class="block text-sm font-medium text-gray-700">Overtime Hours</label>
-                    <p class="mt-1 text-sm text-gray-900">10 hours</p>
+                    <label class="block text-sm font-medium text-gray-700">Overtime</label>
+                    <p class="mt-1 text-sm text-gray-900" th:text="${payroll.getSalaryRecordOvertimePay() + ' VND'}"></p>
                 </div>
             </div>
         </div>
 
         <!-- Insurance and Deductions -->
-        <div class="bg-white rounded-lg shadow-sm p-6 space-y-4">
+        <div class="bg-white rounded-lg shadow-sm p-6 space-y-4" th:if="${payroll != null}">
             <h2 class="text-lg font-semibold text-gray-800">Insurance & Deductions</h2>
             <div class="grid grid-cols-2 gap-4">
                 <!-- Employee Contributions -->
                 <div class="space-y-2">
                     <h3 class="text-sm font-medium text-gray-700">Employee Contributions</h3>
                     <div class="text-sm text-gray-900">
-                        <p>Health Insurance (1.5%): <span class="float-right">225,000 VND</span></p>
-                        <p>Social Insurance (8.0%): <span class="float-right">1,200,000 VND</span></p>
-                        <p>Union Fee (1.0%): <span class="float-right">150,000 VND</span></p>
-                        <p>Unemployment Insurance (1.0%): <span class="float-right">150,000 VND</span></p>
+                        <p>Health Insurance ( <span th:text="${payroll.getCalculatedEmployeeHealthInsuranceAmount()}"></span> %): <span class="float-right" th:text="${payroll.getCalculatedEmployeeHealthInsurance() + ' VND'}"></span></p>
+                        <p>Social Insurance (<span th:text="${payroll.getCalculatedEmployeeSocialInsuranceAmount()}"></span>%): <span class="float-right" th:text="${payroll.getCalculatedEmployeeSocialInsurance() + ' VND'}"></span></p>
+                        <p>Union Fee (<span th:text="${payroll.getCalculatedEmployeeUnionFeeAmount()}"></span>%): <span class="float-right" th:text="${payroll.getCalculatedEmployeeUnionFee() + ' VND'}"></span></p>
+                        <p>Unemployment Insurance (<span th:text="${payroll.getCalculatedEmployeeUnemploymentInsuranceAmount()}"></span>%): <span class="float-right" th:text="${payroll.getCalculatedEmployeeUnemploymentInsurance() + ' VND'}"></span></p>
                     </div>
                 </div>
 
@@ -70,10 +70,10 @@
                 <div class="space-y-2">
                     <h3 class="text-sm font-medium text-gray-700">Employer Contributions</h3>
                     <div class="text-sm text-gray-900">
-                        <p>Health Insurance (1.5%): <span class="float-right">225,000 VND</span></p>
-                        <p>Social Insurance (17.5%): <span class="float-right">2,625,000 VND</span></p>
-                        <p>Union Fee (1.0%): <span class="float-right">150,000 VND</span></p>
-                        <p>Unemployment Insurance (1.0%): <span class="float-right">150,000 VND</span></p>
+                        <p>Health Insurance ( <span th:text="${payroll.getCalculatedEmployerHealthInsuranceAmount()}"></span> %): <span class="float-right" th:text="${payroll.getCalculatedEmployeeHealthInsurance() + ' VND'}"></span></p>
+                        <p>Social Insurance (<span th:text="${payroll.getCalculatedEmployerSocialInsuranceAmount()}"></span>%): <span class="float-right" th:text="${payroll.getCalculatedEmployeeSocialInsurance() + ' VND'}"> VND</span></p>
+                        <p>Union Fee (<span th:text="${payroll.getCalculatedEmployerUnionFeeAmount()}"></span>%): <span class="float-right" th:text="${payroll.getCalculatedEmployerUnionFee() + ' VND'}"> VND</span></p>
+                        <p>Unemployment Insurance (<span th:text="${payroll.getCalculatedEmployerUnemploymentInsuranceAmount()}"></span>%): <span class="float-right" th:text="${payroll.getCalculatedEmployerUnemploymentInsurance() + ' VND'}"> VND</span></p>
                     </div>
                 </div>
             </div>
@@ -81,16 +81,16 @@
     </div>
 
     <!-- Salary Breakdown -->
-    <div class="bg-white rounded-lg shadow-sm p-6 space-y-4">
+    <div class="bg-white rounded-lg shadow-sm p-6 space-y-4" th:if="${payroll != null}">
         <h2 class="text-lg font-semibold text-gray-800">Salary Breakdown</h2>
         <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
             <!-- Earnings -->
             <div class="space-y-2">
                 <h3 class="text-sm font-medium text-gray-700">Earnings</h3>
                 <div class="text-sm text-gray-900">
-                    <p>Base Salary: <span class="float-right">15,000,000 VND</span></p>
-                    <p>Overtime (10h): <span class="float-right">1,500,000 VND</span></p>
-                    <p class="font-medium">Total Earnings: <span class="float-right">16,500,000 VND</span></p>
+                    <p>Base Salary: <span class="float-right" th:text="${payroll.getSalaryRecordBaseSalary() + ' VND'}"></span></p>
+                    <p>Overtime (10h): <span class="float-right" th:text="${payroll.getSalaryRecordOvertimePay() + ' VND'}"></span></p>
+                    <p class="font-medium">Total Earnings: <span class="float-right" th:text="${payroll.getSalaryRecordBaseSalary() +payroll.getSalaryRecordOvertimePay() + ' VND'}"></span></p>
                 </div>
             </div>
 
@@ -98,10 +98,10 @@
             <div class="space-y-2">
                 <h3 class="text-sm font-medium text-gray-700">Deductions</h3>
                 <div class="text-sm text-gray-900">
-                    <p>Personal Insurance: <span class="float-right">1,725,000 VND</span></p>
-                    <p>Personal Deduction: <span class="float-right">11,000,000 VND</span></p>
-                    <p>Dependent Deduction: <span class="float-right">4,000,000 VND</span></p>
-                    <p class="font-medium">Total Deductions: <span class="float-right">16,725,000 VND</span></p>
+                    <p>Personal Insurance: <span class="float-right" th:text="${payroll.getCalculatedPersonalInsuranceDeduction() + ' VND'}"></span></p>
+                    <p>Personal Deduction: <span class="float-right" th:text="${payroll.getCalculatedPersonalDeduction() + ' VND'}"></span></p>
+                    <p>Dependent Deduction: <span class="float-right" th:text="${payroll.getCalculatedPersonalDependentDeduction() + ' VND'}"></span></p>
+                    <p class="font-medium">Total Deductions: <span class="float-right" th:text="${payroll.getTotalDeductions() + ' VND'}"></span></p>
                 </div>
             </div>
 
@@ -110,7 +110,7 @@
                 <div class="space-y-2">
                     <h3 class="text-sm font-medium text-gray-700">Net Salary</h3>
                     <div class="text-lg font-semibold text-blue-600">
-                        <p>Total Net Salary: <span class="float-right">-225,000 VND</span></p>
+                        <p>Total Net Salary: <span class="float-right" th:text="${payroll.getSalaryRecordNetSalary() + ' VND'}"></span></p>
                     </div>
                     <p class="text-sm text-gray-600">* Negative value indicates advance payment</p>
                 </div>

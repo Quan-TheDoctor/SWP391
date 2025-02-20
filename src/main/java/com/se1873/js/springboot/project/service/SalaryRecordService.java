@@ -139,6 +139,17 @@ public class SalaryRecordService {
   public PayrollDTO payrollDTO(int salaryId) {
     SalaryRecord salaryRecords = salaryRecordRepository.findSalaryRecordBySalaryId(salaryId);
     Employee employee = employeeRepository.findEmployeeByEmployeeId(salaryRecords.getEmployee().getEmployeeId());
+
+    double calculatedEmployeeHealthInsuranceAmount = financialPolicyRepository.getFinancialPolicyAmount(1);
+    double calculatedEmployeeSocialInsuranceAmount = financialPolicyRepository.getFinancialPolicyAmount(3);
+    double calculatedEmployeeUnionFeeAmount = financialPolicyRepository.getFinancialPolicyAmount(5);
+    double calculatedEmployeeUnemploymentInsuranceAmount = financialPolicyRepository.getFinancialPolicyAmount(7);
+    double calculatedEmployerHealthInsuranceAmount = financialPolicyRepository.getFinancialPolicyAmount(2);
+    double calculatedEmployerSocialInsuranceAmount = financialPolicyRepository.getFinancialPolicyAmount(4);
+    double calculatedEmployerUnionFeeAmount = financialPolicyRepository.getFinancialPolicyAmount(6);
+    double calculatedEmployerUnemploymentInsuranceAmount = financialPolicyRepository.getFinancialPolicyAmount(8);
+
+
     double calculatedEmployeeHealthInsurance = calculatedEmployeeHealthInsurance(salaryId);
     double calculatedEmployeeSocialInsurance = calculatedEmployeeSocialInsurance(salaryId);
     double calculatedEmployeeUnionFee = calculatedEmployeeUnionFee(salaryId);
@@ -171,20 +182,26 @@ public class SalaryRecordService {
             .salaryRecordNetSalary(salaryRecords.getNetSalary())
             .salaryRecordPaymentStatus(salaryRecords.getPaymentStatus())
             .calculatedEmployeeHealthInsurance(calculatedEmployeeHealthInsurance)
+            .calculatedEmployeeHealthInsuranceAmount(calculatedEmployeeHealthInsuranceAmount)
             .calculatedEmployeeSocialInsurance(calculatedEmployeeSocialInsurance)
+            .calculatedEmployeeSocialInsuranceAmount(calculatedEmployeeSocialInsuranceAmount)
             .calculatedEmployeeUnionFee(calculatedEmployeeUnionFee)
+            .calculatedEmployeeUnionFeeAmount(calculatedEmployeeUnionFeeAmount)
             .calculatedEmployeeUnemploymentInsurance(calculatedEmployeeUnemploymentInsurance)
-
+            .calculatedEmployeeUnemploymentInsuranceAmount(calculatedEmployeeUnemploymentInsuranceAmount)
             .calculatedEmployerHealthInsurance(calculatedEmployerHealthInsurance)
+            .calculatedEmployerHealthInsuranceAmount(calculatedEmployerHealthInsuranceAmount)
             .calculatedEmployerSocialInsurance(calculatedEmployerSocialInsurance)
+            .calculatedEmployerSocialInsuranceAmount(calculatedEmployerSocialInsuranceAmount)
             .calculatedEmployerUnionFee(calculatedEmployerUnionFee)
+            .calculatedEmployerUnionFeeAmount(calculatedEmployerUnionFeeAmount)
             .calculatedEmployerUnemploymentInsurance(calculatedEmployerUnemploymentInsurance)
-
+            .calculatedEmployerUnemploymentInsuranceAmount(calculatedEmployerUnemploymentInsuranceAmount)
             .calculatedPersonalInsuranceDeduction(calculatedPersonalInsuranceDeduction)
             .calculatedPersonalDeduction(calculatedPersonalDeduction)
             .calculatedPersonalDependentDeduction(calculatedPersonalDependentDeduction)
             .totalDeductions(totalDeductions)
-                        .build();
+            .build();
   }
 
 }

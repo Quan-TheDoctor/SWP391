@@ -64,8 +64,10 @@ public class PayrollController {
 
   @GetMapping("/detail")
   public String getPayrollDetail(@RequestParam("salaryId") Integer id, Model model) {
-    PayrollDTO payroll = salaryRecordService.getPayrollDetailBySalaryId(id);
+    PayrollDTO payroll = salaryRecordService.payrollDTO(id);
     model.addAttribute("payroll", payroll);
     return "payroll-details";
   }
+
+
 }
