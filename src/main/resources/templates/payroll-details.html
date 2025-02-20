@@ -38,31 +38,29 @@
                 </div>
                 <div>
                     <label class="block text-sm font-medium text-gray-700">Base Salary</label>
-                    <p class="mt-1 text-sm text-gray-900" th:text="${payroll.getSalaryRecordBaseSalary() + ' VND'}"></p>
+                    <p class="mt-1 text-sm text-gray-900" th:text="${T(java.lang.String).format('%,.0f VND',payroll.getSalaryRecordBaseSalary())}"></p>
                 </div>
                 <div>
                     <label class="block text-sm font-medium text-gray-700">Month-Year</label>
-                    <p class="mt-1 text-sm text-gray-900" th:text="${payroll.getSalaryRecordMonth()}+ ' '+ ${payroll.getSalaryRecordYear()}"></p>
+                    <p class="mt-1 text-sm text-gray-900" th:text="${payroll.getSalaryRecordMonth()}+ '/'+ ${payroll.getSalaryRecordYear()}"></p>
                 </div>
                 <div>
                     <label class="block text-sm font-medium text-gray-700">Overtime</label>
-                    <p class="mt-1 text-sm text-gray-900" th:text="${payroll.getSalaryRecordOvertimePay() + ' VND'}"></p>
+                    <p class="mt-1 text-sm text-gray-900" th:text="${T(java.lang.String).format('%,.0f VND',payroll.getSalaryRecordOvertimePay())}"></p>
                 </div>
             </div>
         </div>
 
-        <!-- Insurance and Deductions -->
         <div class="bg-white rounded-lg shadow-sm p-6 space-y-4" th:if="${payroll != null}">
             <h2 class="text-lg font-semibold text-gray-800">Insurance & Deductions</h2>
             <div class="grid grid-cols-2 gap-4">
-                <!-- Employee Contributions -->
                 <div class="space-y-2">
                     <h3 class="text-sm font-medium text-gray-700">Employee Contributions</h3>
                     <div class="text-sm text-gray-900">
-                        <p>Health Insurance ( <span th:text="${payroll.getCalculatedEmployeeHealthInsuranceAmount()}"></span> %): <span class="float-right" th:text="${payroll.getCalculatedEmployeeHealthInsurance() + ' VND'}"></span></p>
-                        <p>Social Insurance (<span th:text="${payroll.getCalculatedEmployeeSocialInsuranceAmount()}"></span>%): <span class="float-right" th:text="${payroll.getCalculatedEmployeeSocialInsurance() + ' VND'}"></span></p>
-                        <p>Union Fee (<span th:text="${payroll.getCalculatedEmployeeUnionFeeAmount()}"></span>%): <span class="float-right" th:text="${payroll.getCalculatedEmployeeUnionFee() + ' VND'}"></span></p>
-                        <p>Unemployment Insurance (<span th:text="${payroll.getCalculatedEmployeeUnemploymentInsuranceAmount()}"></span>%): <span class="float-right" th:text="${payroll.getCalculatedEmployeeUnemploymentInsurance() + ' VND'}"></span></p>
+                        <p>Health Insurance ( <span th:text="${payroll.getCalculatedEmployeeHealthInsuranceAmount()}"></span> %): <span class="float-right" th:text="${T(java.lang.String).format('%,.0f VND',payroll.getCalculatedEmployeeHealthInsurance())}"></span></p>
+                        <p>Social Insurance (<span th:text="${payroll.getCalculatedEmployeeSocialInsuranceAmount()}"></span>%): <span class="float-right" th:text="${T(java.lang.String).format('%,.0f VND',payroll.getCalculatedEmployeeSocialInsurance())}"></span></p>
+                        <p>Union Fee (<span th:text="${payroll.getCalculatedEmployeeUnionFeeAmount()}"></span>%): <span class="float-right" th:text="${T(java.lang.String).format('%,.0f VND',payroll.getCalculatedEmployeeUnionFee())}"></span></p>
+                        <p>Unemployment Insurance (<span th:text="${payroll.getCalculatedEmployeeUnemploymentInsuranceAmount()}"></span>%): <span class="float-right" th:text="${T(java.lang.String).format('%,.0f VND',payroll.getCalculatedEmployeeUnemploymentInsurance())}"></span></p>
                     </div>
                 </div>
 
@@ -70,47 +68,43 @@
                 <div class="space-y-2">
                     <h3 class="text-sm font-medium text-gray-700">Employer Contributions</h3>
                     <div class="text-sm text-gray-900">
-                        <p>Health Insurance ( <span th:text="${payroll.getCalculatedEmployerHealthInsuranceAmount()}"></span> %): <span class="float-right" th:text="${payroll.getCalculatedEmployeeHealthInsurance() + ' VND'}"></span></p>
-                        <p>Social Insurance (<span th:text="${payroll.getCalculatedEmployerSocialInsuranceAmount()}"></span>%): <span class="float-right" th:text="${payroll.getCalculatedEmployeeSocialInsurance() + ' VND'}"> VND</span></p>
-                        <p>Union Fee (<span th:text="${payroll.getCalculatedEmployerUnionFeeAmount()}"></span>%): <span class="float-right" th:text="${payroll.getCalculatedEmployerUnionFee() + ' VND'}"> VND</span></p>
-                        <p>Unemployment Insurance (<span th:text="${payroll.getCalculatedEmployerUnemploymentInsuranceAmount()}"></span>%): <span class="float-right" th:text="${payroll.getCalculatedEmployerUnemploymentInsurance() + ' VND'}"> VND</span></p>
+                        <p>Health Insurance ( <span th:text="${payroll.getCalculatedEmployerHealthInsuranceAmount()}"></span> %): <span class="float-right" th:text="${T(java.lang.String).format('%,.0f VND',payroll.getCalculatedEmployerHealthInsurance())}"></span></p>
+                        <p>Social Insurance (<span th:text="${payroll.getCalculatedEmployerSocialInsuranceAmount()}"></span>%): <span class="float-right" th:text="${T(java.lang.String).format('%,.0f VND',payroll.getCalculatedEmployerSocialInsurance())}"> VND</span></p>
+                        <p>Union Fee (<span th:text="${payroll.getCalculatedEmployerUnionFeeAmount()}"></span>%): <span class="float-right" th:text="${T(java.lang.String).format('%,.0f VND',payroll.getCalculatedEmployerUnionFee())}"> VND</span></p>
+                        <p>Unemployment Insurance (<span th:text="${payroll.getCalculatedEmployerUnemploymentInsuranceAmount()}"></span>%): <span class="float-right" th:text="${T(java.lang.String).format('%,.0f VND',payroll.getCalculatedEmployerUnemploymentInsurance())}"> VND</span></p>
                     </div>
                 </div>
             </div>
         </div>
     </div>
 
-    <!-- Salary Breakdown -->
     <div class="bg-white rounded-lg shadow-sm p-6 space-y-4" th:if="${payroll != null}">
         <h2 class="text-lg font-semibold text-gray-800">Salary Breakdown</h2>
         <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-            <!-- Earnings -->
             <div class="space-y-2">
                 <h3 class="text-sm font-medium text-gray-700">Earnings</h3>
                 <div class="text-sm text-gray-900">
-                    <p>Base Salary: <span class="float-right" th:text="${payroll.getSalaryRecordBaseSalary() + ' VND'}"></span></p>
-                    <p>Overtime (10h): <span class="float-right" th:text="${payroll.getSalaryRecordOvertimePay() + ' VND'}"></span></p>
-                    <p class="font-medium">Total Earnings: <span class="float-right" th:text="${payroll.getSalaryRecordBaseSalary() +payroll.getSalaryRecordOvertimePay() + ' VND'}"></span></p>
+                    <p>Base Salary: <span class="float-right" th:text="${T(java.lang.String).format('%,.0f VND',payroll.getSalaryRecordBaseSalary())}"></span></p>
+                    <p>Overtime (10h): <span class="float-right" th:text="${T(java.lang.String).format('%,.0f VND',payroll.getSalaryRecordOvertimePay())}"></span></p>
+                    <p class="font-medium">Total Earnings: <span class="float-right" th:text="${T(java.lang.String).format('%,.0f VND',payroll.getSalaryRecordBaseSalary() +payroll.getSalaryRecordOvertimePay())}"></span></p>
                 </div>
             </div>
 
-            <!-- Deductions -->
             <div class="space-y-2">
                 <h3 class="text-sm font-medium text-gray-700">Deductions</h3>
                 <div class="text-sm text-gray-900">
-                    <p>Personal Insurance: <span class="float-right" th:text="${payroll.getCalculatedPersonalInsuranceDeduction() + ' VND'}"></span></p>
-                    <p>Personal Deduction: <span class="float-right" th:text="${payroll.getCalculatedPersonalDeduction() + ' VND'}"></span></p>
-                    <p>Dependent Deduction: <span class="float-right" th:text="${payroll.getCalculatedPersonalDependentDeduction() + ' VND'}"></span></p>
-                    <p class="font-medium">Total Deductions: <span class="float-right" th:text="${payroll.getTotalDeductions() + ' VND'}"></span></p>
+                    <p>Personal Insurance: <span class="float-right" th:text="${T(java.lang.String).format('%,.0f VND',payroll.getCalculatedPersonalInsuranceDeduction())}"></span></p>
+                    <p>Personal Deduction: <span class="float-right" th:text="${T(java.lang.String).format('%,.0f VND',payroll.getCalculatedPersonalDeduction())}"></span></p>
+                    <p>Dependent Deduction: <span class="float-right" th:text="${T(java.lang.String).format('%,.0f VND',payroll.getCalculatedPersonalDependentDeduction())}"></span></p>
+                    <p class="font-medium">Total Deductions: <span class="float-right" th:text="${T(java.lang.String).format('%,.0f VND',payroll.getTotalDeductions())}"></span></p>
                 </div>
             </div>
 
-            <!-- Net Salary -->
             <div class="col-span-2 bg-blue-50 p-4 rounded-lg">
                 <div class="space-y-2">
                     <h3 class="text-sm font-medium text-gray-700">Net Salary</h3>
                     <div class="text-lg font-semibold text-blue-600">
-                        <p>Total Net Salary: <span class="float-right" th:text="${payroll.getSalaryRecordNetSalary() + ' VND'}"></span></p>
+                        <p>Total Net Salary: <span class="float-right" th:text="${T(java.lang.String).format('%,.0f VND',payroll.getTotalNetSalary())}"></span></p>
                     </div>
                     <p class="text-sm text-gray-600">* Negative value indicates advance payment</p>
                 </div>
@@ -118,7 +112,6 @@
         </div>
     </div>
 
-    <!-- Detailed Calculation -->
     <div class="bg-white rounded-lg shadow-sm p-6 space-y-4">
         <h2 class="text-lg font-semibold text-gray-800">Detailed Calculation</h2>
         <div class="overflow-x-auto">
@@ -132,7 +125,6 @@
                 </tr>
                 </thead>
                 <tbody>
-                <!-- Example Rows -->
                 <tr class="bg-white border-b">
                     <td class="px-6 py-4">Health Insurance (Employee)</td>
                     <td class="px-6 py-4">1.5%</td>
