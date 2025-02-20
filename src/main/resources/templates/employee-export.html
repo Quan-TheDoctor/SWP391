@@ -8,7 +8,6 @@
 <body class="bg-gray-100 min-h-screen p-6">
 <div class="max-w-7xl mx-auto space-y-6">
 
-    <!-- Header -->
     <div class="flex justify-between items-center">
         <h2 class="text-2xl font-bold">Export Employee Data</h2>
         <a th:href="@{/employee}" class="px-4 py-2 bg-gray-600 text-white rounded-md hover:bg-gray-700">
@@ -18,52 +17,52 @@
 
     <!-- Filters Section -->
     <div class="bg-white rounded-lg shadow-sm p-4 space-y-4">
-        <form th:action="@{/employee/export}" method="get" class="grid grid-cols-1 md:grid-cols-4 gap-4">
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
             <!-- Department Filter -->
-            <div>
-                <label class="block text-sm font-medium text-gray-700">Department</label>
-                <select name="department" class="w-full p-2 border rounded-md">
-                    <option value="all">All Departments</option>
-                    <option th:each="dept : ${departments}" th:value="${dept.departmentName}" th:text="${dept.departmentName}"></option>
-                </select>
+            <div class="space-y-2">
+                <form th:action="@{/employee/export/view}" method="get">
+                    <input type="hidden" name="position" th:value="${param.position}">
+                    <label class="block text-sm font-medium text-gray-700">Department</label>
+                    <select name="department" class="w-full p-2 border rounded-md focus:ring-2 focus:ring-blue-500"
+                            onchange="this.form.submit()">
+                        <option value="all">All Departments</option>
+                        <option th:each="dept : ${departments}"
+                                th:value="${dept.departmentName}"
+                                th:text="${dept.departmentName}"
+                                th:selected="${param.department != null && param.department[0] == dept.departmentName}">
+                        </option>
+                    </select>
+                </form>
             </div>
 
             <!-- Position Filter -->
-            <div>
-                <label class="block text-sm font-medium text-gray-700">Position</label>
-                <select name="position" class="w-full p-2 border rounded-md">
-                    <option value="all">All Positions</option>
-                    <option th:each="pos : ${positions}" th:value="${pos.positionName}" th:text="${pos.positionName}"></option>
-                </select>
+            <div class="space-y-2">
+                <form th:action="@{/employee/export/view}" method="get">
+                    <input type="hidden" name="department" th:value="${param.department}">
+                    <label class="block text-sm font-medium text-gray-700">Position</label>
+                    <select name="position" class="w-full p-2 border rounded-md focus:ring-2 focus:ring-blue-500"
+                            onchange="this.form.submit()">
+                        <option value="all">All Positions</option>
+                        <option th:each="pos : ${positions}"
+                                th:value="${pos.positionName}"
+                                th:text="${pos.positionName}"
+                                th:selected="${param.position != null && param.position[0] == pos.positionName}">
+                        </option>
+                    </select>
+                </form>
             </div>
+        </div>
 
-            <!-- Employment Type -->
-            <div>
-                <label class="block text-sm font-medium text-gray-700">Employment Type</label>
-                <select name="employmentType" class="w-full p-2 border rounded-md">
-                    <option value="all">All Types</option>
-                    <option value="Full-time">Full-time</option>
-                    <option value="Part-time">Part-time</option>
-                    <option value="Contract">Contract</option>
-                </select>
-            </div>
-
-            <!-- File Format -->
-            <div>
-                <label class="block text-sm font-medium text-gray-700">File Format</label>
-                <select name="format" class="w-full p-2 border rounded-md">
-                    <option value="excel">Excel (.xlsx)</option>
-                    <option value="pdf">PDF (.pdf)</option>
-                </select>
-            </div>
-
-            <!-- Export Button -->
-            <div class="col-span-1 md:col-span-4">
-                <button type="submit" class="w-full px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700">
-                    Export File
-                </button>
-            </div>
+    <form th:action="@{/employee/export}" method="get">
+            <input type="hidden" name="department" th:value="${param.department}">
+            <input type="hidden" name="position" th:value="${param.position}">
+            <button type="submit" class="w-full px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700">
+                Export File
+            </button>
         </form>
+
+
+
     </div>
 
     <!-- Employee Table -->
@@ -104,12 +103,10 @@
     </div>
     <!-- Pagination and Total Records in One Row -->
     <div class="flex justify-between items-center mt-4 p-2 bg-gray-50 rounded-md">
-        <!-- Total Records -->
         <span class="text-gray-600 text-sm">
         Tổng số: <span th:text="${totalEmployees}"></span> bản ghi
     </span>
 
-        <!-- Pagination Controls -->
         <div class="flex items-center space-x-2">
             <a th:href="@{/employee/export/view(page=${currentPage - 2}, size=10)}"
                th:if="${currentPage > 1}"

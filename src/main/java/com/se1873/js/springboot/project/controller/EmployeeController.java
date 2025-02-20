@@ -130,11 +130,13 @@ public class EmployeeController {
 
   @RequestMapping("/export/view")
   public String exportView(Model model,
+                           @RequestParam(value = "department", required = false, defaultValue = "all") String department,
+                           @RequestParam(value = "position", required = false, defaultValue = "all") String position,
                            @RequestParam(value = "page", defaultValue = "0") int page,
                            @RequestParam(value = "size", defaultValue = "10") int size) {
     Pageable pageable = PageRequest.of(page, size);
-    var employees = employeeService.getAll(pageable);
-    var totalEmployees = employeeRepository.count();
+    var employees = employeeService.exportFilteredEmployees(department, position, pageable);
+    var totalEmployees = employees.getTotalElements();
 
     model.addAttribute("totalEmployees", totalEmployees);
     model.addAttribute("currentPage", page + 1);
@@ -143,8 +145,12 @@ public class EmployeeController {
     model.addAttribute("positions", positionRepository.findAll());
     model.addAttribute("employees", employees.getContent());
 
+    model.addAttribute("selectedDepartment", department);
+    model.addAttribute("selectedPosition", position);
+
     return "employee-export";
   }
+
 
 
   @RequestMapping("/export")
@@ -152,7 +158,7 @@ public class EmployeeController {
           @RequestParam(value = "department", required = false, defaultValue = "all") String department,
           @RequestParam(value = "position", required = false, defaultValue = "all") String position) {
 
-    log.info("Exporting employee data to Excel file. Department: {}, Position: {}", department, position);
+    log.info("Exporting employee data to Excel. Department: {}, Position: {}", department, position);
     Resource file = employeeService.exportToExcel(department, position);
 
     return ResponseEntity.ok()
@@ -160,6 +166,5 @@ public class EmployeeController {
             .contentType(MediaType.APPLICATION_OCTET_STREAM)
             .body(file);
   }
-
 
 }
