@@ -11,7 +11,15 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.apache.poi.ss.usermodel.*;
+import org.apache.poi.xssf.usermodel.XSSFWorkbook;
+import org.springframework.core.io.ByteArrayResource;
+import org.springframework.core.io.Resource;
+import org.springframework.stereotype.Service;
 
+import java.io.ByteArrayOutputStream;
+import java.io.IOException;
+import java.util.List;
 import java.sql.Array;
 import java.time.LocalDate;
 import java.util.ArrayList;
@@ -233,4 +241,61 @@ public class EmployeeService {
       .contractSignDate(contract.getSignDate())
       .build();
   }
+  public Resource exportToExcel(String departmentFilter, String positionFilter) {
+    Pageable pageable = PageRequest.of(0, 1000); // Lấy tối đa 1000 bản ghi
+    Page<Employee> employees;
+
+    if (!"all".equals(departmentFilter) && !"all".equals(positionFilter)) {
+      employees = employeeRepository.findEmployeesByDepartmentName(departmentFilter, pageable)
+              .map(emp -> employeeRepository.findEmployeesByPositionName(positionFilter, pageable)
+                      .stream().filter(e -> e.getEmployeeId().equals(emp.getEmployeeId()))
+                      .findFirst().orElse(null));
+    } else if (!"all".equals(departmentFilter)) {
+      employees = employeeRepository.findEmployeesByDepartmentName(departmentFilter, pageable);
+    } else if (!"all".equals(positionFilter)) {
+      employees = employeeRepository.findEmployeesByPositionName(positionFilter, pageable);
+    } else {
+      employees = employeeRepository.findAll(pageable);
+    }
+
+    if (employees.isEmpty()) {
+      log.warn("Không có nhân viên nào để export.");
+      throw new RuntimeException("Không có nhân viên nào để xuất ra file Excel.");
+    }
+
+    try (Workbook workbook = new XSSFWorkbook(); ByteArrayOutputStream out = new ByteArrayOutputStream()) {
+      Sheet sheet = workbook.createSheet("Employees");
+
+      // Tạo tiêu đề cột
+      Row headerRow = sheet.createRow(0);
+      String[] columns = {"ID", "Name", "Department", "Position", "Salary"};
+      for (int i = 0; i < columns.length; i++) {
+        Cell cell = headerRow.createCell(i);
+        cell.setCellValue(columns[i]);
+      }
+
+      // Đổ dữ liệu nhân viên vào Excel
+      int rowIdx = 1;
+      for (Employee emp : employees) {
+        EmploymentHistory employmentHistory = employmentHistoryRepository.findEmploymentHistoryByEmployee_EmployeeIdAndIsCurrent(emp.getEmployeeId(), true);
+        Department department = employmentHistory.getDepartment();
+        Position position = employmentHistory.getPosition();
+        Contract contract = contractRepository.findContractByEmployee_EmployeeIdAndPresent(emp.getEmployeeId(), true);
+
+        Row row = sheet.createRow(rowIdx++);
+        row.createCell(0).setCellValue(emp.getEmployeeId());
+        row.createCell(1).setCellValue(emp.getFirstName() + " " + emp.getLastName());
+        row.createCell(2).setCellValue(department.getDepartmentName());
+        row.createCell(3).setCellValue(position.getPositionName());
+        row.createCell(4).setCellValue(contract.getBaseSalary());
+      }
+
+      workbook.write(out);
+      return new ByteArrayResource(out.toByteArray());
+    } catch (IOException e) {
+      log.error("Lỗi khi xuất file Excel", e);
+      throw new RuntimeException("Lỗi khi xuất file Excel", e);
+    }
+  }
+
 }
