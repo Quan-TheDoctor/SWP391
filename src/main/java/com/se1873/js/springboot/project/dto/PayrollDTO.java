@@ -44,4 +44,6 @@ public class PayrollDTO {
   private Double calculatedPersonalDependentDeduction;
   private Double totalDeductions;
 
+  private Double totalTaxAmount;
+  private Double totalNetSalary;
 }
