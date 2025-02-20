@@ -6,6 +6,7 @@ import com.se1873.js.springboot.project.repository.*;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.security.crypto.password.PasswordEncoder;
@@ -242,20 +243,24 @@ public class EmployeeService {
       .build();
   }
   public Resource exportToExcel(String departmentFilter, String positionFilter) {
-    Pageable pageable = PageRequest.of(0, 1000); // Lấy tối đa 1000 bản ghi
-    Page<Employee> employees;
+    Pageable pageable = PageRequest.of(0, 1000);
+    List<Employee> employees;
 
     if (!"all".equals(departmentFilter) && !"all".equals(positionFilter)) {
-      employees = employeeRepository.findEmployeesByDepartmentName(departmentFilter, pageable)
-              .map(emp -> employeeRepository.findEmployeesByPositionName(positionFilter, pageable)
-                      .stream().filter(e -> e.getEmployeeId().equals(emp.getEmployeeId()))
-                      .findFirst().orElse(null));
-    } else if (!"all".equals(departmentFilter)) {
-      employees = employeeRepository.findEmployeesByDepartmentName(departmentFilter, pageable);
-    } else if (!"all".equals(positionFilter)) {
-      employees = employeeRepository.findEmployeesByPositionName(positionFilter, pageable);
-    } else {
-      employees = employeeRepository.findAll(pageable);
+      employees = employeeRepository.findEmployeesByDepartmentName(departmentFilter, pageable).toList()
+              .stream()
+              .filter(emp -> employeeRepository.findEmployeesByPositionName(positionFilter, pageable)
+                      .toList().stream().anyMatch(e -> e.getEmployeeId().equals(emp.getEmployeeId())))
+              .toList();
+    }
+    else if (!"all".equals(departmentFilter)) {
+      employees = employeeRepository.findEmployeesByDepartmentName(departmentFilter, pageable).toList();
+    }
+    else if (!"all".equals(positionFilter)) {
+      employees = employeeRepository.findEmployeesByPositionName(positionFilter, pageable).toList();
+    }
+    else {
+      employees = employeeRepository.findAll(pageable).getContent();
     }
 
     if (employees.isEmpty()) {
@@ -266,7 +271,6 @@ public class EmployeeService {
     try (Workbook workbook = new XSSFWorkbook(); ByteArrayOutputStream out = new ByteArrayOutputStream()) {
       Sheet sheet = workbook.createSheet("Employees");
 
-      // Tạo tiêu đề cột
       Row headerRow = sheet.createRow(0);
       String[] columns = {"ID", "Name", "Department", "Position", "Salary"};
       for (int i = 0; i < columns.length; i++) {
@@ -274,7 +278,6 @@ public class EmployeeService {
         cell.setCellValue(columns[i]);
       }
 
-      // Đổ dữ liệu nhân viên vào Excel
       int rowIdx = 1;
       for (Employee emp : employees) {
         EmploymentHistory employmentHistory = employmentHistoryRepository.findEmploymentHistoryByEmployee_EmployeeIdAndIsCurrent(emp.getEmployeeId(), true);
@@ -297,5 +300,27 @@ public class EmployeeService {
       throw new RuntimeException("Lỗi khi xuất file Excel", e);
     }
   }
+  public Page<EmployeeDTO> exportFilteredEmployees(String departmentFilter, String positionFilter, Pageable pageable) {
+    Page<Employee> employees;
+
+    if (!"all".equals(departmentFilter) && !"all".equals(positionFilter)) {
+      List<Employee> departmentEmployees = employeeRepository.findEmployeesByDepartmentName(departmentFilter, pageable).toList();
+      List<Employee> positionEmployees = employeeRepository.findEmployeesByPositionName(positionFilter, pageable).toList();
+
+      List<Employee> filteredEmployees = departmentEmployees.stream()
+              .filter(positionEmployees::contains)
+              .toList();
+      employees = new PageImpl<>(filteredEmployees, pageable, filteredEmployees.size());
+    } else if (!"all".equals(departmentFilter)) {
+      employees = employeeRepository.findEmployeesByDepartmentName(departmentFilter, pageable);
+    } else if (!"all".equals(positionFilter)) {
+      employees = employeeRepository.findEmployeesByPositionName(positionFilter, pageable);
+    } else {
+      employees = employeeRepository.findAll(pageable);
+    }
+
+    return employees.map(this::convertEmployeeToDTO);
+  }
+
 
 }
