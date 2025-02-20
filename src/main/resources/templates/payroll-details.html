@@ -27,14 +27,14 @@
     </div>
 
     <!-- Salary Calculation Section -->
-    <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+    <div class="grid grid-cols-1 lg:grid-cols-2 gap-6" th:if="${payroll != null}">
         <!-- Employee Information -->
         <div class="bg-white rounded-lg shadow-sm p-6 space-y-4">
             <h2 class="text-lg font-semibold text-gray-800">Employee Information</h2>
             <div class="grid grid-cols-2 gap-4">
                 <div>
                     <label class="block text-sm font-medium text-gray-700">Employee Name</label>
-                    <p class="mt-1 text-sm text-gray-900">John Michael Doe</p>
+                    <p class="mt-1 text-sm text-gray-900" th:text="${payroll.getEmployeeFirstName() + payroll.getEmployeeLastName()}"></p>
                 </div>
                 <div>
                     <label class="block text-sm font-medium text-gray-700">Base Salary</label>
