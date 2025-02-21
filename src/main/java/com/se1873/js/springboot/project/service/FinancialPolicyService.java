@@ -19,6 +19,9 @@ public class FinancialPolicyService {
     return financialPolicyRepository.findAll();
   }
 
+  public Double getFinancialPolicyAmount(int id) {
+    return financialPolicyRepository.getFinancialPolicyAmount(id);
+  }
   public void saveAll(List<FinancialPolicy> financialPolicies) {
     financialPolicyRepository.saveAll(financialPolicies);
   }

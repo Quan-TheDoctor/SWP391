@@ -24,16 +24,26 @@ public class PayrollDTO {
   private String salaryRecordPaymentStatus;
 
   private Double calculatedEmployeeHealthInsurance;
+  private Double calculatedEmployeeHealthInsuranceAmount;
   private Double calculatedEmployeeSocialInsurance;
+  private Double calculatedEmployeeSocialInsuranceAmount;
   private Double calculatedEmployeeUnionFee;
+  private Double calculatedEmployeeUnionFeeAmount;
   private Double calculatedEmployeeUnemploymentInsurance;
+  private Double calculatedEmployeeUnemploymentInsuranceAmount;
   private Double calculatedEmployerHealthInsurance;
+  private Double calculatedEmployerHealthInsuranceAmount;
   private Double calculatedEmployerSocialInsurance;
+  private Double calculatedEmployerSocialInsuranceAmount;
   private Double calculatedEmployerUnionFee;
+  private Double calculatedEmployerUnionFeeAmount;
   private Double calculatedEmployerUnemploymentInsurance;
+  private Double calculatedEmployerUnemploymentInsuranceAmount;
   private Double calculatedPersonalInsuranceDeduction;
   private Double calculatedPersonalDeduction;
   private Double calculatedPersonalDependentDeduction;
   private Double totalDeductions;
 
+  private Double totalTaxAmount;
+  private Double totalNetSalary;
 }
