@@ -10,9 +10,7 @@ import org.springframework.data.domain.PageRequest;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.validation.BindingResult;
-import org.springframework.web.bind.annotation.ModelAttribute;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.bind.annotation.*;
 
 @Controller
 @Slf4j
@@ -63,4 +61,13 @@ public class PayrollController {
     }
     return "policies";
   }
+
+  @GetMapping("/detail")
+  public String getPayrollDetail(@RequestParam("salaryId") Integer id, Model model) {
+    PayrollDTO payroll = salaryRecordService.payrollDTO(id);
+    model.addAttribute("payroll", payroll);
+    return "payroll-details";
+  }
+
+
 }
