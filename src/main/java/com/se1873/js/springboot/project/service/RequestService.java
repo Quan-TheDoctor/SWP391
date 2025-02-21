@@ -10,6 +10,17 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 
+import org.apache.poi.ss.usermodel.*;
+import org.apache.poi.xssf.usermodel.XSSFWorkbook;
+import org.springframework.core.io.Resource;
+import org.springframework.core.io.ByteArrayResource;
+import org.springframework.data.domain.PageImpl;
+import org.springframework.data.domain.PageRequest;
+
+import java.io.ByteArrayOutputStream;
+import java.io.IOException;
+import java.util.List;
+import java.util.stream.Collectors;
 import java.time.LocalDate;
 import java.util.List;
 
@@ -60,5 +71,70 @@ public class RequestService {
         Page<Request> requests = requestRepository.searchRequestsByRequester(requesterName, pageable);
         return requests.map(this::convertRequestToDTO);
     }
+    public Page<RequestDTO> exportFilteredRequests(String status, String type, Pageable pageable) {
+        Page<Request> requests;
+        if (!"all".equals(status)) {
+            requests = requestRepository.findRequestsByStatus(status, pageable);
+        } else if (!"all".equals(type)) {
+            requests = requestRepository.findByRequestType(type, pageable);
+        } else {
+            requests = requestRepository.findAll(pageable);
+        }
 
+        List<RequestDTO> filteredRequests = requests.getContent().stream()
+                .filter(r -> "all".equals(type) || r.getRequestType().equalsIgnoreCase(type))
+                .map(this::convertRequestToDTO)
+                .collect(Collectors.toList());
+
+        return new PageImpl<>(filteredRequests, pageable, filteredRequests.size());
+    }
+
+    public Resource exportToExcel(String statusFilter, String typeFilter) {
+        Pageable pageable = PageRequest.of(0, 1000);
+        List<Request> requests;
+
+        if (!"all".equals(statusFilter)) {
+            requests = requestRepository.findRequestsByStatus(statusFilter, pageable).getContent();
+        } else if (!"all".equals(typeFilter)) {
+            requests = requestRepository.findByRequestType(typeFilter, pageable).getContent();
+        } else {
+            requests = requestRepository.findAll(pageable).getContent();
+        }
+
+        requests = requests.stream()
+                .filter(r -> "all".equals(typeFilter) || r.getRequestType().equalsIgnoreCase(typeFilter))
+                .collect(Collectors.toList());
+
+        if (requests.isEmpty()) {
+            log.warn("No requests available for export.");
+            throw new RuntimeException("No requests available for export.");
+        }
+
+        try (Workbook workbook = new XSSFWorkbook(); ByteArrayOutputStream out = new ByteArrayOutputStream()) {
+            Sheet sheet = workbook.createSheet("Requests");
+
+            Row headerRow = sheet.createRow(0);
+            String[] columns = {"ID", "Requester", "Type", "Status", "Date"};
+            for (int i = 0; i < columns.length; i++) {
+                Cell cell = headerRow.createCell(i);
+                cell.setCellValue(columns[i]);
+            }
+
+            int rowIdx = 1;
+            for (Request req : requests) {
+                Row row = sheet.createRow(rowIdx++);
+                row.createCell(0).setCellValue(req.getRequestId());
+                row.createCell(1).setCellValue(req.getUser().getUsername());
+                row.createCell(2).setCellValue(req.getRequestType());
+                row.createCell(3).setCellValue(req.getStatus());
+                row.createCell(4).setCellValue(req.getCreatedAt().toLocalDate().toString());
+            }
+
+            workbook.write(out);
+            return new ByteArrayResource(out.toByteArray());
+        } catch (IOException e) {
+            log.error("Error exporting to Excel", e);
+            throw new RuntimeException("Error exporting to Excel", e);
+        }
+    }
 }
