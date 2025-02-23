@@ -3,8 +3,12 @@ package com.se1873.js.springboot.project.controller;
 import com.se1873.js.springboot.project.service.RequestService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.core.io.Resource;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
+import org.springframework.http.HttpHeaders;
+import org.springframework.http.MediaType;
+import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -93,5 +97,38 @@ public class RequestController {
 
     return "request";
   }
+  @RequestMapping("/export/view")
+  public String exportView(Model model,
+                           @RequestParam(value = "status", required = false, defaultValue = "all") String status,
+                           @RequestParam(value = "type", required = false, defaultValue = "all") String type,
+                           @RequestParam(value = "page", defaultValue = "0") int page,
+                           @RequestParam(value = "size", defaultValue = "10") int size) {
+    Pageable pageable = PageRequest.of(page, size);
+    var requests = requestService.exportFilteredRequests(status, type, pageable);
+    var totalRequests = requests.getTotalElements();
 
+    model.addAttribute("totalRequests", totalRequests);
+    model.addAttribute("currentPage", page + 1);
+    model.addAttribute("totalPages", requests.getTotalPages());
+    model.addAttribute("requestTypes", requestService.getAllRequestTypes());
+    model.addAttribute("requests", requests.getContent());
+
+    model.addAttribute("selectedStatus", status);
+    model.addAttribute("selectedType", type);
+
+    return "request-export";
+  }
+
+  @RequestMapping("/export")
+  public ResponseEntity<Resource> exportRequests(
+          @RequestParam(value = "status", required = false, defaultValue = "all") String status,
+          @RequestParam(value = "type", required = false, defaultValue = "all") String type) {
+    log.info("Exporting request data to Excel. Status: {}, Type: {}", status, type);
+    Resource file = requestService.exportToExcel(status, type);
+
+    return ResponseEntity.ok()
+            .header(HttpHeaders.CONTENT_DISPOSITION, "attachment; filename=requests.xlsx")
+            .contentType(MediaType.APPLICATION_OCTET_STREAM)
+            .body(file);
+  }
 }
