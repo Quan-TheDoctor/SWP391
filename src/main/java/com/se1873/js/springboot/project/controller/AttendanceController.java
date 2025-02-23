@@ -80,4 +80,9 @@ public class AttendanceController {
     attendanceService.saveAttendance(attendanceDTOList);
     return "redirect:/attendance";
   }
+
+  @RequestMapping("/search")
+  public String searchAttendance(Model model){
+    return null;
+  }
 }

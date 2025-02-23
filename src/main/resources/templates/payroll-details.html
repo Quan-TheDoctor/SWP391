@@ -86,14 +86,15 @@
                 <div class="text-sm text-gray-900">
                     <p>Base Salary: <span class="float-right" th:text="${T(java.lang.String).format('%,.0f VND',payroll.getSalaryRecordBaseSalary())}"></span></p>
                     <p>Overtime (10h): <span class="float-right" th:text="${T(java.lang.String).format('%,.0f VND',payroll.getSalaryRecordOvertimePay())}"></span></p>
-                    <p class="font-medium">Total Earnings: <span class="float-right" th:text="${T(java.lang.String).format('%,.0f VND',payroll.getSalaryRecordBaseSalary() +payroll.getSalaryRecordOvertimePay())}"></span></p>
+                    <p>Personal Insurance: <span class="float-right" th:text="${T(java.lang.String).format('%,.0f VND',payroll.getCalculatedPersonalInsuranceDeduction())}"></span></p>
+                    <p class="font-medium">Total Earnings: <span class="float-right" th:text="${T(java.lang.String).format('%,.0f VND',payroll.getSalaryRecordBaseSalary() +payroll.getSalaryRecordOvertimePay() - payroll.getCalculatedPersonalInsuranceDeduction())}"></span></p>
                 </div>
             </div>
 
             <div class="space-y-2">
                 <h3 class="text-sm font-medium text-gray-700">Deductions</h3>
                 <div class="text-sm text-gray-900">
-                    <p>Personal Insurance: <span class="float-right" th:text="${T(java.lang.String).format('%,.0f VND',payroll.getCalculatedPersonalInsuranceDeduction())}"></span></p>
+                    <p>Totall Allowance: <span class="float-right" th:text="${T(java.lang.String).format('%,.0f VND',payroll.getSalaryRecordTotalAllowance())}"></span></p>
                     <p>Personal Deduction: <span class="float-right" th:text="${T(java.lang.String).format('%,.0f VND',payroll.getCalculatedPersonalDeduction())}"></span></p>
                     <p>Dependent Deduction: <span class="float-right" th:text="${T(java.lang.String).format('%,.0f VND',payroll.getCalculatedPersonalDependentDeduction())}"></span></p>
                     <p class="font-medium">Total Deductions: <span class="float-right" th:text="${T(java.lang.String).format('%,.0f VND',payroll.getTotalDeductions())}"></span></p>
@@ -104,7 +105,7 @@
                 <div class="space-y-2">
                     <h3 class="text-sm font-medium text-gray-700">Net Salary</h3>
                     <div class="text-lg font-semibold text-blue-600">
-                        <p>Total Net Salary: <span class="float-right" th:text="${T(java.lang.String).format('%,.0f VND',payroll.getTotalNetSalary())}"></span></p>
+                        <p>Total Net Salary: <span class="float-right" th:text="${T(java.lang.String).format('%,.0f VND',payroll.getSalaryRecordNetSalary())}"></span></p>
                     </div>
                     <p class="text-sm text-gray-600">* Negative value indicates advance payment</p>
                 </div>
@@ -112,7 +113,7 @@
         </div>
     </div>
 
-    <div class="bg-white rounded-lg shadow-sm p-6 space-y-4">
+    <div class="bg-white rounded-lg shadow-sm p-6 space-y-4" th:if="${payroll != null}">
         <h2 class="text-lg font-semibold text-gray-800">Detailed Calculation</h2>
         <div class="overflow-x-auto">
             <table class="w-full text-sm text-left text-gray-500">
@@ -127,10 +128,54 @@
                 <tbody>
                 <tr class="bg-white border-b">
                     <td class="px-6 py-4">Health Insurance (Employee)</td>
-                    <td class="px-6 py-4">1.5%</td>
-                    <td class="px-6 py-4">15,000,000 VND</td>
-                    <td class="px-6 py-4">225,000 VND</td>
+                    <td class="px-6 py-4" th:text="${payroll.getCalculatedEmployeeHealthInsuranceAmount()} + '%'"></td>
+                    <td class="px-6 py-4" th:text="${T(java.lang.String).format('%,.0f VND',payroll.getSalaryRecordBaseSalary())}"></td>
+                    <td class="px-6 py-4" th:text="${T(java.lang.String).format('%,.0f VND',payroll.getCalculatedEmployeeHealthInsurance())}"></td>
                 </tr>
+                <tr class="bg-white border-b">
+                    <td class="px-6 py-4">Social Insurance (Employee)</td>
+                    <td class="px-6 py-4" th:text="${payroll.getCalculatedEmployeeSocialInsuranceAmount() + '%'}"></td>
+                    <td class="px-6 py-4" th:text="${T(java.lang.String).format('%,.0f VND',payroll.getSalaryRecordBaseSalary())}"></td>
+                    <td class="px-6 py-4" th:text="${T(java.lang.String).format('%,.0f VND',payroll.getCalculatedEmployeeSocialInsurance())}"></td>
+                </tr>
+                <tr class="bg-white border-b">
+                    <td class="px-6 py-4">Union Fee (Employee)</td>
+                    <td class="px-6 py-4" th:text="${payroll.getCalculatedEmployeeUnionFeeAmount() + '%'}"></td>
+                    <td class="px-6 py-4" th:text="${T(java.lang.String).format('%,.0f VND',payroll.getSalaryRecordBaseSalary())}"></td>
+                    <td class="px-6 py-4" th:text="${T(java.lang.String).format('%,.0f VND',payroll.getCalculatedEmployeeUnionFee())}"></td>
+                </tr>
+                <tr class="bg-white border-b">
+                    <td class="px-6 py-4">Unemployment Insurance (Employee)</td>
+                    <td class="px-6 py-4" th:text="${payroll.getCalculatedEmployeeUnemploymentInsuranceAmount() +'%'}"></td>
+                    <td class="px-6 py-4" th:text="${T(java.lang.String).format('%,.0f VND',payroll.getSalaryRecordBaseSalary())}"></td>
+                    <td class="px-6 py-4" th:text="${T(java.lang.String).format('%,.0f VND',payroll.getCalculatedEmployeeUnemploymentInsurance())}">/td>
+                </tr>
+                <tr class="bg-white border-b">
+                    <td class="px-6 py-4">Health Insurance (Employer)</td>
+                    <td class="px-6 py-4" th:text="${payroll.getCalculatedEmployerHealthInsuranceAmount() +'%'}"></td>
+                    <td class="px-6 py-4" th:text="${T(java.lang.String).format('%,.0f VND',payroll.getSalaryRecordBaseSalary())}"></td>
+                    <td class="px-6 py-4" th:text="${T(java.lang.String).format('%,.0f VND',payroll.getCalculatedEmployerHealthInsurance())}"></td>
+                </tr>
+                <tr class="bg-white border-b">
+                    <td class="px-6 py-4">Social Insurance (Employer)</td>
+                    <td class="px-6 py-4" th:text="${payroll.getCalculatedEmployerSocialInsuranceAmount() +'%'}"></td>
+                    <td class="px-6 py-4" th:text="${T(java.lang.String).format('%,.0f VND',payroll.getSalaryRecordBaseSalary())}"></td>
+                    <td class="px-6 py-4" th:text="${T(java.lang.String).format('%,.0f VND',payroll.getCalculatedEmployerSocialInsurance())}"></td>
+                </tr>
+                <tr class="bg-white border-b">
+                    <td class="px-6 py-4">Union Fee (Employer)</td>
+                    <td class="px-6 py-4" th:text="${payroll.getCalculatedEmployerUnionFeeAmount() +'%'}"></td>
+                    <td class="px-6 py-4" th:text="${T(java.lang.String).format('%,.0f VND',payroll.getSalaryRecordBaseSalary())}"></td>
+                    <td class="px-6 py-4" th:text="${T(java.lang.String).format('%,.0f VND',payroll.getCalculatedEmployerUnionFee())}"></td>
+                </tr>
+                <tr class="bg-white border-b">
+                    <td class="px-6 py-4">Unemployment Insurance (Employer)</td>
+                    <td class="px-6 py-4" th:text="${payroll.getCalculatedEmployerUnemploymentInsuranceAmount() +'%'}"></td>
+                    <td class="px-6 py-4" th:text="${T(java.lang.String).format('%,.0f VND',payroll.getSalaryRecordBaseSalary())}"></td>
+                    <td class="px-6 py-4" th:text="${T(java.lang.String).format('%,.0f VND',payroll.getCalculatedEmployerUnemploymentInsurance())}"></td>
+                </tr>
+
+
                 <!-- Add more rows as needed -->
                 </tbody>
             </table>
