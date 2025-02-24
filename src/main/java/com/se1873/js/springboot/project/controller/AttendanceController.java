@@ -85,4 +85,9 @@ public class AttendanceController {
   public String searchAttendance(Model model){
     return null;
   }
+
+  @RequestMapping("/summary")
+  public String summaryAttendance(Model model) {
+    return "attendance-summary";
+  }
 }

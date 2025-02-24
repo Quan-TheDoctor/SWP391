@@ -7,7 +7,36 @@
     <script src="https://cdn.tailwindcss.com"></script>
 </head>
 <body class="bg-gray-100 min-h-screen p-6">
+
 <div class="max-w-7xl mx-auto space-y-6">
+
+    <!-- Header Section -->
+    <div class="flex flex-col md:flex-row gap-4 items-center justify-end">
+        <div class="flex gap-2">
+            <a th:href="@{/homepage}"
+               class="px-4 py-2 bg-blue-300 text-white rounded-md hover:bg-blue-700 flex items-center gap-2">
+                Homepage
+            </a>
+        </div>
+        <div class="flex gap-2">
+            <a th:href="@{/employee}"
+               class="px-4 py-2 bg-blue-300 text-white rounded-md hover:bg-blue-700 flex items-center gap-2">
+                Employee
+            </a>
+        </div>
+        <div class="flex gap-2">
+            <a th:href="@{/attendance}"
+               class="px-4 py-2 bg-blue-300 text-white rounded-md hover:bg-blue-700 flex items-center gap-2">
+                Attendance
+            </a>
+        </div>
+        <div class="flex gap-2">
+            <a th:href="@{/payroll}"
+               class="px-4 py-2 bg-blue-300 text-white rounded-md hover:bg-blue-700 flex items-center gap-2">
+                Payroll
+            </a>
+        </div>
+    </div>
     <!-- Search & Action Buttons in One Line -->
     <div class="flex items-center gap-2 w-full">
         <!-- Search Bar -->
