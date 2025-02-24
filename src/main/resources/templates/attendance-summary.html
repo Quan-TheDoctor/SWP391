@@ -1,122 +1,270 @@
 <!DOCTYPE html>
-<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<html lang="en">
 <head>
     <meta charset="UTF-8">
-    <title>Attendance Summary</title>
+    <title>Attendance & Payroll System</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <style>
-        .scrollable-table {
-            max-width: calc(100vw - 2rem);
-            overflow-x: auto;
+        .calendar-day {
+            width: 1.8rem;
+            height: 1.8rem;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border-radius: 0.25rem;
+            font-size: 0.875rem;
         }
 
-        .fixed-column {
-            position: sticky;
-            left: 0;
-            z-index: 20;
-            background-color: white;
-        }
+        .calendar-day.work { background-color: #34D399; color: white; }
+        .calendar-day.late { background-color: #FBBF24; color: white; }
+        .calendar-day.absent { background-color: #EF4444; color: white; }
 
-        .fixed-column-header {
-            position: sticky;
-            left: 0;
-            z-index: 30;
-            background-color: #f9fafb;
+        .employee-card.selected {
+            background-color: #f0f9ff;
+            border-color: #7dd3fc;
         }
     </style>
 </head>
 <body class="bg-gray-100 min-h-screen p-6">
 <div class="max-w-7xl mx-auto space-y-6">
 
+    <!-- Header Section -->
     <div class="flex justify-between items-center">
-        <h1 class="text-2xl font-bold text-gray-800">Attendance Summary</h1>
+        <h1 class="text-2xl font-bold text-gray-800">Attendance & Payroll System</h1>
         <div class="flex gap-2">
-            <button class="px-4 py-2 bg-green-600 text-white rounded-md hover:bg-green-700 flex items-center gap-2">
-                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/>
-                </svg>
-                Save Summary
+            <button class="px-4 py-2 bg-green-600 text-white rounded-md hover:bg-green-700" onclick="calculatePayroll()">
+                Generate Payroll
             </button>
-            <button class="px-4 py-2 bg-purple-600 text-white rounded-md hover:bg-purple-700 flex items-center gap-2">
-                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"/>
-                </svg>
+            <button class="px-4 py-2 bg-purple-600 text-white rounded-md hover:bg-purple-700" onclick="exportData()">
                 Export
             </button>
         </div>
     </div>
 
-
-    <div class="bg-white rounded-lg shadow-sm overflow-hidden scrollable-table">
-        <table class="w-full border-collapse">
-            <thead>
-            <tr>
-
-                <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase fixed-column-header w-[200px] min-w-[200px] border-r">
-                    Employee
-                </th>
-                <th class="px-2 py-3 text-center text-xs font-medium text-gray-500 uppercase fixed-column-header w-[80px] min-w-[80px] border-r">
-                    Work
-                    <svg class="w-4 h-4 text-green-600 m-auto" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/>
-                    </svg>
-                </th>
-                <th class="px-2 py-3 text-center text-xs font-medium text-gray-500 uppercase fixed-column-header w-[80px] min-w-[80px] border-r">
-                    Late
-                    <svg class="w-4 h-4 text-yellow-500 m-auto" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20 12H4"/>
-                    </svg>
-                </th>
-                <th class="px-2 py-3 text-center text-xs font-medium text-gray-500 uppercase fixed-column-header w-[80px] min-w-[80px] border-r">
-                    Off
-                    <svg class="w-4 h-4 text-red-600 m-auto" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/>
-                    </svg>
-                </th>
-
-                <th th:each="day : ${#numbers.sequence(1, 30)}"
-                    class="px-2 py-3 text-center text-xs font-medium text-gray-500 uppercase w-[40px] min-w-[40px] bg-gray-50">
-                    <span th:text="${day}">1</span>
-                </th>
-            </tr>
-            </thead>
-            <tbody class="divide-y divide-gray-200">
-            <tr class="hover:bg-gray-50 transition-colors">
-
-                <td class="px-4 py-2 whitespace-nowrap fixed-column w-[200px] min-w-[200px] border-r text-sm">
-                    John Michael Doe
-                </td>
-                <td class="px-2 py-2 text-center fixed-column w-[80px] min-w-[80px] border-r">
-                    <div class="flex items-center justify-center gap-1 text-sm">
-                        <span>15</span>
+    <!-- Main Content -->
+    <div class="flex gap-4 h-[600px]">
+        <!-- Employee Selection Panel -->
+        <div class="w-1/3 bg-white rounded-lg shadow-sm p-4 flex flex-col">
+            <div class="mb-4 space-y-4">
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-2">Filter</label>
+                    <div class="flex gap-2">
+                        <select class="w-full p-2 border rounded-md" id="departmentFilter">
+                            <option>All Departments</option>
+                            <option>IT</option>
+                            <option>HR</option>
+                            <option>Finance</option>
+                        </select>
+                        <select class="w-full p-2 border rounded-md" id="statusFilter">
+                            <option>All Status</option>
+                            <option>Active</option>
+                            <option>Inactive</option>
+                        </select>
                     </div>
-                </td>
-                <td class="px-2 py-2 text-center fixed-column w-[80px] min-w-[80px] border-r">
-                    <div class="flex items-center justify-center gap-1 text-sm">
-                        <span>3</span>
-                    </div>
-                </td>
-                <td class="px-2 py-2 text-center fixed-column w-[80px] min-w-[80px] border-r">
-                    <div class="flex items-center justify-center gap-1 text-sm">
-                        <span>2</span>
-                    </div>
-                </td>
+                </div>
+                <div class="flex-1 overflow-y-auto" id="employeeList">
+                    <!-- Employee cards will be populated here -->
+                </div>
+            </div>
+        </div>
 
-                <td th:each="day : ${#numbers.sequence(1, 30)}" class="px-2 py-2 text-center">
-                    <svg th:if="${day % 3 == 0}" class="w-4 h-4 text-yellow-500 mx-auto" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20 12H4"/>
-                    </svg>
-                    <svg th:if="${day % 5 == 0}" class="w-4 h-4 text-red-600 mx-auto" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/>
-                    </svg>
-                    <svg th:if="${day % 3 != 0 && day % 5 != 0}" class="w-4 h-4 text-green-600 mx-auto" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/>
-                    </svg>
-                </td>
-            </tr>
-            </tbody>
-        </table>
+        <!-- Calendar & Payroll Section -->
+        <div class="w-2/3 flex flex-col gap-4">
+            <!-- Calendar -->
+            <div class="bg-white rounded-lg shadow-sm p-4 flex-1">
+                <div class="flex items-center justify-between mb-4">
+                    <input type="month" id="monthPicker" class="p-2 border rounded-md"
+                           value="2023-10" onchange="loadAttendance()">
+                    <div class="flex gap-3 text-sm">
+                        <div class="flex items-center gap-1">
+                            <div class="w-3 h-3 bg-green-500 rounded-sm"></div>
+                            <span>Work</span>
+                        </div>
+                        <div class="flex items-center gap-1">
+                            <div class="w-3 h-3 bg-yellow-500 rounded-sm"></div>
+                            <span>Late</span>
+                        </div>
+                        <div class="flex items-center gap-1">
+                            <div class="w-3 h-3 bg-red-500 rounded-sm"></div>
+                            <span>Absent</span>
+                        </div>
+                    </div>
+                </div>
+                <div class="grid grid-cols-7 gap-1 text-center">
+                    <div class="text-sm font-medium py-1">Sun</div>
+                    <div class="text-sm font-medium py-1">Mon</div>
+                    <div class="text-sm font-medium py-1">Tue</div>
+                    <div class="text-sm font-medium py-1">Wed</div>
+                    <div class="text-sm font-medium py-1">Thu</div>
+                    <div class="text-sm font-medium py-1">Fri</div>
+                    <div class="text-sm font-medium py-1">Sat</div>
+                    <div id="calendarDays" class="col-span-7 grid grid-cols-7 gap-1"></div>
+                </div>
+            </div>
+
+            <!-- Payroll Summary -->
+            <div class="bg-white rounded-lg shadow-sm p-4">
+                <h2 class="text-lg font-semibold mb-3">Payroll Summary</h2>
+                <div class="grid grid-cols-4 gap-4 text-sm" id="payrollSummary">
+                    <!-- Summary data will be populated here -->
+                </div>
+            </div>
+        </div>
     </div>
 </div>
+
+<script>
+    // Mock Data
+    const employees = Array.from({length: 15}, (_, i) => ({
+        id: i+1,
+        name: `Employee ${i+1}`,
+        department: ['IT', 'HR', 'Finance'][i%3],
+        status: ['Active', 'Inactive'][i%2],
+        baseSalary: 5000000,
+        attendance: {}
+    }));
+
+    let selectedEmployees = new Set();
+    let currentAttendanceData = {};
+
+    // Initialize
+    document.addEventListener('DOMContentLoaded', () => {
+        renderEmployeeList();
+        loadAttendance();
+    });
+
+    // Render Employee List
+    function renderEmployeeList() {
+        const container = document.getElementById('employeeList');
+        container.innerHTML = employees.map(emp => `
+            <div class="employee-card border p-3 rounded-md mb-2 cursor-pointer hover:bg-gray-50"
+                 onclick="toggleEmployee(${emp.id})">
+                <div class="flex items-center justify-between">
+                    <div>
+                        <h3 class="font-medium">${emp.name}</h3>
+                        <p class="text-sm text-gray-500">${emp.department} • ${emp.status}</p>
+                    </div>
+                    <input type="checkbox" class="employee-checkbox" id="emp-${emp.id}">
+                </div>
+            </div>
+        `).join('');
+    }
+
+    // Toggle Employee Selection
+    function toggleEmployee(employeeId) {
+        const card = document.querySelector(`#emp-${employeeId}`).parentElement.parentElement;
+        if(selectedEmployees.has(employeeId)) {
+            selectedEmployees.delete(employeeId);
+            card.classList.remove('selected');
+        } else {
+            selectedEmployees.add(employeeId);
+            card.classList.add('selected');
+        }
+        updatePayrollSummary();
+    }
+
+    // Load Attendance Data
+    async function loadAttendance() {
+        const month = document.getElementById('monthPicker').value;
+        // Simulate API call
+        const data = await mockFetchAttendance(month);
+        currentAttendanceData = data;
+        renderCalendar(data);
+        updatePayrollSummary();
+    }
+
+    // Render Calendar
+    function renderCalendar(data) {
+        const month = document.getElementById('monthPicker').value;
+        const date = new Date(month + '-01');
+        const firstDay = date.getDay();
+        const daysInMonth = new Date(date.getFullYear(), date.getMonth() + 1, 0).getDate();
+
+        const calendarDays = document.getElementById('calendarDays');
+        calendarDays.innerHTML = '';
+
+        // Empty days
+        for(let i = 0; i < firstDay; i++) {
+            calendarDays.innerHTML += '<div class="calendar-day"></div>';
+        }
+
+        // Fill days
+        for(let day = 1; day <= daysInMonth; day++) {
+            const dateStr = `${month}-${day.toString().padStart(2, '0')}`;
+            const status = data[dateStr]?.[Array.from(selectedEmployees)[0]] || 'work'; // Simplified for demo
+            calendarDays.innerHTML += `
+                <div class="calendar-day ${status}">
+                    ${day}
+                </div>
+            `;
+        }
+    }
+
+    // Update Payroll Summary
+    function updatePayrollSummary() {
+        const summary = calculateSummary();
+        document.getElementById('payrollSummary').innerHTML = `
+            <div class="p-2 bg-gray-50 rounded">
+                <div class="text-gray-500">Selected Employees</div>
+                <div class="font-medium">${selectedEmployees.size}</div>
+            </div>
+            <div class="p-2 bg-gray-50 rounded">
+                <div class="text-gray-500">Total Work Days</div>
+                <div class="font-medium">${summary.totalWork}</div>
+            </div>
+            <div class="p-2 bg-gray-50 rounded">
+                <div class="text-gray-500">Total Late Days</div>
+                <div class="font-medium">${summary.totalLate}</div>
+            </div>
+            <div class="p-2 bg-gray-50 rounded">
+                <div class="text-gray-500">Estimated Payroll</div>
+                <div class="font-medium">${summary.payroll.toLocaleString()} VND</div>
+            </div>
+        `;
+    }
+
+    // Calculate Summary
+    function calculateSummary() {
+        let totalWork = 0;
+        let totalLate = 0;
+        let totalAbsent = 0;
+
+        // Calculation logic here
+        return {
+            totalWork,
+            totalLate,
+            totalAbsent,
+            payroll: selectedEmployees.size * 5000000 // Simplified calculation
+        };
+    }
+
+    // Mock API
+    async function mockFetchAttendance(month) {
+        // Simulate API delay
+        await new Promise(resolve => setTimeout(resolve, 300));
+
+        // Generate random data
+        const data = {};
+        const daysInMonth = new Date(month + '-01').getMonth() === 0 ? 31 : 30;
+
+        for(let day = 1; day <= daysInMonth; day++) {
+            data[`${month}-${day.toString().padStart(2, '0')}`] = {
+                1: ['work', 'late', 'absent'][Math.floor(Math.random() * 3)]
+            };
+        }
+
+        return data;
+    }
+
+    // Export Data
+    function exportData() {
+        // Export logic here
+    }
+
+    // Calculate Payroll
+    function calculatePayroll() {
+        // Payroll calculation logic here
+    }
+</script>
 </body>
 </html>
