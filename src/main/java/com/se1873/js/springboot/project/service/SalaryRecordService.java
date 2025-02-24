@@ -2,7 +2,6 @@ package com.se1873.js.springboot.project.service;
 
 import com.se1873.js.springboot.project.dto.PayrollDTO;
 import com.se1873.js.springboot.project.entity.Employee;
-import com.se1873.js.springboot.project.entity.FinancialPolicy;
 import com.se1873.js.springboot.project.entity.SalaryRecord;
 import com.se1873.js.springboot.project.repository.DependentRepository;
 import com.se1873.js.springboot.project.repository.EmployeeRepository;
@@ -18,6 +17,7 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Optional;
 
 @Slf4j
 @Service
@@ -32,7 +32,7 @@ public class SalaryRecordService {
 
   public Page<PayrollDTO> getAll(Pageable pageable) {
     var salaryRecords = salaryRecordRepository.findAll(pageable);
-    List<PayrollDTO> payrolls = null;
+    List<PayrollDTO> payrolls = new ArrayList<>();
 
     for (var salaryRecord : salaryRecords) {
       Employee employee = salaryRecord.getEmployee();
@@ -221,55 +221,62 @@ public class SalaryRecordService {
       .totalNetSalary(totalNetSalary)
       .build();
   }
-//
-//  public PayrollDTO getInsurance(int salaryId) {
-//    SalaryRecord salaryRecords = salaryRecordRepository.findSalaryRecordBySalaryId(salaryId);
-//    Employee employee = employeeRepository.findEmployeeByEmployeeId(salaryRecords.getEmployee().getEmployeeId());
-//    double netsalary = getNetSalary(salaryId);
-//    double calculatedEmployeeHealthInsuranceAmount = financialPolicyRepository.getFinancialPolicyAmount(1);
-//    double calculatedEmployeeSocialInsuranceAmount = financialPolicyRepository.getFinancialPolicyAmount(3);
-//    double calculatedEmployeeUnionFeeAmount = financialPolicyRepository.getFinancialPolicyAmount(5);
-//    double calculatedEmployeeUnemploymentInsuranceAmount = financialPolicyRepository.getFinancialPolicyAmount(7);
-//    double calculatedEmployerHealthInsuranceAmount = financialPolicyRepository.getFinancialPolicyAmount(2);
-//    double calculatedEmployerSocialInsuranceAmount = financialPolicyRepository.getFinancialPolicyAmount(4);
-//    double calculatedEmployerUnionFeeAmount = financialPolicyRepository.getFinancialPolicyAmount(6);
-//    double calculatedEmployerUnemploymentInsuranceAmount = financialPolicyRepository.getFinancialPolicyAmount(8);
-//
-//
-//    double calculatedEmployeeHealthInsurance = calculatedEmployeeHealthInsurance(salaryId);
-//    double calculatedEmployeeSocialInsurance = calculatedEmployeeSocialInsurance(salaryId);
-//    double calculatedEmployeeUnionFee = calculatedEmployeeUnionFee(salaryId);
-//    double calculatedEmployeeUnemploymentInsurance = calculatedEmployeeUnemploymentInsurance(salaryId);
-//
-//    double calculatedEmployerHealthInsurance = calculatedEmployerHealthInsurance(salaryId);
-//    double calculatedEmployerSocialInsurance = calculatedEmployerSocialInsurance(salaryId);
-//    double calculatedEmployerUnionFee = calculatedEmployerUnionFee(salaryId);
-//    double calculatedEmployerUnemploymentInsurance = calculatedEmployerUnemploymentInsurance(salaryId);
-//
-//    double calculatedPersonalInsuranceDeduction = calculatedPersonalInsuranceDeduction(salaryId);
-//    double calculatedPersonalDeduction = financialPolicyRepository.getFinancialPolicyAmount(10);
-//    double calculatedPersonalDependentDeduction = calculatedPersonalDependentDeduction(salaryId);
-//
-//    return PayrollDTO.builder()
-//      .calculatedEmployeeHealthInsurance(calculatedEmployeeHealthInsurance)
-//      .calculatedEmployeeHealthInsuranceAmount(calculatedEmployeeHealthInsuranceAmount)
-//      .calculatedEmployeeSocialInsurance(calculatedEmployeeSocialInsurance)
-//      .calculatedEmployeeSocialInsuranceAmount(calculatedEmployeeSocialInsuranceAmount)
-//      .calculatedEmployeeUnionFee(calculatedEmployeeUnionFee)
-//      .calculatedEmployeeUnionFeeAmount(calculatedEmployeeUnionFeeAmount)
-//      .calculatedEmployeeUnemploymentInsurance(calculatedEmployeeUnemploymentInsurance)
-//      .calculatedEmployeeUnemploymentInsuranceAmount(calculatedEmployeeUnemploymentInsuranceAmount)
-//      .calculatedEmployerHealthInsurance(calculatedEmployerHealthInsurance)
-//      .calculatedEmployerHealthInsuranceAmount(calculatedEmployerHealthInsuranceAmount)
-//      .calculatedEmployerSocialInsurance(calculatedEmployerSocialInsurance)
-//      .calculatedEmployerSocialInsuranceAmount(calculatedEmployerSocialInsuranceAmount)
-//      .calculatedEmployerUnionFee(calculatedEmployerUnionFee)
-//      .calculatedEmployerUnionFeeAmount(calculatedEmployerUnionFeeAmount)
-//      .calculatedEmployerUnemploymentInsurance(calculatedEmployerUnemploymentInsurance)
-//      .calculatedEmployerUnemploymentInsuranceAmount(calculatedEmployerUnemploymentInsuranceAmount)
-//      .calculatedPersonalInsuranceDeduction(calculatedPersonalInsuranceDeduction)
-//      .calculatedPersonalDeduction(calculatedPersonalDeduction)
-//      .calculatedPersonalDependentDeduction(calculatedPersonalDependentDeduction)
-//      .build();
-//  }
+
+  /**
+   * @deprecated
+   * @param salaryId: Input salary ID for manipulating the desired salary
+   * @return
+   */
+  @Deprecated(since = "2025/02/22", forRemoval = true)
+  public PayrollDTO getInsurance(int salaryId) {
+    SalaryRecord salaryRecords = salaryRecordRepository.findSalaryRecordBySalaryId(salaryId);
+    double netsalary = salaryRecords.getNetSalary();
+    double calculatedEmployeeHealthInsuranceAmount = financialPolicyRepository.getFinancialPolicyAmount(1);
+    double calculatedEmployeeSocialInsuranceAmount = financialPolicyRepository.getFinancialPolicyAmount(3);
+    double calculatedEmployeeUnionFeeAmount = financialPolicyRepository.getFinancialPolicyAmount(5);
+    double calculatedEmployeeUnemploymentInsuranceAmount = financialPolicyRepository.getFinancialPolicyAmount(7);
+    double calculatedEmployerHealthInsuranceAmount = financialPolicyRepository.getFinancialPolicyAmount(2);
+    double calculatedEmployerSocialInsuranceAmount = financialPolicyRepository.getFinancialPolicyAmount(4);
+    double calculatedEmployerUnionFeeAmount = financialPolicyRepository.getFinancialPolicyAmount(6);
+    double calculatedEmployerUnemploymentInsuranceAmount = financialPolicyRepository.getFinancialPolicyAmount(8);
+
+
+    double calculatedEmployeeHealthInsurance = calculatedEmployeeHealthInsurance(salaryId);
+    double calculatedEmployeeSocialInsurance = calculatedEmployeeSocialInsurance(salaryId);
+    double calculatedEmployeeUnionFee = calculatedEmployeeUnionFee(salaryId);
+    double calculatedEmployeeUnemploymentInsurance = calculatedEmployeeUnemploymentInsurance(salaryId);
+
+    double calculatedEmployerHealthInsurance = calculatedEmployerHealthInsurance(salaryId);
+    double calculatedEmployerSocialInsurance = calculatedEmployerSocialInsurance(salaryId);
+    double calculatedEmployerUnionFee = calculatedEmployerUnionFee(salaryId);
+    double calculatedEmployerUnemploymentInsurance = calculatedEmployerUnemploymentInsurance(salaryId);
+
+    double calculatedPersonalInsuranceDeduction = calculatedPersonalInsuranceDeduction(salaryId);
+    double calculatedPersonalDeduction = financialPolicyRepository.getFinancialPolicyAmount(10);
+    double calculatedPersonalDependentDeduction = calculatedPersonalDependentDeduction(salaryId);
+
+    return PayrollDTO.builder()
+      .calculatedEmployeeHealthInsurance(calculatedEmployeeHealthInsurance)
+      .calculatedEmployeeHealthInsuranceAmount(calculatedEmployeeHealthInsuranceAmount)
+      .calculatedEmployeeSocialInsurance(calculatedEmployeeSocialInsurance)
+      .calculatedEmployeeSocialInsuranceAmount(calculatedEmployeeSocialInsuranceAmount)
+      .calculatedEmployeeUnionFee(calculatedEmployeeUnionFee)
+      .calculatedEmployeeUnionFeeAmount(calculatedEmployeeUnionFeeAmount)
+      .calculatedEmployeeUnemploymentInsurance(calculatedEmployeeUnemploymentInsurance)
+      .calculatedEmployeeUnemploymentInsuranceAmount(calculatedEmployeeUnemploymentInsuranceAmount)
+      .calculatedEmployerHealthInsurance(calculatedEmployerHealthInsurance)
+      .calculatedEmployerHealthInsuranceAmount(calculatedEmployerHealthInsuranceAmount)
+      .calculatedEmployerSocialInsurance(calculatedEmployerSocialInsurance)
+      .calculatedEmployerSocialInsuranceAmount(calculatedEmployerSocialInsuranceAmount)
+      .calculatedEmployerUnionFee(calculatedEmployerUnionFee)
+      .calculatedEmployerUnionFeeAmount(calculatedEmployerUnionFeeAmount)
+      .calculatedEmployerUnemploymentInsurance(calculatedEmployerUnemploymentInsurance)
+      .calculatedEmployerUnemploymentInsuranceAmount(calculatedEmployerUnemploymentInsuranceAmount)
+      .calculatedPersonalInsuranceDeduction(calculatedPersonalInsuranceDeduction)
+      .calculatedPersonalDeduction(calculatedPersonalDeduction)
+      .calculatedPersonalDependentDeduction(calculatedPersonalDependentDeduction)
+      .totalNetSalary(netsalary)
+
+      .build();
+  }
 }
