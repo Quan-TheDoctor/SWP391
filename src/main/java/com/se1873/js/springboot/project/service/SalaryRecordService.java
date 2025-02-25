@@ -225,7 +225,7 @@ public class SalaryRecordService {
   /**
    * @deprecated
    * @param salaryId: Input salary ID for manipulating the desired salary
-   * @return
+   * @return PayrollDTO
    */
   @Deprecated(since = "2025/02/22", forRemoval = true)
   public PayrollDTO getInsurance(int salaryId) {
