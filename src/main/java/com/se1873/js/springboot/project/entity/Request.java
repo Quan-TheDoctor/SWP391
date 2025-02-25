@@ -43,4 +43,6 @@ public class Request {
   @Column(name = "created_at")
   private LocalDateTime createdAt;
 
+  @Column(name = "note")
+  private String note;
 }

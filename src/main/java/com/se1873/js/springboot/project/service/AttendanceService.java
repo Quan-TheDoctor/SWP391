@@ -62,7 +62,6 @@ public class AttendanceService {
         }
       }
     }
-
     attendanceDTOS.sort(
       Comparator.comparing(AttendanceDTO::getAttendanceDate)
         .thenComparing(AttendanceDTO::getAttendanceStatus)

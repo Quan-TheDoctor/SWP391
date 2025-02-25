@@ -115,4 +115,6 @@ public class AttendanceController {
     model.addAttribute("departments", departments);
     return "attendance-summary";
   }
+
+
 }

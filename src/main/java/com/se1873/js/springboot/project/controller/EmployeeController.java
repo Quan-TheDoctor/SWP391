@@ -40,7 +40,7 @@ public class EmployeeController {
   private List<Department> departments;
   private List<Position> positions;
 
-  private final String EMPLOYEE_HTML = "employee";
+  private  final static  String EMPLOYEE = "employee";
 
   @PostConstruct
   public void init() {
@@ -60,7 +60,7 @@ public class EmployeeController {
     model.addAttribute("departments", departments);
     model.addAttribute("positions", positions);
     model.addAttribute("employees", employees);
-    return EMPLOYEE_HTML;
+    return EMPLOYEE;
   }
 
   @RequestMapping("/view")
@@ -130,6 +130,20 @@ public class EmployeeController {
     model.addAttribute("positions", positions);
     return "employee";
   }
+//  @RequestMapping("/sort")
+//  public String sort(Model model,
+//                     @RequestParam("field") String field,
+//                     @RequestParam("direction") String direction,
+//                     @RequestParam(value = "page",defaultValue = "0") int page,
+//                     @RequestParam(value = "size",defaultValue = "10") int size){
+//    Pageable pageable = PageRequest.of(page,size);
+//    var employees = employeeService.sort(pageable,direction);
+//
+//    model.addAttribute("employees",employees);
+//    model.addAttribute("direction",direction);
+//    model.addAttribute("currentSortField", field);
+//    return "employee";
+//  }
 
   @RequestMapping("/export/view")
   public String exportView(Model model,

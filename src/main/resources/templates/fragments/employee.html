@@ -41,7 +41,7 @@
                     </select>
                 </form>
             </div>
-            <!--/*@thymesVar id="user" type="com.se1873.js.springboot.project.dto.EmployeeDTO"*/-->
+
             <div sec:authorize="hasRole('ADMIN')">
                 <a th:href="@{/employee/employee-insert}" class="mt-4 px-4 py-2 bg-[#5E5ADB] text-white rounded hover:bg-blue-600 transition-colors">Insert Employee</a>
                 <a th:href="@{/employee/employee-export}" class="mt-4 px-4 py-2 bg-[#5E5ADB] text-white rounded hover:bg-blue-600 transition-colors">Export to Excel</a>
