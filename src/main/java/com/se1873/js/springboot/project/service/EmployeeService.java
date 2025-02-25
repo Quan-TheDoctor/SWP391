@@ -16,16 +16,11 @@ import org.apache.poi.ss.usermodel.*;
 import org.apache.poi.xssf.usermodel.XSSFWorkbook;
 import org.springframework.core.io.ByteArrayResource;
 import org.springframework.core.io.Resource;
-import org.springframework.stereotype.Service;
 
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
-import java.util.List;
-import java.sql.Array;
 import java.time.LocalDate;
-import java.util.ArrayList;
 import java.util.List;
-import java.util.Objects;
 
 @Service
 @Transactional
@@ -41,8 +36,7 @@ public class EmployeeService {
   private final UserRepository userRepository;
 
   public Page<EmployeeDTO> getAll(Pageable pageable) {
-    var employees = employeeRepository.findAll(pageable).map(this::convertEmployeeToDTO);
-    return employees;
+    return employeeRepository.findAll(pageable).map(this::convertEmployeeToDTO);
   }
 
   public EmployeeDTO getEmployeeByEmployeeId(Integer employeeId) {
@@ -60,7 +54,7 @@ public class EmployeeService {
 
       User user = User.builder()
         .username(employeeDTO.getEmployeeCompanyEmail())
-        .passwordHash(passwordEncoder.encode("1"))
+        .passwordHash(passwordEncoder.encode(employee.getTaxCode()))
         .role("USER")
         .employee(employee)
         .build();
@@ -147,7 +141,7 @@ public class EmployeeService {
 
   }
 
-  private Employee editEmployee(Employee employee, EmployeeDTO employeeDTO) {
+  private void editEmployee(Employee employee, EmployeeDTO employeeDTO) {
     employee.setFirstName(employeeDTO.getEmployeeFirstName());
     employee.setLastName(employeeDTO.getEmployeeLastName());
     employee.setBirthDate(employeeDTO.getEmployeeBirthDate());
@@ -164,7 +158,6 @@ public class EmployeeService {
     employee.setEmployeeCode(employeeDTO.getEmployeeCode());
     employee.setCompanyEmail(employeeDTO.getEmployeeCompanyEmail());
 
-    return employee;
   }
 
   public Page<EmployeeDTO> filterByField(String field, String value, Pageable pageable) {
@@ -265,7 +258,6 @@ public class EmployeeService {
 
     if (employees.isEmpty()) {
       log.warn("Không có nhân viên nào để export.");
-      throw new RuntimeException("Không có nhân viên nào để xuất ra file Excel.");
     }
 
     try (Workbook workbook = new XSSFWorkbook(); ByteArrayOutputStream out = new ByteArrayOutputStream()) {

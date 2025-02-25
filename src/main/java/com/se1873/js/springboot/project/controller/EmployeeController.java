@@ -40,6 +40,8 @@ public class EmployeeController {
   private List<Department> departments;
   private List<Position> positions;
 
+  private final String EMPLOYEE_HTML = "employee";
+
   @PostConstruct
   public void init() {
     positions = positionRepository.findAll();
@@ -56,9 +58,9 @@ public class EmployeeController {
     model.addAttribute("totalEmployees", totalEmployees);
     model.addAttribute("avgSalary", avgSalary);
     model.addAttribute("departments", departments);
-    model.addAttribute("positions",positions);
+    model.addAttribute("positions", positions);
     model.addAttribute("employees", employees);
-    return "employee";
+    return EMPLOYEE_HTML;
   }
 
   @RequestMapping("/view")
@@ -85,7 +87,7 @@ public class EmployeeController {
                                @ModelAttribute("employeeDTO") EmployeeDTO employeeDTO,
                                BindingResult bindingResult) {
     log.info(employeeDTO.toString());
-    if(bindingResult.hasErrors()) {
+    if (bindingResult.hasErrors()) {
       return "redirect:/employee";
     }
 
@@ -93,38 +95,39 @@ public class EmployeeController {
 
     return "redirect:/employee";
   }
+
   @RequestMapping("/filter")
   public String filter(Model model,
                        @RequestParam("field") String field,
                        @RequestParam("value") String value,
-                       @RequestParam(value = "page",defaultValue = "0")  int page,
-                       @RequestParam(value = "size", defaultValue = "10") int size){
-    Pageable pageable = PageRequest.of(page,size);
-  var employeeDTOS = employeeService.filterByField(field,value,pageable);
-  var totalEmployees = employeeDTOS.getTotalElements();
-  var avgSalary = employeeDTOS.getContent().stream().mapToDouble(EmployeeDTO::getContractBaseSalary).average().orElse(0.0);
-  model.addAttribute("totalEmployees", totalEmployees);
-  model.addAttribute("avgSalary", avgSalary);
-  model.addAttribute("departments", departments);
-  model.addAttribute("positions",positions);
-  model.addAttribute("employees",employeeDTOS);
-
+                       @RequestParam(value = "page", defaultValue = "0") int page,
+                       @RequestParam(value = "size", defaultValue = "10") int size) {
+    Pageable pageable = PageRequest.of(page, size);
+    var employeeDTOS = employeeService.filterByField(field, value, pageable);
+    var totalEmployees = employeeDTOS.getTotalElements();
+    var avgSalary = employeeDTOS.getContent().stream().mapToDouble(EmployeeDTO::getContractBaseSalary).average().orElse(0.0);
+    model.addAttribute("totalEmployees", totalEmployees);
+    model.addAttribute("avgSalary", avgSalary);
+    model.addAttribute("departments", departments);
+    model.addAttribute("positions", positions);
+    model.addAttribute("employees", employeeDTOS);
     return "employee";
   }
+
   @RequestMapping("/search")
   public String search(Model model,
                        @RequestParam("query") String query,
                        @RequestParam(value = "page", defaultValue = "0") int page,
-                       @RequestParam(value = "size", defaultValue = "10") int size){
-    Pageable pageable = PageRequest.of(page,size);
-    var employees = employeeService.search(pageable,query);
+                       @RequestParam(value = "size", defaultValue = "10") int size) {
+    Pageable pageable = PageRequest.of(page, size);
+    var employees = employeeService.search(pageable, query);
     var totalEmployees = employees.getTotalElements();
     var avgSalary = employees.getContent().stream().mapToDouble(EmployeeDTO::getContractBaseSalary).average().orElse(0.0);
-    model.addAttribute("employees",employees);
-    model.addAttribute("totalEmployees",totalEmployees);
-    model.addAttribute("avgSalary",avgSalary);
-    model.addAttribute("departments",departments);
-    model.addAttribute("positions",positions);
+    model.addAttribute("employees", employees);
+    model.addAttribute("totalEmployees", totalEmployees);
+    model.addAttribute("avgSalary", avgSalary);
+    model.addAttribute("departments", departments);
+    model.addAttribute("positions", positions);
     return "employee";
   }
 
@@ -152,19 +155,18 @@ public class EmployeeController {
   }
 
 
-
   @RequestMapping("/export")
   public ResponseEntity<Resource> exportEmployees(
-          @RequestParam(value = "department", required = false, defaultValue = "all") String department,
-          @RequestParam(value = "position", required = false, defaultValue = "all") String position) {
+    @RequestParam(value = "department", required = false, defaultValue = "all") String department,
+    @RequestParam(value = "position", required = false, defaultValue = "all") String position) {
 
     log.info("Exporting employee data to Excel. Department: {}, Position: {}", department, position);
     Resource file = employeeService.exportToExcel(department, position);
 
     return ResponseEntity.ok()
-            .header(HttpHeaders.CONTENT_DISPOSITION, "attachment; filename=employees.xlsx")
-            .contentType(MediaType.APPLICATION_OCTET_STREAM)
-            .body(file);
+      .header(HttpHeaders.CONTENT_DISPOSITION, "attachment; filename=employees.xlsx")
+      .contentType(MediaType.APPLICATION_OCTET_STREAM)
+      .body(file);
   }
 
 }

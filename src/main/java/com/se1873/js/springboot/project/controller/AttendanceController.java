@@ -3,8 +3,11 @@ package com.se1873.js.springboot.project.controller;
 import com.se1873.js.springboot.project.dto.AttendanceDTO;
 import com.se1873.js.springboot.project.dto.AttendanceDTOList;
 import com.se1873.js.springboot.project.dto.EmployeeDTO;
+import com.se1873.js.springboot.project.entity.Department;
+import com.se1873.js.springboot.project.repository.DepartmentRepository;
 import com.se1873.js.springboot.project.service.AttendanceService;
 import com.se1873.js.springboot.project.service.EmployeeService;
+import jakarta.annotation.PostConstruct;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.PageRequest;
@@ -27,8 +30,16 @@ import java.util.List;
 public class AttendanceController {
 
   private final AttendanceService attendanceService;
+  private final DepartmentRepository departmentRepository;
   private final EmployeeService employeeService;
   private AttendanceDTOList attendanceDTOList = new AttendanceDTOList();
+  private List<Department> departments = new ArrayList<>();
+
+  @PostConstruct
+  public void init() {
+    departments = departmentRepository.findAll();
+  }
+
   @RequestMapping
   public String attendance(Model model,
                            @RequestParam(value = "startDate", required = false) LocalDate startDate,
@@ -88,6 +99,20 @@ public class AttendanceController {
 
   @RequestMapping("/summary")
   public String summaryAttendance(Model model) {
+
+    model.addAttribute("departments", departments);
+    return "attendance-summary";
+  }
+
+  @RequestMapping("/summary/filter")
+  public String summaryAttendanceFilter(Model model,
+                                        @RequestParam(value = "field", required = false, defaultValue = "department") String field,
+                                        @RequestParam(value = "value", required = false) String value) {
+    var employees = employeeService.filterByField(field, value, PageRequest.of(0, 5));
+
+    model.addAttribute("value", value);
+    model.addAttribute("employees", employees);
+    model.addAttribute("departments", departments);
     return "attendance-summary";
   }
 }
