@@ -54,7 +54,7 @@ public class EmployeeService {
 
       User user = User.builder()
         .username(employeeDTO.getEmployeeCompanyEmail())
-        .passwordHash(passwordEncoder.encode(employee.getTaxCode()))
+        .passwordHash(passwordEncoder.encode("1"))
         .role("USER")
         .employee(employee)
         .build();
