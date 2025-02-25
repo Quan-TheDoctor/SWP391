@@ -107,8 +107,9 @@ public class RequestService {
 
         if (requests.isEmpty()) {
             log.warn("No requests available for export.");
-            throw new RuntimeException("No requests available for export.");
+            throw new IllegalStateException("No requests available for export.");
         }
+
 
         try (Workbook workbook = new XSSFWorkbook(); ByteArrayOutputStream out = new ByteArrayOutputStream()) {
             Sheet sheet = workbook.createSheet("Requests");

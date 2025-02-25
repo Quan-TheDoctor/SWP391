@@ -192,6 +192,7 @@ CREATE TABLE requests
     user_id    INTEGER REFERENCES users (user_id),
     request_type    text,
     request_id_list json,
+    note text,
     approval_id     INTEGER REFERENCES users (user_id),
     status          text,
     is_process      bool      default false,

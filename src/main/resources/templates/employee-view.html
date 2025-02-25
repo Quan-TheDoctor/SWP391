@@ -48,6 +48,11 @@
                 <button class="tab-link px-4 py-2" onclick="openTab(event, 'work')" type="button">Work Data and Bank
                 </button>
                 <button class="tab-link px-4 py-2" onclick="openTab(event, 'contract')" type="button">Contract</button>
+                <button class="tab-link px-4 py-2" onclick="openTab(event,'payroll')" type="button">Payroll</button>
+                <form th:action="@{/user/attendance-detail(EmployeeID = ${employeeDTO.getEmployeeId()})}">
+                    <button type="submit">Attendance</button>
+                </form>
+
             </div>
 
             <div class="tab-container">
@@ -133,6 +138,17 @@
                     <label>Base Salary:</label><input class="border p-2 w-full" th:field="*{contractBaseSalary}">
                     <label>Sign Date:</label><input class="border p-2 w-full" th:field="*{contractSignDate}">
                 </div>
+
+                <!-- Payroll -->
+                <div class="tab-content p-4 hidden" id="payroll">
+
+                </div>
+
+                <!-- Attendance -->
+                <div class="tab-content p-4 hidden" id="attendance">
+
+                </div>
+
             </div>
         </div>
     </div>

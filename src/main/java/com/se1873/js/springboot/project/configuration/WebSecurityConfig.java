@@ -14,6 +14,8 @@ import org.springframework.security.core.userdetails.User;
 import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
+import org.springframework.security.crypto.password.NoOpPasswordEncoder;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.util.matcher.AntPathRequestMatcher;
 
@@ -48,10 +50,10 @@ public class WebSecurityConfig {
                                 if (isAdmin){
                                     response.sendRedirect("/employee");
                                 }else{
-                                    String username = authentication.getName();
-                                    Optional<com.se1873.js.springboot.project.entity.User> user = userRepository.findUserByUsername(username);
-                                    int id = user.get().getEmployee().getEmployeeId();
-                                    response.sendRedirect("/employee/view?employeeId="+id);
+//                                    String username = authentication.getName();
+//                                    Optional<com.se1873.js.springboot.project.entity.User> user = userRepository.findUserByUsername(username);
+//                                    int id = user.get().getEmployee().getEmployeeId();
+                                    response.sendRedirect("/user/detail");
                                 }
                             })
                             .failureUrl("/login?error=true") // Xử lý lỗi đăng nhập
@@ -66,7 +68,7 @@ public class WebSecurityConfig {
 
     return http.build();
   }
-    @Bean
+   @Bean
 //    public PasswordEncoder passwordEncoder() {
 //        return NoOpPasswordEncoder.getInstance();
 //    }

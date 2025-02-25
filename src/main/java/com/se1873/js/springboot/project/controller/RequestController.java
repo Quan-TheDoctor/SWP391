@@ -82,7 +82,7 @@ public class RequestController {
     Pageable pageable = PageRequest.of(page, size);
     var requests = requestService.searchRequests(query, pageable);
 
-    var totalRequests = requests.getTotalElements();
+    this.totalRequests = (int) requests.getTotalElements();
     long totalPendingRequests = requests.stream().filter(r -> "pending".equalsIgnoreCase(r.getRequestStatus())).count();
     long totalFinishedRequests = totalRequests - totalPendingRequests;
 
