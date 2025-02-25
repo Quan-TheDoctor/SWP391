@@ -69,5 +69,11 @@ public class PayrollController {
     return "payroll-details";
   }
 
+  @GetMapping("/slip")
+  public String getPayrollSlip(@RequestParam("salaryId") Integer id, Model model) {
+    PayrollDTO payroll = salaryRecordService.payrollDTO(id);
+    model.addAttribute("payroll", payroll);
+    return "payroll-slip";
+  }
 
 }

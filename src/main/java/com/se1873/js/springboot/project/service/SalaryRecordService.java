@@ -43,6 +43,7 @@ public class SalaryRecordService {
     return new PageImpl<>(payrolls, pageable, salaryRecords.getTotalElements());
   }
 
+
   private PayrollDTO convertSalaryRecordToPayrollDTO(SalaryRecord salaryRecord, Employee employee) {
     return PayrollDTO.builder()
       .employeeId(employee.getEmployeeId())
@@ -181,6 +182,7 @@ public class SalaryRecordService {
     double taxAmount = taxAmount(totalEarning, totalDeductions);
     double totalNetSalary = totalEarning - taxAmount + salaryRecords.getTotalAllowance();
 
+    double grossSalary = totalEarning - totalDeductions;
     return PayrollDTO.builder()
       .employeeId(employee.getEmployeeId())
       .employeeFirstName(employee.getFirstName())
@@ -219,6 +221,7 @@ public class SalaryRecordService {
       .totalDeductions(totalDeductions)
       .totalTaxAmount(taxAmount)
       .totalNetSalary(totalNetSalary)
+            .totalGrossSalary(grossSalary)
       .build();
   }
 

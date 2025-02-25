@@ -43,6 +43,7 @@ public class PayrollDTO {
   private Double calculatedPersonalInsuranceDeduction;
   private Double calculatedPersonalDeduction;
   private Double calculatedPersonalDependentDeduction;
+  private Double totalGrossSalary;
   private Double totalDeductions;
 
   private Double totalTaxAmount;
