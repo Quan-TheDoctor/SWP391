@@ -186,17 +186,19 @@ create table audit_logs
     created_at  TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
 
-CREATE TABLE requests
-(
-    request_id      serial primary key,
-    user_id    INTEGER REFERENCES users (user_id),
-    request_type    text,
-    request_id_list json,
-    note text,
+CREATE TABLE requests (
+    request_id      SERIAL PRIMARY KEY,
+    user_id         INTEGER REFERENCES users (user_id),
+    request_type    TEXT,
+    reason          TEXT,
+    request_id_list JSON,
     approval_id     INTEGER REFERENCES users (user_id),
-    status          text,
-    is_process      bool      default false,
-    created_at      TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+    status          TEXT,
+    is_process      BOOLEAN DEFAULT FALSE,
+    created_at      TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    start_date      DATE,
+    end_date        DATE,
+    total_days      INTEGER
 );
 
 create table financial_policies

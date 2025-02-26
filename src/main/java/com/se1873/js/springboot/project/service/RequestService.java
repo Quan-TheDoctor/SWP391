@@ -2,6 +2,7 @@ package com.se1873.js.springboot.project.service;
 
 import com.se1873.js.springboot.project.dto.RequestDTO;
 import com.se1873.js.springboot.project.entity.Request;
+import com.se1873.js.springboot.project.entity.User;
 import com.se1873.js.springboot.project.repository.RequestRepository;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
@@ -19,6 +20,7 @@ import org.springframework.data.domain.PageRequest;
 
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
+import java.time.LocalDateTime;
 import java.util.List;
 import java.util.stream.Collectors;
 import java.time.LocalDate;
@@ -53,10 +55,26 @@ public class RequestService {
         return requestRepository.findRequestTypes();
     }
 
+    public void save(RequestDTO requestDTO, User user){
+        Request request = new Request();
+        request.setRequestId(requestDTO.getRequestId());
+        request.setReason(requestDTO.getReason());
+        request.setStartDate(requestDTO.getStartDate());
+        request.setEndDate(requestDTO.getEndDate());
+        request.setNote(requestDTO.getNote());
+        request.setTotalDays(requestDTO.getTotalDays());
+        request.setStatus("pending");
+        request.setCreatedAt(LocalDateTime.now());
+        request.setUser(user);
+
+
+
+        requestRepository.save(request);
+    }
+
 
     private RequestDTO convertRequestToDTO(Request request) {
         return RequestDTO.builder()
-          .requestId(request.getRequestId())
           .requestType(request.getRequestType())
           .requesterId(request.getUser().getUserId())
           .requestDate(request.getCreatedAt().toLocalDate())
