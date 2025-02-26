@@ -1,5 +1,9 @@
 package com.se1873.js.springboot.project.controller;
 
+import com.se1873.js.springboot.project.dto.RequestDTO;
+import com.se1873.js.springboot.project.entity.Request;
+import com.se1873.js.springboot.project.entity.User;
+import com.se1873.js.springboot.project.repository.UserRepository;
 import com.se1873.js.springboot.project.service.RequestService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -9,8 +13,12 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
+import org.springframework.validation.BindingResult;
+import org.springframework.web.bind.annotation.ModelAttribute;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 
@@ -23,6 +31,7 @@ import java.util.stream.Collectors;
 @RequestMapping("/request")
 public class RequestController {
   private final RequestService requestService;
+  private final UserRepository userRepository;
 
   private Integer totalRequests = 0;
   private Integer totalPendingRequests = 0;
@@ -130,5 +139,20 @@ public class RequestController {
             .header(HttpHeaders.CONTENT_DISPOSITION, "attachment; filename=requests.xlsx")
             .contentType(MediaType.APPLICATION_OCTET_STREAM)
             .body(file);
+  }
+  @RequestMapping("/save")
+  public String save(@ModelAttribute("requestDTO")RequestDTO requestDTO,
+                     BindingResult result){
+
+    if(result.hasErrors()){
+      return "redirect:/user/detail";
+    }
+    Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+    String name = authentication.getName();
+    User user = userRepository.findUserByUsername(name)
+            .orElseThrow(() -> new RuntimeException("Không tìm thấy người dùng"));
+
+    requestService.save(requestDTO,user);
+    return "redirect:/user/detail?success=true";
   }
 }

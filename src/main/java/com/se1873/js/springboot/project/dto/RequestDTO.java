@@ -16,11 +16,21 @@ public class RequestDTO {
   private Integer requestId;
   private Integer requesterId;
   private String requesterName;
-  private String requestType;
-  private String requestContent;
+  private String reason;
+
   @DateTimeFormat(pattern = "yyyy-MM-dd")
   private LocalDate requestDate;
-  private String requestStatus;
 
+  @DateTimeFormat(pattern = "yyyy-MM-dd")
+  private LocalDate startDate;
+
+  @DateTimeFormat(pattern = "yyyy-MM-dd")
+  private LocalDate endDate;
+
+  private Integer totalDays;
+
+  private String requestStatus;
+  private String note;
   private String approvalName;
+  private String requestType;
 }

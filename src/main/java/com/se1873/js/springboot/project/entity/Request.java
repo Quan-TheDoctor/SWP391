@@ -5,7 +5,7 @@ import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
-
+import java.time.LocalDate;
 import java.time.LocalDateTime;
 
 @Entity
@@ -23,14 +23,17 @@ public class Request {
   @Column(name = "request_type")
   private String requestType;
 
-  @ManyToOne(cascade = CascadeType.ALL)
+  @Column(name = "reason")
+  private String reason;
+
+  @ManyToOne
   @JoinColumn(name = "user_id")
   private User user;
 
   @Column(name = "status")
   private String status;
 
-  @ManyToOne(cascade = CascadeType.ALL)
+  @ManyToOne
   @JoinColumn(name = "approval_id")
   private User approval;
 
@@ -42,6 +45,15 @@ public class Request {
 
   @Column(name = "created_at")
   private LocalDateTime createdAt;
+
+  @Column(name = "start_date")
+  private LocalDate startDate;
+
+  @Column(name = "end_date")
+  private LocalDate endDate;
+
+  @Column(name = "total_days")
+  private Integer totalDays;
 
   @Column(name = "note")
   private String note;

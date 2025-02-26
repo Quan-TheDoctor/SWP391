@@ -1,6 +1,7 @@
 package com.se1873.js.springboot.project.controller;
 
 import com.se1873.js.springboot.project.dto.EmployeeDTO;
+import com.se1873.js.springboot.project.dto.RequestDTO;
 import com.se1873.js.springboot.project.entity.User;
 import com.se1873.js.springboot.project.service.EmployeeService;
 import com.se1873.js.springboot.project.repository.UserRepository;
@@ -33,5 +34,12 @@ public class UserController {
             EmployeeDTO employee = employeeService.getEmployeeByEmployeeId(employeeId);
             model.addAttribute("employeeDTO", employee);
         return "user";
+    }
+
+    @RequestMapping("/request/create")
+    public String requestCreateForm(Model model) {
+
+        model.addAttribute("requestDTO", new RequestDTO());
+        return "user-request-create";
     }
 }
