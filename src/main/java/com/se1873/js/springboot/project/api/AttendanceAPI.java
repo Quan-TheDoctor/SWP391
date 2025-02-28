@@ -1,7 +1,6 @@
 package com.se1873.js.springboot.project.api;
 
 import com.se1873.js.springboot.project.dto.AttendanceDTO;
-import com.se1873.js.springboot.project.entity.Position;
 import com.se1873.js.springboot.project.service.AttendanceService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -11,8 +10,6 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 import java.time.LocalDate;
-import java.util.List;
-
 @RestController
 @Slf4j
 @RequiredArgsConstructor
@@ -24,6 +21,7 @@ public class AttendanceAPI {
   @RequestMapping("/attendancesByEmployeeId")
   public ResponseEntity<AttendanceDTO> getAttendancesByEmployeeId(@RequestParam("employeeId") Integer employeeId) {
     AttendanceDTO attendances = attendanceService.getAttendanceByEmployeeIdAndDate(employeeId, LocalDate.now());
+
     log.info(attendances.toString());
     return ResponseEntity.ok(attendances);
   }

@@ -193,11 +193,8 @@ public class EmployeeService {
   private EmployeeDTO convertEmployeeToDTO(Employee employee) {
     EmploymentHistory employmentHistory =
       employmentHistoryRepository.findEmploymentHistoryByEmployee_EmployeeIdAndIsCurrent(employee.getEmployeeId(), true);
-    Department department = departmentRepository.findDepartmentByDepartmentId(employmentHistory.getDepartment().getDepartmentId());
-    Position position = positionRepository.findPositionByPositionId(employmentHistory.getPosition().getPositionId());
-    Contract contract = contractRepository.findContractByEmployee_EmployeeIdAndPresent(employee.getEmployeeId(), true);
 
-    return EmployeeDTO.builder()
+    EmployeeDTO.EmployeeDTOBuilder dtoBuilder = EmployeeDTO.builder()
       .employeeId(employee.getEmployeeId())
       .employeeCode(employee.getEmployeeCode())
       .employeeFirstName(employee.getFirstName())
@@ -213,27 +210,40 @@ public class EmployeeService {
       .employeeMaritalStatus(employee.getMaritalStatus())
       .employeeBankAccount(employee.getBankAccount())
       .employeeBankName(employee.getBankName())
-      .employeeTaxCode(employee.getTaxCode())
+      .employeeTaxCode(employee.getTaxCode());
 
-      .departmentId(department.getDepartmentId())
-      .departmentName(department.getDepartmentName())
+    if (employmentHistory != null) {
+      Department department = departmentRepository.findDepartmentByDepartmentId(
+        employmentHistory.getDepartment().getDepartmentId());
+      Position position = positionRepository.findPositionByPositionId(
+        employmentHistory.getPosition().getPositionId());
 
-      .positionId(position.getPositionId())
-      .positionName(position.getPositionName())
+      dtoBuilder
+        .departmentId(department.getDepartmentId())
+        .departmentName(department.getDepartmentName())
+        .positionId(position.getPositionId())
+        .positionName(position.getPositionName())
+        .employmentHistoryId(employmentHistory.getHistoryId())
+        .employmentHistoryStartDate(employmentHistory.getStartDate())
+        .employmentHistoryEndDate(employmentHistory.getEndDate())
+        .employmentHistoryIsCurrent(employmentHistory.getIsCurrent());
+    }
 
-      .employmentHistoryId(employmentHistory.getHistoryId())
-      .employmentHistoryStartDate(employmentHistory.getStartDate())
-      .employmentHistoryEndDate(employmentHistory.getEndDate())
-      .employmentHistoryIsCurrent(employmentHistory.getIsCurrent())
+    Contract contract = contractRepository.findContractByEmployee_EmployeeIdAndPresent(
+      employee.getEmployeeId(), true);
 
-      .contractId(contract.getContractId())
-      .contractType(contract.getContractType())
-      .contractCode(contract.getContractCode())
-      .contractStartDate(contract.getStartDate())
-      .contractEndDate(contract.getEndDate())
-      .contractBaseSalary(contract.getBaseSalary())
-      .contractSignDate(contract.getSignDate())
-      .build();
+    if (contract != null) {
+      dtoBuilder
+        .contractId(contract.getContractId())
+        .contractType(contract.getContractType())
+        .contractCode(contract.getContractCode())
+        .contractStartDate(contract.getStartDate())
+        .contractEndDate(contract.getEndDate())
+        .contractBaseSalary(contract.getBaseSalary())
+        .contractSignDate(contract.getSignDate());
+    }
+
+    return dtoBuilder.build();
   }
   public Resource exportToExcel(String departmentFilter, String positionFilter) {
     Pageable pageable = PageRequest.of(0, 1000);

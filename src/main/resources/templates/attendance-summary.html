@@ -2,180 +2,208 @@
 <html lang="en" xmlns:th="http://www.thymeleaf.org">
 <head>
     <meta charset="UTF-8">
-    <title>Attendance & Payroll System</title>
+    <title>Payroll Management System</title>
     <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://unpkg.com/@material-icons/iconfont/material-icons.css" rel="stylesheet">
     <style>
-        .calendar-day {
-            width: 1.8rem;
-            height: 1.8rem;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            border-radius: 0.25rem;
-            font-size: 0.875rem;
+        .employee-item:hover .select-checkbox {
+            opacity: 1;
         }
 
-        .calendar-day.work { background-color: #34D399; color: white; }
-        .calendar-day.late { background-color: #FBBF24; color: white; }
-        .calendar-day.absent { background-color: #EF4444; color: white; }
+        .metric-card {
+            transition: transform 0.2s;
+        }
 
-        .employee-card.selected {
-            background-color: #f0f9ff;
-            border-color: #7dd3fc;
+        .metric-card:hover {
+            transform: translateY(-2px);
         }
     </style>
 </head>
-<body class="bg-gray-100 min-h-screen p-6">
-<div class="max-w-7xl mx-auto space-y-6">
-
-    <!-- Header Section -->
-    <div class="flex justify-between items-center">
-        <h1 class="text-2xl font-bold text-gray-800">Attendance & Payroll System</h1>
-        <div class="flex gap-2">
-            <button class="px-4 py-2 bg-green-600 text-white rounded-md hover:bg-green-700" onclick="calculatePayroll()">
-                Generate Payroll
+<body class="bg-gray-50 min-h-screen">
+<div class="max-w-7xl mx-auto p-6 space-y-6">
+    <!-- Header -->
+    <div class="flex items-center justify-between">
+        <div>
+            <h1 class="text-2xl font-bold text-gray-800">Payroll Management</h1>
+            <p class="text-gray-500 text-sm">Month: October 2023</p>
+        </div>
+        <div class="flex gap-3">
+            <button class="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 flex items-center gap-2">
+                <span class="material-icons text-sm">calculate</span>
+                Calculate Payroll
             </button>
-            <button class="px-4 py-2 bg-purple-600 text-white rounded-md hover:bg-purple-700" onclick="exportData()">
+            <button class="px-4 py-2 border border-gray-300 rounded-lg hover:bg-gray-50 flex items-center gap-2">
+                <span class="material-icons text-sm">download</span>
                 Export
             </button>
         </div>
     </div>
 
     <!-- Main Content -->
-    <div class="flex gap-4 h-[600px]">
-        <!-- Employee Selection Panel -->
-        <div class="w-1/3 bg-white rounded-lg shadow-sm p-4 flex flex-col">
-            <div class="mb-4 space-y-4">
-                <div>
-                    <label class="block text-sm font-medium text-gray-700 mb-2">Filter</label>
-                    <form th:action="@{/attendance/summary/filter}" class="flex gap-2">
-                        <input type="hidden" name="field" value="department">
-                        <select name="value" class="w-full p-2 border rounded-md" id="departmentFilter" onchange="this.form.submit()">
-                            <option th:each="d : ${departments}"
-                                    th:value="${d.getDepartmentName()}"
-                                    th:text="${d.getDepartmentName()}"
-                                    th:selected="${param.value != null && param.value[0] == d.getDepartmentName()}"></option>
-                        </select>
-                    </form>
+    <div class="flex gap-6 h-[calc(100vh-180px)]">
+        <!-- Employee List -->
+        <div class="w-96 bg-white rounded-xl shadow-sm p-4 flex flex-col">
+            <div class="mb-4">
+                <div class="flex items-center gap-2 mb-4">
+                    <span class="material-icons text-gray-400">search</span>
+                    <input type="text" placeholder="Search employees..."
+                           class="flex-1 p-2 text-sm border-b border-gray-200 focus:outline-none focus:border-blue-500">
                 </div>
-                <div class="flex-1 overflow-y-auto h-[400px]" id="employeeList">
-                    <div th:if="${employees}"
-                         th:each="e : ${employees}"
-                         th:id="${'employeeId-' + e.employeeId}"
-                         class="employee-card border p-3 rounded-md mb-2 cursor-pointer hover:bg-gray-50"
-                         onclick="toggleEmployee(this)">
-                        <div class="flex items-center justify-between">
-                            <div>
-                                <h3 class="font-medium" th:text="${T(java.lang.String).format('%s %s', e.getEmployeeFirstName(), e.getEmployeeLastName())}"></h3>
-                                <p class="text-sm text-gray-500" th:text="${T(java.lang.String).format('%s', e.getDepartmentName())}"></p>
-                            </div>
-                            <input type="checkbox" class="employee-checkbox" th:attr="id='emp-' + ${e.employeeId}">
+
+                <select class="w-full p-2 rounded-lg border border-gray-200 mb-4 text-sm"
+                        onchange="filterDepartment(this.value)">
+                    <option value="">All Departments</option>
+                    <option th:each="d : ${departments}"
+                            th:value="${d.departmentId}"
+                            th:text="${d.departmentName}"></option>
+                </select>
+            </div>
+
+            <div class="flex-1 overflow-y-auto space-y-2">
+                <div th:each="e : ${employees}"
+                     class="employee-item group p-3 rounded-lg hover:bg-blue-50 cursor-pointer transition-colors"
+                     onclick="selectEmployee(this, ${e.employeeId})">
+                    <div class="flex items-center justify-between">
+                        <div>
+                            <h3 class="text-sm font-medium text-gray-800"
+                                th:text="${e.firstName + ' ' + e.lastName}"></h3>
+                            <p class="text-xs text-gray-500" th:text="${e.departmentName}"></p>
                         </div>
+                        <span class="material-icons text-blue-600 text-opacity-0 select-checkbox">check_circle</span>
                     </div>
                 </div>
             </div>
         </div>
 
-        <!-- Calendar & Payroll Section -->
-        <div class="w-2/3 flex flex-col gap-4">
-            <!-- Calendar -->
-            <div class="bg-white rounded-lg shadow-sm p-4 flex-1">
-                <div class="flex items-center justify-between mb-4">
-                    <input type="month" id="monthPicker" class="p-2 border rounded-md"
-                           value="2023-10" onchange="loadAttendance()">
-                    <div class="flex gap-3 text-sm">
-                        <div class="flex items-center gap-1">
-                            <div class="w-3 h-3 bg-green-500 rounded-sm"></div>
-                            <span>Work</span>
+        <!-- Payroll Summary -->
+        <div class="flex-1 bg-white rounded-xl shadow-sm p-6">
+            <!-- Metrics Cards -->
+            <div class="grid grid-cols-4 gap-4 mb-6">
+                <div class="metric-card bg-blue-50 p-4 rounded-xl">
+                    <div class="flex items-center justify-between">
+                        <div>
+                            <p class="text-xs text-gray-500 mb-1">Selected Employees</p>
+                            <p class="text-xl font-bold" id="selectedCount">0</p>
                         </div>
-                        <div class="flex items-center gap-1">
-                            <div class="w-3 h-3 bg-yellow-500 rounded-sm"></div>
-                            <span>Late</span>
-                        </div>
-                        <div class="flex items-center gap-1">
-                            <div class="w-3 h-3 bg-red-500 rounded-sm"></div>
-                            <span>Absent</span>
-                        </div>
+                        <span class="material-icons text-blue-500">people</span>
                     </div>
                 </div>
-                <div class="grid grid-cols-7 gap-1 text-center">
-                    <div class="text-sm font-medium py-1">Sun</div>
-                    <div class="text-sm font-medium py-1">Mon</div>
-                    <div class="text-sm font-medium py-1">Tue</div>
-                    <div class="text-sm font-medium py-1">Wed</div>
-                    <div class="text-sm font-medium py-1">Thu</div>
-                    <div class="text-sm font-medium py-1">Fri</div>
-                    <div class="text-sm font-medium py-1">Sat</div>
-                    <div id="calendarDays" class="col-span-7 grid grid-cols-7 gap-1"></div>
+                <div class="metric-card bg-green-50 p-4 rounded-xl">
+                    <div class="flex items-center justify-between">
+                        <div>
+                            <p class="text-xs text-gray-500 mb-1">Total Work Days</p>
+                            <p class="text-xl font-bold" id="totalWorkDays">0</p>
+                        </div>
+                        <span class="material-icons text-green-500">work</span>
+                    </div>
+                </div>
+                <div class="metric-card bg-amber-50 p-4 rounded-xl">
+                    <div class="flex items-center justify-between">
+                        <div>
+                            <p class="text-xs text-gray-500 mb-1">Late Days</p>
+                            <p class="text-xl font-bold" id="totalLateDays">0</p>
+                        </div>
+                        <span class="material-icons text-amber-500">schedule</span>
+                    </div>
+                </div>
+                <div class="metric-card bg-red-50 p-4 rounded-xl">
+                    <div class="flex items-center justify-between">
+                        <div>
+                            <p class="text-xs text-gray-500 mb-1">Absent Days</p>
+                            <p class="text-xl font-bold" id="totalAbsentDays">0</p>
+                        </div>
+                        <span class="material-icons text-red-500">cancel</span>
+                    </div>
                 </div>
             </div>
 
-            <!-- Payroll Summary -->
-            <div class="bg-white rounded-lg shadow-sm p-4">
-                <h2 class="text-lg font-semibold mb-3">Payroll Summary</h2>
-                <div class="grid grid-cols-4 gap-4 text-sm" id="payrollSummary">
-                    <!-- Summary data will be populated here -->
-                </div>
+            <!-- Summary Table -->
+            <div class="border rounded-lg overflow-hidden">
+                <table class="w-full">
+                    <thead class="bg-gray-50">
+                    <tr>
+                        <th class="text-left text-sm font-medium text-gray-500 p-3">Employee</th>
+                        <th class="text-center text-sm font-medium text-gray-500 p-3">Worked</th>
+                        <th class="text-center text-sm font-medium text-gray-500 p-3">Late</th>
+                        <th class="text-center text-sm font-medium text-gray-500 p-3">Absent</th>
+                        <th class="text-center text-sm font-medium text-gray-500 p-3">Overtime</th>
+                        <th class="text-right text-sm font-medium text-gray-500 p-3">Total Pay</th>
+                    </tr>
+                    </thead>
+                    <tbody id="payrollTable" class="divide-y divide-gray-200">
+
+                    <tr class="hover:bg-gray-50" id="noDataRow">
+                        <td colspan="6" class="text-center text-gray-400 py-6">Select employees from the left panel</td>
+                    </tr>
+                    </tbody>
+                </table>
             </div>
         </div>
     </div>
 </div>
 
 <script>
-    // let selectedEmployees = new Set();
-    // let currentAttendanceData = {};
-    //
-    // // Initialize
-    // document.addEventListener('DOMContentLoaded', () => {
-    //     renderEmployeeList();
-    //     loadAttendance();
-    // });
-    //
+    const selectedEmployees = new Map();
 
-    async function toggleEmployee(selectedId) {
-        let employeeId = selectedId.id.split("-")[1];
-        const data = await fetch("/api/attendance/attendancesByEmployeeId?employeeId=" + employeeId)
-            .then(res => res.json())
-            .then((data) => {
-                return data;
-            });
+    function selectEmployee(element, employeeId) {
+        element.classList.toggle('bg-blue-50');
+        const checkbox = element.querySelector('.material-icons');
+        checkbox.classList.toggle('text-opacity-0');
+        checkbox.classList.toggle('text-opacity-100');
 
-        console.log(data);
-    }
-
-    // Load Attendance Data
-    async function loadAttendance() {
-        const month = document.getElementById('monthPicker').value;
-        // Simulate API call
-        currentAttendanceData = data;
-        renderCalendar(data);
-        updatePayrollSummary();
-    }
-
-    function renderCalendar(data) {
-        const month = document.getElementById('monthPicker').value;
-        const date = new Date(month + '-01');
-        const firstDay = date.getDay();
-        const daysInMonth = new Date(date.getFullYear(), date.getMonth() + 1, 0).getDate();
-
-        const calendarDays = document.getElementById('calendarDays');
-        calendarDays.innerHTML = '';
-
-        // Empty days
-        for(let i = 0; i < firstDay; i++) {
-            calendarDays.innerHTML += '<div class="calendar-day"></div>';
+        if (selectedEmployees.has(employeeId)) {
+            selectedEmployees.delete(employeeId);
+        } else {m
+            fetch(`/api/attendance/${employeeId}?month=2023-10`)
+                .then(res => res.json())
+                .then(data => {
+                    selectedEmployees.set(employeeId, data);
+                    updateSummaryTable();
+                    updateMetrics();
+                });
         }
+    }
 
-        // Fill days
-        for(let day = 1; day <= daysInMonth; day++) {
-            const dateStr = `${month}-${day.toString().padStart(2, '0')}`;
-            const status = data[dateStr]?.[Array.from(selectedEmployees)[0]] || 'work'; // Simplified for demo
-            calendarDays.innerHTML += `
-                <div class="calendar-day ${status}">
-                    ${day}
-                </div>
+    function updateSummaryTable() {
+        const tbody = document.getElementById('payrollTable');
+        tbody.innerHTML = '';
+
+        selectedEmployees.forEach((data, id) => {
+            const row = `
+                <tr class="hover:bg-gray-50">
+                    <td class="p-3 text-sm font-medium">${data.fullName}</td>
+                    <td class="p-3 text-center text-sm">${data.workedDays}</td>
+                    <td class="p-3 text-center text-sm">${data.lateDays}</td>
+                    <td class="p-3 text-center text-sm">${data.absentDays}</td>
+                    <td class="p-3 text-center text-sm">${data.overtimeHours}h</td>
+                    <td class="p-3 text-right text-sm font-medium">${formatCurrency(data.totalPay)}</td>
+                </tr>
             `;
-        }
+            tbody.insertAdjacentHTML('beforeend', row);
+        });
+
+        document.getElementById('noDataRow').style.display =
+            selectedEmployees.size ? 'none' : 'table-row';
+    }
+
+    function updateMetrics() {
+        document.getElementById('selectedCount').textContent = selectedEmployees.size;
+
+        let totalWork = 0, totalLate = 0, totalAbsent = 0;
+        selectedEmployees.forEach(data => {
+            totalWork += data.workedDays;
+            totalLate += data.lateDays;
+            totalAbsent += data.absentDays;
+        });
+
+        document.getElementById('totalWorkDays').textContent = totalWork;
+        document.getElementById('totalLateDays').textContent = totalLate;
+        document.getElementById('totalAbsentDays').textContent = totalAbsent;
+    }
+
+    function formatCurrency(amount) {
+        return new Intl.NumberFormat('vi-VN',
+            { style: 'currency', currency: 'VND' }).format(amount);
     }
 </script>
 </body>

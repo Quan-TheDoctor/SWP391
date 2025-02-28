@@ -105,22 +105,34 @@
                 <!-- Work Data and Bank -->
                 <div class="tab-content p-4 hidden" id="work">
                     <h2 class="text-xl font-bold mb-4">Work Data</h2>
-                    <label>Employee ID:</label><input class="border p-2 w-full" th:field="*{employeeCode}">
+                    <label>Employee ID:</label>
+                    <input class="border p-2 w-full bg-gray-100"
+                           th:field="*{employeeCode}"
+                           readonly>
                     <div class="flex gap-4">
                         <div class="w-1/2">
                             <input type="hidden" th:field="*{positionId}"/>
-                            <label>Position:</label><input class="border p-2 w-full"
-                                                           th:field="*{positionName}">
+                            <label>Position:</label>
+                            <input class="border p-2 w-full bg-gray-100"
+                                   th:field="*{positionName}"
+                                   readonly>
                         </div>
                         <input type="hidden" th:field="*{departmentId}"/>
                         <div class="w-1/2">
-                            <label>Department:</label><input class="border p-2 w-full"
-                                                             th:field="*{departmentName}">
+                            <label>Department:</label>
+                            <input class="border p-2 w-full bg-gray-100"
+                                   th:field="*{departmentName}"
+                                   readonly>
                         </div>
                     </div>
-                    <label>Company E-mail:</label><input class="border p-2 w-full" th:field="*{employeeCompanyEmail}">
-                    <label>Work Start Date</label><input class="border p-2 w-full"
-                                                         th:field="*{employmentHistoryStartDate}">
+                    <label>Company E-mail:</label>
+                    <input class="border p-2 w-full bg-gray-100"
+                           th:field="*{employeeCompanyEmail}"
+                           readonly>
+                    <label>Work Start Date</label>
+                    <input class="border p-2 w-full bg-gray-100"
+                           th:field="*{employmentHistoryStartDate}"
+                           readonly>
 
                     <h2 class="text-xl font-bold mt-6 mb-4">Bank Information</h2>
                     <label>Bank Name:</label><input class="border p-2 w-full" th:field="*{employeeBankName}">
@@ -131,12 +143,18 @@
                 <!-- Contract -->
                 <div class="tab-content p-4 hidden" id="contract">
                     <h2 class="text-xl font-bold mb-4">Contract Information</h2>
-                    <label>Contract No:</label><input class="border p-2 w-full" th:field="*{contractCode}">
-                    <label>Contract Type:</label><input class="border p-2 w-full" th:field="*{contractType}">
-                    <label>Start Date:</label><input class="border p-2 w-full" th:field="*{contractStartDate}">
-                    <label>End Date:</label><input class="border p-2 w-full" th:field="*{contractEndDate}">
-                    <label>Base Salary:</label><input class="border p-2 w-full" th:field="*{contractBaseSalary}">
-                    <label>Sign Date:</label><input class="border p-2 w-full" th:field="*{contractSignDate}">
+                    <label>Contract No:</label>
+                    <input class="border p-2 w-full bg-gray-100" th:field="*{contractCode}" readonly>
+                    <label>Contract Type:</label>
+                    <input class="border p-2 w-full bg-gray-100" th:field="*{contractType}" readonly>
+                    <label>Start Date:</label>
+                    <input class="border p-2 w-full bg-gray-100" th:field="*{contractStartDate}" readonly>
+                    <label>End Date:</label>
+                    <input class="border p-2 w-full bg-gray-100" th:field="*{contractEndDate}" readonly>
+                    <label>Base Salary:</label>
+                    <input class="border p-2 w-full bg-gray-100" th:field="*{contractBaseSalary}" readonly>
+                    <label>Sign Date:</label>
+                    <input class="border p-2 w-full bg-gray-100" th:field="*{contractSignDate}" readonly>
                 </div>
 
                 <!-- Payroll -->
