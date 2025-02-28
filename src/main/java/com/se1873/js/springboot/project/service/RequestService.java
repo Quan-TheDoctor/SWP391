@@ -1,8 +1,12 @@
 package com.se1873.js.springboot.project.service;
 
+import com.se1873.js.springboot.project.dto.LeaveDTO;
 import com.se1873.js.springboot.project.dto.RequestDTO;
+import com.se1873.js.springboot.project.entity.Employee;
+import com.se1873.js.springboot.project.entity.Leave;
 import com.se1873.js.springboot.project.entity.Request;
 import com.se1873.js.springboot.project.entity.User;
+import com.se1873.js.springboot.project.repository.LeaveRepository;
 import com.se1873.js.springboot.project.repository.RequestRepository;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
@@ -33,6 +37,7 @@ import java.util.List;
 public class RequestService {
 
     private final RequestRepository requestRepository;
+    private final LeaveRepository leaveRepository;
 
     public Page<RequestDTO> getRequests(Pageable pageable) {
         return requestRepository.findAll(pageable).map(this::convertRequestToDTO);
@@ -55,14 +60,27 @@ public class RequestService {
         return requestRepository.findRequestTypes();
     }
 
-    public void save(RequestDTO requestDTO, User user){
+    public void save(RequestDTO requestDTO, User user, Employee employee){
         Request request = new Request();
-        request.setRequestId(requestDTO.getRequestId());
-        request.setReason(requestDTO.getReason());
-        request.setStartDate(requestDTO.getStartDate());
-        request.setEndDate(requestDTO.getEndDate());
+        Leave leave = new Leave();
+        leave.setLeaveType("đơn xin nghỉ");
+        leave.setStartDate(requestDTO.getLeaveDTO().getStartDate());
+        leave.setEndDate(requestDTO.getLeaveDTO().getEndDate());
+        leave.setTotalDays(requestDTO.getLeaveDTO().getTotalDays());
+        leave.setStatus("pending");
+        leave.setReason(requestDTO.getLeaveDTO().getReason());
+        leave.setCreatedAt(LocalDateTime.now());
+        leave.setEmployee(employee);
+        leaveRepository.save(leave);
+        Integer leaveId = leave.getLeaveId();
+
+        request.setRequestIdList(String.valueOf(leaveId));
+        request.setReason(requestDTO.getLeaveDTO().getReason());
+        request.setStartDate(requestDTO.getLeaveDTO().getStartDate());
+        request.setEndDate(requestDTO.getLeaveDTO().getEndDate());
         request.setNote(requestDTO.getNote());
-        request.setTotalDays(requestDTO.getTotalDays());
+        request.setTotalDays(requestDTO.getLeaveDTO().getTotalDays());
+        request.setRequestType("phiếu xin nghỉ");
         request.setStatus("pending");
         request.setCreatedAt(LocalDateTime.now());
         request.setUser(user);

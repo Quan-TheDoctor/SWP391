@@ -33,7 +33,7 @@ public class Leave {
   private LocalDate endDate;
 
   @Column(name = "total_days", nullable = false)
-  private Double totalDays;
+  private Integer totalDays;
 
   @Column(name = "status", nullable = false)
   private String status;

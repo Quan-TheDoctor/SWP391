@@ -120,7 +120,7 @@ CREATE TABLE leaves
     leave_type  VARCHAR(50)   NOT NULL,
     start_date  DATE          NOT NULL,
     end_date    DATE          NOT NULL,
-    total_days  DECIMAL(4, 1) NOT NULL,
+    total_days  INTEGER NOT NULL,
     status      VARCHAR(20)   NOT NULL,
     reason      TEXT,
     approved_by INTEGER REFERENCES employees (employee_id),

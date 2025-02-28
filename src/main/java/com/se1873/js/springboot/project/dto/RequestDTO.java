@@ -33,4 +33,5 @@ public class RequestDTO {
   private String note;
   private String approvalName;
   private String requestType;
+  private LeaveDTO leaveDTO;
 }
