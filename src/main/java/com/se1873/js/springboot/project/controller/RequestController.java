@@ -1,8 +1,10 @@
 package com.se1873.js.springboot.project.controller;
 
 import com.se1873.js.springboot.project.dto.RequestDTO;
+import com.se1873.js.springboot.project.entity.Employee;
 import com.se1873.js.springboot.project.entity.Request;
 import com.se1873.js.springboot.project.entity.User;
+import com.se1873.js.springboot.project.repository.EmployeeRepository;
 import com.se1873.js.springboot.project.repository.UserRepository;
 import com.se1873.js.springboot.project.service.RequestService;
 import lombok.RequiredArgsConstructor;
@@ -32,6 +34,7 @@ import java.util.stream.Collectors;
 public class RequestController {
   private final RequestService requestService;
   private final UserRepository userRepository;
+  private final EmployeeRepository employeeRepository;
 
   private Integer totalRequests = 0;
   private Integer totalPendingRequests = 0;
@@ -151,8 +154,11 @@ public class RequestController {
     String name = authentication.getName();
     User user = userRepository.findUserByUsername(name)
             .orElseThrow(() -> new RuntimeException("Không tìm thấy người dùng"));
+    int id = user.getEmployee().getEmployeeId();
+    Employee employee = employeeRepository.getEmployeeByEmployeeId(id);
 
-    requestService.save(requestDTO,user);
+
+    requestService.save(requestDTO,user,employee);
     return "redirect:/user/detail?success=true";
   }
 }
