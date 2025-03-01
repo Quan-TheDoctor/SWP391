@@ -20,6 +20,9 @@ public class Request {
   @Column(name = "request_id")
   private Integer requestId;
 
+  @Column(name = "requester_id")
+  private Integer requesterId;
+
   @Column(name = "request_type")
   private String requestType;
 

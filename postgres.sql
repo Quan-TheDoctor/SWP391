@@ -188,6 +188,7 @@ create table audit_logs
 
 CREATE TABLE requests (
     request_id      SERIAL PRIMARY KEY,
+    requester_id    INTEGER,
     user_id         INTEGER REFERENCES users (user_id),
     request_type    TEXT,
     reason          TEXT,

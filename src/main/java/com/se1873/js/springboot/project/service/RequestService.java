@@ -27,8 +27,6 @@ import java.io.IOException;
 import java.time.LocalDateTime;
 import java.util.List;
 import java.util.stream.Collectors;
-import java.time.LocalDate;
-import java.util.List;
 
 @Service
 @Slf4j
@@ -61,6 +59,10 @@ public class RequestService {
     }
 
     public void save(RequestDTO requestDTO, User user, Employee employee){
+        if(user == null){
+            throw new RuntimeException("user ko tồn tại");
+        }
+
         Request request = new Request();
         Leave leave = new Leave();
         leave.setLeaveType("đơn xin nghỉ");
@@ -75,6 +77,7 @@ public class RequestService {
         Integer leaveId = leave.getLeaveId();
 
         request.setRequestIdList(String.valueOf(leaveId));
+        request.setRequesterId(user.getUserId());
         request.setReason(requestDTO.getLeaveDTO().getReason());
         request.setStartDate(requestDTO.getLeaveDTO().getStartDate());
         request.setEndDate(requestDTO.getLeaveDTO().getEndDate());
@@ -90,17 +93,41 @@ public class RequestService {
         requestRepository.save(request);
     }
 
+    public RequestDTO findRequestByRequestId(Integer requestId){
+        return convertRequestToDTO(requestRepository.findRequestByRequestId(requestId));
+    }
+
+    public void updateStatus(RequestDTO requestDTO){
+        Request request = requestRepository.findRequestByRequestId(requestDTO.getRequestId());
+        request.setStatus(requestDTO.getRequestStatus());
+        requestRepository.save(request);
+    }
+
 
     private RequestDTO convertRequestToDTO(Request request) {
+        if (request == null) {
+            return null;
+        }
+
+        LeaveDTO leaveDTO = LeaveDTO.builder()
+                .reason(request.getReason())
+                .startDate(request.getStartDate())
+                .endDate(request.getEndDate())
+                .totalDays(request.getTotalDays())
+                .build();
+
         return RequestDTO.builder()
-          .requestType(request.getRequestType())
-          .requesterId(request.getUser().getUserId())
-          .requestDate(request.getCreatedAt().toLocalDate())
-          .requestStatus(request.getStatus())
-          .requesterName(request.getUser().getUsername())
-          .approvalName(request.getApproval().getUsername())
-          .build();
+                .requestId(request.getRequestId())
+                .requestType(request.getRequestType())
+                .requesterId(request.getUser() != null ? request.getUser().getUserId() : null)
+                .requesterName(request.getUser() != null ? request.getUser().getUsername() : null)
+                .requestDate(request.getCreatedAt() != null ? request.getCreatedAt().toLocalDate() : null)
+                .requestStatus(request.getStatus())
+                .note(request.getNote())
+                .leaveDTO(leaveDTO) // Gán LeaveDTO vào RequestDTO
+                .build();
     }
+
     public Page<RequestDTO> searchRequests(String query, Pageable pageable) {
         String requesterName = query;
 
