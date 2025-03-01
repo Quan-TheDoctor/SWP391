@@ -2,6 +2,8 @@ package com.se1873.js.springboot.project.repository;
 
 import com.se1873.js.springboot.project.dto.AttendanceDTO;
 import com.se1873.js.springboot.project.entity.Attendance;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Repository;
 
@@ -18,4 +20,5 @@ public interface AttendanceRepository extends JpaRepository<Attendance, Long> {
   Attendance getAttendanceByDateAndEmployee_EmployeeId(LocalDate date, Integer employeeEmployeeId);
 
   Attendance getAttendanceByAttendanceId(Integer attendanceId);
+  Page<Attendance> getAttendanceByEmployee_EmployeeId(Integer employeeId, Pageable pageable);
 }
