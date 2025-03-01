@@ -76,6 +76,13 @@ public class AttendanceService {
       total
     );
   }
+  public Page<AttendanceDTO> getAttendanceByEmployeeId(Integer employeeId,Pageable pageale){
+    Page<Attendance> attendances = attendanceRepository.getAttendanceByEmployee_EmployeeId(employeeId,pageale);
+    return attendances.map(attendance -> {
+      Employee employee = attendance.getEmployee();
+      return convertAttendanceDTO(attendance,employee);
+    });
+  }
 
   public AttendanceDTO getAttendanceByEmployeeIdAndDate(Integer employeeId, LocalDate date) {
     Employee employee = Optional.ofNullable(employeeRepository.getEmployeeByEmployeeId(employeeId))

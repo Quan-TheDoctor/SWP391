@@ -1,11 +1,18 @@
 package com.se1873.js.springboot.project.controller;
 
+import com.se1873.js.springboot.project.dto.AttendanceDTO;
 import com.se1873.js.springboot.project.dto.EmployeeDTO;
+import com.se1873.js.springboot.project.dto.PayrollDTO;
 import com.se1873.js.springboot.project.dto.RequestDTO;
+import com.se1873.js.springboot.project.entity.Employee;
 import com.se1873.js.springboot.project.entity.User;
+import com.se1873.js.springboot.project.service.AttendanceService;
 import com.se1873.js.springboot.project.service.EmployeeService;
 import com.se1873.js.springboot.project.repository.UserRepository;
+import com.se1873.js.springboot.project.service.SalaryRecordService;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Controller;
@@ -24,6 +31,10 @@ public class UserController {
 
     @Autowired
     private UserRepository userRepository;
+    @Autowired
+    private AttendanceService attendanceService;
+    @Autowired
+    private SalaryRecordService salaryRecordService;
 
     @GetMapping("/detail")
     public String viewUserProfile(Model model) {
@@ -41,5 +52,28 @@ public class UserController {
 
         model.addAttribute("requestDTO", new RequestDTO());
         return "user-request-create";
+    }
+    @RequestMapping("/attendance")
+    public String attendance(Model model){
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+        String userName = authentication.getName();
+        Optional<User> user = userRepository.findUserByUsername(userName);
+        if(user.isPresent()){
+        Integer employeeId = user.get().getEmployee().getEmployeeId();
+        Page<AttendanceDTO> attendanceDTO = attendanceService.getAttendanceByEmployeeId(employeeId, PageRequest.of(0,5));
+        model.addAttribute("attendanceDTO",attendanceDTO);
+        }
+        return "user-attendance";
+    }
+
+    @RequestMapping("/payroll")
+    public String payroll(Model model){
+        Authentication authencation = SecurityContextHolder.getContext().getAuthentication();
+        String userName = authencation.getName();
+        Optional<User> user = userRepository.findUserByUsername(userName);
+        Integer employeeId = user.get().getEmployee().getEmployeeId();
+        Page<PayrollDTO> payrollDTO = salaryRecordService.getPayrollByEmployeeId(employeeId,PageRequest.of(0,5));
+        model.addAttribute("payrollDTO",payrollDTO);
+        return "user-payroll";
     }
 }
