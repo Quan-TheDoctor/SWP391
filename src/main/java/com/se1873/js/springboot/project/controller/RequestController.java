@@ -13,6 +13,7 @@ import org.springframework.core.io.Resource;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.http.HttpHeaders;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.Authentication;
@@ -20,9 +21,8 @@ import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.validation.BindingResult;
-import org.springframework.web.bind.annotation.ModelAttribute;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.bind.annotation.*;
+import org.springframework.web.server.ResponseStatusException;
 
 import java.util.*;
 import java.util.stream.Collectors;
@@ -40,19 +40,19 @@ public class RequestController {
   private Integer totalPendingRequests = 0;
   private Integer totalFinishedRequests = 0;
   private Set<String> requestTypes = new HashSet<>();
+
   @RequestMapping
   public String request(Model model) {
     var requests = requestService.getRequests(PageRequest.of(0, 10));
     totalRequests = 0;
     totalPendingRequests = 0;
     totalFinishedRequests = 0;
-    for(var request : requests) {
+    for (var request : requests) {
       totalRequests++;
-      if(request.getRequestStatus().equals("pending")) totalPendingRequests++;
+      if (request.getRequestStatus().equals("pending")) totalPendingRequests++;
       else totalFinishedRequests++;
       requestTypes.add(request.getRequestType());
     }
-
 
 
     model.addAttribute("totalRequests", totalRequests);
@@ -71,9 +71,9 @@ public class RequestController {
     totalRequests = 0;
     totalPendingRequests = 0;
     totalFinishedRequests = 0;
-    for(var request : requests) {
+    for (var request : requests) {
       totalRequests++;
-      if(request.getRequestStatus().equals("pending")) totalPendingRequests++;
+      if (request.getRequestStatus().equals("pending")) totalPendingRequests++;
       else totalFinishedRequests++;
       requestTypes.add(request.getRequestType());
     }
@@ -86,6 +86,7 @@ public class RequestController {
     model.addAttribute("requestTypes", requestTypes);
     return "request";
   }
+
   @RequestMapping("/search")
   public String search(Model model,
                        @RequestParam("query") String query,
@@ -109,6 +110,7 @@ public class RequestController {
 
     return "request";
   }
+
   @RequestMapping("/export/view")
   public String exportView(Model model,
                            @RequestParam(value = "status", required = false, defaultValue = "all") String status,
@@ -143,11 +145,12 @@ public class RequestController {
             .contentType(MediaType.APPLICATION_OCTET_STREAM)
             .body(file);
   }
-  @RequestMapping("/save")
-  public String save(@ModelAttribute("requestDTO")RequestDTO requestDTO,
-                     BindingResult result){
 
-    if(result.hasErrors()){
+  @RequestMapping("/save")
+  public String save(@ModelAttribute("requestDTO") RequestDTO requestDTO,
+                     BindingResult result) {
+
+    if (result.hasErrors()) {
       return "redirect:/user/detail";
     }
     Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
@@ -158,7 +161,54 @@ public class RequestController {
     Employee employee = employeeRepository.getEmployeeByEmployeeId(id);
 
 
-    requestService.save(requestDTO,user,employee);
+    requestService.save(requestDTO, user, employee);
     return "redirect:/user/detail?success=true";
+  }
+
+  @RequestMapping("/view")
+  public String view(Model model, @RequestParam("requestId") Integer requestId) {
+    RequestDTO requestDTO = requestService.findRequestByRequestId(requestId);
+    model.addAttribute("requestDTO", requestDTO);
+    return "request-view";
+  }
+
+  @RequestMapping("/status")
+  public String approveRequest(Model model,
+                               @RequestParam("requestId") Integer requestId,
+                               @RequestParam("field") String field){
+    RequestDTO requestDTO = requestService.findRequestByRequestId(requestId);
+    switch (field){
+      case "approve":
+        if("pending".equals(requestDTO.getRequestStatus())){
+          requestDTO.setRequestStatus("approve");
+          requestService.updateStatus(requestDTO);
+        }
+        break;
+      case "deny":
+        if("pending".equals(requestDTO.getRequestStatus())){
+          requestDTO.setRequestStatus("deny");
+          requestService.updateStatus(requestDTO);
+        }
+        break;
+    }
+
+    var requests = requestService.getRequests(PageRequest.of(0, 10));
+    totalRequests = 0;
+    totalPendingRequests = 0;
+    totalFinishedRequests = 0;
+    for (var request : requests) {
+      totalRequests++;
+      if (request.getRequestStatus().equals("pending")) totalPendingRequests++;
+      else totalFinishedRequests++;
+      requestTypes.add(request.getRequestType());
+    }
+
+
+    model.addAttribute("totalRequests", totalRequests);
+    model.addAttribute("totalPendingRequests", totalPendingRequests);
+    model.addAttribute("totalFinishedRequests", totalFinishedRequests);
+    model.addAttribute("requestDTO",requestDTO);
+    model.addAttribute("requests",requests);
+    return "request";
   }
 }

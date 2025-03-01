@@ -163,13 +163,13 @@
                     </td>
                     <td class="px-6 py-4">
                         <div class="flex gap-2">
-                            <a th:href="@{/request/view/{id}(id=${r.getRequestId()})}"
+                            <a th:href="@{/request/view(requestId=${r.requestId})}"
                                class="text-blue-600 hover:text-blue-800">View</a>
-                            <a th:if="${r.requestStatus == 'pending'}"
-                               th:href="@{/request/approve/{id}(id=${r.getRequestId()})}"
+                            <a th:if="${r.requestStatus eq 'pending'}"
+                               th:href="@{/request/status(field='approve',requestId=${r.requestId})}"
                                class="text-green-600 hover:text-green-800">Approve</a>
-                            <a th:if="${r.requestStatus == 'pending'}"
-                               th:href="@{/request/deny/{id}(id=${r.getRequestId()})}"
+                            <a th:if="${r.requestStatus eq 'pending'}"
+                               th:href="@{/request/status(field='deny',requestId=${r.requestId})}"
                                class="text-red-600 hover:text-red-800">Deny</a>
                         </div>
                     </td>
