@@ -42,6 +42,13 @@ public class SalaryRecordService {
 
     return new PageImpl<>(payrolls, pageable, salaryRecords.getTotalElements());
   }
+  public Page<PayrollDTO> getPayrollByEmployeeId(Integer employeeId,Pageable pageable){
+     Page<SalaryRecord> salaryRecords = salaryRecordRepository.getSalaryRecordsByEmployee_EmployeeId(employeeId,pageable);
+     return salaryRecords.map(salaryRecord -> {
+       Employee employee = salaryRecord.getEmployee();
+       return convertSalaryRecordToPayrollDTO(salaryRecord,employee);
+     });
+  }
 
 
   private PayrollDTO convertSalaryRecordToPayrollDTO(SalaryRecord salaryRecord, Employee employee) {
