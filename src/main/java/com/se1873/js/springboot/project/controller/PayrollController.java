@@ -7,6 +7,7 @@ import com.se1873.js.springboot.project.service.SalaryRecordService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.validation.BindingResult;
@@ -23,8 +24,11 @@ public class PayrollController {
   private final FinancialPolicyService financialPolicyService;
 
   @RequestMapping
-  public String payroll(Model model) {
-    var payrolls = salaryRecordService.getAll(PageRequest.of(0, 10));
+  public String payroll(Model model,
+                        @RequestParam(value = "page", defaultValue = "0") int page,
+                        @RequestParam(value = "size", defaultValue = "5") int size) {
+    Pageable pageable = PageRequest.of(page, size);
+    var payrolls = salaryRecordService.getAll(pageable);
     Double totalNetSalary = payrolls.getContent().stream().map(PayrollDTO::getSalaryRecordNetSalary).mapToDouble(Double::doubleValue).sum();
     Double unpaidSalary = payrolls.getContent().stream().filter(payrollDTO -> Boolean.parseBoolean(payrollDTO.getSalaryRecordPaymentStatus())).map(PayrollDTO::getSalaryRecordNetSalary).mapToDouble(Double::doubleValue).sum();
 
@@ -48,14 +52,14 @@ public class PayrollController {
                              @RequestParam(value = "service", required = false) String service,
                              @ModelAttribute("financialPolicyDTOList") FinancialPolicyDTOList financialPolicyDTOList,
                              BindingResult bindingResult) {
-    if("cancel".equals(service)) {
+    if ("cancel".equals(service)) {
       return "redirect:/payroll";
     }
 
-    if(bindingResult.hasErrors()) {
+    if (bindingResult.hasErrors()) {
       return "policies";
     }
-    if("save".equals(service)) {
+    if ("save".equals(service)) {
       financialPolicyService.saveAll(financialPolicyDTOList.getFinancialPolicies());
       model.addAttribute("message", "Update successfully");
     }

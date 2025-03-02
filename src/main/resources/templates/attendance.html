@@ -136,8 +136,37 @@
             <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <!-- Date Range Picker -->
                 <div class="space-y-2">
-                    <label class="block text-sm font-medium text-gray-700">Date Range</label>
-                    <input id="daterange" name="daterange" class="w-full p-2 border rounded-md cursor-pointer">
+                    <label class="block text-sm font-medium text-gray-700">Filter by Year/Month/Week</label>
+                    <div class="flex gap-2">
+                        <!-- Year Select -->
+                        <select id="yearSelect"
+                                class="w-full p-2 border rounded-md focus:ring-2 focus:ring-blue-500">
+                            <option value="">Year</option>
+                            <option th:each="year : ${#numbers.sequence(2020, 2030)}"
+                                    th:value="${year}"
+                                    th:text="${year}"></option>
+                        </select>
+
+                        <!-- Month Select -->
+                        <select id="monthSelect"
+                                class="w-full p-2 border rounded-md focus:ring-2 focus:ring-blue-500">
+                            <option value="">Month</option>
+                            <option th:each="month : ${#numbers.sequence(1, 12)}"
+                                    th:value="${month}"
+                                    th:text="${T(java.time.Month).of(month).toString()}"></option>
+                        </select>
+
+                        <!-- Week Select -->
+                        <select id="weekSelect"
+                                class="w-full p-2 border rounded-md focus:ring-2 focus:ring-blue-500">
+                            <option value="">Week</option>
+                            <option value="1">Week 1</option>
+                            <option value="2">Week 2</option>
+                            <option value="3">Week 3</option>
+                            <option value="4">Week 4</option>
+                            <option value="5">Week 5</option>
+                        </select>
+                    </div>
                 </div>
 
                 <!-- Status Filter -->
@@ -270,61 +299,64 @@
     </div>
 
     <script>
-        $(function () {
-            // Khởi tạo daterangepicker
+        document.addEventListener("DOMContentLoaded", function() {
+            const yearSelect = document.getElementById('yearSelect');
+            const monthSelect = document.getElementById('monthSelect');
+            const weekSelect = document.getElementById('weekSelect');
+
             const urlParams = new URLSearchParams(window.location.search);
-            const startDateParam = urlParams.get('startDate');
-            const endDateParam = urlParams.get('endDate');
+            const yearParam = urlParams.get('year');
+            const monthParam = urlParams.get('month');
+            const weekParam = urlParams.get('week');
 
-            let startDate = startDateParam ? moment(startDateParam) : moment().subtract(7, 'days');
-            let endDate = endDateParam ? moment(endDateParam) : moment();
+            if(yearParam) yearSelect.value = yearParam;
+            if(monthParam) monthSelect.value = monthParam;
+            if(weekParam) weekSelect.value = weekParam;
 
-            $('#daterange').daterangepicker({
-                opens: 'left',
-                startDate: startDate,
-                endDate: endDate,
-                locale: {
-                    format: 'YYYY-MM-DD'
-                },
-                ranges: {
-                    'Last 7 Days': [moment().subtract(6, 'days'), moment()],
-                    'This Month': [moment().startOf('month'), moment().endOf('month')],
-                    'Last Month': [moment().subtract(1, 'month').startOf('month'), moment().subtract(1, 'month').endOf('month')]
+            function updateFilter() {
+                const selectedYear = yearSelect.value;
+                const selectedMonth = monthSelect.value;
+                const selectedWeek = weekSelect.value;
+
+                if (selectedYear && selectedMonth && selectedWeek) {
+                    const [startDate, endDate] = getWeekDates(selectedYear, selectedMonth, selectedWeek);
+
+                    const url = new URL(window.location.href);
+                    url.searchParams.set('year', selectedYear);
+                    url.searchParams.set('month', selectedMonth);
+                    url.searchParams.set('week', selectedWeek);
+                    url.searchParams.set('startDate', startDate);
+                    url.searchParams.set('endDate', endDate);
+                    window.location.href = url.toString();
                 }
-            }, function (start, end) {
-                const url = new URL(window.location.href);
-                url.searchParams.set('startDate', start.format('YYYY-MM-DD'));
-                url.searchParams.set('endDate', end.format('YYYY-MM-DD'));
-                window.location.href = url.toString();
-            });
-
-            // Xử lý checkbox select all
-            document.getElementById('selectAll').addEventListener('change', function () {
-                const checkboxes = document.querySelectorAll('.checkboxes');
-                checkboxes.forEach(checkbox => checkbox.checked = this.checked);
-                updateSelectedItems();
-            });
-
-            // Xử lý khi checkbox thay đổi
-            document.querySelectorAll('.checkboxes').forEach(checkbox => {
-                checkbox.addEventListener('change', updateSelectedItems);
-            });
-
-            function updateSelectedItems() {
-                const selectedItems = [];
-                document.querySelectorAll('.checkboxes:checked').forEach(checkbox => {
-                    const row = checkbox.closest('tr');
-                    selectedItems.push({
-                        employeeId: checkbox.value,
-                        date: row.querySelector('.attendanceDates').textContent.trim(),
-                        checkIn: row.querySelector('.attendanceCheckIns').textContent.trim(),
-                        checkOut: row.querySelector('.attendanceCheckOuts').textContent.trim()
-                    });
-                });
-                console.log('Selected Items:', selectedItems);
             }
+
+            function getWeekDates(year, month, week) {
+                const firstDayOfMonth = new Date(year, month - 1, 1);
+                const firstDayOfWeek = firstDayOfMonth.getDay() || 7;
+
+                const startDate = new Date(year, month - 1, 1 + (week - 1) * 7 - (firstDayOfWeek - 1));
+
+                const endDate = new Date(startDate);
+                endDate.setDate(endDate.getDate() + 6);
+
+                const lastDayOfMonth = new Date(year, month, 0).getDate();
+                if(endDate.getDate() > lastDayOfMonth) {
+                    endDate.setDate(lastDayOfMonth);
+                }
+
+                return [
+                    startDate.toISOString().split('T')[0],
+                    endDate.toISOString().split('T')[0]
+                ];
+            }
+
+            yearSelect.addEventListener('change', updateFilter);
+            monthSelect.addEventListener('change', updateFilter);
+            weekSelect.addEventListener('change', updateFilter);
         });
     </script>
+</div>
 </body>
 </html>
 

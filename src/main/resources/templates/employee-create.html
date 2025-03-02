@@ -1,153 +1,310 @@
 <!DOCTYPE html>
-<html lang="en" xmlns:th="http://www.thymeleaf.org" xmlns:form="http://www.w3.org/1999/html">
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
 <head>
     <meta charset="UTF-8">
-    <title>Title</title>
+    <title>Create New Employee</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        html, body {
+            height: 100%;
+            margin: 0;
+        }
+    </style>
 </head>
-<body>
-    <form th:action="@{/employee/create/save}" method="post" th:object="${employeeDTO}">
-        <input type="hidden" th:field="*{employeeId}"/>
-        <input type="hidden" th:field="*{employmentHistoryId}"/>
-        <input type="hidden" th:field="*{contractId}"/>
-        <div>
-            <label>First name:</label>
-            <input type="text" th:field="*{employeeFirstName}">
-        </div>
-        <div>
-            <label>Last name:</label>
-            <input type="text" th:field="*{employeeLastName}">
-        </div>
-        <div>
-            <label>Birth date:</label>
-            <input type="date" th:field="*{employeeBirthDate}">
-        </div>
-        <div>
-            <label>Gender:</label>
-            <input type="text" th:field="*{employeeGender}">
-        </div>
-        <div>
-            <label>ID no:</label>
-            <input type="text" th:field="*{employeeIdNumber}">
-        </div>
-        <div>
-            <label>Permanent address:</label>
-            <input type="text" th:field="*{employeePermanentAddress}">
-        </div>
-        <div>
-            <label>Temporary address:</label>
-            <input type="text" th:field="*{employeeTemporaryAddress}">
-        </div>
-        <div>
-            <label>Personal Email:</label>
-            <input type="text" th:field="*{employeePersonalEmail}">
-        </div>
-        <div>
-            <label>Phone:</label>
-            <input type="text" th:field="*{employeePhone}">
-        </div>
-        <div>
-            <label>Marital status:</label>
-            <input type="text" th:field="*{employeeMaritalStatus}">
-        </div>
-        <div>
-            <label>Bank account:</label>
-            <input type="text" th:field="*{employeeBankAccount}">
-        </div>
-        <div>
-            <label>Bank name:</label>
-            <input type="text" th:field="*{employeeBankName}">
-        </div>
-        <div>
-            <label>Tax no:</label>
-            <input type="text" th:field="*{employeeTaxCode}">
-        </div>
-        <div>
-            <label>Employee no:</label>
-            <input type="text" th:field="*{employeeCode}">
-        </div>
-        <div>
-            <label>Company email:</label>
-            <input type="text" th:field="*{employeeCompanyEmail}">
-        </div>
-        <div>
-            <label>Department name:</label>
-            <select th:field="*{departmentId}" id="departmentSelect" onchange="loadPositions(this.value)">
-                <option value="">-- Chọn phòng ban --</option>
-                <option th:each="d : ${departments}"
-                        th:value="${d.getDepartmentId()}"
-                        th:text="${d.getDepartmentName()}" />
-            </select>
-        </div>
-        <div>
-            <label>Position name:</label>
-            <select th:field="*{positionId}" id="positionSelect">
-                <option value="">-- Chọn chức vụ --</option>
-            </select>
-        </div>
-        <div>
-            <label>From:</label>
-            <input type="date" th:field="*{employmentHistoryStartDate}">
-        </div>
-        <div>
-            <label>Contract code:</label>
-            <input type="text" th:field="*{contractCode}">
-        </div>
-        <div>
-            <label>Contract type:</label>
-            <input type="text" th:field="*{contractType}">
-        </div>
-        <div>
-            <label>From:</label>
-            <input type="date" th:field="*{contractStartDate}">
-        </div>
-        <div>
-            <label>To:</label>
-            <input type="date" th:field="*{contractEndDate}">
-        </div>
-        <div>
-            <label>Base salary:</label>
-            <input type="text" th:field="*{contractBaseSalary}">
-        </div>
-        <div>
-            <label>Sign date:</label>
-            <input type="date" th:field="*{contractSignDate}">
-        </div>
+<body class="bg-gray-100 min-h-screen flex flex-col">
+<div class="flex-grow p-8">
+    <div class="max-w-4xl mx-auto bg-white rounded-xl shadow-lg overflow-hidden h-full flex flex-col">
+        <form th:action="@{/employee/create/save}" method="post" th:object="${employeeDTO}" class="p-8 flex-grow flex flex-col">
+            <input type="hidden" th:field="*{employeeId}"/>
+            <input type="hidden" th:field="*{employmentHistoryId}"/>
+            <input type="hidden" th:field="*{contractId}"/>
 
-        <button type="submit">Submit</button>
-    </form>
-</body>
-</html>
+            <div class="flex justify-between items-center mb-8">
+                <div class="flex items-center gap-4">
+                    <a href="/employee" class="text-gray-600 hover:text-gray-900">
+                        <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 19l-7-7m0 0l7-7m-7 7h18"/>
+                        </svg>
+                    </a>
+                    <h2 class="text-2xl font-bold text-gray-800">Create New Employee</h2>
+                </div>
+                <button type="submit"
+                        class="px-6 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors">
+                    Create Employee
+                </button>
+            </div>
 
+            <div class="flex-grow overflow-y-auto pr-4">
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
+                    <div class="space-y-6">
+                        <h3 class="text-lg font-semibold text-blue-600 mb-4">Personal Information</h3>
+
+                        <div class="space-y-4">
+                            <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                <div>
+                                    <label class="block text-sm font-medium text-gray-700 mb-1">First Name</label>
+                                    <input id="first-name" type="text" th:field="*{employeeFirstName}"
+                                           class="w-full px-4 py-2 rounded-lg border border-gray-300 focus:ring-2 focus:ring-blue-500 focus:border-transparent">
+                                </div>
+
+                                <div>
+                                    <label class="block text-sm font-medium text-gray-700 mb-1">Last Name</label>
+                                    <input id="last-name" type="text" th:field="*{employeeLastName}"
+                                           class="w-full px-4 py-2 rounded-lg border border-gray-300 focus:ring-2 focus:ring-blue-500 focus:border-transparent">
+                                </div>
+                            </div>
+                            <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                <div>
+                                    <label class="block text-sm font-medium text-gray-700 mb-1">Birth Date</label>
+                                    <input type="date" th:field="*{employeeBirthDate}"
+                                           class="w-full px-4 py-2 rounded-lg border border-gray-300 focus:ring-2 focus:ring-blue-500 focus:border-transparent">
+                                </div>
+                                <div>
+                                    <label class="block text-sm font-medium text-gray-700 mb-1">Phone Number</label>
+                                    <input type="tel" th:field="*{employeePhone}"
+                                           class="w-full px-4 py-2 rounded-lg border border-gray-300 focus:ring-2 focus:ring-blue-500 focus:border-transparent">
+                                </div>
+                            </div>
+                            <div>
+                                <label class="block text-sm font-medium text-gray-700 mb-1">Gender</label>
+                                <div class="flex gap-4">
+                                    <label class="inline-flex items-center">
+                                        <input type="radio" th:field="*{employeeGender}" value="Male"
+                                               class="form-radio h-4 w-4 text-blue-600">
+                                        <span class="ml-2">Male</span>
+                                    </label>
+                                    <label class="inline-flex items-center">
+                                        <input type="radio" th:field="*{employeeGender}" value="Female"
+                                               class="form-radio h-4 w-4 text-blue-600">
+                                        <span class="ml-2">Female</span>
+                                    </label>
+                                    <label class="inline-flex items-center">
+                                        <input type="radio" th:field="*{employeeGender}" value="Other"
+                                               class="form-radio h-4 w-4 text-blue-600">
+                                        <span class="ml-2">Other</span>
+                                    </label>
+                                </div>
+                            </div>
+
+                            <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                <div>
+                                    <label class="block text-sm font-medium text-gray-700 mb-1">Permanent Address</label>
+                                    <input type="text" th:field="*{employeePermanentAddress}"
+                                           class="w-full px-4 py-2 rounded-lg border border-gray-300 focus:ring-2 focus:ring-blue-500 focus:border-transparent">
+                                </div>
+                                <div>
+                                    <label class="block text-sm font-medium text-gray-700 mb-1">Temporary Address</label>
+                                    <input type="text" th:field="*{employeeTemporaryAddress}"
+                                           class="w-full px-4 py-2 rounded-lg border border-gray-300 focus:ring-2 focus:ring-blue-500 focus:border-transparent">
+                                </div>
+                            </div>
+
+                            <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                <div>
+                                    <label class="block text-sm font-medium text-gray-700 mb-1">ID Number</label>
+                                    <input type="text" th:field="*{employeeIdNumber}"
+                                           class="w-full px-4 py-2 rounded-lg border border-gray-300 focus:ring-2 focus:ring-blue-500 focus:border-transparent">
+                                </div>
+                                <div>
+                                    <label class="block text-sm font-medium text-gray-700 mb-1">Personal Email</label>
+                                    <input type="email" th:field="*{employeePersonalEmail}"
+                                           class="w-full px-4 py-2 rounded-lg border border-gray-300 focus:ring-2 focus:ring-blue-500 focus:border-transparent">
+                                </div>
+                            </div>
+                            <div>
+                                <label class="block text-sm font-medium text-gray-700 mb-1">Marital Status</label>
+                                <div class="flex gap-4">
+                                    <label class="inline-flex items-center">
+                                        <input type="radio" th:field="*{employeeMaritalStatus}" value="Single"
+                                               class="form-radio h-4 w-4 text-blue-600">
+                                        <span class="ml-2">Single</span>
+                                    </label>
+                                    <label class="inline-flex items-center">
+                                        <input type="radio" th:field="*{employeeMaritalStatus}" value="Married"
+                                               class="form-radio h-4 w-4 text-blue-600">
+                                        <span class="ml-2">Married</span>
+                                    </label>
+                                    <label class="inline-flex items-center">
+                                        <input type="radio" th:field="*{employeeMaritalStatus}" value="Divorced"
+                                               class="form-radio h-4 w-4 text-blue-600">
+                                        <span class="ml-2">Divorced</span>
+                                    </label>
+                                </div>
+                            </div>
+
+                            <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                <div>
+                                    <label class="block text-sm font-medium text-gray-700 mb-1">ID Number</label>
+                                    <input type="text" th:field="*{employeeIdNumber}"
+                                           class="w-full px-4 py-2 rounded-lg border border-gray-300 focus:ring-2 focus:ring-blue-500 focus:border-transparent">
+                                </div>
+                                <div>
+                                    <label class="block text-sm font-medium text-gray-700 mb-1">Tax Code</label>
+                                    <input type="text" th:field="*{employeeTaxCode}"
+                                           class="w-full px-4 py-2 rounded-lg border border-gray-300 focus:ring-2 focus:ring-blue-500 focus:border-transparent">
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="space-y-6">
+                        <h3 class="text-lg font-semibold text-blue-600 mb-4">Company Information</h3>
+                        <input id="employmentStartDate" type="hidden" th:field="*{employmentHistoryStartDate}">
+                        <div class="space-y-4">
+                            <div>
+                                <label class="block text-sm font-medium text-gray-700 mb-1">Company Email</label>
+                                <input id="company-email" type="email" th:field="*{employeeCompanyEmail}" readonly
+                                       class="w-full px-4 py-2 rounded-lg border border-gray-300 bg-gray-100">
+                            </div>
+
+                            <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                <div>
+                                    <label class="block text-sm font-medium text-gray-700 mb-1">Department</label>
+                                    <select th:field="*{departmentId}" id="departmentSelect"
+                                            onchange="loadPositions(this.value)"
+                                            class="w-full px-4 py-2 rounded-lg border border-gray-300 focus:ring-2 focus:ring-blue-500 focus:border-transparent">
+                                        <option value="">-- Select Department --</option>
+                                        <option th:each="d : ${departments}"
+                                                th:value="${d.getDepartmentId()}"
+                                                th:text="${d.getDepartmentName()}"></option>
+                                    </select>
+                                </div>
+                                <div>
+                                    <label class="block text-sm font-medium text-gray-700 mb-1">Position</label>
+                                    <select th:field="*{positionId}" id="positionSelect"
+                                            class="w-full px-4 py-2 rounded-lg border border-gray-300 focus:ring-2 focus:ring-blue-500 focus:border-transparent">
+                                        <option value="">-- Select Position --</option>
+                                    </select>
+                                </div>
+                            </div>
+                            <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                <div>
+                                    <label class="block text-sm font-medium text-gray-700 mb-1">Employee Code</label>
+                                    <input type="text" th:field="*{employeeCode}"
+                                           class="w-full px-4 py-2 rounded-lg border border-gray-300 focus:ring-2 focus:ring-blue-500 focus:border-transparent">
+                                </div>
+                                <div>
+                                    <label class="block text-sm font-medium text-gray-700 mb-1">Contract Code</label>
+                                    <input type="text" th:field="*{contractCode}"
+                                           class="w-full px-4 py-2 rounded-lg border border-gray-300 focus:ring-2 focus:ring-blue-500 focus:border-transparent">
+                                </div>
+                            </div>
+                            <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                <div>
+                                    <label class="block text-sm font-medium text-gray-700 mb-1">Contract Type</label>
+                                    <select th:field="*{contractType}" id="contractTypeSelect"
+                                            onchange="setContractDates(this.value)"
+                                            class="w-full px-4 py-2 rounded-lg border border-gray-300 focus:ring-2 focus:ring-blue-500 focus:border-transparent">
+                                        <option value="">-- Select Contract Type --</option>
+                                        <option value="Internship">Internship (3 months)</option>
+                                        <option value="1 Year">1 Year Contract</option>
+                                        <option value="2 Years">2 Years Contract</option>
+                                    </select>
+                                </div>
+
+                                <div>
+                                    <label class="block text-sm font-medium text-gray-700 mb-1">Base Salary</label>
+                                    <input type="number" th:field="*{contractBaseSalary}"
+                                           class="w-full px-4 py-2 rounded-lg border border-gray-300 focus:ring-2 focus:ring-blue-500 focus:border-transparent">
+                                </div>
+                            </div>
+
+                            <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                <div>
+                                    <label class="block text-sm font-medium text-gray-700 mb-1">Contract Start Date</label>
+                                    <input type="date" th:field="*{contractStartDate}" id="contractStartDate" readonly
+                                           class="w-full px-4 py-2 rounded-lg border border-gray-300 bg-gray-100">
+                                </div>
+                                <div>
+                                    <label class="block text-sm font-medium text-gray-700 mb-1">Contract End Date</label>
+                                    <input type="date" th:field="*{contractEndDate}" id="contractEndDate" readonly
+                                           class="w-full px-4 py-2 rounded-lg border border-gray-300 bg-gray-100">
+                                </div>
+                            </div>
+
+                            <div>
+                                <label class="block text-sm font-medium text-gray-700 mb-1">Sign Date</label>
+                                <input type="date" th:field="*{contractSignDate}"
+                                       class="w-full px-4 py-2 rounded-lg border border-gray-300 focus:ring-2 focus:ring-blue-500 focus:border-transparent">
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </form>
+    </div>
+</div>
 
 <script>
-    function loadPositions(departmentId) {
+    document.addEventListener("DOMContentLoaded", () => {
+        const firstNameInput = document.getElementById('first-name');
+        const lastNameInput = document.getElementById('last-name');
+        const companyEmailInput = document.getElementById('company-email');
+
+        const updateCompanyEmail = () => {
+            const firstName = firstNameInput.value.split(" ")[0]
+                .normalize("NFD").replace(/[\u0300-\u036f]/g, "")
+                .toLowerCase();
+            const lastName = lastNameInput.value.split(" ").pop()
+                .normalize("NFD").replace(/[\u0300-\u036f]/g, "")
+                .toLowerCase();
+            companyEmailInput.value = `${lastName}${firstName}@company.com`;
+        };
+
+        firstNameInput.addEventListener('input', updateCompanyEmail);
+        lastNameInput.addEventListener('input', updateCompanyEmail);
+    });
+
+    function setContractDates(contractType) {
+        const employmentStartDate = document.getElementById('employmentStartDate')
+        const startDateInput = document.getElementById('contractStartDate');
+        const endDateInput = document.getElementById('contractEndDate');
+        const today = new Date();
+        startDateInput.value = today.toISOString().split('T')[0];
+        employmentStartDate.value = today.toISOString().split('T')[0];
+
+        let endDate = new Date(today);
+        switch (contractType) {
+            case 'Internship':
+                endDate.setMonth(today.getMonth() + 3);
+                break;
+            case '1 Year':
+                endDate.setFullYear(today.getFullYear() + 1);
+                break;
+            case '2 Years':
+                endDate.setFullYear(today.getFullYear() + 2);
+                break;
+            default:
+                endDate = null;
+        }
+
+        if (endDate) {
+            endDateInput.value = endDate.toISOString().split('T')[0];
+        } else {
+            endDateInput.value = '';
+        }
+    }
+
+    async function loadPositions(departmentId) {
         const positionSelect = document.getElementById('positionSelect');
-        positionSelect.innerHTML = '<option value="">-- Chọn chức vụ --</option>';
+        positionSelect.innerHTML = '<option value="">-- Loading... --</option>';
 
-        if (!departmentId) return;
+        try {
+            const response = await fetch(`/api/positions?departmentId=${departmentId}`);
+            const positions = await response.json();
 
-        positionSelect.disabled = true;
-        positionSelect.innerHTML = '<option value="">Đang tải...</option>';
-
-        fetch(`/api/positions?departmentId=${departmentId}`)
-            .then(response => response.json())
-            .then(positions => {
-                console.log(positions)
-                positionSelect.innerHTML = '<option value="">-- Chọn chức vụ --</option>';
-                positions.forEach(pos => {
-                    const option = document.createElement('option');
-                    option.value = pos.positionId;
-                    option.textContent = pos.positionName;
-                    positionSelect.appendChild(option);
-                    console.log(pos)
-                });
-            })
-            .catch(error => {
-                console.error('Error loading positions:', error);
-                positionSelect.innerHTML = '<option value="">Lỗi tải dữ liệu</option>';
-            })
-            .finally(() => {
-                positionSelect.disabled = false;
+            positionSelect.innerHTML = '<option value="">-- Select Position --</option>';
+            positions.forEach(pos => {
+                const option = document.createElement('option');
+                option.value = pos.positionId;
+                option.textContent = pos.positionName;
+                positionSelect.appendChild(option);
             });
+        } catch (error) {
+            console.error('Error loading positions:', error);
+            positionSelect.innerHTML = '<option value="">Error loading positions</option>';
+        }
     }
 </script>
+</body>
+</html>

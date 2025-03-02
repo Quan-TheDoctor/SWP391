@@ -1,7 +1,7 @@
 select eh
 from employment_history eh
 where eh.employee_id = 2
-  and eh.is_current = true
+  and eh.is_current = true;
 
 
 -- Xoá toàn bộ schema và tất cả các đối tượng bên trong
@@ -117,11 +117,11 @@ CREATE TABLE leaves
 (
     leave_id    SERIAL PRIMARY KEY,
     employee_id INTEGER REFERENCES employees (employee_id),
-    leave_type  VARCHAR(50)   NOT NULL,
-    start_date  DATE          NOT NULL,
-    end_date    DATE          NOT NULL,
-    total_days  INTEGER NOT NULL,
-    status      VARCHAR(20)   NOT NULL,
+    leave_type  VARCHAR(50) NOT NULL,
+    start_date  DATE        NOT NULL,
+    end_date    DATE        NOT NULL,
+    total_days  INTEGER     NOT NULL,
+    status      VARCHAR(20) NOT NULL,
     reason      TEXT,
     approved_by INTEGER REFERENCES employees (employee_id),
     created_at  TIMESTAMP DEFAULT CURRENT_TIMESTAMP
@@ -186,7 +186,8 @@ create table audit_logs
     created_at  TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
 
-CREATE TABLE requests (
+CREATE TABLE requests
+(
     request_id      SERIAL PRIMARY KEY,
     requester_id    INTEGER,
     user_id         INTEGER REFERENCES users (user_id),
@@ -195,11 +196,12 @@ CREATE TABLE requests (
     request_id_list JSON,
     approval_id     INTEGER REFERENCES users (user_id),
     status          TEXT,
-    is_process      BOOLEAN DEFAULT FALSE,
+    is_process      BOOLEAN   DEFAULT FALSE,
     created_at      TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     start_date      DATE,
     end_date        DATE,
-    total_days      INTEGER
+    total_days      INTEGER,
+    note            TEXT
 );
 
 create table financial_policies
@@ -222,7 +224,9 @@ VALUES ('BHYT cá nhân trả', 'RATE', 1.5),
        ('Lương làm thêm ngày thường', 'RATE', 1.5),
        ('Giảm trừ cá nhân', 'FIXED', 11000000),
        ('Giảm trừ phụ thuộc', 'FIXED', 4000000),
-       ('Số ngày tính công', 'FIXED', 26);
+       ('Số ngày tính công', 'FIXED', 26),
+       ('Phạt đi trễ', 'FIXED', 200000),
+       ('Công giờ làm', 'FIXED', 8);
 
 INSERT INTO employees (employee_code, first_name, last_name, birth_date, gender,
                        id_number, permanent_address, temporary_address,
@@ -369,7 +373,7 @@ VALUES (1, 6, 2020, 25000000, 4500000, 1500000, 500000, 2250000, 2800000, 254500
 
 
 insert into requests(user_id, request_type, request_id_list, approval_id, status)
-VALUES (1, 'Kết toán lương', '1'::json, 2, 'PENDING');
+VALUES (1, 'Kết toán lương', '1'::json, 2, 'pending');
 
 select de
 from employment_history de
