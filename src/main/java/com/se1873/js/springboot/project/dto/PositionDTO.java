@@ -11,10 +11,11 @@ import java.time.LocalDateTime;
 @Builder
 @AllArgsConstructor
 @NoArgsConstructor
-public class DepartmentDTO {
-  private Integer departmentId;
-  private String departmentName;
-  private String departmentDescription;
-  private String departmentCode;
-  private LocalDateTime departmentCreatedAt;
+public class PositionDTO {
+  private Integer positionId;
+  private String positionName;
+  private String positionDescription;
+  private String positionCode;
+  private Integer positionLevel;
+  private LocalDateTime positionCreatedAt;
 }

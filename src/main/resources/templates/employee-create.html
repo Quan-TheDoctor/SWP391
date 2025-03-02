@@ -14,7 +14,8 @@
 <body class="bg-gray-100 min-h-screen flex flex-col">
 <div class="flex-grow p-8">
     <div class="max-w-4xl mx-auto bg-white rounded-xl shadow-lg overflow-hidden h-full flex flex-col">
-        <form th:action="@{/employee/create/save}" method="post" th:object="${employeeDTO}" class="p-8 flex-grow flex flex-col">
+        <form th:action="@{/employee/create/save}" method="post" th:object="${employeeDTO}"
+              class="p-8 flex-grow flex flex-col">
             <input type="hidden" th:field="*{employeeId}"/>
             <input type="hidden" th:field="*{employmentHistoryId}"/>
             <input type="hidden" th:field="*{contractId}"/>
@@ -22,8 +23,10 @@
             <div class="flex justify-between items-center mb-8">
                 <div class="flex items-center gap-4">
                     <a href="/employee" class="text-gray-600 hover:text-gray-900">
-                        <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 19l-7-7m0 0l7-7m-7 7h18"/>
+                        <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24"
+                             stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                  d="M10 19l-7-7m0 0l7-7m-7 7h18"/>
                         </svg>
                     </a>
                     <h2 class="text-2xl font-bold text-gray-800">Create New Employee</h2>
@@ -44,13 +47,19 @@
                                 <div>
                                     <label class="block text-sm font-medium text-gray-700 mb-1">First Name</label>
                                     <input id="first-name" type="text" th:field="*{employeeFirstName}"
-                                           class="w-full px-4 py-2 rounded-lg border border-gray-300 focus:ring-2 focus:ring-blue-500 focus:border-transparent">
+                                           class="w-full px-4 py-2 rounded-lg border border-gray-300 focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                                           :class="${#fields.hasErrors('employeeFirstName')} ? 'border-red-500' : ''">
+                                    <small class="text-red-500" th:if="${#fields.hasErrors('employeeFirstName')}"
+                                           th:errors="*{employeeFirstName}"></small>
                                 </div>
 
                                 <div>
                                     <label class="block text-sm font-medium text-gray-700 mb-1">Last Name</label>
                                     <input id="last-name" type="text" th:field="*{employeeLastName}"
-                                           class="w-full px-4 py-2 rounded-lg border border-gray-300 focus:ring-2 focus:ring-blue-500 focus:border-transparent">
+                                           class="w-full px-4 py-2 rounded-lg border border-gray-300 focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                                           :class="${#fields.hasErrors('employeeLastName')} ? 'border-red-500' : ''">
+                                    <small class="text-red-500" th:if="${#fields.hasErrors('employeeLastName')}"
+                                           th:errors="*{employeeLastName}"></small>
                                 </div>
                             </div>
                             <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -65,73 +74,41 @@
                                            class="w-full px-4 py-2 rounded-lg border border-gray-300 focus:ring-2 focus:ring-blue-500 focus:border-transparent">
                                 </div>
                             </div>
-                            <div>
-                                <label class="block text-sm font-medium text-gray-700 mb-1">Gender</label>
-                                <div class="flex gap-4">
-                                    <label class="inline-flex items-center">
-                                        <input type="radio" th:field="*{employeeGender}" value="Male"
-                                               class="form-radio h-4 w-4 text-blue-600">
-                                        <span class="ml-2">Male</span>
-                                    </label>
-                                    <label class="inline-flex items-center">
-                                        <input type="radio" th:field="*{employeeGender}" value="Female"
-                                               class="form-radio h-4 w-4 text-blue-600">
-                                        <span class="ml-2">Female</span>
-                                    </label>
-                                    <label class="inline-flex items-center">
-                                        <input type="radio" th:field="*{employeeGender}" value="Other"
-                                               class="form-radio h-4 w-4 text-blue-600">
-                                        <span class="ml-2">Other</span>
-                                    </label>
-                                </div>
-                            </div>
-
                             <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
                                 <div>
-                                    <label class="block text-sm font-medium text-gray-700 mb-1">Permanent Address</label>
-                                    <input type="text" th:field="*{employeePermanentAddress}"
-                                           class="w-full px-4 py-2 rounded-lg border border-gray-300 focus:ring-2 focus:ring-blue-500 focus:border-transparent">
+                                    <label class="block text-sm font-medium text-gray-700 mb-1">Gender</label>
+                                    <div class="flex gap-4">
+                                        <label class="inline-flex items-center">
+                                            <input type="radio" th:field="*{employeeGender}" value="Male"
+                                                   class="form-radio h-4 w-4 text-blue-600">
+                                            <span class="ml-2">Male</span>
+                                        </label>
+                                        <label class="inline-flex items-center">
+                                            <input type="radio" th:field="*{employeeGender}" value="Female"
+                                                   class="form-radio h-4 w-4 text-blue-600">
+                                            <span class="ml-2">Female</span>
+                                        </label>
+                                    </div>
                                 </div>
                                 <div>
-                                    <label class="block text-sm font-medium text-gray-700 mb-1">Temporary Address</label>
-                                    <input type="text" th:field="*{employeeTemporaryAddress}"
-                                           class="w-full px-4 py-2 rounded-lg border border-gray-300 focus:ring-2 focus:ring-blue-500 focus:border-transparent">
+                                    <div>
+                                        <label class="block text-sm font-medium text-gray-700 mb-1">Marital
+                                            Status</label>
+                                        <div class="flex gap-4">
+                                            <label class="inline-flex items-center">
+                                                <input type="radio" th:field="*{employeeMaritalStatus}" value="Single"
+                                                       class="form-radio h-4 w-4 text-blue-600">
+                                                <span class="ml-2">Single</span>
+                                            </label>
+                                            <label class="inline-flex items-center">
+                                                <input type="radio" th:field="*{employeeMaritalStatus}" value="Married"
+                                                       class="form-radio h-4 w-4 text-blue-600">
+                                                <span class="ml-2">Married</span>
+                                            </label>
+                                        </div>
+                                    </div>
                                 </div>
                             </div>
-
-                            <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-                                <div>
-                                    <label class="block text-sm font-medium text-gray-700 mb-1">ID Number</label>
-                                    <input type="text" th:field="*{employeeIdNumber}"
-                                           class="w-full px-4 py-2 rounded-lg border border-gray-300 focus:ring-2 focus:ring-blue-500 focus:border-transparent">
-                                </div>
-                                <div>
-                                    <label class="block text-sm font-medium text-gray-700 mb-1">Personal Email</label>
-                                    <input type="email" th:field="*{employeePersonalEmail}"
-                                           class="w-full px-4 py-2 rounded-lg border border-gray-300 focus:ring-2 focus:ring-blue-500 focus:border-transparent">
-                                </div>
-                            </div>
-                            <div>
-                                <label class="block text-sm font-medium text-gray-700 mb-1">Marital Status</label>
-                                <div class="flex gap-4">
-                                    <label class="inline-flex items-center">
-                                        <input type="radio" th:field="*{employeeMaritalStatus}" value="Single"
-                                               class="form-radio h-4 w-4 text-blue-600">
-                                        <span class="ml-2">Single</span>
-                                    </label>
-                                    <label class="inline-flex items-center">
-                                        <input type="radio" th:field="*{employeeMaritalStatus}" value="Married"
-                                               class="form-radio h-4 w-4 text-blue-600">
-                                        <span class="ml-2">Married</span>
-                                    </label>
-                                    <label class="inline-flex items-center">
-                                        <input type="radio" th:field="*{employeeMaritalStatus}" value="Divorced"
-                                               class="form-radio h-4 w-4 text-blue-600">
-                                        <span class="ml-2">Divorced</span>
-                                    </label>
-                                </div>
-                            </div>
-
                             <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
                                 <div>
                                     <label class="block text-sm font-medium text-gray-700 mb-1">ID Number</label>
@@ -143,6 +120,26 @@
                                     <input type="text" th:field="*{employeeTaxCode}"
                                            class="w-full px-4 py-2 rounded-lg border border-gray-300 focus:ring-2 focus:ring-blue-500 focus:border-transparent">
                                 </div>
+                            </div>
+                            <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                <div>
+                                    <label class="block text-sm font-medium text-gray-700 mb-1">Permanent
+                                        Address</label>
+                                    <input type="text" th:field="*{employeePermanentAddress}"
+                                           class="w-full px-4 py-2 rounded-lg border border-gray-300 focus:ring-2 focus:ring-blue-500 focus:border-transparent">
+                                </div>
+                                <div>
+                                    <label class="block text-sm font-medium text-gray-700 mb-1">Temporary
+                                        Address</label>
+                                    <input type="text" th:field="*{employeeTemporaryAddress}"
+                                           class="w-full px-4 py-2 rounded-lg border border-gray-300 focus:ring-2 focus:ring-blue-500 focus:border-transparent">
+                                </div>
+                            </div>
+
+                            <div>
+                                <label class="block text-sm font-medium text-gray-700 mb-1">Personal Email</label>
+                                <input type="email" th:field="*{employeePersonalEmail}"
+                                       class="w-full px-4 py-2 rounded-lg border border-gray-300 focus:ring-2 focus:ring-blue-500 focus:border-transparent">
                             </div>
                         </div>
                     </div>
@@ -180,13 +177,15 @@
                             <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
                                 <div>
                                     <label class="block text-sm font-medium text-gray-700 mb-1">Employee Code</label>
-                                    <input type="text" th:field="*{employeeCode}"
-                                           class="w-full px-4 py-2 rounded-lg border border-gray-300 focus:ring-2 focus:ring-blue-500 focus:border-transparent">
+                                    <input readonly
+                                           id="employee-code" type="text" th:field="*{employeeCode}"
+                                           class="w-full px-4 py-2 rounded-lg border border-gray-300 bg-gray-100 focus:ring-2 focus:ring-blue-500 focus:border-transparent">
                                 </div>
                                 <div>
                                     <label class="block text-sm font-medium text-gray-700 mb-1">Contract Code</label>
-                                    <input type="text" th:field="*{contractCode}"
-                                           class="w-full px-4 py-2 rounded-lg border border-gray-300 focus:ring-2 focus:ring-blue-500 focus:border-transparent">
+                                    <input id="contractCode" readonly
+                                           type="text" th:field="*{contractCode}"
+                                           class="w-full px-4 py-2 rounded-lg border border-gray-300 bg-gray-100 focus:ring-2 focus:ring-blue-500 focus:border-transparent">
                                 </div>
                             </div>
                             <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -211,12 +210,14 @@
 
                             <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
                                 <div>
-                                    <label class="block text-sm font-medium text-gray-700 mb-1">Contract Start Date</label>
+                                    <label class="block text-sm font-medium text-gray-700 mb-1">Contract Start
+                                        Date</label>
                                     <input type="date" th:field="*{contractStartDate}" id="contractStartDate" readonly
                                            class="w-full px-4 py-2 rounded-lg border border-gray-300 bg-gray-100">
                                 </div>
                                 <div>
-                                    <label class="block text-sm font-medium text-gray-700 mb-1">Contract End Date</label>
+                                    <label class="block text-sm font-medium text-gray-700 mb-1">Contract End
+                                        Date</label>
                                     <input type="date" th:field="*{contractEndDate}" id="contractEndDate" readonly
                                            class="w-full px-4 py-2 rounded-lg border border-gray-300 bg-gray-100">
                                 </div>
@@ -224,7 +225,8 @@
 
                             <div>
                                 <label class="block text-sm font-medium text-gray-700 mb-1">Sign Date</label>
-                                <input type="date" th:field="*{contractSignDate}"
+                                <input id="contractSignDate"
+                                       type="date" th:field="*{contractSignDate}"
                                        class="w-full px-4 py-2 rounded-lg border border-gray-300 focus:ring-2 focus:ring-blue-500 focus:border-transparent">
                             </div>
                         </div>
@@ -240,6 +242,7 @@
         const firstNameInput = document.getElementById('first-name');
         const lastNameInput = document.getElementById('last-name');
         const companyEmailInput = document.getElementById('company-email');
+        const employeeCodeInput = document.getElementById('employee-code');
 
         const updateCompanyEmail = () => {
             const firstName = firstNameInput.value.split(" ")[0]
@@ -249,10 +252,31 @@
                 .normalize("NFD").replace(/[\u0300-\u036f]/g, "")
                 .toLowerCase();
             companyEmailInput.value = `${lastName}${firstName}@company.com`;
+            employeeCodeInput.value = `${lastName}${firstName}`
+            generateContractCode();
         };
 
         firstNameInput.addEventListener('input', updateCompanyEmail);
         lastNameInput.addEventListener('input', updateCompanyEmail);
+
+
+        const contractCodeInput = document.getElementById('contractCode');
+        const contractSignDateInput = document.getElementById('contractSignDate');
+
+        const generateContractCode = () => {
+            const employeeCode = employeeCodeInput.value;
+            const signDate = new Date(contractSignDateInput.value);
+
+            if (employeeCode && !isNaN(signDate)) {
+                const formattedDate = `${signDate.getDate().toString().padStart(2, '0')}${(signDate.getMonth() + 1).toString().padStart(2, '0')}${signDate.getFullYear()}`;
+                contractCodeInput.value = `HD-${employeeCode}-${formattedDate}`;
+            }
+        };
+
+        contractSignDateInput.addEventListener('change', generateContractCode);
+        employeeCodeInput.addEventListener('input', generateContractCode);
+
+        generateContractCode();
     });
 
     function setContractDates(contractType) {

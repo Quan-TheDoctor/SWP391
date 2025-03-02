@@ -235,6 +235,21 @@ public class RequestController {
       .orElseThrow(() -> new RuntimeException("Không tìm thấy người dùng"));
 
     if ("Hạch toán lương".equals(type)) {
+      switch (field) {
+        case "approve":
+          if ("pending".equals(requestDTO.getRequestStatus())) {
+            requestDTO.setRequestStatus("approve");
+            requestDTO.setApprovalName(user.getUsername());
+            requestService.updateStatus(requestDTO, type);
+          }
+          break;
+        case "deny":
+          if ("pending".equals(requestDTO.getRequestStatus())) {
+            requestDTO.setRequestStatus("deny");
+            requestService.updateStatus(requestDTO, type);
+          }
+          break;
+      }
 
     } else if ("Đơn xin nghỉ".equals(type)) {
       switch (field) {
@@ -242,13 +257,13 @@ public class RequestController {
           if ("pending".equals(requestDTO.getRequestStatus())) {
             requestDTO.setRequestStatus("approve");
             requestDTO.setApprovalName(user.getUsername());
-            requestService.updateStatus(requestDTO);
+            requestService.updateStatus(requestDTO, type);
           }
           break;
         case "deny":
           if ("pending".equals(requestDTO.getRequestStatus())) {
             requestDTO.setRequestStatus("deny");
-            requestService.updateStatus(requestDTO);
+            requestService.updateStatus(requestDTO, type);
           }
           break;
       }

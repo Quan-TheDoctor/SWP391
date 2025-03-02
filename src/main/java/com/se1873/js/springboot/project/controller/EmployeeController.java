@@ -9,6 +9,7 @@ import com.se1873.js.springboot.project.repository.EmployeeRepository;
 import com.se1873.js.springboot.project.repository.PositionRepository;
 import com.se1873.js.springboot.project.service.EmployeeService;
 import jakarta.annotation.PostConstruct;
+import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.PageRequest;
@@ -20,10 +21,12 @@ import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.validation.BindingResult;
 import org.springframework.web.bind.annotation.ModelAttribute;
+import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.core.io.Resource;
 import org.springframework.core.io.ByteArrayResource;
+import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 
 import java.util.List;
 
@@ -66,9 +69,7 @@ public class EmployeeController {
   @RequestMapping("/view")
   public String view(Model model,
                      @RequestParam("employeeId") Integer employeeId) {
-
     var employeeDTO = employeeService.getEmployeeByEmployeeId(employeeId);
-    log.error(employeeDTO.toString());
     model.addAttribute("departments", departments);
     model.addAttribute("employeeDTO", employeeDTO);
     return "employee-view";
@@ -82,17 +83,33 @@ public class EmployeeController {
     return "employee-create";
   }
 
-  @RequestMapping("/create/save")
-  public String createEmployee(Model model,
-                               @ModelAttribute("employeeDTO") EmployeeDTO employeeDTO,
-                               BindingResult bindingResult) {
-    log.info(employeeDTO.toString());
+  @PostMapping("/create/save")
+  public String createEmployee(@Valid @ModelAttribute("employeeDTO") EmployeeDTO employeeDTO,
+                               BindingResult bindingResult,
+                               Model model) {
+
     if (bindingResult.hasErrors()) {
-      return "redirect:/employee";
+      model.addAttribute("departments", departments);
+      model.addAttribute("positions", positions);
+      return "employee-create";
     }
 
     employeeService.saveEmployee(employeeDTO);
+    return "redirect:/employee";
+  }
 
+  @PostMapping("/create/update")
+  public String updateEmployee(@Valid @ModelAttribute("employeeDTO") EmployeeDTO employeeDTO,
+                               BindingResult bindingResult,
+                               Model model) {
+
+    if (bindingResult.hasErrors()) {
+      model.addAttribute("departments", departments);
+      model.addAttribute("positions", positions);
+      return "employee-view";
+    }
+
+    employeeService.saveEmployee(employeeDTO);
     return "redirect:/employee";
   }
 
