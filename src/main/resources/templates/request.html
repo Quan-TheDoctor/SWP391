@@ -157,7 +157,7 @@
                     <td class="px-6 py-4" th:text="${r.requesterName}"></td>
                     <td class="px-6 py-4" th:text="${r.requestType}"></td>
                     <td class="px-6 py-4" th:text="${#temporals.format(r.requestDate, 'dd/MM/yyyy')}"></td>
-                    <td class="px-6 py-4" th:text="${r.approvalName} ?: 'N/A'"></td>
+                    <td class="px-6 py-4" th:text="${r.getApprovalName()} ?: 'N/A'"></td>
                     <td class="px-6 py-4">
                         <span th:text="${r.getRequestStatus()}"></span>
                     </td>
@@ -166,10 +166,10 @@
                             <a th:href="@{/request/view(requestId=${r.requestId})}"
                                class="text-blue-600 hover:text-blue-800">View</a>
                             <a th:if="${r.requestStatus eq 'pending'}"
-                               th:href="@{/request/status(field='approve',requestId=${r.requestId})}"
+                               th:href="@{/request/status(field='approve',requestId=${r.requestId}, type=${r.getRequestType()})}"
                                class="text-green-600 hover:text-green-800">Approve</a>
                             <a th:if="${r.requestStatus eq 'pending'}"
-                               th:href="@{/request/status(field='deny',requestId=${r.requestId})}"
+                               th:href="@{/request/status(field='deny',requestId=${r.requestId}, type=${r.getRequestType()})}"
                                class="text-red-600 hover:text-red-800">Deny</a>
                         </div>
                     </td>

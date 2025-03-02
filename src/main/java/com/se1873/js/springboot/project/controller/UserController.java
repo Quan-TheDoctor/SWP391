@@ -72,8 +72,8 @@ public class UserController {
         String userName = authencation.getName();
         Optional<User> user = userRepository.findUserByUsername(userName);
         Integer employeeId = user.get().getEmployee().getEmployeeId();
-        Page<PayrollDTO> payrollDTO = salaryRecordService.getPayrollByEmployeeId(employeeId,PageRequest.of(0,5));
-        model.addAttribute("payrollDTO",payrollDTO);
+//        Page<PayrollDTO> payrollDTO = salaryRecordService.getPayrollByEmployeeId(employeeId,PageRequest.of(0,5));
+//        model.addAttribute("payrollDTO",payrollDTO);
         return "user-payroll";
     }
 }

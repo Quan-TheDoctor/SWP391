@@ -10,6 +10,8 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 import java.time.LocalDate;
+import java.util.List;
+
 @RestController
 @Slf4j
 @RequiredArgsConstructor
@@ -23,6 +25,16 @@ public class AttendanceAPI {
     AttendanceDTO attendances = attendanceService.getAttendanceByEmployeeIdAndDate(employeeId, LocalDate.now());
 
     log.info(attendances.toString());
+    return ResponseEntity.ok(attendances);
+  }
+
+  @RequestMapping("/getAllAttendanceByDateAndEmployeeId")
+  public ResponseEntity<List<AttendanceDTO>> getAllAttendanceByDateAndEmployeeId(
+    @RequestParam("employeeId") Integer employeeId,
+    @RequestParam("date") String date
+  ) {
+    LocalDate localDate = LocalDate.parse(date);
+    var attendances = attendanceService.getAttendancesByEmployeeIdAndDate(employeeId, localDate);
     return ResponseEntity.ok(attendances);
   }
 }
