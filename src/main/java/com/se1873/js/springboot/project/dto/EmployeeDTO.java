@@ -1,6 +1,8 @@
 package com.se1873.js.springboot.project.dto;
 
 import com.se1873.js.springboot.project.entity.Dependent;
+import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.NotNull;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
@@ -9,6 +11,7 @@ import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.format.annotation.NumberFormat;
 
 import java.time.LocalDate;
+import java.time.LocalDateTime;
 import java.util.List;
 
 @Data
@@ -18,10 +21,12 @@ import java.util.List;
 public class EmployeeDTO {
   private Integer employeeId;
   private String employeeCode;
+  @NotBlank(message = "First name cannot be blank")
   private String employeeFirstName;
+  @NotBlank(message = "Last name cannot be blank")
   private String employeeLastName;
-  @DateTimeFormat(pattern = "yyyy-MM-dd")
-  private LocalDate employeeBirthDate;
+  @NotNull
+  @DateTimeFormat(pattern = "yyyy-MM-dd") private LocalDate employeeBirthDate;
   private String employeeGender;
   private String employeeIdNumber;
   private String employeePermanentAddress;
@@ -37,30 +42,33 @@ public class EmployeeDTO {
   private Integer departmentId;
   private String departmentName;
   private String departmentDescription;
+  private String departmentCode;
+  private LocalDateTime departmentCreatedAt;
 
   private Integer positionId;
   private String positionName;
   private String positionDescription;
+  private String positionCode;
+  private Integer positionLevel;
+  private LocalDateTime positionCreatedAt;
 
   private Integer employmentHistoryId;
-  @DateTimeFormat(pattern = "yyyy-MM-dd")
-  private LocalDate employmentHistoryStartDate;
-  @DateTimeFormat(pattern = "yyyy-MM-dd")
-  private LocalDate employmentHistoryEndDate;
   private Boolean employmentHistoryIsCurrent;
+  private String transferReason;
+  private String decisionNumber;
+  private LocalDateTime employmentHistoryCreatedAt;
+  @DateTimeFormat(pattern = "yyyy-MM-dd") private LocalDate employmentHistoryStartDate;
+  @DateTimeFormat(pattern = "yyyy-MM-dd") private LocalDate employmentHistoryEndDate;
 
   private Integer contractId;
   private String contractType;
   private String contractCode;
-  @DateTimeFormat(pattern = "yyyy-MM-dd")
-  private LocalDate contractStartDate;
-  @DateTimeFormat(pattern = "yyyy-MM-dd")
-  private LocalDate contractEndDate;
-  @NumberFormat(style = NumberFormat.Style.NUMBER)
-  private Double contractBaseSalary;
-  @DateTimeFormat(pattern = "yyyy-MM-dd")
-  private LocalDate contractSignDate;
   private Boolean contractIsPresent;
+  private LocalDateTime contractCreatedAt;
+  @DateTimeFormat(pattern = "yyyy-MM-dd") private LocalDate contractStartDate;
+  @DateTimeFormat(pattern = "yyyy-MM-dd") private LocalDate contractEndDate;
+  @NumberFormat(style = NumberFormat.Style.NUMBER) private Double contractBaseSalary;
+  @DateTimeFormat(pattern = "yyyy-MM-dd") private LocalDate contractSignDate;
 
   private List<Dependent> dependents;
 }

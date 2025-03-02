@@ -2,12 +2,10 @@ package com.se1873.js.springboot.project.service;
 
 import com.se1873.js.springboot.project.dto.LeaveDTO;
 import com.se1873.js.springboot.project.dto.RequestDTO;
-import com.se1873.js.springboot.project.entity.Employee;
-import com.se1873.js.springboot.project.entity.Leave;
-import com.se1873.js.springboot.project.entity.Request;
-import com.se1873.js.springboot.project.entity.User;
+import com.se1873.js.springboot.project.entity.*;
 import com.se1873.js.springboot.project.repository.LeaveRepository;
 import com.se1873.js.springboot.project.repository.RequestRepository;
+import com.se1873.js.springboot.project.repository.SalaryRecordRepository;
 import com.se1873.js.springboot.project.repository.UserRepository;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
@@ -44,6 +42,7 @@ public class RequestService {
   private final RequestRepository requestRepository;
   private final LeaveRepository leaveRepository;
   private final UserRepository userRepository;
+  private final SalaryRecordRepository salaryRecordRepository;
 
   /**
    * Lấy danh sách requests đi kèm pagination
@@ -128,9 +127,19 @@ public class RequestService {
     return convertRequestToDTO(requestRepository.findRequestByRequestId(requestId));
   }
 
-  public void updateStatus(RequestDTO requestDTO) {
+  public void updateStatus(RequestDTO requestDTO, String type) {
     User approval = userRepository.findUserByUsername(requestDTO.getApprovalName())
       .orElse(null);
+    if("Đơn xin nghỉ".equals(type)) {
+
+    } else if("Hạch toán lương".equals(type)) {
+      for(var payrollId : requestDTO.getPayrollIds()) {
+        String status = "approve".equals(type) ? "Paid" : "Cancelled";
+        SalaryRecord salaryRecord = salaryRecordRepository.findSalaryRecordBySalaryId(payrollId);
+        salaryRecord.setPaymentStatus(status);
+        salaryRecordRepository.save(salaryRecord);
+      }
+    }
     Request request = requestRepository.findRequestByRequestId(requestDTO.getRequestId());
     request.setApproval(approval);
     request.setStatus(requestDTO.getRequestStatus());
