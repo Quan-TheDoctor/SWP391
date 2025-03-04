@@ -1,0 +1,192 @@
+<!doctype html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Payroll Calculation</title>
+    <!-- Add Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+
+    <style>
+        .popup {
+            display: none;
+            position: fixed;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            background-color: white;
+            padding: 20px;
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+            z-index: 1000;
+            border-radius: 8px;
+        }
+        .overlay {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.5);
+            z-index: 999;
+        }
+        .close-btn {
+            position: absolute;
+            top: 10px;
+            right: 10px;
+            cursor: pointer;
+            font-size: 20px;
+            color: #000;
+        }
+    </style>
+</head>
+<body class="bg-gray-100 p-8">
+<div class="max-w-6xl mx-auto bg-white rounded-lg shadow-md p-6">
+    <form th:action="@{/attendance/summary}" th:object="${payrollCalculationForm}" method="get">
+        <div class="mb-6">
+            <select name="selectedDepartmentId"
+                    th:onchange="this.form.submit()"
+                    class="w-full p-2 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500">
+                <option value="">Chọn phòng ban</option>
+                <option th:each="d : ${departments}"
+                        th:value="${d.departmentId}"
+                        th:text="${d.departmentName}"
+                        th:selected="${payrollCalculationForm.selectedDepartmentId == d.departmentId}">
+                </option>
+            </select>
+        </div>
+    </form>
+
+    <div th:if="${employees != null}" class="mb-8">
+        <h3 class="text-xl font-semibold mb-4">Danh sách nhân viên</h3>
+        <div class="space-y-2">
+            <div th:each="emp : ${employees}" class="flex items-center justify-between bg-gray-50 p-3 rounded-lg">
+                    <span th:text="${emp.getEmployeeFirstName() + ' ' + emp.getEmployeeLastName()}"
+                          class="font-medium"></span>
+                <form th:action="@{/attendance/summary/addEmployee}" method="post">
+                    <input type="hidden" name="employeeId" th:value="${emp.getEmployeeId()}">
+                    <button type="submit"
+                            class="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors">
+                        Thêm vào bảng
+                    </button>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <form th:action="@{/attendance/summary/calculate}" th:object="${payrollCalculationForm}" method="post">
+        <input type="hidden" th:field="*{selectedDepartmentId}">
+        <div class="overflow-x-auto rounded-lg border">
+            <table class="min-w-full">
+                <thead class="bg-gray-50">
+                <tr>
+                    <th class="px-6 py-3 text-left text-sm font-medium text-gray-700">Tên NV</th>
+                    <th class="px-6 py-3 text-left text-sm font-medium text-gray-700">Ngày công</th>
+                    <th class="px-6 py-3 text-left text-sm font-medium text-gray-700">Đi muộn</th>
+                    <th class="px-6 py-3 text-left text-sm font-medium text-gray-700">Nghỉ</th>
+                    <th class="px-6 py-3 text-left text-sm font-medium text-gray-700">Làm thêm (giờ)</th>
+                    <th class="px-6 py-3 text-left text-sm font-medium text-gray-700">Thao tác</th>
+                </tr>
+                </thead>
+                <tbody class="divide-y divide-gray-200">
+                <tr th:each="dto, stat : *{payrollCalculations}"
+                    class="hover:bg-gray-50 transition-colors">
+                    <td class="px-6 py-4">
+                        <input type="hidden" th:field="*{payrollCalculations[__${stat.index}__].employeeId}">
+                        <span th:text="${dto.employeeFistName() + ' ' + dto.employeeLastName()}"
+                              class="font-medium"></span>
+                    </td>
+                    <td class="px-6 py-4">
+                        <input type="text" th:field="*{payrollCalculations[__${stat.index}__].workedDays}"
+                               class="w-20 p-1 border rounded focus:ring-2 focus:ring-blue-500" readonly>
+                    </td>
+                    <td class="px-6 py-4">
+                        <input type="text" th:field="*{payrollCalculations[__${stat.index}__].lateDays}"
+                               class="w-20 p-1 border rounded focus:ring-2 focus:ring-blue-500" readonly>
+                    </td>
+                    <td class="px-6 py-4">
+                        <input type="text" th:field="*{payrollCalculations[__${stat.index}__].absentDays}"
+                               class="w-20 p-1 border rounded focus:ring-2 focus:ring-blue-500" readonly>
+                    </td>
+                    <td class="px-6 py-4">
+                        <input type="text" step="0.5"
+                               th:field="*{payrollCalculations[__${stat.index}__].overtimeHours}"
+                               class="w-24 p-1 border rounded focus:ring-2 focus:ring-blue-500" readonly>
+                    </td>
+                    <td class="px-6 py-4">
+                        <input type="hidden" name="employeeId" th:value="${dto.employeeId()}">
+                        <button type="submit"
+                                formmethod="post"
+                                th:formaction="@{/attendance/summary/removeEmployee}"
+                                class="remove-btn px-3 py-1.5 bg-red-600 text-white rounded-md hover:bg-red-700 transition-colors flex items-center">
+                            <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 mr-1" fill="none"
+                                 viewBox="0 0 24 24" stroke="currentColor">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                      d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/>
+                            </svg>
+                            Xóa
+                        </button>
+                    </td>
+                </tr>
+                </tbody>
+            </table>
+        </div>
+
+        <div class="mt-6 flex justify-end">
+            <button type="submit"
+                    class="px-6 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors
+                               flex items-center">
+                <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 mr-2" fill="none" viewBox="0 0 24 24"
+                     stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                          d="M9 7h6m0 10v-3m-3 3h.01M9 17h.01M9 14h.01M12 14h.01M15 11h.01M12 11h.01M9 11h.01M7 21h10a2 2 0 002-2V5a2 2 0 00-2-2H7a2 2 0 00-2 2v14a2 2 0 002 2z"/>
+                </svg>
+                Tính lương
+            </button>
+        </div>
+    </form>
+</div>
+
+</body>
+</html>
+
+
+
+<div class="overlay" th:if="${error}" id="overlay"></div>
+
+<div class="popup" th:if="${error}" id="errorPopup">
+    <span class="close-btn" onclick="closePopup()">&times;</span>
+    <ul>
+        <li th:text="${error}"></li>
+    </ul>
+</div>
+<script>
+
+    document.addEventListener("DOMContentLoaded", function() {
+        const errorPopup = document.getElementById("errorPopup");
+        const overlay = document.getElementById("overlay");
+
+        if (errorPopup && overlay) {
+            errorPopup.style.display = "block";
+            overlay.style.display = "block";
+        }
+
+        document.querySelectorAll('.remove-btn').forEach(btn => {
+            btn.addEventListener('click', (e) => {
+                if(!confirm('Bạn có chắc chắn muốn xóa nhân viên này khỏi bảng?')) {
+                    e.preventDefault();
+                }
+            });
+        });
+    });
+
+    function closePopup() {
+        const errorPopup = document.getElementById("errorPopup");
+        const overlay = document.getElementById("overlay");
+
+        if (errorPopup && overlay) {
+            errorPopup.style.display = "none";
+            overlay.style.display = "none";
+        }
+    }
+</script>

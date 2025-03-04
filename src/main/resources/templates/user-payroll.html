@@ -1,0 +1,98 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+  <title>Payroll History</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+</head>
+<body class="bg-gray-50">
+<div class="max-w-7xl mx-auto p-8">
+  <div class="bg-white rounded-lg shadow-lg p-6">
+    <h1 class="text-2xl font-bold text-gray-800 mb-6">Payroll History</h1>
+
+    <!-- Filter Section -->
+    <div class="mb-6">
+      <form th:action="@{/payroll}" method="get" class="flex gap-4">
+        <div>
+          <label class="block text-sm font-medium text-gray-700">Month</label>
+          <input type="month" name="month" class="w-full px-4 py-2 rounded-lg border border-gray-200">
+        </div>
+        <div class="self-end">
+          <button type="submit" class="px-6 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700">Filter</button>
+        </div>
+      </form>
+    </div>
+
+    <!-- Payroll Table -->
+    <div class="overflow-x-auto">
+      <table class="w-full min-w-[800px]">
+        <thead class="bg-gray-50">
+        <tr>
+          <th class="px-6 py-3 text-left text-sm font-medium text-gray-500 uppercase">Month</th>
+          <th class="px-6 py-3 text-left text-sm font-medium text-gray-500 uppercase">Basic Salary</th>
+          <th class="px-6 py-3 text-left text-sm font-medium text-gray-500 uppercase">Allowances</th>
+          <th class="px-6 py-3 text-left text-sm font-medium text-gray-500 uppercase">Deductions</th>
+          <th class="px-6 py-3 text-left text-sm font-medium text-gray-500 uppercase">Net Salary</th>
+          <th class="px-6 py-3 text-left text-sm font-medium text-gray-500 uppercase">Status</th>
+          <th class="px-6 py-3 text-left text-sm font-medium text-gray-500 uppercase">Action</th>
+        </tr>
+        </thead>
+        <tbody class="divide-y divide-gray-200">
+        <tr th:each="payroll : ${payrollDTO}">
+          <td class="px-6 py-4" th:text="${payroll.salaryRecordMonth}"></td>
+          <td class="px-6 py-4" th:text="${payroll.salaryRecordBaseSalary}"></td>
+          <td class="px-6 py-4" th:text="${payroll.salaryRecordTotalAllowance}"></td>
+          <td class="px-6 py-4" th:text="${payroll.salaryRecordDeductions}"></td>
+          <td class="px-6 py-4" th:text="${payroll.salaryRecordNetSalary}"></td>
+          <td class="px-6 py-4">
+            <span th:if="${payroll.salaryRecordPaymentStatus == 'Đã thanh toán'}" class="px-2 py-1 bg-green-100 text-green-800 rounded-full">Đã thanh toán</span>
+            <span th:if="${payroll.salaryRecordPaymentStatus == 'Chưa thanh toán'}" class="px-2 py-1 bg-yellow-100 text-yellow-800 rounded-full">Chưa thanh toán</span>
+          </td>
+          <td class="px-6 py-4">
+            <a th:href="@{/payroll/download/{id}(id=${payroll.salaryRecordId})}" class="text-blue-600 hover:text-blue-800">Download</a>
+          </td>
+        </tr>
+        <tr th:if="${payrollDTO.isEmpty()}">
+          <td colspan="7" class="text-center py-8 text-gray-500">No payroll records found.</td>
+        </tr>
+        </tbody>
+      </table>
+    </div>
+
+    <!-- Statistics -->
+    <div class="mt-8 grid grid-cols-1 md:grid-cols-3 gap-4">
+      <div class="bg-blue-50 p-4 rounded-lg">
+        <p class="text-sm text-gray-500">Total Earnings</p>
+        <p class="text-xl font-bold" id="totalEarnings">0</p>
+      </div>
+      <div class="bg-green-50 p-4 rounded-lg">
+        <p class="text-sm text-gray-500">Total Deductions</p>
+        <p class="text-xl font-bold" id="totalDeductions">0</p>
+      </div>
+      <div class="bg-red-50 p-4 rounded-lg">
+        <p class="text-sm text-gray-500">Net Salary</p>
+        <p class="text-xl font-bold" id="netSalary">0</p>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script th:inline="javascript">
+
+  const payrollList = /*[[${payrollDTO.getContent()}]]*/ [];
+  let totalEarnings = 0;
+  let totalDeductions = 0;
+  let netSalary = 0;
+
+  payrollList.forEach(entry => {
+    totalEarnings += entry.salaryRecordBaseSalary + entry.salaryRecordTotalAllowance;
+    totalDeductions += entry.salaryRecordDeductions;
+    netSalary += entry.salaryRecordNetSalary;
+  });
+
+  document.getElementById('totalEarnings').textContent = totalEarnings;
+  document.getElementById('totalDeductions').textContent = totalDeductions;
+  document.getElementById('netSalary').textContent = netSalary;
+
+</script>
+</body>
+</html>

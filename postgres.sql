@@ -1,4 +1,7 @@
-select eh from employment_history eh where eh.employee_id = 2 and eh.is_current = true
+select eh
+from employment_history eh
+where eh.employee_id = 2
+  and eh.is_current = true;
 
 
 -- Xoá toàn bộ schema và tất cả các đối tượng bên trong
@@ -33,18 +36,18 @@ CREATE TABLE employees
 -- Bảng phòng ban
 CREATE TABLE departments
 (
-    department_id        SERIAL PRIMARY KEY,
-    department_name      VARCHAR(100)       NOT NULL,
-    department_code      VARCHAR(20) UNIQUE NOT NULL,
-    description          TEXT,
-    created_at           TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+    department_id   SERIAL PRIMARY KEY,
+    department_name VARCHAR(100)       NOT NULL,
+    department_code VARCHAR(20) UNIQUE NOT NULL,
+    description     TEXT,
+    created_at      TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
 
 -- Bảng chức vụ
 CREATE TABLE positions
 (
     position_id   SERIAL PRIMARY KEY,
-    department_id INTEGER REFERENCES departments(department_id),
+    department_id INTEGER REFERENCES departments (department_id),
     position_name VARCHAR(100)       NOT NULL,
     position_code VARCHAR(20) UNIQUE NOT NULL,
     level         INTEGER            NOT NULL,
@@ -114,11 +117,11 @@ CREATE TABLE leaves
 (
     leave_id    SERIAL PRIMARY KEY,
     employee_id INTEGER REFERENCES employees (employee_id),
-    leave_type  VARCHAR(50)   NOT NULL,
-    start_date  DATE          NOT NULL,
-    end_date    DATE          NOT NULL,
-    total_days  DECIMAL(4, 1) NOT NULL,
-    status      VARCHAR(20)   NOT NULL,
+    leave_type  VARCHAR(50) NOT NULL,
+    start_date  DATE        NOT NULL,
+    end_date    DATE        NOT NULL,
+    total_days  INTEGER     NOT NULL,
+    status      VARCHAR(20) NOT NULL,
     reason      TEXT,
     approved_by INTEGER REFERENCES employees (employee_id),
     created_at  TIMESTAMP DEFAULT CURRENT_TIMESTAMP
@@ -185,14 +188,20 @@ create table audit_logs
 
 CREATE TABLE requests
 (
-    request_id      serial primary key,
-    requester_id    INTEGER REFERENCES users (user_id),
-    request_type    text,
-    request_id_list json,
+    request_id      SERIAL PRIMARY KEY,
+    requester_id    INTEGER,
+    user_id         INTEGER REFERENCES users (user_id),
+    request_type    TEXT,
+    reason          TEXT,
+    request_id_list JSON,
     approval_id     INTEGER REFERENCES users (user_id),
-    status          text,
-    is_process      bool      default false,
-    created_at      TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+    status          TEXT,
+    is_process      BOOLEAN   DEFAULT FALSE,
+    created_at      TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    start_date      DATE,
+    end_date        DATE,
+    total_days      INTEGER,
+    note            TEXT
 );
 
 create table financial_policies
@@ -215,7 +224,9 @@ VALUES ('BHYT cá nhân trả', 'RATE', 1.5),
        ('Lương làm thêm ngày thường', 'RATE', 1.5),
        ('Giảm trừ cá nhân', 'FIXED', 11000000),
        ('Giảm trừ phụ thuộc', 'FIXED', 4000000),
-       ('Số ngày tính công', 'FIXED', 26);
+       ('Số ngày tính công', 'FIXED', 26),
+       ('Phạt đi trễ', 'FIXED', 200000),
+       ('Công giờ làm', 'FIXED', 8);
 
 INSERT INTO employees (employee_code, first_name, last_name, birth_date, gender,
                        id_number, permanent_address, temporary_address,
@@ -235,8 +246,7 @@ VALUES (1, 'annguyen', '1'),
        (2, 'hungtran', '1');
 
 INSERT INTO departments (department_name, department_code, description)
-VALUES
-       ('Phòng Phát triển Phần mềm', 'DEV', 'Phòng phát triển ứng dụng và phần mềm'),
+VALUES ('Phòng Phát triển Phần mềm', 'DEV', 'Phòng phát triển ứng dụng và phần mềm'),
        ('Phòng An ninh Thông tin', 'SEC', 'Phòng đảm bảo bảo mật cho hệ thống và dữ liệu'),
        ('Phòng Kiểm thử và Đảm bảo Chất lượng', 'QA', 'Phòng kiểm thử phần mềm và đảm bảo chất lượng'),
        ('Phòng Quản trị Hệ thống', 'SYS', 'Quản lý cơ sở hạ tầng công nghệ thông tin'),
@@ -272,7 +282,7 @@ VALUES
     ('Customer Support Representative', 8, 'SUP_POS001', 1, 'Provide support and resolve customer issues'),
 
     -- Khối Hành chính - Nhân sự
-    ('Human Resources Specialist', 9,'HRM_POS001', 1, 'Manage recruitment and employee relations'),
+    ('Human Resources Specialist', 9, 'HRM_POS001', 1, 'Manage recruitment and employee relations'),
     ('Office Administrator', 10, 'ADM_POS001', 1, 'Handle office administrative tasks'),
 
     -- Khối Tài chính
@@ -280,8 +290,8 @@ VALUES
     ('Financial Analyst', 12, 'FIN-ANAL_POS001', 2, 'Analyze financial data and generate reports'),
 
     -- Khối Nghiên cứu và Phát triển
-    ('Researcher', 13,'RES_POS001', 1, 'Conduct research to drive technological innovations'),
-    ('Product Developer', 14,'PROD_POS001', 2, 'Develop products from research outcomes');
+    ('Researcher', 13, 'RES_POS001', 1, 'Conduct research to drive technological innovations'),
+    ('Product Developer', 14, 'PROD_POS001', 2, 'Develop products from research outcomes');
 
 
 -- Thêm hợp đồng
@@ -359,6 +369,11 @@ VALUES (1, 6, 2020, 25000000, 4500000, 1500000, 500000, 2250000, 2800000, 254500
        (1, 7, 2020, 25000000, 4500000, 2000000, 500000, 2250000, 2900000, 25850000, 'Đã thanh toán'),
        (2, 6, 2021, 12000000, 5000000, 2000000, 600000, 2500000, 3200000, 16000000, 'Đã thanh toán'),
        (2, 7, 2021, 12000000, 5000000, 1800000, 600000, 2500000, 3100000, 15800000, 'Đã thanh toán');
+
+
+
+insert into requests(user_id, request_type, request_id_list, approval_id, status)
+VALUES (1, 'Kết toán lương', '1'::json, 2, 'pending');
 
 select de
 from employment_history de

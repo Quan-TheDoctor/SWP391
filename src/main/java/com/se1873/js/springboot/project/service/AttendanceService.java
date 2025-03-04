@@ -5,6 +5,7 @@ import com.se1873.js.springboot.project.dto.AttendanceDTOList;
 import com.se1873.js.springboot.project.dto.EmployeeDTO;
 import com.se1873.js.springboot.project.entity.Attendance;
 import com.se1873.js.springboot.project.entity.Employee;
+import com.se1873.js.springboot.project.mapper.AttendanceDTOMapper;
 import com.se1873.js.springboot.project.repository.AttendanceRepository;
 import com.se1873.js.springboot.project.repository.EmployeeRepository;
 import lombok.RequiredArgsConstructor;
@@ -29,6 +30,7 @@ public class AttendanceService {
   private final EmployeeService employeeService;
   private final AttendanceRepository attendanceRepository;
   private final EmployeeRepository employeeRepository;
+  private final AttendanceDTOMapper attendanceDTOMapper;
 
   public Page<AttendanceDTO> getAll(LocalDate startDate, LocalDate endDate, Pageable pageable) {
     var employees = employeeRepository.findAll();
@@ -55,14 +57,12 @@ public class AttendanceService {
       for (LocalDate date : datesInRange) {
         Attendance attendance = attendanceMap.get(date);
         if (attendance != null) {
-          Employee emp = employeeRepository.getEmployeeByEmployeeId(employee.getEmployeeId());
-          attendanceDTOS.add(convertAttendanceDTO(attendance, emp));
+          attendanceDTOS.add(attendanceDTOMapper.toDTO(attendance));
         } else {
           attendanceDTOS.add(createDefaultAttendanceDTO(employee, date));
         }
       }
     }
-
     attendanceDTOS.sort(
       Comparator.comparing(AttendanceDTO::getAttendanceDate)
         .thenComparing(AttendanceDTO::getAttendanceStatus)
@@ -77,6 +77,13 @@ public class AttendanceService {
       total
     );
   }
+  public Page<AttendanceDTO> getAttendanceByEmployeeId(Integer employeeId,Pageable pageale){
+    Page<Attendance> attendances = attendanceRepository.getAttendanceByEmployee_EmployeeId(employeeId,pageale);
+    return attendances.map(attendance -> {
+      Employee employee = attendance.getEmployee();
+      return attendanceDTOMapper.toDTO(attendance);
+    });
+  }
 
   public AttendanceDTO getAttendanceByEmployeeIdAndDate(Integer employeeId, LocalDate date) {
     Employee employee = Optional.ofNullable(employeeRepository.getEmployeeByEmployeeId(employeeId))
@@ -85,8 +92,21 @@ public class AttendanceService {
     Optional<Attendance> attendanceOpt = attendanceRepository.findByDateAndEmployee_EmployeeId(date, employeeId);
 
     return attendanceOpt
-      .map(attendance -> convertAttendanceDTO(attendance, employee))
+      .map(attendanceDTOMapper::toDTO)
       .orElseGet(() -> createDefaultAttendanceDTO(employeeDTO, date));
+  }
+
+  public List<AttendanceDTO> getAttendancesByEmployeeIdAndDate(Integer employeeId, LocalDate date) {
+    Employee employee = Optional.ofNullable(employeeRepository.getEmployeeByEmployeeId(employeeId))
+      .orElseThrow(() -> new RuntimeException("Employee not found with id: " + employeeId));
+
+    var attendances = attendanceRepository.getAttendanceByDateBetweenAndEmployee_EmployeeId(date.withDayOfMonth(1), date.withDayOfMonth(28), employeeId);
+    List<AttendanceDTO> attendanceDTOS = new ArrayList<>();
+
+    for(Attendance attendance : attendances) {
+      attendanceDTOS.add(attendanceDTOMapper.toDTO(attendance));
+    }
+    return attendanceDTOS;
   }
 
   public void saveAttendance(AttendanceDTOList attendanceDTOList) {
@@ -121,21 +141,6 @@ public class AttendanceService {
       .attendanceCheckIn(null)
       .attendanceCheckOut(null)
       .attendanceOvertimeHours(0.0)
-      .build();
-  }
-
-  private AttendanceDTO convertAttendanceDTO(Attendance attendance, Employee employee) {
-    return AttendanceDTO.builder()
-      .employeeId(employee.getEmployeeId())
-      .employeeCode(employee.getEmployeeCode())
-      .employeeFirstName(employee.getFirstName())
-      .employeeLastName(employee.getLastName())
-      .attendanceId(attendance.getAttendanceId())
-      .attendanceDate(attendance.getDate())
-      .attendanceCheckIn(attendance.getCheckIn())
-      .attendanceCheckOut(attendance.getCheckOut())
-      .attendanceStatus(attendance.getStatus())
-      .attendanceOvertimeHours(attendance.getOvertimeHours())
       .build();
   }
 }
