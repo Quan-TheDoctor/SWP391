@@ -124,7 +124,7 @@ public class RequestService {
                 .requestDate(request.getCreatedAt() != null ? request.getCreatedAt().toLocalDate() : null)
                 .requestStatus(request.getStatus())
                 .note(request.getNote())
-                .leaveDTO(leaveDTO) // Gán LeaveDTO vào RequestDTO
+                .leaveDTO(leaveDTO)
                 .build();
     }
 
