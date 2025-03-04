@@ -84,22 +84,6 @@ public class AttendanceService {
     });
   }
 
-  public Page<AttendanceDTO> filterByMonth(Pageable pageable,Integer month,Integer year){
-    Page<Attendance> filterByMonthList = attendanceRepository.findAttendancesByMonthAndYear(pageable,month,year);
-    return filterByMonthList.map(attendance -> {
-      Employee employee = attendance.getEmployee();
-      return convertAttendanceDTO(attendance,employee);
-    });
-  }
-
-  public Page<AttendanceDTO> filterByStatus(Pageable pageable, String status) {
-    Page<Attendance> filterByStatusList = "".equals(status)
-            ? attendanceRepository.findAll(pageable)
-            : attendanceRepository.findAttendancesByStatus(pageable, status);
-    return filterByStatusList.map(attendance -> convertAttendanceDTO(attendance, attendance.getEmployee()));
-  }
-
-
   public AttendanceDTO getAttendanceByEmployeeIdAndDate(Integer employeeId, LocalDate date) {
     Employee employee = Optional.ofNullable(employeeRepository.getEmployeeByEmployeeId(employeeId))
       .orElseThrow(() -> new RuntimeException("Employee not found with id: " + employeeId));
@@ -110,7 +94,6 @@ public class AttendanceService {
       .map(attendance -> convertAttendanceDTO(attendance, employee))
       .orElseGet(() -> createDefaultAttendanceDTO(employeeDTO, date));
   }
-
 
   public void saveAttendance(AttendanceDTOList attendanceDTOList) {
     for (AttendanceDTO dto : attendanceDTOList.getAttendances()) {

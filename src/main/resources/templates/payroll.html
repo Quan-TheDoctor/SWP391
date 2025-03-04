@@ -177,9 +177,9 @@
 
 
     <!-- Payroll Table -->
-    <div class="bg-white rounded-lg shadow-sm overflow-hidden">
-        <div class="overflow-x-auto">
-            <table class="w-full min-w-[1024px]">
+    <div class="bg-white rounded-lg shadow-sm overflow-hidden flex flex-col min-h-[390px]">
+        <div class="overflow-x-auto flex-1">
+            <table class="w-full min-w-[1024px] h-full">
                 <thead class="bg-gray-50">
                 <tr>
                     <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">
@@ -234,7 +234,7 @@
                         <span th:text="${T(java.lang.String).format('%,.0f', p.getSalaryRecordNetSalary())}"></span>
                     </td>
                     <td class="px-6 py-4 text-right">
-                        <span th:text="${T(java.lang.String).format('%,.0f', (p.getSalaryRecordInsuranceDeduction()+p.getSalaryRecordDeductions()))}"></span>
+                        <span th:text="${T(java.lang.String).format('%,.0f', (p.calculatedPersonalDeduction + p.calculatedPersonalDependentDeduction))}"></span>
                     </td>
                     <td class="px-6 py-4 text-center">
                         <span th:text="${T(java.lang.String).format('%d/%d', p.getSalaryRecordMonth(), p.getSalaryRecordYear())}"></span>

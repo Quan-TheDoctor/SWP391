@@ -2,6 +2,7 @@ package com.se1873.js.springboot.project.service;
 
 import com.se1873.js.springboot.project.dto.EmployeeDTO;
 import com.se1873.js.springboot.project.entity.*;
+import com.se1873.js.springboot.project.mapper.EmployeeDTOMapper;
 import com.se1873.js.springboot.project.repository.*;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -20,7 +21,9 @@ import org.springframework.core.io.Resource;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.time.LocalDate;
+import java.util.ArrayList;
 import java.util.List;
+import java.util.stream.Collectors;
 
 @Service
 @Transactional
@@ -34,111 +37,30 @@ public class EmployeeService {
   private final EmployeeRepository employeeRepository;
   private final PasswordEncoder passwordEncoder;
   private final UserRepository userRepository;
+  private final EmployeeDTOMapper employeeDTOMapper;
 
   public Page<EmployeeDTO> getAll(Pageable pageable) {
-    return employeeRepository.findAll(pageable).map(this::convertEmployeeToDTO);
+    return employeeRepository.findAll(pageable).map(employeeDTOMapper::toDTO);
   }
 
+  public Page<EmployeeDTO> getEmployeesByDepartmentId(Integer departmentId, Pageable pageable) {
+    return filterEmployeesByCondition(
+      getAll(pageable),
+      emp -> emp.getDepartmentId().equals(departmentId),
+      pageable
+    );
+  }
+  private Page<EmployeeDTO> filterEmployeesByCondition(Page<EmployeeDTO> source,
+                                                       java.util.function.Predicate<EmployeeDTO> condition,
+                                                       Pageable pageable) {
+    List<EmployeeDTO> filtered = source.getContent()
+      .stream()
+      .filter(condition)
+      .collect(Collectors.toList());
+    return new PageImpl<>(filtered, pageable, filtered.size());
+  }
   public EmployeeDTO getEmployeeByEmployeeId(Integer employeeId) {
-    return convertEmployeeToDTO(employeeRepository.getEmployeeByEmployeeId(employeeId));
-  }
-
-  public void saveEmployee(EmployeeDTO employeeDTO) {
-    Department department = departmentRepository.findDepartmentByDepartmentId(employeeDTO.getDepartmentId());
-    Position position = positionRepository.findPositionByPositionId(employeeDTO.getPositionId());
-    if (employeeDTO.getEmployeeId() == null) {
-      Employee employee = new Employee();
-      editEmployee(employee, employeeDTO);
-
-      employee = employeeRepository.save(employee);
-
-      User user = User.builder()
-        .username(employeeDTO.getEmployeeCompanyEmail())
-        .passwordHash(passwordEncoder.encode("1"))
-        .role("USER")
-        .employee(employee)
-        .build();
-
-      userRepository.save(user);
-      employmentHistoryRepository.save(
-        EmploymentHistory.builder()
-          .employee(employee)
-          .department(department)
-          .position(position)
-          .startDate(employeeDTO.getEmploymentHistoryStartDate())
-          .endDate(employeeDTO.getEmploymentHistoryEndDate())
-          .isCurrent(true)
-          .build()
-      );
-      contractRepository.save(
-        Contract.builder()
-          .employee(employee)
-          .contractCode(employeeDTO.getContractCode())
-          .contractType(employeeDTO.getContractType())
-          .startDate(employeeDTO.getContractStartDate())
-          .endDate(employeeDTO.getContractEndDate())
-          .baseSalary(employeeDTO.getContractBaseSalary())
-          .signDate(employeeDTO.getContractSignDate())
-          .isPresent(true)
-          .build()
-      );
-    } else {
-      Employee employee = employeeRepository.getEmployeeByEmployeeId(employeeDTO.getEmployeeId());
-      editEmployee(employee, employeeDTO);
-      employeeRepository.save(employee);
-
-      EmploymentHistory employmentHistory =
-        employmentHistoryRepository.findEmploymentHistoryByEmployee_EmployeeIdAndIsCurrent(employeeDTO.getEmployeeId(), true);
-
-      if(!employmentHistory.getPosition().getPositionId().equals(employeeDTO.getPositionId())
-        || !employmentHistory.getDepartment().getDepartmentId().equals(department.getDepartmentId())) {
-        Department newDepartment = departmentRepository.findDepartmentByDepartmentId(employeeDTO.getDepartmentId());
-        Position newPosition = positionRepository.findPositionByPositionId(employeeDTO.getPositionId());
-
-        employmentHistory.setIsCurrent(false);
-        employmentHistory.setEndDate(LocalDate.now());
-        employmentHistoryRepository.save(employmentHistory);
-
-        EmploymentHistory newEmploymentHistory = EmploymentHistory.builder()
-          .employee(employee)
-          .department(newDepartment)
-          .position(newPosition)
-          .startDate(LocalDate.now())
-          .isCurrent(true)
-          .build();
-        employmentHistoryRepository.save(newEmploymentHistory);
-      }
-
-      Contract contract = contractRepository.findContractByEmployee_EmployeeIdAndPresent(employeeDTO.getEmployeeId(), true);
-
-      if(contract.getContractCode().equals(employeeDTO.getContractCode())) {
-        contract.setEmployee(employee);
-        contract.setContractCode(employeeDTO.getContractCode());
-        contract.setContractType(employeeDTO.getContractType());
-        contract.setStartDate(employeeDTO.getContractStartDate());
-        contract.setEndDate(employeeDTO.getContractEndDate());
-        contract.setBaseSalary(employeeDTO.getContractBaseSalary());
-        contract.setSignDate(employeeDTO.getContractSignDate());
-        contract.setPresent(true);
-        contractRepository.save(contract);
-      } else {
-        contract.setPresent(false);
-        contractRepository.save(contract);
-
-        Contract newContract = new Contract();
-        newContract.setEmployee(employee);
-        newContract.setContractCode(employeeDTO.getContractCode());
-        newContract.setContractType(employeeDTO.getContractType());
-        newContract.setStartDate(employeeDTO.getContractStartDate());
-        newContract.setEndDate(employeeDTO.getContractEndDate());
-        newContract.setBaseSalary(employeeDTO.getContractBaseSalary());
-        newContract.setSignDate(employeeDTO.getContractSignDate());
-        newContract.setPresent(true);
-        contractRepository.save(newContract);
-      }
-
-    }
-
+    return employeeDTOMapper.toDTO(employeeRepository.getEmployeeByEmployeeId(employeeId));
   }
 
   private void editEmployee(Employee employee, EmployeeDTO employeeDTO) {
@@ -161,108 +83,38 @@ public class EmployeeService {
   }
 
   public Page<EmployeeDTO> filterByField(String field, String value, Pageable pageable) {
-    Page<Employee> employees;
-    if ("all".equals(value)) {
-      employees = employeeRepository.findAll(pageable);
-    } else if ("department".equals(field)) {
-      employees = employeeRepository.findEmployeesByDepartmentName(value, pageable);
-    } else if ("position".equals(field)) {
-      employees = employeeRepository.findEmployeesByPositionName(value, pageable);
-    } else {
-      throw new IllegalArgumentException("Invalid field: " + field);
-    }
-
-    return employees.map(this::convertEmployeeToDTO);
+    return switch (field.toLowerCase()) {
+      case "department" -> employeeRepository.findEmployeesByDepartmentName(value, pageable).map(employeeDTOMapper::toDTO);
+      case "position" -> employeeRepository.findEmployeesByPositionName(value, pageable).map(employeeDTOMapper::toDTO);
+      case "all" -> getAll(pageable);
+      default -> throw new IllegalArgumentException("Invalid field: " + field);
+    };
   }
 
-  public Page<EmployeeDTO> search(Pageable pageable,String query){
-    String[] searchs = query.trim().split(" ",2);
-    String firstName ;
-    String lastName ;
-    if(searchs.length > 1){
-      firstName = searchs[0];
-      lastName = searchs[1];
-    }else{
-      firstName = query;
-      lastName = query;
-    }
-    Page<Employee> employees = employeeRepository.searchEmployee(firstName,lastName,pageable);
-    return employees.map(this::convertEmployeeToDTO);
+  public Page<EmployeeDTO> search(Pageable pageable, String query) {
+    String[] searchTerms = query.trim().split(" ", 2);
+    String firstName = searchTerms[0];
+    String lastName = searchTerms.length > 1 ? searchTerms[1] : searchTerms[0];
+
+    return employeeRepository.searchEmployee(firstName, lastName, pageable)
+      .map(employeeDTOMapper::toDTO);
   }
 
-  private EmployeeDTO convertEmployeeToDTO(Employee employee) {
-    EmploymentHistory employmentHistory =
-      employmentHistoryRepository.findEmploymentHistoryByEmployee_EmployeeIdAndIsCurrent(employee.getEmployeeId(), true);
-
-    EmployeeDTO.EmployeeDTOBuilder dtoBuilder = EmployeeDTO.builder()
-      .employeeId(employee.getEmployeeId())
-      .employeeCode(employee.getEmployeeCode())
-      .employeeFirstName(employee.getFirstName())
-      .employeeLastName(employee.getLastName())
-      .employeeBirthDate(employee.getBirthDate())
-      .employeeGender(employee.getGender())
-      .employeeIdNumber(employee.getIdNumber())
-      .employeePermanentAddress(employee.getPermanentAddress())
-      .employeeTemporaryAddress(employee.getTemporaryAddress())
-      .employeePersonalEmail(employee.getPersonalEmail())
-      .employeeCompanyEmail(employee.getCompanyEmail())
-      .employeePhone(employee.getPhoneNumber())
-      .employeeMaritalStatus(employee.getMaritalStatus())
-      .employeeBankAccount(employee.getBankAccount())
-      .employeeBankName(employee.getBankName())
-      .employeeTaxCode(employee.getTaxCode());
-
-    if (employmentHistory != null) {
-      Department department = departmentRepository.findDepartmentByDepartmentId(
-        employmentHistory.getDepartment().getDepartmentId());
-      Position position = positionRepository.findPositionByPositionId(
-        employmentHistory.getPosition().getPositionId());
-
-      dtoBuilder
-        .departmentId(department.getDepartmentId())
-        .departmentName(department.getDepartmentName())
-        .positionId(position.getPositionId())
-        .positionName(position.getPositionName())
-        .employmentHistoryId(employmentHistory.getHistoryId())
-        .employmentHistoryStartDate(employmentHistory.getStartDate())
-        .employmentHistoryEndDate(employmentHistory.getEndDate())
-        .employmentHistoryIsCurrent(employmentHistory.getIsCurrent());
-    }
-
-    Contract contract = contractRepository.findContractByEmployee_EmployeeIdAndPresent(
-      employee.getEmployeeId(), true);
-
-    if (contract != null) {
-      dtoBuilder
-        .contractId(contract.getContractId())
-        .contractType(contract.getContractType())
-        .contractCode(contract.getContractCode())
-        .contractStartDate(contract.getStartDate())
-        .contractEndDate(contract.getEndDate())
-        .contractBaseSalary(contract.getBaseSalary())
-        .contractSignDate(contract.getSignDate());
-    }
-
-    return dtoBuilder.build();
-  }
   public Resource exportToExcel(String departmentFilter, String positionFilter) {
     Pageable pageable = PageRequest.of(0, 1000);
     List<Employee> employees;
 
     if (!"all".equals(departmentFilter) && !"all".equals(positionFilter)) {
       employees = employeeRepository.findEmployeesByDepartmentName(departmentFilter, pageable).toList()
-              .stream()
-              .filter(emp -> employeeRepository.findEmployeesByPositionName(positionFilter, pageable)
-                      .toList().stream().anyMatch(e -> e.getEmployeeId().equals(emp.getEmployeeId())))
-              .toList();
-    }
-    else if (!"all".equals(departmentFilter)) {
+        .stream()
+        .filter(emp -> employeeRepository.findEmployeesByPositionName(positionFilter, pageable)
+          .toList().stream().anyMatch(e -> e.getEmployeeId().equals(emp.getEmployeeId())))
+        .toList();
+    } else if (!"all".equals(departmentFilter)) {
       employees = employeeRepository.findEmployeesByDepartmentName(departmentFilter, pageable).toList();
-    }
-    else if (!"all".equals(positionFilter)) {
+    } else if (!"all".equals(positionFilter)) {
       employees = employeeRepository.findEmployeesByPositionName(positionFilter, pageable).toList();
-    }
-    else {
+    } else {
       employees = employeeRepository.findAll(pageable).getContent();
     }
 
@@ -302,6 +154,7 @@ public class EmployeeService {
       throw new RuntimeException("Lỗi khi xuất file Excel", e);
     }
   }
+
   public Page<EmployeeDTO> exportFilteredEmployees(String departmentFilter, String positionFilter, Pageable pageable) {
     Page<Employee> employees;
 
@@ -310,8 +163,8 @@ public class EmployeeService {
       List<Employee> positionEmployees = employeeRepository.findEmployeesByPositionName(positionFilter, pageable).toList();
 
       List<Employee> filteredEmployees = departmentEmployees.stream()
-              .filter(positionEmployees::contains)
-              .toList();
+        .filter(positionEmployees::contains)
+        .toList();
       employees = new PageImpl<>(filteredEmployees, pageable, filteredEmployees.size());
     } else if (!"all".equals(departmentFilter)) {
       employees = employeeRepository.findEmployeesByDepartmentName(departmentFilter, pageable);
@@ -321,8 +174,174 @@ public class EmployeeService {
       employees = employeeRepository.findAll(pageable);
     }
 
-    return employees.map(this::convertEmployeeToDTO);
+    return employees.map(employeeDTOMapper::toDTO);
   }
 
+  /**
+   * Save new / updated employee to the database based on data inside employeeDTO taken from html view
+   *
+   * @param employeeDTO: variable that contains data needs
+   */
+  public void saveEmployee(EmployeeDTO employeeDTO) {
+    Department department = departmentRepository.findDepartmentByDepartmentId(employeeDTO.getDepartmentId());
+    Position position = positionRepository.findPositionByPositionId(employeeDTO.getPositionId());
 
+    if (employeeDTO.getEmployeeId() == null) {
+      createNewEmployeeWithRelatedRecords(employeeDTO, department, position);
+    } else {
+      updateExistingEmployeeWithRelatedRecords(employeeDTO, department, position);
+    }
+  }
+
+  // region Core Business Logic
+  private void createNewEmployeeWithRelatedRecords(EmployeeDTO dto, Department department, Position position) {
+    Employee employee = createAndSaveBaseEmployee(dto);
+    createUserAccount(employee, dto.getEmployeeCompanyEmail());
+    createInitialEmploymentHistory(employee, department, position, dto);
+    createInitialContract(employee, dto);
+  }
+
+  private void updateExistingEmployeeWithRelatedRecords(EmployeeDTO dto, Department department, Position position) {
+    Employee employee = employeeRepository.getEmployeeByEmployeeId(dto.getEmployeeId());
+    updateEmployeeDetails(employee, dto);
+    handleEmploymentHistoryChanges(employee, department, position, dto);
+    handleContractChanges(employee, dto);
+  }
+  // endregion
+  // region Employee Management Helpers
+  private Employee createAndSaveBaseEmployee(EmployeeDTO dto) {
+    Employee employee = new Employee();
+    updateEmployeeDetails(employee, dto);
+    return employeeRepository.save(employee);
+  }
+
+  private void updateEmployeeDetails(Employee employee, EmployeeDTO dto) {
+    employee.setFirstName(dto.getEmployeeFirstName());
+    employee.setLastName(dto.getEmployeeLastName());
+    employee.setBirthDate(dto.getEmployeeBirthDate());
+    employee.setGender(dto.getEmployeeGender());
+    employee.setIdNumber(dto.getEmployeeIdNumber());
+    employee.setPermanentAddress(dto.getEmployeePermanentAddress());
+    employee.setTemporaryAddress(dto.getEmployeeTemporaryAddress());
+    employee.setPersonalEmail(dto.getEmployeePersonalEmail());
+    employee.setPhoneNumber(dto.getEmployeePhone());
+    employee.setMaritalStatus(dto.getEmployeeMaritalStatus());
+    employee.setBankAccount(dto.getEmployeeBankAccount());
+    employee.setBankName(dto.getEmployeeBankName());
+    employee.setTaxCode(dto.getEmployeeTaxCode());
+    employee.setEmployeeCode(dto.getEmployeeCode());
+    employee.setCompanyEmail(dto.getEmployeeCompanyEmail());
+  }
+  // endregion
+  // region Employment History Management
+  private void createInitialEmploymentHistory(Employee employee, Department department, Position position, EmployeeDTO dto) {
+    EmploymentHistory history = EmploymentHistory.builder()
+      .employee(employee)
+      .department(department)
+      .position(position)
+      .startDate(dto.getEmploymentHistoryStartDate())
+      .endDate(dto.getEmploymentHistoryEndDate())
+      .isCurrent(true)
+      .build();
+    employmentHistoryRepository.save(history);
+  }
+
+  private void handleEmploymentHistoryChanges(Employee employee, Department department, Position position, EmployeeDTO dto) {
+    EmploymentHistory currentHistory = employmentHistoryRepository
+      .findEmploymentHistoryByEmployee_EmployeeIdAndIsCurrent(employee.getEmployeeId(), true);
+
+    if (currentHistory == null) {
+      createInitialEmploymentHistory(employee, department, position, dto);
+      return;
+    }
+
+    if (shouldUpdateEmploymentHistory(currentHistory, department, position)) {
+      closeCurrentEmploymentHistory(currentHistory);
+      createNewEmploymentHistory(employee, department, position);
+    }
+  }
+
+  private boolean shouldUpdateEmploymentHistory(EmploymentHistory current, Department newDept, Position newPos) {
+    return !current.getDepartment().getDepartmentId().equals(newDept.getDepartmentId()) ||
+      !current.getPosition().getPositionId().equals(newPos.getPositionId());
+  }
+
+  private void closeCurrentEmploymentHistory(EmploymentHistory history) {
+    history.setIsCurrent(false);
+    history.setEndDate(LocalDate.now());
+    employmentHistoryRepository.save(history);
+  }
+  private void createNewEmploymentHistory(Employee employee, Department department, Position position) {
+    EmploymentHistory newHistory = EmploymentHistory.builder()
+      .employee(employee)
+      .department(department)
+      .position(position)
+      .startDate(LocalDate.now())
+      .isCurrent(true)
+      .build();
+    employmentHistoryRepository.save(newHistory);
+  }
+  // endregion
+  // region Contract Management
+  private void createInitialContract(Employee employee, EmployeeDTO dto) {
+    Contract contract = Contract.builder()
+      .employee(employee)
+      .contractCode(dto.getContractCode())
+      .contractType(dto.getContractType())
+      .startDate(dto.getContractStartDate())
+      .endDate(dto.getContractEndDate())
+      .baseSalary(dto.getContractBaseSalary())
+      .signDate(dto.getContractSignDate())
+      .isPresent(true)
+      .build();
+    contractRepository.save(contract);
+  }
+
+  private void handleContractChanges(Employee employee, EmployeeDTO dto) {
+    Contract currentContract = contractRepository
+      .findContractByEmployee_EmployeeIdAndPresent(employee.getEmployeeId(), true);
+
+    if (currentContract == null) {
+      createInitialContract(employee, dto);
+      return;
+    }
+
+    if (isNewContractNeeded(currentContract, dto)) {
+      closeCurrentContract(currentContract);
+      createInitialContract(employee, dto);
+    } else {
+      updateExistingContract(currentContract, dto);
+    }
+  }
+
+  private boolean isNewContractNeeded(Contract current, EmployeeDTO dto) {
+    return !current.getContractCode().equals(dto.getContractCode());
+  }
+
+  private void closeCurrentContract(Contract contract) {
+    contract.setPresent(false);
+    contractRepository.save(contract);
+  }
+
+  private void updateExistingContract(Contract contract, EmployeeDTO dto) {
+    contract.setContractCode(dto.getContractCode());
+    contract.setContractType(dto.getContractType());
+    contract.setStartDate(dto.getContractStartDate());
+    contract.setEndDate(dto.getContractEndDate());
+    contract.setBaseSalary(dto.getContractBaseSalary());
+    contract.setSignDate(dto.getContractSignDate());
+    contractRepository.save(contract);
+  }
+  // endregion
+  // region User Account Management
+  private void createUserAccount(Employee employee, String email) {
+    User user = User.builder()
+      .username(email)
+      .passwordHash(passwordEncoder.encode("1"))
+      .role("USER")
+      .employee(employee)
+      .build();
+    userRepository.save(user);
+  }
+  // endregion
 }

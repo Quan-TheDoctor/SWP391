@@ -4,8 +4,8 @@ import com.se1873.js.springboot.project.dto.AttendanceDTO;
 import com.se1873.js.springboot.project.dto.EmployeeDTO;
 import com.se1873.js.springboot.project.dto.PayrollDTO;
 import com.se1873.js.springboot.project.dto.RequestDTO;
+import com.se1873.js.springboot.project.entity.Employee;
 import com.se1873.js.springboot.project.entity.User;
-import com.se1873.js.springboot.project.repository.AttendanceRepository;
 import com.se1873.js.springboot.project.service.AttendanceService;
 import com.se1873.js.springboot.project.service.EmployeeService;
 import com.se1873.js.springboot.project.repository.UserRepository;
@@ -15,14 +15,11 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
-import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestParam;
 
-import java.time.YearMonth;
 import java.util.Optional;
 
 @Controller
@@ -31,8 +28,7 @@ public class UserController {
 
     @Autowired
     private EmployeeService employeeService;
-    @Autowired
-    private AttendanceRepository attendanceRepository;
+
     @Autowired
     private UserRepository userRepository;
     @Autowired
@@ -40,21 +36,14 @@ public class UserController {
     @Autowired
     private SalaryRecordService salaryRecordService;
 
-    public Integer getEmployeeId(){
+    @GetMapping("/detail")
+    public String viewUserProfile(Model model) {
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
         String username = authentication.getName();
         Optional<User> user = userRepository.findUserByUsername(username);
-        if(user.isPresent()) {
-            return user.get().getEmployee().getEmployeeId();
-        }else{
-            throw new UsernameNotFoundException("not found user");
-        }
-    }
-
-    @GetMapping("/detail")
-    public String viewUserProfile(Model model) {
-        EmployeeDTO employee = employeeService.getEmployeeByEmployeeId(getEmployeeId());
-        model.addAttribute("employeeDTO", employee);
+            int employeeId = user.get().getEmployee().getEmployeeId();
+            EmployeeDTO employee = employeeService.getEmployeeByEmployeeId(employeeId);
+            model.addAttribute("employeeDTO", employee);
         return "user";
     }
 
@@ -66,50 +55,25 @@ public class UserController {
     }
     @RequestMapping("/attendance")
     public String attendance(Model model){
-        Page<AttendanceDTO> attendanceDTO = attendanceService.getAttendanceByEmployeeId(getEmployeeId(), PageRequest.of(0,5));
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+        String userName = authentication.getName();
+        Optional<User> user = userRepository.findUserByUsername(userName);
+        if(user.isPresent()){
+        Integer employeeId = user.get().getEmployee().getEmployeeId();
+        Page<AttendanceDTO> attendanceDTO = attendanceService.getAttendanceByEmployeeId(employeeId, PageRequest.of(0,5));
         model.addAttribute("attendanceDTO",attendanceDTO);
+        }
         return "user-attendance";
     }
 
     @RequestMapping("/payroll")
     public String payroll(Model model){
-        Page<PayrollDTO> payrollDTO = salaryRecordService.getPayrollByEmployeeId(getEmployeeId(),PageRequest.of(0,5));
+        Authentication authencation = SecurityContextHolder.getContext().getAuthentication();
+        String userName = authencation.getName();
+        Optional<User> user = userRepository.findUserByUsername(userName);
+        Integer employeeId = user.get().getEmployee().getEmployeeId();
+        Page<PayrollDTO> payrollDTO = salaryRecordService.getPayrollByEmployeeId(employeeId,PageRequest.of(0,5));
         model.addAttribute("payrollDTO",payrollDTO);
-        return "user-payroll";
-    }
-
-    @RequestMapping("/back")
-    public String back(Model model){
-        EmployeeDTO employee = employeeService.getEmployeeByEmployeeId(getEmployeeId());
-        model.addAttribute("employeeDTO", employee);
-        return "user";
-    }
-
-    @RequestMapping("/filterAttendance")
-    public String filterAttendance(Model model,
-                                   @RequestParam(value = "status", required = false) String status,
-                                   @RequestParam(value = "month", required = false) YearMonth month){
-        Page<AttendanceDTO> attendanceDTO = null;
-        if(month != null){
-            Integer months = month.getMonthValue();
-            Integer year = month.getYear();
-            attendanceDTO = attendanceService.filterByMonth(PageRequest.of(0,5),months,year);
-        }else if(status != null){
-            attendanceDTO = attendanceService.filterByStatus(PageRequest.of(0,5),status);
-        }
-        model.addAttribute("attendanceDTO",attendanceDTO);
-        return "user-attendance";
-    }
-
-    @RequestMapping("/filterPayroll")
-    public String filterPayroll(Model model,
-                                @RequestParam(value = "month", required = false) YearMonth month){
-        if(month != null) {
-            Integer months = month.getMonthValue();
-            Integer year = month.getYear();
-            Page<PayrollDTO> payrollDTO = salaryRecordService.filterByMonth(PageRequest.of(0, 5), months, year);
-            model.addAttribute("payrollDTO", payrollDTO);
-        }
         return "user-payroll";
     }
 }
