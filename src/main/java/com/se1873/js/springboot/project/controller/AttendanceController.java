@@ -215,8 +215,7 @@ public class AttendanceController {
     }
 
     form.setRequesterId(user.getUserId());
-    log.info(form.toString());
     salaryRecordService.savePayroll(form);
-    return "redirect:/result";
+    return "redirect:/request";
   }
 }
