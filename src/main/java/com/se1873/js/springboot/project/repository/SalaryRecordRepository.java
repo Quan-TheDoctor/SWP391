@@ -11,6 +11,4 @@ public interface SalaryRecordRepository extends JpaRepository<SalaryRecord, Long
 
     SalaryRecord findSalaryRecordBySalaryId(Integer salaryId);
     Page<SalaryRecord> getSalaryRecordsByEmployee_EmployeeId(Integer employeeId, Pageable pageable);
-
-    Page<SalaryRecord> findSalaryRecordsByMonthAndYear(Pageable pageable,Integer month,Integer year);
 }

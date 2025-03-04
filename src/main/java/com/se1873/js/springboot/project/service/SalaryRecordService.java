@@ -1,12 +1,10 @@
 package com.se1873.js.springboot.project.service;
 
-import com.se1873.js.springboot.project.dto.PayrollDTO;
+import com.se1873.js.springboot.project.dto.*;
 import com.se1873.js.springboot.project.entity.Employee;
 import com.se1873.js.springboot.project.entity.SalaryRecord;
-import com.se1873.js.springboot.project.repository.DependentRepository;
-import com.se1873.js.springboot.project.repository.EmployeeRepository;
-import com.se1873.js.springboot.project.repository.FinancialPolicyRepository;
-import com.se1873.js.springboot.project.repository.SalaryRecordRepository;
+import com.se1873.js.springboot.project.entity.User;
+import com.se1873.js.springboot.project.repository.*;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.Page;
@@ -15,6 +13,7 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
@@ -29,48 +28,30 @@ public class SalaryRecordService {
   private final EmployeeRepository employeeRepository;
   private final FinancialPolicyRepository financialPolicyRepository;
   private final DependentRepository dependentRepository;
+  private final EmployeeService employeeService;
+  private final RequestService requestService;
+  private final UserRepository userRepository;
 
+  public SalaryRecord findSalaryRecordBySalaryId(Integer salaryId) {
+    return salaryRecordRepository.findSalaryRecordBySalaryId(salaryId);
+  }
+
+  //region getAll()
   public Page<PayrollDTO> getAll(Pageable pageable) {
     var salaryRecords = salaryRecordRepository.findAll(pageable);
     List<PayrollDTO> payrolls = new ArrayList<>();
 
     for (var salaryRecord : salaryRecords) {
-      Employee employee = salaryRecord.getEmployee();
-      PayrollDTO payroll = convertSalaryRecordToPayrollDTO(salaryRecord, employee);
+      PayrollDTO payroll = payrollDTO(salaryRecord.getSalaryId());
       payrolls.add(payroll);
     }
 
     return new PageImpl<>(payrolls, pageable, salaryRecords.getTotalElements());
   }
-  public Page<PayrollDTO> getPayrollByEmployeeId(Integer employeeId,Pageable pageable){
-     Page<SalaryRecord> salaryRecords = salaryRecordRepository.getSalaryRecordsByEmployee_EmployeeId(employeeId,pageable);
-     return salaryRecords.map(salaryRecord -> {
-       Employee employee = salaryRecord.getEmployee();
-       return convertSalaryRecordToPayrollDTO(salaryRecord,employee);
-     });
-  }
 
+  //endregion
 
-  private PayrollDTO convertSalaryRecordToPayrollDTO(SalaryRecord salaryRecord, Employee employee) {
-    return PayrollDTO.builder()
-      .employeeId(employee.getEmployeeId())
-      .employeeFirstName(employee.getFirstName())
-      .employeeLastName(employee.getLastName())
-      .salaryRecordId(salaryRecord.getSalaryId())
-      .salaryRecordMonth(salaryRecord.getMonth())
-      .salaryRecordYear(salaryRecord.getYear())
-      .salaryRecordBaseSalary(salaryRecord.getBaseSalary())
-      .salaryRecordTotalAllowance(salaryRecord.getTotalAllowance())
-      .salaryRecordOvertimePay(salaryRecord.getOvertimePay())
-      .salaryRecordDeductions(salaryRecord.getDeductions())
-      .salaryRecordInsuranceDeduction(salaryRecord.getInsuranceDeduction())
-      .salaryRecordTaxAmount(salaryRecord.getTaxAmount())
-      .salaryRecordNetSalary(salaryRecord.getNetSalary())
-      .salaryRecordPaymentStatus(salaryRecord.getPaymentStatus())
-      .build();
-  }
-
-
+  //region payrollDTO()
   public double calculateInsuranceOrFee(int salaryId, int financialPolicyId) {
     SalaryRecord salaryRecord = salaryRecordRepository.findSalaryRecordBySalaryId(salaryId);
     double policyRate = financialPolicyRepository.getFinancialPolicyAmount(financialPolicyId);
@@ -135,9 +116,8 @@ public class SalaryRecordService {
   }
 
   public double totalDeductions(int salaryId) {
-    return calculateInsuranceOrFee(salaryId, 10)
-      + calculatedPersonalDependentDeduction(salaryId);
-
+    double personalDeduction = financialPolicyRepository.getFinancialPolicyAmount(10);
+    return personalDeduction + calculatedPersonalDependentDeduction(salaryId);
   }
 
   public double taxAmount(double totalEarning, double totalDeduction) {
@@ -169,7 +149,6 @@ public class SalaryRecordService {
     double calculatedEmployerSocialInsuranceAmount = financialPolicyRepository.getFinancialPolicyAmount(4);
     double calculatedEmployerUnionFeeAmount = financialPolicyRepository.getFinancialPolicyAmount(6);
     double calculatedEmployerUnemploymentInsuranceAmount = financialPolicyRepository.getFinancialPolicyAmount(8);
-
 
     double calculatedEmployeeHealthInsurance = calculatedEmployeeHealthInsurance(salaryId);
     double calculatedEmployeeSocialInsurance = calculatedEmployeeSocialInsurance(salaryId);
@@ -225,17 +204,133 @@ public class SalaryRecordService {
       .calculatedPersonalInsuranceDeduction(calculatedPersonalInsuranceDeduction)
       .calculatedPersonalDeduction(calculatedPersonalDeduction)
       .calculatedPersonalDependentDeduction(calculatedPersonalDependentDeduction)
-      .totalDeductions(totalDeductions)
+      .totalDeductions(totalDeductions(salaryId))
       .totalTaxAmount(taxAmount)
       .totalNetSalary(totalNetSalary)
-            .totalGrossSalary(grossSalary)
+      .totalGrossSalary(grossSalary)
+      .build();
+  }
+  //endregion
+
+  //region SavePayroll()
+  public void savePayroll(PayrollCalculationForm form) {
+    List<Integer> payrollIds = new ArrayList<>();
+    int workingDaysPerMonth = (int) financialPolicyRepository.getFinancialPolicyAmount(12);
+    double lateDayPenalty = financialPolicyRepository.getFinancialPolicyAmount(13);
+    for (var payroll : form.getPayrollCalculations()) {
+      EmployeeDTO employeeDTO = employeeService.getEmployeeByEmployeeId(payroll.employeeId());
+
+      SalaryCalculationResult calculated = calculateSalaryComponents(
+        employeeDTO.getContractBaseSalary(),
+        payroll.workedDays(),
+        payroll.lateDays(),
+        payroll.overtimeHours(),
+        workingDaysPerMonth,
+        lateDayPenalty
+      );
+
+      SalaryRecord salaryRecord = buildInitialSalaryRecord(payroll, employeeDTO, calculated);
+      salaryRecord = salaryRecordRepository.save(salaryRecord);
+
+      updateSalaryRecordWithCalculations(salaryRecord);
+
+      payrollIds.add(salaryRecord.getSalaryId());
+    }
+    createRequest(form, payrollIds);
+  }
+
+  private void createRequest(PayrollCalculationForm form, List<Integer> payrollIds) {
+    Optional<User> user = userRepository.findUserByUserId(form.getRequesterId());
+    Optional<User> approval = userRepository.findUserByUsername("annguyen");
+
+    RequestDTO requestDTO = RequestDTO.builder()
+      .requesterId(form.getRequesterId())
+      .payrollIds(payrollIds)
+      .requestDate(LocalDate.now())
+      .requestType("Hạch toán lương")
+      .requestStatus("pending")
+      .approvalName(approval.get().getUsername())
+      .build();
+
+    requestService.saveRequest(requestDTO, user.get(), approval.get());
+  }
+
+  private SalaryCalculationResult calculateSalaryComponents(
+    double contractBaseSalary,
+    int workedDays,
+    int lateDays,
+    double overtimeHours,
+    int workingDaysPerMonth,
+    double lateDayPenalty
+  ) {
+    double dailyRate = contractBaseSalary / workingDaysPerMonth;
+    double proratedBaseSalary = workedDays * dailyRate;
+    double latePenaltyDeduction = lateDays * lateDayPenalty;
+    double overtimePay = calculateOvertimePay(overtimeHours, dailyRate);
+
+    double grossSalary = proratedBaseSalary + overtimePay - latePenaltyDeduction;
+
+    return new SalaryCalculationResult(
+      dailyRate,
+      proratedBaseSalary,
+      latePenaltyDeduction,
+      overtimePay,
+      grossSalary
+    );
+  }
+
+  private double calculateOvertimePay(double overtimeHours, double dailyRate) {
+    int standardWorkingHoursPerDay = (int) financialPolicyRepository.getFinancialPolicyAmount(14);
+    double hourlyRate = dailyRate / standardWorkingHoursPerDay;
+    return overtimeHours * hourlyRate * financialPolicyRepository.getFinancialPolicyAmount(9);
+  }
+
+  private SalaryRecord buildInitialSalaryRecord(
+    PayrollCalculationDTO payroll,
+    EmployeeDTO employeeDTO,
+    SalaryCalculationResult calculated
+  ) {
+    return SalaryRecord.builder()
+      .employee(employeeRepository.findEmployeeByEmployeeId(payroll.employeeId()))
+      .baseSalary(calculated.proratedBaseSalary())
+      .month(LocalDate.now().getMonthValue())
+      .year(LocalDate.now().getYear())
+      .overtimePay(calculated.overtimePay())
+      .totalAllowance(0.0)
+      .deductions(calculated.latePenaltyDeduction())
+      .insuranceDeduction(0.0)
+      .taxAmount(0.0)
+      .netSalary(0.0)
+      .paymentStatus("Pending")
       .build();
   }
 
+  private void updateSalaryRecordWithCalculations(SalaryRecord salaryRecord) {
+    PayrollDTO payrollDTO = payrollDTO(salaryRecord.getSalaryId());
+
+    salaryRecord.setTotalAllowance(payrollDTO.getSalaryRecordTotalAllowance());
+    salaryRecord.setDeductions(payrollDTO.getSalaryRecordDeductions());
+    salaryRecord.setInsuranceDeduction(payrollDTO.getSalaryRecordInsuranceDeduction());
+    salaryRecord.setTaxAmount(payrollDTO.getSalaryRecordTaxAmount());
+    salaryRecord.setNetSalary(payrollDTO.getSalaryRecordNetSalary());
+
+    salaryRecordRepository.save(salaryRecord);
+  }
+
+  private record SalaryCalculationResult(
+    double dailyRate,
+    double proratedBaseSalary,
+    double latePenaltyDeduction,
+    double overtimePay,
+    double grossSalary
+  ) {
+  }
+  //endregion
+
   /**
-   * @deprecated
    * @param salaryId: Input salary ID for manipulating the desired salary
    * @return PayrollDTO
+   * @deprecated
    */
   @Deprecated(since = "2025/02/22", forRemoval = true)
   public PayrollDTO getInsurance(int salaryId) {
