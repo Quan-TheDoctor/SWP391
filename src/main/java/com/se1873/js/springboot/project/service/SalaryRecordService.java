@@ -50,6 +50,14 @@ public class SalaryRecordService {
      });
   }
 
+  public Page<PayrollDTO> filterByMonth(Pageable pageable, Integer month, Integer year){
+    Page<SalaryRecord> salaryRecords = salaryRecordRepository.findSalaryRecordsByMonthAndYear(pageable,month,year);
+    return salaryRecords.map(salaryRecord -> {
+      Employee employee = salaryRecord.getEmployee();
+      return convertSalaryRecordToPayrollDTO(salaryRecord,employee);
+    });
+  }
+
 
   private PayrollDTO convertSalaryRecordToPayrollDTO(SalaryRecord salaryRecord, Employee employee) {
     return PayrollDTO.builder()
