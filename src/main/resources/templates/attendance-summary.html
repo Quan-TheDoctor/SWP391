@@ -1,210 +1,192 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="en" xmlns:th="http://www.thymeleaf.org">
 <head>
     <meta charset="UTF-8">
-    <title>Payroll Management System</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Payroll Calculation</title>
+    <!-- Add Tailwind CSS -->
     <script src="https://cdn.tailwindcss.com"></script>
-    <link href="https://unpkg.com/@material-icons/iconfont/material-icons.css" rel="stylesheet">
+
     <style>
-        .employee-item:hover .select-checkbox {
-            opacity: 1;
+        .popup {
+            display: none;
+            position: fixed;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            background-color: white;
+            padding: 20px;
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+            z-index: 1000;
+            border-radius: 8px;
         }
-
-        .metric-card {
-            transition: transform 0.2s;
+        .overlay {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.5);
+            z-index: 999;
         }
-
-        .metric-card:hover {
-            transform: translateY(-2px);
+        .close-btn {
+            position: absolute;
+            top: 10px;
+            right: 10px;
+            cursor: pointer;
+            font-size: 20px;
+            color: #000;
         }
     </style>
 </head>
-<body class="bg-gray-50 min-h-screen">
-<div class="max-w-7xl mx-auto p-6 space-y-6">
-    <!-- Header -->
-    <div class="flex items-center justify-between">
-        <div>
-            <h1 class="text-2xl font-bold text-gray-800">Payroll Management</h1>
-            <p class="text-gray-500 text-sm">Month: October 2023</p>
+<body class="bg-gray-100 p-8">
+<div class="max-w-6xl mx-auto bg-white rounded-lg shadow-md p-6">
+    <form th:action="@{/attendance/summary}" th:object="${payrollCalculationForm}" method="get">
+        <div class="mb-6">
+            <select name="selectedDepartmentId"
+                    th:onchange="this.form.submit()"
+                    class="w-full p-2 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500">
+                <option value="">Chọn phòng ban</option>
+                <option th:each="d : ${departments}"
+                        th:value="${d.departmentId}"
+                        th:text="${d.departmentName}"
+                        th:selected="${payrollCalculationForm.selectedDepartmentId == d.departmentId}">
+                </option>
+            </select>
         </div>
-        <div class="flex gap-3">
-            <button class="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 flex items-center gap-2">
-                <span class="material-icons text-sm">calculate</span>
-                Calculate Payroll
-            </button>
-            <button class="px-4 py-2 border border-gray-300 rounded-lg hover:bg-gray-50 flex items-center gap-2">
-                <span class="material-icons text-sm">download</span>
-                Export
-            </button>
-        </div>
-    </div>
+    </form>
 
-    <!-- Main Content -->
-    <div class="flex gap-6 h-[calc(100vh-180px)]">
-        <!-- Employee List -->
-        <div class="w-96 bg-white rounded-xl shadow-sm p-4 flex flex-col">
-            <div class="mb-4">
-                <div class="flex items-center gap-2 mb-4">
-                    <span class="material-icons text-gray-400">search</span>
-                    <input type="text" placeholder="Search employees..."
-                           class="flex-1 p-2 text-sm border-b border-gray-200 focus:outline-none focus:border-blue-500">
-                </div>
-
-                <select class="w-full p-2 rounded-lg border border-gray-200 mb-4 text-sm"
-                        onchange="filterDepartment(this.value)">
-                    <option value="">All Departments</option>
-                    <option th:each="d : ${departments}"
-                            th:value="${d.departmentId}"
-                            th:text="${d.departmentName}"></option>
-                </select>
-            </div>
-
-            <div class="flex-1 overflow-y-auto space-y-2">
-                <div th:each="e : ${employees}"
-                     class="employee-item group p-3 rounded-lg hover:bg-blue-50 cursor-pointer transition-colors"
-                     onclick="selectEmployee(this, ${e.employeeId})">
-                    <div class="flex items-center justify-between">
-                        <div>
-                            <h3 class="text-sm font-medium text-gray-800"
-                                th:text="${e.firstName + ' ' + e.lastName}"></h3>
-                            <p class="text-xs text-gray-500" th:text="${e.departmentName}"></p>
-                        </div>
-                        <span class="material-icons text-blue-600 text-opacity-0 select-checkbox">check_circle</span>
-                    </div>
-                </div>
-            </div>
-        </div>
-
-        <!-- Payroll Summary -->
-        <div class="flex-1 bg-white rounded-xl shadow-sm p-6">
-            <!-- Metrics Cards -->
-            <div class="grid grid-cols-4 gap-4 mb-6">
-                <div class="metric-card bg-blue-50 p-4 rounded-xl">
-                    <div class="flex items-center justify-between">
-                        <div>
-                            <p class="text-xs text-gray-500 mb-1">Selected Employees</p>
-                            <p class="text-xl font-bold" id="selectedCount">0</p>
-                        </div>
-                        <span class="material-icons text-blue-500">people</span>
-                    </div>
-                </div>
-                <div class="metric-card bg-green-50 p-4 rounded-xl">
-                    <div class="flex items-center justify-between">
-                        <div>
-                            <p class="text-xs text-gray-500 mb-1">Total Work Days</p>
-                            <p class="text-xl font-bold" id="totalWorkDays">0</p>
-                        </div>
-                        <span class="material-icons text-green-500">work</span>
-                    </div>
-                </div>
-                <div class="metric-card bg-amber-50 p-4 rounded-xl">
-                    <div class="flex items-center justify-between">
-                        <div>
-                            <p class="text-xs text-gray-500 mb-1">Late Days</p>
-                            <p class="text-xl font-bold" id="totalLateDays">0</p>
-                        </div>
-                        <span class="material-icons text-amber-500">schedule</span>
-                    </div>
-                </div>
-                <div class="metric-card bg-red-50 p-4 rounded-xl">
-                    <div class="flex items-center justify-between">
-                        <div>
-                            <p class="text-xs text-gray-500 mb-1">Absent Days</p>
-                            <p class="text-xl font-bold" id="totalAbsentDays">0</p>
-                        </div>
-                        <span class="material-icons text-red-500">cancel</span>
-                    </div>
-                </div>
-            </div>
-
-            <!-- Summary Table -->
-            <div class="border rounded-lg overflow-hidden">
-                <table class="w-full">
-                    <thead class="bg-gray-50">
-                    <tr>
-                        <th class="text-left text-sm font-medium text-gray-500 p-3">Employee</th>
-                        <th class="text-center text-sm font-medium text-gray-500 p-3">Worked</th>
-                        <th class="text-center text-sm font-medium text-gray-500 p-3">Late</th>
-                        <th class="text-center text-sm font-medium text-gray-500 p-3">Absent</th>
-                        <th class="text-center text-sm font-medium text-gray-500 p-3">Overtime</th>
-                        <th class="text-right text-sm font-medium text-gray-500 p-3">Total Pay</th>
-                    </tr>
-                    </thead>
-                    <tbody id="payrollTable" class="divide-y divide-gray-200">
-
-                    <tr class="hover:bg-gray-50" id="noDataRow">
-                        <td colspan="6" class="text-center text-gray-400 py-6">Select employees from the left panel</td>
-                    </tr>
-                    </tbody>
-                </table>
+    <div th:if="${employees != null}" class="mb-8">
+        <h3 class="text-xl font-semibold mb-4">Danh sách nhân viên</h3>
+        <div class="space-y-2">
+            <div th:each="emp : ${employees}" class="flex items-center justify-between bg-gray-50 p-3 rounded-lg">
+                    <span th:text="${emp.getEmployeeFirstName() + ' ' + emp.getEmployeeLastName()}"
+                          class="font-medium"></span>
+                <form th:action="@{/attendance/summary/addEmployee}" method="post">
+                    <input type="hidden" name="employeeId" th:value="${emp.getEmployeeId()}">
+                    <button type="submit"
+                            class="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors">
+                        Thêm vào bảng
+                    </button>
+                </form>
             </div>
         </div>
     </div>
+
+    <form th:action="@{/attendance/summary/calculate}" th:object="${payrollCalculationForm}" method="post">
+        <input type="hidden" th:field="*{selectedDepartmentId}">
+        <div class="overflow-x-auto rounded-lg border">
+            <table class="min-w-full">
+                <thead class="bg-gray-50">
+                <tr>
+                    <th class="px-6 py-3 text-left text-sm font-medium text-gray-700">Tên NV</th>
+                    <th class="px-6 py-3 text-left text-sm font-medium text-gray-700">Ngày công</th>
+                    <th class="px-6 py-3 text-left text-sm font-medium text-gray-700">Đi muộn</th>
+                    <th class="px-6 py-3 text-left text-sm font-medium text-gray-700">Nghỉ</th>
+                    <th class="px-6 py-3 text-left text-sm font-medium text-gray-700">Làm thêm (giờ)</th>
+                    <th class="px-6 py-3 text-left text-sm font-medium text-gray-700">Thao tác</th>
+                </tr>
+                </thead>
+                <tbody class="divide-y divide-gray-200">
+                <tr th:each="dto, stat : *{payrollCalculations}"
+                    class="hover:bg-gray-50 transition-colors">
+                    <td class="px-6 py-4">
+                        <input type="hidden" th:field="*{payrollCalculations[__${stat.index}__].employeeId}">
+                        <span th:text="${dto.employeeFistName() + ' ' + dto.employeeLastName()}"
+                              class="font-medium"></span>
+                    </td>
+                    <td class="px-6 py-4">
+                        <input type="text" th:field="*{payrollCalculations[__${stat.index}__].workedDays}"
+                               class="w-20 p-1 border rounded focus:ring-2 focus:ring-blue-500" readonly>
+                    </td>
+                    <td class="px-6 py-4">
+                        <input type="text" th:field="*{payrollCalculations[__${stat.index}__].lateDays}"
+                               class="w-20 p-1 border rounded focus:ring-2 focus:ring-blue-500" readonly>
+                    </td>
+                    <td class="px-6 py-4">
+                        <input type="text" th:field="*{payrollCalculations[__${stat.index}__].absentDays}"
+                               class="w-20 p-1 border rounded focus:ring-2 focus:ring-blue-500" readonly>
+                    </td>
+                    <td class="px-6 py-4">
+                        <input type="text" step="0.5"
+                               th:field="*{payrollCalculations[__${stat.index}__].overtimeHours}"
+                               class="w-24 p-1 border rounded focus:ring-2 focus:ring-blue-500" readonly>
+                    </td>
+                    <td class="px-6 py-4">
+                        <input type="hidden" name="employeeId" th:value="${dto.employeeId()}">
+                        <button type="submit"
+                                formmethod="post"
+                                th:formaction="@{/attendance/summary/removeEmployee}"
+                                class="remove-btn px-3 py-1.5 bg-red-600 text-white rounded-md hover:bg-red-700 transition-colors flex items-center">
+                            <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 mr-1" fill="none"
+                                 viewBox="0 0 24 24" stroke="currentColor">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                      d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/>
+                            </svg>
+                            Xóa
+                        </button>
+                    </td>
+                </tr>
+                </tbody>
+            </table>
+        </div>
+
+        <div class="mt-6 flex justify-end">
+            <button type="submit"
+                    class="px-6 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors
+                               flex items-center">
+                <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 mr-2" fill="none" viewBox="0 0 24 24"
+                     stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                          d="M9 7h6m0 10v-3m-3 3h.01M9 17h.01M9 14h.01M12 14h.01M15 11h.01M12 11h.01M9 11h.01M7 21h10a2 2 0 002-2V5a2 2 0 00-2-2H7a2 2 0 00-2 2v14a2 2 0 002 2z"/>
+                </svg>
+                Tính lương
+            </button>
+        </div>
+    </form>
 </div>
 
-<script>
-    const selectedEmployees = new Map();
-
-    function selectEmployee(element, employeeId) {
-        element.classList.toggle('bg-blue-50');
-        const checkbox = element.querySelector('.material-icons');
-        checkbox.classList.toggle('text-opacity-0');
-        checkbox.classList.toggle('text-opacity-100');
-
-        if (selectedEmployees.has(employeeId)) {
-            selectedEmployees.delete(employeeId);
-        } else {m
-            fetch(`/api/attendance/${employeeId}?month=2023-10`)
-                .then(res => res.json())
-                .then(data => {
-                    selectedEmployees.set(employeeId, data);
-                    updateSummaryTable();
-                    updateMetrics();
-                });
-        }
-    }
-
-    function updateSummaryTable() {
-        const tbody = document.getElementById('payrollTable');
-        tbody.innerHTML = '';
-
-        selectedEmployees.forEach((data, id) => {
-            const row = `
-                <tr class="hover:bg-gray-50">
-                    <td class="p-3 text-sm font-medium">${data.fullName}</td>
-                    <td class="p-3 text-center text-sm">${data.workedDays}</td>
-                    <td class="p-3 text-center text-sm">${data.lateDays}</td>
-                    <td class="p-3 text-center text-sm">${data.absentDays}</td>
-                    <td class="p-3 text-center text-sm">${data.overtimeHours}h</td>
-                    <td class="p-3 text-right text-sm font-medium">${formatCurrency(data.totalPay)}</td>
-                </tr>
-            `;
-            tbody.insertAdjacentHTML('beforeend', row);
-        });
-
-        document.getElementById('noDataRow').style.display =
-            selectedEmployees.size ? 'none' : 'table-row';
-    }
-
-    function updateMetrics() {
-        document.getElementById('selectedCount').textContent = selectedEmployees.size;
-
-        let totalWork = 0, totalLate = 0, totalAbsent = 0;
-        selectedEmployees.forEach(data => {
-            totalWork += data.workedDays;
-            totalLate += data.lateDays;
-            totalAbsent += data.absentDays;
-        });
-
-        document.getElementById('totalWorkDays').textContent = totalWork;
-        document.getElementById('totalLateDays').textContent = totalLate;
-        document.getElementById('totalAbsentDays').textContent = totalAbsent;
-    }
-
-    function formatCurrency(amount) {
-        return new Intl.NumberFormat('vi-VN',
-            { style: 'currency', currency: 'VND' }).format(amount);
-    }
-</script>
 </body>
 </html>
+
+
+
+<div class="overlay" th:if="${error}" id="overlay"></div>
+
+<div class="popup" th:if="${error}" id="errorPopup">
+    <span class="close-btn" onclick="closePopup()">&times;</span>
+    <ul>
+        <li th:text="${error}"></li>
+    </ul>
+</div>
+<script>
+
+    document.addEventListener("DOMContentLoaded", function() {
+        const errorPopup = document.getElementById("errorPopup");
+        const overlay = document.getElementById("overlay");
+
+        if (errorPopup && overlay) {
+            errorPopup.style.display = "block";
+            overlay.style.display = "block";
+        }
+
+        document.querySelectorAll('.remove-btn').forEach(btn => {
+            btn.addEventListener('click', (e) => {
+                if(!confirm('Bạn có chắc chắn muốn xóa nhân viên này khỏi bảng?')) {
+                    e.preventDefault();
+                }
+            });
+        });
+    });
+
+    function closePopup() {
+        const errorPopup = document.getElementById("errorPopup");
+        const overlay = document.getElementById("overlay");
+
+        if (errorPopup && overlay) {
+            errorPopup.style.display = "none";
+            overlay.style.display = "none";
+        }
+    }
+</script>
