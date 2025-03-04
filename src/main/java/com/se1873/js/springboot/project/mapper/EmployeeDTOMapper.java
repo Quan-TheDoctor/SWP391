@@ -18,7 +18,6 @@ import java.util.Optional;
   }
 )
 public abstract class EmployeeDTOMapper {
-
   @Mapping(target = "departmentId", ignore = true)
   @Mapping(target = "departmentName", ignore = true)
   @Mapping(target = "departmentDescription", ignore = true)
