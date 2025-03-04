@@ -95,6 +95,19 @@ public class AttendanceService {
       .orElseGet(() -> createDefaultAttendanceDTO(employeeDTO, date));
   }
 
+  public List<AttendanceDTO> getAttendancesByEmployeeIdAndDate(Integer employeeId, LocalDate date) {
+    Employee employee = Optional.ofNullable(employeeRepository.getEmployeeByEmployeeId(employeeId))
+      .orElseThrow(() -> new RuntimeException("Employee not found with id: " + employeeId));
+
+    var attendances = attendanceRepository.getAttendanceByDateBetweenAndEmployee_EmployeeId(date.withDayOfMonth(1), date.withDayOfMonth(28), employeeId);
+    List<AttendanceDTO> attendanceDTOS = new ArrayList<>();
+
+    for(Attendance attendance : attendances) {
+      attendanceDTOS.add(convertAttendanceDTO(attendance, employee));
+    }
+    return attendanceDTOS;
+  }
+
   public void saveAttendance(AttendanceDTOList attendanceDTOList) {
     for (AttendanceDTO dto : attendanceDTOList.getAttendances()) {
       Employee employee = Optional.ofNullable(employeeRepository.findEmployeeByEmployeeId(dto.getEmployeeId()))
