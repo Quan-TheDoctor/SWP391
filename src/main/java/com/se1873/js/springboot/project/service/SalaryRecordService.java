@@ -47,6 +47,16 @@ public class SalaryRecordService {
     return new PageImpl<>(payrolls, pageable, salaryRecords.getTotalElements());
   }
 
+  public Page<PayrollDTO> filterByMonth(Pageable pageable, Integer month, Integer year) {
+    Page<SalaryRecord> salaryRecords = salaryRecordRepository.findSalaryRecordsByMonthAndYear(pageable, month, year);
+    return salaryRecords.map(salaryRecord -> payrollDTO(salaryRecord.getSalaryId()));
+  }
+
+  public Page<PayrollDTO> getPayrollByEmployeeId(Pageable pageable, Integer employeeId){
+    Page<SalaryRecord> salaryRecords = salaryRecordRepository.getSalaryRecordsByEmployee_EmployeeId(employeeId,pageable);
+    return salaryRecords.map(salaryRecord -> payrollDTO(salaryRecord.getSalaryId()));
+  }
+
   //endregion
   public Map<Integer, Double> getMonthlySalary(int year) {
     List<Object[]> results = salaryRecordRepository.getTotalSalaryByMonth(year);
@@ -356,6 +366,8 @@ public class SalaryRecordService {
     double calculatedEmployerSocialInsuranceAmount = financialPolicyRepository.getFinancialPolicyAmount(4);
     double calculatedEmployerUnionFeeAmount = financialPolicyRepository.getFinancialPolicyAmount(6);
     double calculatedEmployerUnemploymentInsuranceAmount = financialPolicyRepository.getFinancialPolicyAmount(8);
+
+
 
 
     double calculatedEmployeeHealthInsurance = calculatedEmployeeHealthInsurance(salaryId);

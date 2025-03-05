@@ -1,6 +1,5 @@
 package com.se1873.js.springboot.project.service;
 
-import com.se1873.js.springboot.project.dto.AttendanceCountDTO;
 import com.se1873.js.springboot.project.dto.AttendanceDTO;
 import com.se1873.js.springboot.project.dto.AttendanceDTOList;
 import com.se1873.js.springboot.project.dto.EmployeeDTO;
@@ -56,8 +55,7 @@ public class AttendanceService {
       for (LocalDate date : datesInRange) {
         Attendance attendance = attendanceMap.get(date);
         if (attendance != null) {
-          Employee emp = employeeRepository.getEmployeeByEmployeeId(employee.getEmployeeId());
-          attendanceDTOS.add(convertAttendanceDTO(attendance, emp));
+          attendanceDTOS.add(attendanceDTOMapper.toDTO(attendance));
         } else {
           attendanceDTOS.add(createDefaultAttendanceDTO(employee, date));
         }
@@ -81,8 +79,20 @@ public class AttendanceService {
     Page<Attendance> attendances = attendanceRepository.getAttendanceByEmployee_EmployeeId(employeeId,pageale);
     return attendances.map(attendance -> {
       Employee employee = attendance.getEmployee();
-      return convertAttendanceDTO(attendance,employee);
+      return attendanceDTOMapper.toDTO(attendance);
     });
+  }
+
+  public Page<AttendanceDTO> filterByMonth(Pageable pageable,Integer month,Integer year){
+    Page<Attendance> attendances = attendanceRepository.findAttendancesByMonthAndYear(pageable,month,year);
+    return  attendances.map(attendanceDTOMapper::toDTO);
+  }
+
+  public Page<AttendanceDTO> filterByStatus(Pageable pageable, String status) {
+    Page<Attendance> attendances = "".equals(status)
+            ? attendanceRepository.findAll(pageable)
+            : attendanceRepository.findAttendancesByStatus(pageable, status);
+    return attendances.map(attendanceDTOMapper::toDTO);
   }
 
   public AttendanceDTO getAttendanceByEmployeeIdAndDate(Integer employeeId, LocalDate date) {
@@ -92,7 +102,7 @@ public class AttendanceService {
     Optional<Attendance> attendanceOpt = attendanceRepository.findByDateAndEmployee_EmployeeId(date, employeeId);
 
     return attendanceOpt
-      .map(attendance -> convertAttendanceDTO(attendance, employee))
+      .map(attendanceDTOMapper::toDTO)
       .orElseGet(() -> createDefaultAttendanceDTO(employeeDTO, date));
   }
 
@@ -104,7 +114,7 @@ public class AttendanceService {
     List<AttendanceDTO> attendanceDTOS = new ArrayList<>();
 
     for(Attendance attendance : attendances) {
-      attendanceDTOS.add(convertAttendanceDTO(attendance, employee));
+      attendanceDTOS.add(attendanceDTOMapper.toDTO(attendance));
     }
     return attendanceDTOS;
   }
@@ -142,50 +152,5 @@ public class AttendanceService {
       .attendanceCheckOut(null)
       .attendanceOvertimeHours(0.0)
       .build();
-  }
-
-  private AttendanceDTO convertAttendanceDTO(Attendance attendance, Employee employee) {
-    return AttendanceDTO.builder()
-      .employeeId(employee.getEmployeeId())
-      .employeeCode(employee.getEmployeeCode())
-      .employeeFirstName(employee.getFirstName())
-      .employeeLastName(employee.getLastName())
-      .attendanceId(attendance.getAttendanceId())
-      .attendanceDate(attendance.getDate())
-      .attendanceCheckIn(attendance.getCheckIn())
-      .attendanceCheckOut(attendance.getCheckOut())
-      .attendanceStatus(attendance.getStatus())
-      .attendanceOvertimeHours(attendance.getOvertimeHours())
-      .build();
-  }
-
-  private AttendanceDTO convertAttendance(Attendance attendance) {
-    return AttendanceDTO.builder()
-            .attendanceId(attendance.getAttendanceId())
-            .attendanceDate(attendance.getDate())
-            .attendanceCheckIn(attendance.getCheckIn())
-            .attendanceCheckOut(attendance.getCheckOut())
-            .attendanceStatus(attendance.getStatus())
-            .attendanceOvertimeHours(attendance.getOvertimeHours())
-            .build();
-  }
-  public AttendanceCountDTO countAvailableAttendance(String date) {
-    int totalEmployee = employeeService.countEmployees();
-    AttendanceCountDTO attendancecountDTO = AttendanceCountDTO
-            .builder().totalEmployee(totalEmployee).lateEmployee(0).workedEmployee(0).absenceEmployee(0).build();
-    LocalDate dates = LocalDate.parse(date);
-    List<AttendanceDTO> attendanceCountDTOList = attendanceRepository.findAttendancesByDate(dates).stream().
-            map(this::convertAttendance).collect(Collectors.toList());
-    for (AttendanceDTO dto : attendanceCountDTOList) {
-      if(dto.getAttendanceStatus().equals("Đi muộn")) {
-        attendancecountDTO.setLateEmployee(attendancecountDTO.getLateEmployee() + 1);
-      } else {
-        attendancecountDTO.setWorkedEmployee(attendancecountDTO.getWorkedEmployee() + 1);
-      }
-    }
-    attendancecountDTO.setAbsenceEmployee(attendancecountDTO.getTotalEmployee() -
-            attendancecountDTO.getWorkedEmployee() -
-            attendancecountDTO.getLateEmployee());
-    return attendancecountDTO;
   }
 }
