@@ -39,10 +39,10 @@
         <tbody class="divide-y divide-gray-200">
         <tr th:each="payroll : ${payrollDTO}">
           <td class="px-6 py-4" th:text="${payroll.salaryRecordMonth}"></td>
-          <td class="px-6 py-4" th:text="${payroll.salaryRecordBaseSalary}"></td>
-          <td class="px-6 py-4" th:text="${payroll.salaryRecordTotalAllowance}"></td>
-          <td class="px-6 py-4" th:text="${payroll.salaryRecordDeductions}"></td>
-          <td class="px-6 py-4" th:text="${payroll.salaryRecordNetSalary}"></td>
+          <td class="px-6 py-4" th:text="${T(java.lang.String).format('%,.0f VND',payroll.getSalaryRecordBaseSalary())}"></td>
+          <td class="px-6 py-4" th:text="${T(java.lang.String).format('%,.0f VND',payroll.getSalaryRecordTotalAllowance())}"></td>
+          <td class="px-6 py-4" th:text="${T(java.lang.String).format('%,.0f VND',payroll.getSalaryRecordDeductions())}"></td>
+          <td class="px-6 py-4" th:text="${T(java.lang.String).format('%,.0f VND',payroll.getTotalNetSalary())}"></td>
           <td class="px-6 py-4">
             <span th:if="${payroll.salaryRecordPaymentStatus == 'Đã thanh toán'}" class="px-2 py-1 bg-green-100 text-green-800 rounded-full">Đã thanh toán</span>
             <span th:if="${payroll.salaryRecordPaymentStatus == 'Chưa thanh toán'}" class="px-2 py-1 bg-yellow-100 text-yellow-800 rounded-full">Chưa thanh toán</span>
@@ -96,9 +96,9 @@
     netSalary += entry.salaryRecordNetSalary;
   });
 
-  document.getElementById('totalEarnings').textContent = totalEarnings;
-  document.getElementById('totalDeductions').textContent = totalDeductions;
-  document.getElementById('netSalary').textContent = netSalary;
+  document.getElementById('totalEarnings').textContent = totalEarnings.toLocaleString('it-IT', {style : 'currency', currency : 'VND'});
+  document.getElementById('totalDeductions').textContent = totalDeductions.toLocaleString('it-IT', {style : 'currency', currency : 'VND'});
+  document.getElementById('netSalary').textContent = netSalary.toLocaleString('it-IT', {style : 'currency', currency : 'VND'});
 
 </script>
 </body>
