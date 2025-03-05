@@ -21,12 +21,20 @@ public interface AttendanceRepository extends JpaRepository<Attendance, Long> {
   @Query("SELECT a FROM Attendance a WHERE a.date = :date")
   List<Attendance> findAttendancesByDate(@Param("date") LocalDate date);
 
-  @Query("select a from Attendance a " +
-          "where extract(month from a.date) = :month " +
-          "and extract(year from a.date) = :year")
-  Page<Attendance> findAttendancesByMonthAndYear(Pageable pageable,
-                                                 @Param("month") Integer month,
-                                                 @Param("year") Integer year);
-  Page<Attendance> findAttendancesByStatus(Pageable pageable, String status);
-  Page<Attendance> findAll(Pageable pageable);
+  @Query("SELECT a FROM Attendance a WHERE a.employee.employeeId = :employeeId " +
+          "AND EXTRACT(MONTH FROM a.date) = :month " +
+          "AND EXTRACT(YEAR FROM a.date) = :year")
+  Page<Attendance> findAttendancesByEmployeeAndMonthAndYear(Pageable pageable,
+                                                            @Param("employeeId") Integer employeeId,
+                                                            @Param("month") Integer month,
+                                                            @Param("year") Integer year);
+  @Query("SELECT a FROM Attendance a WHERE a.employee.employeeId = :employeeId AND a.status = :status")
+  Page<Attendance> findAttendancesByEmployeeAndStatus(Pageable pageable,
+                                                      @Param("employeeId") Integer employeeId,
+                                                      @Param("status") String status);
+
+  @Query("SELECT a FROM Attendance a WHERE a.employee.employeeId = :employeeId")
+  Page<Attendance> findAllByEmployeeId(Pageable pageable,
+                                       @Param("employeeId") Integer employeeId);
+
 }

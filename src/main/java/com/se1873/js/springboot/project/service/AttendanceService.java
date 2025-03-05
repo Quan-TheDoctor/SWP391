@@ -83,15 +83,15 @@ public class AttendanceService {
     return attendances.map(attendanceDTOMapper::toDTO);
   }
 
-  public Page<AttendanceDTO> filterByMonth(Pageable pageable,Integer month,Integer year){
-    Page<Attendance> attendances = attendanceRepository.findAttendancesByMonthAndYear(pageable,month,year);
+  public Page<AttendanceDTO> filterByMonth(Pageable pageable,Integer month,Integer year,Integer employeeId){
+    Page<Attendance> attendances = attendanceRepository.findAttendancesByEmployeeAndMonthAndYear(pageable,month,year,employeeId);
     return  attendances.map(attendanceDTOMapper::toDTO);
   }
 
-  public Page<AttendanceDTO> filterByStatus(Pageable pageable, String status) {
+  public Page<AttendanceDTO> filterByStatus(Pageable pageable, String status,Integer employeeId) {
     Page<Attendance> attendances = "".equals(status)
             ? attendanceRepository.findAll(pageable)
-            : attendanceRepository.findAttendancesByStatus(pageable, status);
+            : attendanceRepository.findAttendancesByEmployeeAndStatus(pageable,employeeId,status);
     return attendances.map(attendanceDTOMapper::toDTO);
   }
 
