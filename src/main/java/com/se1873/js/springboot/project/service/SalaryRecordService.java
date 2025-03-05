@@ -47,8 +47,8 @@ public class SalaryRecordService {
     return new PageImpl<>(payrolls, pageable, salaryRecords.getTotalElements());
   }
 
-  public Page<PayrollDTO> filterByMonth(Pageable pageable, Integer month, Integer year) {
-    Page<SalaryRecord> salaryRecords = salaryRecordRepository.findSalaryRecordsByMonthAndYear(pageable, month, year);
+  public Page<PayrollDTO> filterByMonth(Pageable pageable, Integer month, Integer year, Integer employeeId) {
+    Page<SalaryRecord> salaryRecords = salaryRecordRepository.findSalaryRecordsByEmployeeAndMonthAndYear(pageable,month,year,employeeId);
     return salaryRecords.map(salaryRecord -> payrollDTO(salaryRecord.getSalaryId()));
   }
 

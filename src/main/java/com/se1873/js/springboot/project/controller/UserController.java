@@ -88,30 +88,35 @@ public class UserController {
     @RequestMapping("/filterAttendance")
     public String filterAttendance(Model model,
                                    @RequestParam(value = "status", required = false) String status,
-                                   @RequestParam(value = "month", required = false) YearMonth month){
+                                   @RequestParam(value = "month", required = false) YearMonth month) {
         Page<AttendanceDTO> attendanceDTO = null;
-        if(month != null){
+
+        if (month != null) {
             Integer months = month.getMonthValue();
             Integer year = month.getYear();
-            attendanceDTO = attendanceService.filterByMonth(PageRequest.of(0,5),months,year);
-        }else if(status != null){
-            attendanceDTO = attendanceService.filterByStatus(PageRequest.of(0,5),status);
+            attendanceDTO = attendanceService.filterByMonth(PageRequest.of(0, 5), getEmployeeId(), months, year);
+        } else if (status != null) {
+            attendanceDTO = attendanceService.filterByStatus(PageRequest.of(0, 5), status ,getEmployeeId());
         }
-        model.addAttribute("attendanceDTO",attendanceDTO);
+
+        model.addAttribute("attendanceDTO", attendanceDTO);
+        model.addAttribute("month",month != null ? month.toString() : "");
         return "user-attendance";
     }
 
     @RequestMapping("/filterPayroll")
     public String filterPayroll(Model model,
-                                @RequestParam(value = "month", required = false) YearMonth month){
-        if(month != null) {
+                                @RequestParam(value = "month", required = false) YearMonth month) {
+        if (month != null) {
             Integer months = month.getMonthValue();
             Integer year = month.getYear();
-            Page<PayrollDTO> payrollDTO = salaryRecordService.filterByMonth(PageRequest.of(0, 5), months, year);
+            Page<PayrollDTO> payrollDTO = salaryRecordService.filterByMonth(PageRequest.of(0, 5), getEmployeeId(), months, year);
             model.addAttribute("payrollDTO", payrollDTO);
+            model.addAttribute("month",month != null ? month.toString() : "");
         }
         return "user-payroll";
     }
+
 
     @GetMapping("/download/{id}")
     public String dowloadInvoice(Model model,
