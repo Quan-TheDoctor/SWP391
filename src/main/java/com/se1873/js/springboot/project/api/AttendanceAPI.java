@@ -28,13 +28,13 @@ public class AttendanceAPI {
     return ResponseEntity.ok(attendances);
   }
 
-  @RequestMapping("/getAllAttendanceByDateAndEmployeeId")
-  public ResponseEntity<List<AttendanceDTO>> getAllAttendanceByDateAndEmployeeId(
-    @RequestParam("employeeId") Integer employeeId,
-    @RequestParam("date") String date
-  ) {
-    LocalDate localDate = LocalDate.parse(date);
-    var attendances = attendanceService.getAttendancesByEmployeeIdAndDate(employeeId, localDate);
-    return ResponseEntity.ok(attendances);
-  }
+//  @RequestMapping("/getAllAttendanceByDateAndEmployeeId")
+//  public ResponseEntity<List<AttendanceDTO>> getAllAttendanceByDateAndEmployeeId(
+//    @RequestParam("employeeId") Integer employeeId,
+//    @RequestParam("date") String date
+//  ) {
+//    LocalDate localDate = LocalDate.parse(date);
+//    var attendances = attendanceService.getAttendancesByEmployeeIdAndDate(employeeId, localDate);
+//    return ResponseEntity.ok(attendances);
+//  }
 }

@@ -85,6 +85,18 @@ public class AttendanceService {
     });
   }
 
+  public Page<AttendanceDTO> filterByMonth(Pageable pageable,Integer month,Integer year){
+    Page<Attendance> attendances = attendanceRepository.findAttendancesByMonthAndYear(pageable,month,year);
+    return  attendances.map(attendanceDTOMapper::toDTO);
+  }
+
+  public Page<AttendanceDTO> filterByStatus(Pageable pageable, String status) {
+    Page<Attendance> attendances = "".equals(status)
+            ? attendanceRepository.findAll(pageable)
+            : attendanceRepository.findAttendancesByStatus(pageable, status);
+    return attendances.map(attendanceDTOMapper::toDTO);
+  }
+
   public AttendanceDTO getAttendanceByEmployeeIdAndDate(Integer employeeId, LocalDate date) {
     Employee employee = Optional.ofNullable(employeeRepository.getEmployeeByEmployeeId(employeeId))
       .orElseThrow(() -> new RuntimeException("Employee not found with id: " + employeeId));
