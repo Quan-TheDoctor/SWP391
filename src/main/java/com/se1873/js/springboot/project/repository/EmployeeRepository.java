@@ -43,5 +43,9 @@ public interface EmployeeRepository extends JpaRepository<Employee, Long> {
           "lower(e.lastName) like concat('%',:lastName,'%')")
   Page<Employee> searchEmployee(@Param("firstName") String firstName,@Param("lastName") String lastName,Pageable pageable);
 
+  @Query("select count(e.employeeId) from Employee e")
+  Integer getEmployeeCount();
+
+
 
 }

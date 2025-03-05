@@ -5,6 +5,8 @@ import com.se1873.js.springboot.project.entity.Attendance;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.Query;
+import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 
 import java.time.LocalDate;
@@ -21,4 +23,7 @@ public interface AttendanceRepository extends JpaRepository<Attendance, Long> {
 
   Attendance getAttendanceByAttendanceId(Integer attendanceId);
   Page<Attendance> getAttendanceByEmployee_EmployeeId(Integer employeeId, Pageable pageable);
+
+  @Query("SELECT a FROM Attendance a WHERE a.date = :date")
+  List<Attendance> findAttendancesByDate(@Param("date") LocalDate date);
 }

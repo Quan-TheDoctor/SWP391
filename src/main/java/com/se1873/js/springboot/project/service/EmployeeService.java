@@ -1,5 +1,6 @@
 package com.se1873.js.springboot.project.service;
 
+import com.se1873.js.springboot.project.dto.EmployeeCountDTO;
 import com.se1873.js.springboot.project.dto.EmployeeDTO;
 import com.se1873.js.springboot.project.entity.*;
 import com.se1873.js.springboot.project.mapper.EmployeeDTOMapper;
@@ -42,7 +43,8 @@ public class EmployeeService {
   public Page<EmployeeDTO> getAll(Pageable pageable) {
     return employeeRepository.findAll(pageable).map(employeeDTOMapper::toDTO);
   }
-
+//lấy employee DTO thì gọi map(employeeDTOMapper::toDTO)
+  //lấy entity từ dto thì oigj map(employeeDTOMapper::toEntity)
   public Page<EmployeeDTO> getEmployeesByDepartmentId(Integer departmentId, Pageable pageable) {
     return filterEmployeesByCondition(
       getAll(pageable),
@@ -344,4 +346,21 @@ public class EmployeeService {
     userRepository.save(user);
   }
   // endregion
+
+  public int countEmployees(){
+    return employeeRepository.getEmployeeCount();
+  }
+
+  public EmployeeCountDTO getEmployeeDTOIsCurrent(){
+    EmployeeCountDTO employeeCountDTO = EmployeeCountDTO.builder()
+            .totalAvailableEmployees(0).totalUnavailableEmployees(0).build();
+    List<EmployeeDTO> employeeDTO = employeeRepository.findAll().stream().map(employeeDTOMapper::toDTO).collect(Collectors.toList());
+    for (EmployeeDTO employeeDTO1 : employeeDTO) {
+      System.out.println(employeeDTO1);
+      if(employeeDTO1.getContractIsPresent() && employeeDTO1.getEmploymentHistoryIsCurrent()){
+        employeeCountDTO.setTotalAvailableEmployees(employeeCountDTO.getTotalAvailableEmployees() + 1);
+      } else employeeCountDTO.setTotalUnavailableEmployees(employeeCountDTO.getTotalUnavailableEmployees() + 1) ;
+    }
+    return employeeCountDTO;
+  }
 }

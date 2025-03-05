@@ -3,6 +3,7 @@ package com.se1873.js.springboot.project.controller;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.RequestMapping;
 
 @Controller
 public class WebController {
@@ -25,5 +26,9 @@ public class WebController {
             model.addAttribute("logoutMsg", "Bạn đã đăng xuất thành công!");
         }
         return "login"; // Trả về login.html
+    }
+    @RequestMapping("/homepage")
+    public String homepage(Model model){
+        return "homepage";
     }
 }

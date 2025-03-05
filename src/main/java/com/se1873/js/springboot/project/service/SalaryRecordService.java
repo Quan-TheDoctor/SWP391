@@ -14,9 +14,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDate;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Optional;
+import java.util.*;
 
 @Slf4j
 @Service
@@ -50,7 +48,21 @@ public class SalaryRecordService {
   }
 
   //endregion
+  public Map<Integer, Double> getMonthlySalary(int year) {
+    List<Object[]> results = salaryRecordRepository.getTotalSalaryByMonth(year);
+    Map<Integer, Double> payrollMap = new HashMap<>();
 
+    for (int i = 1; i <= 12; i++) {
+      payrollMap.put(i, 0.0);
+    }
+
+    for (Object[] row : results) {
+      Integer month = (Integer) row[0];
+      Double total = (Double) row[1];
+      payrollMap.put(month, total);
+    }
+    return payrollMap;
+  }
   //region payrollDTO()
   public double calculateInsuranceOrFee(int salaryId, int financialPolicyId) {
     SalaryRecord salaryRecord = salaryRecordRepository.findSalaryRecordBySalaryId(salaryId);

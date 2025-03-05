@@ -1,5 +1,6 @@
 package com.se1873.js.springboot.project.api;
 
+import com.se1873.js.springboot.project.dto.AttendanceCountDTO;
 import com.se1873.js.springboot.project.dto.AttendanceDTO;
 import com.se1873.js.springboot.project.service.AttendanceService;
 import lombok.RequiredArgsConstructor;
@@ -36,5 +37,12 @@ public class AttendanceAPI {
     LocalDate localDate = LocalDate.parse(date);
     var attendances = attendanceService.getAttendancesByEmployeeIdAndDate(employeeId, localDate);
     return ResponseEntity.ok(attendances);
+  }
+  @RequestMapping("/attendancesByDay")
+  public ResponseEntity<AttendanceCountDTO> getAttendancesByDay(
+          @RequestParam("date") String date) {
+    AttendanceCountDTO attendanceCountDTO = attendanceService.countAvailableAttendance(date);
+    log.info(attendanceCountDTO.toString());
+    return ResponseEntity.ok(attendanceCountDTO);
   }
 }
