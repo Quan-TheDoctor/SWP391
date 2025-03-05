@@ -19,4 +19,6 @@ public interface SalaryRecordRepository extends JpaRepository<SalaryRecord, Long
     @Query("SELECT s.month, SUM(s.netSalary) FROM SalaryRecord s " +
             "WHERE s.year = :year GROUP BY s.month ORDER BY s.month")
     List<Object[]> getTotalSalaryByMonth(@Param("year") int year);
+
+    Page<SalaryRecord> findSalaryRecordsByMonthAndYear(Pageable pageable,Integer month,Integer year);
 }
