@@ -18,6 +18,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDate;
+import java.time.LocalTime;
 import java.util.*;
 import java.util.function.Function;
 import java.util.stream.Collectors;
@@ -52,8 +53,7 @@ public class AttendanceService {
       Map<LocalDate, Attendance> attendanceMap = attendances.stream()
         .collect(Collectors.toMap(Attendance::getDate, Function.identity()));
 
-      List<LocalDate> datesInRange = startDate.datesUntil(endDate.plusDays(1))
-        .collect(Collectors.toList());
+      List<LocalDate> datesInRange = startDate.datesUntil(endDate.plusDays(1)).toList();
 
       for (LocalDate date : datesInRange) {
         Attendance attendance = attendanceMap.get(date);
@@ -80,10 +80,7 @@ public class AttendanceService {
   }
   public Page<AttendanceDTO> getAttendanceByEmployeeId(Integer employeeId,Pageable pageale){
     Page<Attendance> attendances = attendanceRepository.getAttendanceByEmployee_EmployeeId(employeeId,pageale);
-    return attendances.map(attendance -> {
-      Employee employee = attendance.getEmployee();
-      return attendanceDTOMapper.toDTO(attendance);
-    });
+    return attendances.map(attendanceDTOMapper::toDTO);
   }
 
   public Page<AttendanceDTO> filterByMonth(Pageable pageable,Integer month,Integer year){
@@ -110,9 +107,6 @@ public class AttendanceService {
   }
 
   public List<AttendanceDTO> getAttendancesByEmployeeIdAndDate(Integer employeeId, LocalDate date) {
-    Employee employee = Optional.ofNullable(employeeRepository.getEmployeeByEmployeeId(employeeId))
-      .orElseThrow(() -> new RuntimeException("Employee not found with id: " + employeeId));
-
     var attendances = attendanceRepository.getAttendanceByDateBetweenAndEmployee_EmployeeId(date.withDayOfMonth(1), date.withDayOfMonth(28), employeeId);
     List<AttendanceDTO> attendanceDTOS = new ArrayList<>();
 
@@ -124,13 +118,18 @@ public class AttendanceService {
 
   public void saveAttendance(AttendanceDTOList attendanceDTOList) {
     for (AttendanceDTO dto : attendanceDTOList.getAttendances()) {
-      Employee employee = Optional.ofNullable(employeeRepository.findEmployeeByEmployeeId(dto.getEmployeeId()))
-        .orElseThrow(() -> new RuntimeException("Employee not found: " + dto.getEmployeeId()));
+      LocalTime checkIn = parseTime(String.valueOf(dto.getAttendanceCheckIn()));
+      LocalTime checkOut = parseTime(String.valueOf(dto.getAttendanceCheckOut()));
 
-      Attendance attendance = attendanceRepository.findByDateAndEmployee_EmployeeId(
-        dto.getAttendanceDate(),
-        employee.getEmployeeId()
-      ).orElse(new Attendance());
+      if (checkIn.isAfter(checkOut)) {
+        throw new IllegalArgumentException("Check-in time cannot be after check-out time");
+      }
+
+      Employee employee = employeeRepository.findEmployeeByEmployeeId(dto.getEmployeeId());
+
+      Attendance attendance = attendanceRepository
+        .findByDateAndEmployee_EmployeeId(dto.getAttendanceDate(), employee.getEmployeeId())
+        .orElse(new Attendance());
 
       attendance.setEmployee(employee);
       attendance.setDate(dto.getAttendanceDate());
@@ -141,6 +140,11 @@ public class AttendanceService {
 
       attendanceRepository.save(attendance);
     }
+  }
+
+  private LocalTime parseTime(String time) {
+    if (time == null || time.isEmpty()) return null;
+    return LocalTime.parse(time);
   }
 
   private AttendanceDTO createDefaultAttendanceDTO(EmployeeDTO employee, LocalDate date) {

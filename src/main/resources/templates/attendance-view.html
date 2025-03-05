@@ -9,16 +9,20 @@
         .custom-scrollbar::-webkit-scrollbar {
             width: 8px;
         }
+
         .custom-scrollbar::-webkit-scrollbar-track {
             background: #f1f1f1;
         }
+
         .custom-scrollbar::-webkit-scrollbar-thumb {
             background: #888;
             border-radius: 4px;
         }
+
         .compact-table {
             table-layout: fixed;
         }
+
         .compact-table td, .compact-table th {
             padding: 0.75rem;
             vertical-align: middle;
@@ -41,7 +45,7 @@
 
         function parseTime(timeString) {
             const [hours, minutes] = timeString.split(':');
-            return { hours: parseInt(hours), minutes: parseInt(minutes) };
+            return {hours: parseInt(hours), minutes: parseInt(minutes)};
         }
 
         function calculateOvertime(checkIn, checkOut) {
@@ -69,40 +73,51 @@
             }
         }
 
+        function reindexRows() {
+            const rows = document.querySelectorAll('#attendanceTable tbody tr');
+            rows.forEach((row, index) => {
+                row.querySelectorAll('input, select').forEach(input => {
+                    input.name = input.name.replace(/\[\d+\]/, `[${index}]`);
+                });
+                const hiddenInput = row.querySelector('input[type="hidden"]');
+                if (hiddenInput) {
+                    hiddenInput.name = `attendances[${index}].employeeId`;
+                }
+            });
+        }
+
+        function deleteRow(button) {
+            button.closest('tr').remove();
+            reindexRows();
+        }
+
         function addEmployeeToTable(employeeId, employeeName) {
             const tableBody = document.querySelector('#attendanceTable tbody');
             const newRow = document.createElement('tr');
             newRow.className = 'hover:bg-gray-50';
 
             newRow.innerHTML = `
-                <input type="hidden" name="attendances[${tableBody.children.length}].employeeId" value="${employeeId}"/>
-                <td class="w-48 px-4 truncate">${employeeName}</td>
-                <td class="w-32"><input type="date" name="attendances[${tableBody.children.length}].attendanceDate"
-                    class="w-full p-1 border rounded focus:ring-2 focus:ring-blue-500" required></td>
-                <td class="w-24"><input type="time"
-                    class="w-full p-1 border rounded focus:ring-2 focus:ring-blue-500"
-                    onchange="updateOvertime(this.parentElement.parentElement)" required></td>
-                <td class="w-24"><input type="time"
-                    class="w-full p-1 border rounded focus:ring-2 focus:ring-blue-500"
-                    onchange="updateOvertime(this.parentElement.parentElement)" required></td>
-                <td class="w-32"><input type="number" step="0.01"
-                    class="w-full p-1 border rounded bg-gray-100"
-                    name="attendances[${tableBody.children.length}].attendanceOvertimeHours" readonly></td>
-                <td class="w-36">
-                    <select class="w-full p-1 border rounded focus:ring-2 focus:ring-blue-500"
-                        name="attendances[${tableBody.children.length}].attendanceStatus">
-                        <option value="PRESENT">Có mặt</option>
-                        <option value="ABSENT">Vắng mặt</option>
-                    </select>
-                </td>
-                <td class="w-24">
-                    <button type="button"
-                        class="px-2 py-1 bg-red-600 text-white rounded hover:bg-red-700"
-                        onclick="this.parentElement.parentElement.remove()">Xóa</button>
-                </td>
-            `;
+        <td class="w-48 px-4 truncate">${employeeName}</td>
+        <td class="w-32"><input type="date" name="attendances[0].attendanceDate" required></td>
+        <td class="w-24"><input type="time"
+       pattern="[0-9]{2}:[0-9]{2}" name="attendances[0].attendanceCheckIn" onchange="updateOvertime(this.parentElement.parentElement)" required></td>
+        <td class="w-24"><input type="time"
+       pattern="[0-9]{2}:[0-9]{2}" name="attendances[0].attendanceCheckOut" onchange="updateOvertime(this.parentElement.parentElement)" required></td>
+        <td class="w-32"><input type="number" step="0.01" name="attendances[0].attendanceOvertimeHours" readonly></td>
+        <td class="w-36">
+            <select name="attendances[0].attendanceStatus">
+                <option value="PRESENT">Có mặt</option>
+                <option value="ABSENT">Vắng mặt</option>
+            </select>
+        </td>
+        <td class="w-24">
+            <button type="button" onclick="deleteRow(this)">Xóa</button>
+        </td>
+        <input type="hidden" name="attendances[0].employeeId" value="${employeeId}">
+    `;
 
             tableBody.appendChild(newRow);
+            reindexRows();
         }
 
         async function filterEmployees() {
@@ -159,7 +174,7 @@
 
         <div class="lg:col-span-3">
             <div class="bg-white rounded-xl shadow-sm p-4">
-                <form th:action="@{/attendance/create/save}" method="post">
+                <form th:action="@{/attendance/create/save}" method="post" th:object="${attendanceDTOList}">
                     <div class="mt-4 flex justify-end">
                         <button type="submit"
                                 class="px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors">

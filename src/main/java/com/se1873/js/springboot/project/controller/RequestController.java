@@ -279,7 +279,6 @@ public class RequestController {
         requestTypes.add(request.getRequestType());
       }
 
-
       model.addAttribute("totalRequests", totalRequests);
       model.addAttribute("totalPendingRequests", totalPendingRequests);
       model.addAttribute("totalFinishedRequests", totalFinishedRequests);

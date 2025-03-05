@@ -109,10 +109,13 @@ public class AttendanceController {
     return "attendance-view";
   }
 
-  @RequestMapping("/create/save")
-  public String saveAttendance(Model model,
-                               @ModelAttribute("attendanceDTOList") AttendanceDTOList attendanceDTOList) {
-    log.info(attendanceDTOList.toString());
+  @PostMapping("/create/save")
+  public String saveAttendance(@Valid @ModelAttribute("attendanceDTOList") AttendanceDTOList attendanceDTOList,
+                               BindingResult result) {
+    if (result.hasErrors()) {
+      log.error("Validation errors: {}", result.getAllErrors());
+      return "redirect:/attendance/create/form?error";
+    }
     attendanceService.saveAttendance(attendanceDTOList);
     return "redirect:/attendance";
   }
