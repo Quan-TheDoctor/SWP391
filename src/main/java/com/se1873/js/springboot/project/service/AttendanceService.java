@@ -1,10 +1,12 @@
 package com.se1873.js.springboot.project.service;
 
+import com.se1873.js.springboot.project.dto.AttendanceCountDTO;
 import com.se1873.js.springboot.project.dto.AttendanceDTO;
 import com.se1873.js.springboot.project.dto.AttendanceDTOList;
 import com.se1873.js.springboot.project.dto.EmployeeDTO;
 import com.se1873.js.springboot.project.entity.Attendance;
 import com.se1873.js.springboot.project.entity.Employee;
+import com.se1873.js.springboot.project.mapper.AttendanceDTOMapper;
 import com.se1873.js.springboot.project.repository.AttendanceRepository;
 import com.se1873.js.springboot.project.repository.EmployeeRepository;
 import lombok.RequiredArgsConstructor;
@@ -29,6 +31,7 @@ public class AttendanceService {
   private final EmployeeService employeeService;
   private final AttendanceRepository attendanceRepository;
   private final EmployeeRepository employeeRepository;
+  private final AttendanceDTOMapper attendanceDTOMapper;
 
   public Page<AttendanceDTO> getAll(LocalDate startDate, LocalDate endDate, Pageable pageable) {
     var employees = employeeRepository.findAll();
@@ -152,5 +155,26 @@ public class AttendanceService {
       .attendanceCheckOut(null)
       .attendanceOvertimeHours(0.0)
       .build();
+  }
+
+
+  public AttendanceCountDTO countAvailableAttendance(String date) {
+    int totalEmployee = employeeService.countEmployees();
+    AttendanceCountDTO attendancecountDTO = AttendanceCountDTO
+            .builder().totalEmployee(totalEmployee).lateEmployee(0).workedEmployee(0).absenceEmployee(0).build();
+    LocalDate dates = LocalDate.parse(date);
+    List<AttendanceDTO> attendanceCountDTOList = attendanceRepository.findAttendancesByDate(dates).stream().
+            map(attendanceDTOMapper::toDTO).collect(Collectors.toList());
+    for (AttendanceDTO dto : attendanceCountDTOList) {
+      if(dto.getAttendanceStatus().equals("Đi muộn")) {
+        attendancecountDTO.setLateEmployee(attendancecountDTO.getLateEmployee() + 1);
+      } else {
+        attendancecountDTO.setWorkedEmployee(attendancecountDTO.getWorkedEmployee() + 1);
+      }
+    }
+    attendancecountDTO.setAbsenceEmployee(attendancecountDTO.getTotalEmployee() -
+            attendancecountDTO.getWorkedEmployee() -
+            attendancecountDTO.getLateEmployee());
+    return attendancecountDTO;
   }
 }
