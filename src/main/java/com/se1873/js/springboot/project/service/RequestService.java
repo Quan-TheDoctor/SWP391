@@ -26,6 +26,7 @@ import java.io.IOException;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Optional;
 import java.util.stream.Collectors;
 
 /**
@@ -91,6 +92,8 @@ public class RequestService {
     leaveRepository.save(leave);
     Integer leaveId = leave.getLeaveId();
 
+
+    Optional<User> approval = userRepository.findUserByUsername("admin");
     request.setRequestIdList(String.valueOf(leaveId));
     request.setRequesterId(user.getUserId());
     request.setReason(requestDTO.getLeaveDTO().getReason());
@@ -101,6 +104,7 @@ public class RequestService {
     request.setRequestType("Đơn xin nghỉ");
     request.setStatus("pending");
     request.setCreatedAt(LocalDateTime.now());
+    request.setApproval(approval.get());
     request.setUser(user);
 
     requestRepository.save(request);
