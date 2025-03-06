@@ -102,16 +102,18 @@ public class EmployeeService {
       .map(employeeDTOMapper::toDTO);
   }
 
-  public Resource exportToExcel(String departmentFilter, String positionFilter) {
+  public Resource exportToExcel(List<Integer> employeeIds, String departmentFilter, String positionFilter) {
     Pageable pageable = PageRequest.of(0, 1000);
     List<Employee> employees;
 
-    if (!"all".equals(departmentFilter) && !"all".equals(positionFilter)) {
+    if (!employeeIds.isEmpty()) {
+      employees = employeeRepository.findAllByEmployeeIdIn(employeeIds);
+    } else if (!"all".equals(departmentFilter) && !"all".equals(positionFilter)) {
       employees = employeeRepository.findEmployeesByDepartmentName(departmentFilter, pageable).toList()
-        .stream()
-        .filter(emp -> employeeRepository.findEmployeesByPositionName(positionFilter, pageable)
-          .toList().stream().anyMatch(e -> e.getEmployeeId().equals(emp.getEmployeeId())))
-        .toList();
+              .stream()
+              .filter(emp -> employeeRepository.findEmployeesByPositionName(positionFilter, pageable)
+                      .toList().stream().anyMatch(e -> e.getEmployeeId().equals(emp.getEmployeeId())))
+              .toList();
     } else if (!"all".equals(departmentFilter)) {
       employees = employeeRepository.findEmployeesByDepartmentName(departmentFilter, pageable).toList();
     } else if (!"all".equals(positionFilter)) {
@@ -156,6 +158,7 @@ public class EmployeeService {
       throw new RuntimeException("Lỗi khi xuất file Excel", e);
     }
   }
+
 
   public Page<EmployeeDTO> exportFilteredEmployees(String departmentFilter, String positionFilter, Pageable pageable) {
     Page<Employee> employees;
