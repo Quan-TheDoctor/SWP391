@@ -28,6 +28,7 @@ import org.springframework.core.io.Resource;
 import org.springframework.core.io.ByteArrayResource;
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 
+import java.util.Arrays;
 import java.util.List;
 
 @Controller
@@ -186,18 +187,25 @@ public class EmployeeController {
   }
 
 
-  @RequestMapping("/export")
+  @PostMapping("/export")
   public ResponseEntity<Resource> exportEmployees(
-    @RequestParam(value = "department", required = false, defaultValue = "all") String department,
-    @RequestParam(value = "position", required = false, defaultValue = "all") String position) {
+          @RequestParam(value = "selectedEmployees", required = false) String selectedEmployees,
+          @RequestParam(value = "department", required = false, defaultValue = "all") String department,
+          @RequestParam(value = "position", required = false, defaultValue = "all") String position) {
 
-    log.info("Exporting employee data to Excel. Department: {}, Position: {}", department, position);
-    Resource file = employeeService.exportToExcel(department, position);
+    log.info("Exporting employee data. Selected IDs: {}, Department: {}, Position: {}", selectedEmployees, department, position);
+
+    List<Integer> employeeIds = selectedEmployees != null && !selectedEmployees.isEmpty()
+            ? Arrays.stream(selectedEmployees.split(",")).map(Integer::parseInt).toList()
+            : List.of();
+
+    Resource file = employeeService.exportToExcel(employeeIds, department, position);
 
     return ResponseEntity.ok()
-      .header(HttpHeaders.CONTENT_DISPOSITION, "attachment; filename=employees.xlsx")
-      .contentType(MediaType.APPLICATION_OCTET_STREAM)
-      .body(file);
+            .header(HttpHeaders.CONTENT_DISPOSITION, "attachment; filename=employees.xlsx")
+            .contentType(MediaType.APPLICATION_OCTET_STREAM)
+            .body(file);
   }
+
 
 }

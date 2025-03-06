@@ -53,13 +53,30 @@
             </div>
         </div>
 
-    <form th:action="@{/employee/export}" method="get">
-            <input type="hidden" name="department" th:value="${param.department}">
-            <input type="hidden" name="position" th:value="${param.position}">
-            <button type="submit" class="w-full px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700">
-                Export File
+        <form id="exportForm" th:action="@{/employee/export}" method="post">
+            <input type="hidden" name="selectedEmployees" id="selectedEmployees">
+            <button type="button" onclick="submitExport()" class="w-full px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700">
+                Export Selected
             </button>
         </form>
+
+        <script>
+            function submitExport() {
+                let selected = [];
+                document.querySelectorAll('input[name="employeeCheck"]:checked').forEach(cb => {
+                    selected.push(cb.value);
+                });
+
+                if (selected.length === 0) {
+                    alert("Please select at least one employee.");
+                    return;
+                }
+
+                document.getElementById('selectedEmployees').value = selected.join(',');
+                document.getElementById('exportForm').submit();
+            }
+        </script>
+
 
 
 
@@ -84,7 +101,7 @@
                 <tbody class="divide-y divide-gray-200 min-h-[400px]">
                 <tr th:each="e : ${employees}" class="hover:bg-gray-50 transition-colors">
                     <td class="px-6 py-4">
-                        <input type="checkbox" class="rounded border-gray-300">
+                        <input type="checkbox" name="employeeCheck" th:value="${e.employeeId}" class="rounded border-gray-300">
                     </td>
                     <td class="px-6 py-4" th:text="${e.employeeFirstName + ' ' + e.employeeLastName}"></td>
                     <td class="px-6 py-4" th:text="${e.departmentName}"></td>
@@ -92,6 +109,7 @@
                     <td class="px-6 py-4" th:text="${#temporals.format(e.employmentHistoryStartDate, 'dd/MM/yyyy')}"></td>
                     <td class="px-6 py-4 text-right" th:text="${T(java.lang.String).format('%,.0f', e.contractBaseSalary) + ' VND'}"></td>
                 </tr>
+
                 <tr th:if="${employees.isEmpty()}" class="h-[400px]">
                     <td colspan="6" class="text-center text-gray-500 py-8">
                         No employees found

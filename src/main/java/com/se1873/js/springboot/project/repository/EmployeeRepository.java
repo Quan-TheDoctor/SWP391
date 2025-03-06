@@ -47,5 +47,6 @@ public interface EmployeeRepository extends JpaRepository<Employee, Long> {
   Integer getEmployeeCount();
 
 
+  List<Employee> findAllByEmployeeIdIn(List<Integer> employeeIds);
 
 }
