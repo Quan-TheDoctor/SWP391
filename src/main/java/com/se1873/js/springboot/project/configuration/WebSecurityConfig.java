@@ -48,7 +48,7 @@ public class WebSecurityConfig {
               }
 
               if (isAdmin) {
-                response.sendRedirect("/employee");
+                response.sendRedirect("/homepage");
               } else {
 //                                    String username = authentication.getName();
 //                                    Optional<com.se1873.js.springboot.project.entity.User> user = userRepository.findUserByUsername(username);

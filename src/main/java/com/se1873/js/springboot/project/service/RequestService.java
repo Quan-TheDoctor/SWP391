@@ -3,10 +3,7 @@ package com.se1873.js.springboot.project.service;
 import com.se1873.js.springboot.project.dto.LeaveDTO;
 import com.se1873.js.springboot.project.dto.RequestDTO;
 import com.se1873.js.springboot.project.entity.*;
-import com.se1873.js.springboot.project.repository.LeaveRepository;
-import com.se1873.js.springboot.project.repository.RequestRepository;
-import com.se1873.js.springboot.project.repository.SalaryRecordRepository;
-import com.se1873.js.springboot.project.repository.UserRepository;
+import com.se1873.js.springboot.project.repository.*;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -44,6 +41,8 @@ public class RequestService {
   private final LeaveRepository leaveRepository;
   private final UserRepository userRepository;
   private final SalaryRecordRepository salaryRecordRepository;
+  private final AttendanceService attendanceService;
+  private final AttendanceRepository attendanceRepository;
 
   /**
    * Lấy danh sách requests đi kèm pagination
@@ -92,6 +91,19 @@ public class RequestService {
     leaveRepository.save(leave);
     Integer leaveId = leave.getLeaveId();
 
+    for(int i = 0; i < leave.getTotalDays(); i++) {
+      Attendance attendance = Attendance.builder()
+              .date(leave.getStartDate().plusDays(i))
+              .checkIn(null)
+              .checkOut(null)
+              .overtimeHours(0.0)
+              .status("Nghỉ")
+              .note(leave.getReason())
+              .employee(employee)
+              .build();
+
+      attendanceRepository.save(attendance);
+    }
 
     Optional<User> approval = userRepository.findUserByUsername("admin");
     request.setRequestIdList(String.valueOf(leaveId));

@@ -24,6 +24,7 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 
 import java.time.YearMonth;
+import java.util.Map;
 import java.util.Optional;
 
 @Controller
@@ -54,6 +55,7 @@ public class UserController {
     @GetMapping("/detail")
     public String viewUserProfile(Model model) {
         EmployeeDTO employee = employeeService.getEmployeeByEmployeeId(getEmployeeId());
+
         model.addAttribute("employeeDTO", employee);
         return "user";
     }
@@ -66,7 +68,11 @@ public class UserController {
     }
     @RequestMapping("/attendance")
     public String attendance(Model model){
-        Page<AttendanceDTO> attendanceDTO = attendanceService.getAttendanceByEmployeeId(getEmployeeId(), PageRequest.of(0,5));
+        Page<AttendanceDTO> attendanceDTO = attendanceService.getAttendanceByEmployeeId(getEmployeeId(),
+                                                                                        PageRequest.of(0,5));
+        Map<String,Integer> quantity = attendanceService.getQuantityEmployeeDetail(getEmployeeId());
+
+        model.addAttribute("quantity",quantity);
         model.addAttribute("attendanceDTO",attendanceDTO);
         return "user-attendance";
     }
@@ -96,9 +102,12 @@ public class UserController {
             Integer year = month.getYear();
             attendanceDTO = attendanceService.filterByMonth(PageRequest.of(0, 5), getEmployeeId(), months, year);
         } else if (status != null) {
-            attendanceDTO = attendanceService.filterByStatus(PageRequest.of(0, 5), status ,getEmployeeId());
+            attendanceDTO = attendanceService.filterByStatusAndEmployeeId(PageRequest.of(0, 5), status ,getEmployeeId());
         }
 
+        Map<String,Integer> quantity = attendanceService.getQuantityEmployeeDetail(getEmployeeId());
+
+        model.addAttribute("quantity",quantity);
         model.addAttribute("attendanceDTO", attendanceDTO);
         model.addAttribute("month",month != null ? month.toString() : "");
         return "user-attendance";
