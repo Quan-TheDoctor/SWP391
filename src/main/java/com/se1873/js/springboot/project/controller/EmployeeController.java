@@ -195,9 +195,9 @@ public class EmployeeController {
 
     log.info("Exporting employee data. Selected IDs: {}, Department: {}, Position: {}", selectedEmployees, department, position);
 
-    List<Integer> employeeIds = selectedEmployees != null && !selectedEmployees.isEmpty()
+    List<Integer> employeeIds = (selectedEmployees != null && !selectedEmployees.isEmpty())
             ? Arrays.stream(selectedEmployees.split(",")).map(Integer::parseInt).toList()
-            : List.of();
+            : null;
 
     Resource file = employeeService.exportToExcel(employeeIds, department, position);
 

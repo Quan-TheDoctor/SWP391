@@ -68,15 +68,15 @@
                 });
 
                 if (selected.length === 0) {
-                    alert("Please select at least one employee.");
-                    return;
+                    // Không chọn ai, gửi yêu cầu export toàn bộ
+                    document.getElementById('selectedEmployees').value = "";
+                } else {
+                    document.getElementById('selectedEmployees').value = selected.join(',');
                 }
 
-                document.getElementById('selectedEmployees').value = selected.join(',');
                 document.getElementById('exportForm').submit();
             }
         </script>
-
 
 
 
