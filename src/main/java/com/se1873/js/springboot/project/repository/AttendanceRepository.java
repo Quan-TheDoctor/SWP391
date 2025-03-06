@@ -28,13 +28,16 @@ public interface AttendanceRepository extends JpaRepository<Attendance, Long> {
                                                             @Param("employeeId") Integer employeeId,
                                                             @Param("month") Integer month,
                                                             @Param("year") Integer year);
+
+
   @Query("SELECT a FROM Attendance a WHERE a.employee.employeeId = :employeeId AND a.status = :status")
-  Page<Attendance> findAttendancesByEmployeeAndStatus(Pageable pageable,
+  Page<Attendance> findAttendancesByEmployeeIdAndStatus(Pageable pageable,
                                                       @Param("employeeId") Integer employeeId,
                                                       @Param("status") String status);
 
-  @Query("SELECT a FROM Attendance a WHERE a.employee.employeeId = :employeeId")
-  Page<Attendance> findAllByEmployeeId(Pageable pageable,
-                                       @Param("employeeId") Integer employeeId);
+
+  Page<Attendance> findAttendancesByStatus(Pageable pageable, String status);
+
+  List<Attendance> findAllByEmployee_EmployeeId(Integer employeeId);
 
 }

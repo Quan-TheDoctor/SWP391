@@ -28,6 +28,7 @@ import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 
 @Controller
@@ -76,13 +77,40 @@ public class AttendanceController {
       endDate = LocalDate.now();
     }
 
+    Map<String,Integer> quantity = attendanceService.getQuantity();
+
     var attendances = attendanceService.getAll(startDate, endDate, PageRequest.of(page, size));
 
     model.addAttribute("startDate", startDate);
     model.addAttribute("endDate", endDate);
     model.addAttribute("page", page);
     model.addAttribute("size", size);
+    model.addAttribute("quantity",quantity);
     model.addAttribute("attendances", attendances);
+    return "attendance";
+  }
+
+  @RequestMapping("/filter")
+  public String filterStatus(Model model,
+                             @RequestParam("status") String status,
+                             @RequestParam(value = "page", defaultValue = "0") Integer page,
+                             @RequestParam(value = "size", defaultValue = "5") Integer size,
+                             @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate startDate,
+                             @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate endDate){
+    Page<AttendanceDTO> attendances = attendanceService.filterByStatus(PageRequest.of(page,size),status);
+    if (startDate == null || endDate == null) {
+      startDate = LocalDate.now();
+      endDate = LocalDate.now();
+    }
+
+    Map<String,Integer> quantity = attendanceService.getQuantity();
+
+    model.addAttribute("quantity",quantity);
+    model.addAttribute("attendances",attendances);
+    model.addAttribute("startDate", startDate);
+    model.addAttribute("endDate", endDate);
+    model.addAttribute("page", page);
+    model.addAttribute("size", size);
     return "attendance";
   }
 

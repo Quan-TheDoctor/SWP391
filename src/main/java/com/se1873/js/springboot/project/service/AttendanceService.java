@@ -88,12 +88,63 @@ public class AttendanceService {
     return  attendances.map(attendanceDTOMapper::toDTO);
   }
 
-  public Page<AttendanceDTO> filterByStatus(Pageable pageable, String status,Integer employeeId) {
+  public Page<AttendanceDTO> filterByStatusAndEmployeeId(Pageable pageable, String status,Integer employeeId) {
     Page<Attendance> attendances = "".equals(status)
             ? attendanceRepository.findAll(pageable)
-            : attendanceRepository.findAttendancesByEmployeeAndStatus(pageable,employeeId,status);
+            : attendanceRepository.findAttendancesByEmployeeIdAndStatus(pageable,employeeId,status);
     return attendances.map(attendanceDTOMapper::toDTO);
   }
+  public Page<AttendanceDTO> filterByStatus(Pageable pageable, String status) {
+    Page<Attendance> attendances = "".equals(status)
+            ? attendanceRepository.findAll(pageable)
+            : attendanceRepository.findAttendancesByStatus(pageable,status);
+    return attendances.map(attendanceDTOMapper::toDTO);
+  }
+
+  public Map<String,Integer> getQuantity() {
+    int countOntime = 0;
+    int countLate = 0;
+    int countAbsent = 0;
+    List<Attendance> getAll = attendanceRepository.findAll();
+    for (Attendance attendance : getAll) {
+      if ("Đúng giờ".equals(attendance.getStatus())) {
+        countOntime++;
+      }else if("Đi muộn".equals(attendance.getStatus())){
+        countLate++;
+      }else if("Vắng mặt".equals(attendance.getStatus())){
+        countAbsent++;
+      }
+    }
+    Map<String,Integer> result = new HashMap<>();
+    result.put("Đúng giờ",countOntime);
+    result.put("Đi muộn",countLate);
+    result.put("Vắng mặt",countAbsent);
+
+    return result;
+  }
+
+  public Map<String,Integer> getQuantityEmployeeDetail(Integer employeeId) {
+    int countOntime = 0;
+    int countLate = 0;
+    int countAbsent = 0;
+    List<Attendance> getAll = attendanceRepository.findAllByEmployee_EmployeeId(employeeId);
+    for (Attendance attendance : getAll) {
+      if ("Đúng giờ".equals(attendance.getStatus())) {
+        countOntime++;
+      }else if("Đi muộn".equals(attendance.getStatus())){
+        countLate++;
+      }else if("Vắng mặt".equals(attendance.getStatus())){
+        countAbsent++;
+      }
+    }
+    Map<String,Integer> result = new HashMap<>();
+    result.put("Đúng giờ",countOntime);
+    result.put("Đi muộn",countLate);
+    result.put("Vắng mặt",countAbsent);
+
+    return result;
+  }
+
 
   public AttendanceDTO getAttendanceByEmployeeIdAndDate(Integer employeeId, LocalDate date) {
     Employee employee = Optional.ofNullable(employeeRepository.getEmployeeByEmployeeId(employeeId))

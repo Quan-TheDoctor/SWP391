@@ -93,7 +93,7 @@
         </div>
 
         <!-- Summary Cards -->
-        <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-4" th:object="${quantity}">
             <div class="bg-green-50 p-4 rounded-lg shadow-sm">
                 <div class="flex items-center gap-3">
                     <div class="p-2 bg-green-100 rounded-full">
@@ -104,7 +104,7 @@
                     </div>
                     <div>
                         <p class="text-sm text-gray-500">Total Present Days</p>
-                        <p class="text-xl font-bold" th:text="${totalPresentDays} ?: 0"></p>
+                        <p class="text-xl font-bold" th:text="${quantity['Đúng giờ']} ?: 0"></p>
                     </div>
                 </div>
             </div>
@@ -119,7 +119,7 @@
                     </div>
                     <div>
                         <p class="text-sm text-gray-500">Late Arrivals</p>
-                        <p class="text-xl font-bold" th:text="${lateArrivals} ?: 0"></p>
+                        <p class="text-xl font-bold" th:text="${quantity['Đi muộn']} ?: 0"></p>
                     </div>
                 </div>
             </div>
@@ -134,7 +134,7 @@
                     </div>
                     <div>
                         <p class="text-sm text-gray-500">Absent Days</p>
-                        <p class="text-xl font-bold" th:text="${absentDays} ?: 0"></p>
+                        <p class="text-xl font-bold" th:text="${quantity['Vắng mặt']} ?: 0"></p>
                     </div>
                 </div>
             </div>
@@ -183,9 +183,9 @@
                     <form th:action="@{/attendance/filter(field='status')}">
                         <input type="hidden" name="field" value="status"/>
                         <label class="block text-sm font-medium text-gray-700">Attendance Status</label>
-                        <select name="value" onchange="this.form.submit()"
+                        <select name="status" onchange="this.form.submit()"
                                 class="w-full p-2 border rounded-md focus:ring-2 focus:ring-blue-500">
-                            <option value="all">All Statuses</option>
+                            <option value="">All Statuses</option>
                             <option value="Đúng giờ">On Time</option>
                             <option value="Đi muộn">Late</option>
                             <option value="CHƯA CHẤM CÔNG">Not Checked</option>

@@ -90,18 +90,18 @@
     </div>
 
     <!-- Statistics -->
-    <div class="mt-8 statistics-grid">
+    <div class="mt-8 statistics-grid" th:object="${quantity}">
       <div class="statistics-item bg-blue-50">
         <p class="text-sm text-gray-500">Total Working Days</p>
-        <p class="text-xl font-bold" id="totalWorkingDays">0</p>
+        <p class="text-xl font-bold" id="totalWorkingDays" th:text="${quantity['Đúng giờ'] ?:0}"></p>
       </div>
       <div class="statistics-item bg-green-50">
         <p class="text-sm text-gray-500">Total Late Days</p>
-        <p class="text-xl font-bold" id="totalLateDays">0</p>
+        <p class="text-xl font-bold" id="totalLateDays" th:text="${quantity['Đi muộn'] ?:0}"></p>
       </div>
       <div class="statistics-item bg-red-50">
         <p class="text-sm text-gray-500">Total Absent Days</p>
-        <p class="text-xl font-bold" id="totalAbsentDays">0</p>
+        <p class="text-xl font-bold" id="totalAbsentDays" th:text="${quantity['Vắng mặt'] ?:0}"></p>
       </div>
     </div>
   </div>
@@ -141,25 +141,6 @@
   </nav>
 </div>
 
-<script th:inline="javascript">
-  const attendanceList = /*[[${attendanceDTO.content}]]*/ [];
-  let totalWorkingDays = 0;
-  let totalLateDays = 0;
-  let totalAbsentDays = 0;
 
-  attendanceList.forEach(entry => {
-    if (entry.attendanceStatus === 'Đúng giờ') {
-      totalWorkingDays++;
-    } else if (entry.attendanceStatus === 'Đi muộn') {
-      totalLateDays++;
-    } else if (entry.attendanceStatus === 'Nghỉ làm') {
-      totalAbsentDays++;
-    }
-  });
-
-  document.getElementById('totalWorkingDays').textContent = totalWorkingDays;
-  document.getElementById('totalLateDays').textContent = totalLateDays;
-  document.getElementById('totalAbsentDays').textContent = totalAbsentDays;
-</script>
 </body>
 </html>
