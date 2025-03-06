@@ -7,6 +7,7 @@ import com.se1873.js.springboot.project.mapper.EmployeeDTOMapper;
 import com.se1873.js.springboot.project.repository.*;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.poi.ss.util.CellRangeAddress;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.PageRequest;
@@ -106,7 +107,7 @@ public class EmployeeService {
     Pageable pageable = PageRequest.of(0, 1000);
     List<Employee> employees;
 
-    if (!employeeIds.isEmpty()) {
+    if (employeeIds != null && !employeeIds.isEmpty()) {
       employees = employeeRepository.findAllByEmployeeIdIn(employeeIds);
     } else if (!"all".equals(departmentFilter) && !"all".equals(positionFilter)) {
       employees = employeeRepository.findEmployeesByDepartmentName(departmentFilter, pageable).toList()
@@ -119,6 +120,7 @@ public class EmployeeService {
     } else if (!"all".equals(positionFilter)) {
       employees = employeeRepository.findEmployeesByPositionName(positionFilter, pageable).toList();
     } else {
+      // Nếu không chọn ai và không có bộ lọc => lấy tất cả nhân viên
       employees = employeeRepository.findAll(pageable).getContent();
     }
 
@@ -129,14 +131,67 @@ public class EmployeeService {
     try (Workbook workbook = new XSSFWorkbook(); ByteArrayOutputStream out = new ByteArrayOutputStream()) {
       Sheet sheet = workbook.createSheet("Employees");
 
-      Row headerRow = sheet.createRow(0);
+      // Tạo font cho tiêu đề chính
+      Font titleFont = workbook.createFont();
+      titleFont.setBold(true);
+      titleFont.setFontHeightInPoints((short) 16);
+
+      // Tạo style cho tiêu đề chính
+      CellStyle titleStyle = workbook.createCellStyle();
+      titleStyle.setFont(titleFont);
+      titleStyle.setAlignment(HorizontalAlignment.CENTER);
+      titleStyle.setVerticalAlignment(VerticalAlignment.CENTER);
+
+      // Tạo hàng tiêu đề chính
+      Row titleRow = sheet.createRow(0);
+      Cell titleCell = titleRow.createCell(0);
+      titleCell.setCellValue("Information Employee");
+      titleCell.setCellStyle(titleStyle);
+
+      // Merge ô để tiêu đề nằm giữa (A1:E1)
+      sheet.addMergedRegion(new CellRangeAddress(0, 0, 0, 4));
+
+      // Tạo font cho tiêu đề cột
+      Font headerFont = workbook.createFont();
+      headerFont.setBold(true);
+      headerFont.setFontHeightInPoints((short) 12);
+      headerFont.setColor(IndexedColors.WHITE.getIndex());
+
+      // Tạo style cho tiêu đề cột
+      CellStyle headerStyle = workbook.createCellStyle();
+      headerStyle.setFillForegroundColor(IndexedColors.BLUE_GREY.getIndex());
+      headerStyle.setFillPattern(FillPatternType.SOLID_FOREGROUND);
+      headerStyle.setFont(headerFont);
+      headerStyle.setAlignment(HorizontalAlignment.CENTER);
+      headerStyle.setVerticalAlignment(VerticalAlignment.CENTER);
+      headerStyle.setBorderBottom(BorderStyle.THIN);
+      headerStyle.setBorderTop(BorderStyle.THIN);
+      headerStyle.setBorderRight(BorderStyle.THIN);
+      headerStyle.setBorderLeft(BorderStyle.THIN);
+
+      // Style cho dữ liệu
+      CellStyle dataStyle = workbook.createCellStyle();
+      dataStyle.setBorderBottom(BorderStyle.THIN);
+      dataStyle.setBorderTop(BorderStyle.THIN);
+      dataStyle.setBorderRight(BorderStyle.THIN);
+      dataStyle.setBorderLeft(BorderStyle.THIN);
+
+      // Style cho cột lương
+      CellStyle salaryStyle = workbook.createCellStyle();
+      salaryStyle.cloneStyleFrom(dataStyle);
+      salaryStyle.setDataFormat(workbook.createDataFormat().getFormat("#,##0"));
+
+      // Tạo hàng tiêu đề cột
+      Row headerRow = sheet.createRow(2);
       String[] columns = {"ID", "Name", "Department", "Position", "Salary"};
       for (int i = 0; i < columns.length; i++) {
         Cell cell = headerRow.createCell(i);
         cell.setCellValue(columns[i]);
+        cell.setCellStyle(headerStyle);
       }
 
-      int rowIdx = 1;
+      // Ghi dữ liệu vào file Excel
+      int rowIdx = 3;
       for (Employee emp : employees) {
         EmploymentHistory employmentHistory = employmentHistoryRepository.findEmploymentHistoryByEmployee_EmployeeIdAndIsCurrent(emp.getEmployeeId(), true);
         Department department = employmentHistory.getDepartment();
@@ -148,7 +203,20 @@ public class EmployeeService {
         row.createCell(1).setCellValue(emp.getFirstName() + " " + emp.getLastName());
         row.createCell(2).setCellValue(department.getDepartmentName());
         row.createCell(3).setCellValue(position.getPositionName());
-        row.createCell(4).setCellValue(contract.getBaseSalary());
+
+        Cell salaryCell = row.createCell(4);
+        salaryCell.setCellValue(contract.getBaseSalary());
+        salaryCell.setCellStyle(salaryStyle);
+
+        // Áp dụng style cho các ô dữ liệu
+        for (int i = 0; i < 4; i++) {
+          row.getCell(i).setCellStyle(dataStyle);
+        }
+      }
+
+      // Tự động điều chỉnh độ rộng cột
+      for (int i = 0; i < columns.length; i++) {
+        sheet.autoSizeColumn(i);
       }
 
       workbook.write(out);
@@ -158,7 +226,6 @@ public class EmployeeService {
       throw new RuntimeException("Lỗi khi xuất file Excel", e);
     }
   }
-
 
   public Page<EmployeeDTO> exportFilteredEmployees(String departmentFilter, String positionFilter, Pageable pageable) {
     Page<Employee> employees;
