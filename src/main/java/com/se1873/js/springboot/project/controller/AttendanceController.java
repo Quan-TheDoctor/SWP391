@@ -157,6 +157,7 @@ public class AttendanceController {
     return null;
   }
 
+
   @RequestMapping("/summary")
   public String showPage(@ModelAttribute PayrollCalculationForm form,
                          Model model,
@@ -166,58 +167,40 @@ public class AttendanceController {
     }
 
     if (form.getSelectedDepartmentId() != null) {
+      form.getPayrollCalculations().clear();
       Page<EmployeeDTO> employees = employeeService.getEmployeesByDepartmentId(form.getSelectedDepartmentId(), PageRequest.of(0, 10));
       model.addAttribute("employees", employees.getContent());
+
+      for (var employee : employees.getContent()) {
+        List<AttendanceDTO> attendanceDTOS = attendanceService.getAttendancesByEmployeeIdAndDate(employee.getEmployeeId(), LocalDate.now());
+        int workDays = Math.toIntExact(
+          attendanceDTOS.stream()
+            .filter(a -> "Đúng giờ".equals(a.getAttendanceStatus()))
+            .count()
+        );
+        int lateDays = Math.toIntExact(
+          attendanceDTOS.stream()
+            .filter(a -> "Đi muộn".equals(a.getAttendanceStatus()))
+            .count()
+        );
+        int absentDays = Math.toIntExact(
+          attendanceDTOS.stream()
+            .filter(a -> "Nghỉ".equals(a.getAttendanceStatus()))
+            .count()
+        );
+        double overtimeHours = attendanceDTOS.stream().mapToDouble(AttendanceDTO::getAttendanceOvertimeHours).sum();
+        PayrollCalculationDTO dto = new PayrollCalculationDTO(
+          employee.getEmployeeId(),
+          employee.getEmployeeFirstName(),
+          employee.getEmployeeLastName(),
+          workDays, lateDays, absentDays, Math.floor(overtimeHours)
+        );
+        form.getPayrollCalculations().add(dto);
+      }
     }
     model.addAttribute("user", user);
     model.addAttribute("payrollCalculationForm", form);
     return "attendance-summary";
-  }
-
-  @PostMapping("/summary/addEmployee")
-  public String addEmployee(@RequestParam Integer employeeId,
-                            @ModelAttribute PayrollCalculationForm form,
-                            RedirectAttributes redirectAttributes) {
-    log.info("Attempting to add employee: {}", employeeId);
-
-    EmployeeDTO employee = employeeService.getEmployeeByEmployeeId(employeeId);
-
-    boolean exists = form.getPayrollCalculations().stream()
-      .anyMatch(dto -> dto.employeeId().equals(employeeId));
-
-    if (!exists && employee != null) {
-      List<AttendanceDTO> attendanceDTOS = attendanceService.getAttendancesByEmployeeIdAndDate(employeeId, LocalDate.now());
-      int workDays = Math.toIntExact(
-        attendanceDTOS.stream()
-          .filter(a -> "Đúng giờ".equals(a.getAttendanceStatus()))
-          .count()
-      );
-      int lateDays = Math.toIntExact(
-        attendanceDTOS.stream()
-          .filter(a -> "Đi muộn".equals(a.getAttendanceStatus()))
-          .count()
-      );
-      int absentDays = Math.toIntExact(
-        attendanceDTOS.stream()
-          .filter(a -> "Nghỉ".equals(a.getAttendanceStatus()))
-          .count()
-      );
-
-      double overtimeHours = attendanceDTOS.stream().mapToDouble(AttendanceDTO::getAttendanceOvertimeHours).sum();
-
-      PayrollCalculationDTO dto = new PayrollCalculationDTO(
-        employee.getEmployeeId(),
-        employee.getEmployeeFirstName(),
-        employee.getEmployeeLastName(),
-        workDays, lateDays, absentDays, Math.floor(overtimeHours)
-      );
-      form.getPayrollCalculations().add(dto);
-      redirectAttributes.addFlashAttribute("success", "Đã thêm nhân viên thành công!");
-    } else {
-      redirectAttributes.addFlashAttribute("error", "Lỗi khi thêm nhân viên");
-    }
-
-    return "redirect:/attendance/summary";
   }
 
   @PostMapping("/summary/removeEmployee")

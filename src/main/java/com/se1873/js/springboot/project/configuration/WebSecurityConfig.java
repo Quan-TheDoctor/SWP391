@@ -31,8 +31,8 @@ public class WebSecurityConfig {
     http
       .authorizeHttpRequests((requests) ->
         requests
-          .requestMatchers("/", "/home", "/login", "/request/**", "/css/**", "/js/**").permitAll() // Cho phép truy cập các trang này
-          .requestMatchers("/payroll/**","/attendance/**","/request/**", "/employee/employee-insert", "/employee/**").hasRole("ADMIN")
+          .requestMatchers("/", "/home", "/login", "/request/**", "/css/**", "/js/**", "/api/attendance/recognize").permitAll() // Cho phép truy cập các trang này
+          .requestMatchers("/payroll/**", "/attendance/**", "/request/**", "/employee/employee-insert", "/employee/**").hasRole("ADMIN")
           .anyRequest().authenticated() // Các trang khác yêu cầu đăng nhập
       )
       .formLogin((form) ->
@@ -64,8 +64,10 @@ public class WebSecurityConfig {
         .logoutRequestMatcher(new AntPathRequestMatcher("/logout", "GET"))
         .logoutSuccessUrl("/login?logout=true") // Chuyển hướng sau khi đăng xuất
         .permitAll()
+      )
+      .csrf(csrf -> csrf
+        .ignoringRequestMatchers("/api/attendance/**")  // Disable CSRF for API
       );
-
     return http.build();
   }
 
