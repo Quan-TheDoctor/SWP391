@@ -40,4 +40,17 @@ public interface AttendanceRepository extends JpaRepository<Attendance, Long> {
 
   List<Attendance> findAllByEmployee_EmployeeId(Integer employeeId);
 
+  @Query(value = """
+        SELECT a.*, CONCAT(e.first_name, ' ', e.last_name) AS full_name
+        FROM attendance a
+        JOIN employees e ON a.employee_id = e.employee_id
+        WHERE EXISTS (
+            SELECT 1
+            FROM unnest(string_to_array(lower(:searchText), ' ')) AS keyword
+            WHERE lower(CONCAT(e.first_name, ' ', e.last_name)) ILIKE '%' || keyword || '%'
+        )
+        ORDER BY a.date DESC
+    """, nativeQuery = true)
+  Page<Attendance> searchAttendanceByEmployeeName(@Param("searchText") String searchText, Pageable pageable);
+
 }
