@@ -232,4 +232,13 @@ public class AttendanceService {
             attendancecountDTO.getLateEmployee());
     return attendancecountDTO;
   }
+  public Page<AttendanceDTO> searchAttendanceByEmployeeName(String employeeName, Pageable pageable) {
+
+    Page<Attendance> attendances = attendanceRepository.searchAttendanceByEmployeeName("An", pageable);
+    System.out.println("1");
+    for (Attendance att : attendances.getContent()) {
+      System.out.println(att);
+    }
+    return attendances.map(attendanceDTOMapper::toDTO);
+  }
 }

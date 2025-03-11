@@ -15,6 +15,7 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
 import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.security.core.userdetails.UserDetails;
@@ -66,6 +67,8 @@ public class AttendanceController {
     return user;
   }
 
+  Page<AttendanceDTO> attendances;
+
   @RequestMapping
   public String attendance(Model model,
                            @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate startDate,
@@ -76,11 +79,12 @@ public class AttendanceController {
       startDate = LocalDate.now();
       endDate = LocalDate.now();
     }
-
+    attendances = (Page<AttendanceDTO>) model.asMap().get("attendances");
     Map<String,Integer> quantity = attendanceService.getQuantity();
+    if(attendances == null)
+      attendances = attendanceService.getAll(startDate, endDate, PageRequest.of(page, size));
 
-    var attendances = attendanceService.getAll(startDate, endDate, PageRequest.of(page, size));
-
+    log.info(attendances.getContent().toString());
     model.addAttribute("startDate", startDate);
     model.addAttribute("endDate", endDate);
     model.addAttribute("page", page);
@@ -97,7 +101,7 @@ public class AttendanceController {
                              @RequestParam(value = "size", defaultValue = "5") Integer size,
                              @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate startDate,
                              @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate endDate){
-    Page<AttendanceDTO> attendances = attendanceService.filterByStatus(PageRequest.of(page,size),status);
+    attendances = attendanceService.filterByStatus(PageRequest.of(page,size),status);
     if (startDate == null || endDate == null) {
       startDate = LocalDate.now();
       endDate = LocalDate.now();
@@ -183,7 +187,6 @@ public class AttendanceController {
 
     if (!exists && employee != null) {
       List<AttendanceDTO> attendanceDTOS = attendanceService.getAttendancesByEmployeeIdAndDate(employeeId, LocalDate.now());
-      log.info(attendanceDTOS.toString());
       int workDays = Math.toIntExact(
         attendanceDTOS.stream()
           .filter(a -> "Đúng giờ".equals(a.getAttendanceStatus()))
@@ -248,5 +251,12 @@ public class AttendanceController {
     form.setRequesterId(user.getUserId());
     salaryRecordService.savePayroll(form);
     return "redirect:/request";
+  }
+  @GetMapping("/search")
+  public String search(@RequestParam("query") String name, RedirectAttributes redirectAttributes, Pageable pageable) {
+    attendances = attendanceService.searchAttendanceByEmployeeName(name, PageRequest.of(0,5));
+    redirectAttributes.addFlashAttribute("attendances", attendances);
+
+    return "redirect:/attendance";
   }
 }
