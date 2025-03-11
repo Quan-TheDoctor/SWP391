@@ -57,23 +57,6 @@
         </div>
     </form>
 
-    <div th:if="${employees != null}" class="mb-8">
-        <h3 class="text-xl font-semibold mb-4">Danh sách nhân viên</h3>
-        <div class="space-y-2">
-            <div th:each="emp : ${employees}" class="flex items-center justify-between bg-gray-50 p-3 rounded-lg">
-                    <span th:text="${emp.getEmployeeFirstName() + ' ' + emp.getEmployeeLastName()}"
-                          class="font-medium"></span>
-                <form th:action="@{/attendance/summary/addEmployee}" method="post">
-                    <input type="hidden" name="employeeId" th:value="${emp.getEmployeeId()}">
-                    <button type="submit"
-                            class="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors">
-                        Thêm vào bảng
-                    </button>
-                </form>
-            </div>
-        </div>
-    </div>
-
     <form th:action="@{/attendance/summary/calculate}" th:object="${payrollCalculationForm}" method="post">
         <input type="hidden" th:field="*{selectedDepartmentId}">
         <div class="overflow-x-auto rounded-lg border">
