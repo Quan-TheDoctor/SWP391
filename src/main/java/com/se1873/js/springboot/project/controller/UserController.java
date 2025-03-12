@@ -4,7 +4,6 @@ import com.se1873.js.springboot.project.dto.AttendanceDTO;
 import com.se1873.js.springboot.project.dto.EmployeeDTO;
 import com.se1873.js.springboot.project.dto.PayrollDTO;
 import com.se1873.js.springboot.project.dto.RequestDTO;
-import com.se1873.js.springboot.project.entity.Employee;
 import com.se1873.js.springboot.project.entity.User;
 import com.se1873.js.springboot.project.service.AttendanceService;
 import com.se1873.js.springboot.project.service.EmployeeService;

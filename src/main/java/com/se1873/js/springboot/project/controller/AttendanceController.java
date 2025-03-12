@@ -115,7 +115,8 @@ public class AttendanceController {
     model.addAttribute("endDate", endDate);
     model.addAttribute("page", page);
     model.addAttribute("size", size);
-    return "attendance";
+    model.addAttribute("contentFragment", "fragments/attendance-fragments");
+    return "index";
   }
 
   @RequestMapping("/create/form")
@@ -138,7 +139,8 @@ public class AttendanceController {
     model.addAttribute("page", page);
     model.addAttribute("size", size);
     model.addAttribute("attendanceDTOList", attendanceDTOList);
-    return "attendance-view";
+    model.addAttribute("contentFragment", "fragments/attendance-view-fragments");
+    return "index";
   }
 
   @PostMapping("/create/save")
@@ -200,7 +202,8 @@ public class AttendanceController {
     }
     model.addAttribute("user", user);
     model.addAttribute("payrollCalculationForm", form);
-    return "attendance-summary";
+    model.addAttribute("contentFragment", "fragments/attendance-summary-fragments");
+    return "index";
   }
 
   @PostMapping("/summary/removeEmployee")
