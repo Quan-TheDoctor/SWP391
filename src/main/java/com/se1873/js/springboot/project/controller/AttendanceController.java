@@ -84,14 +84,14 @@ public class AttendanceController {
     if(attendances == null)
       attendances = attendanceService.getAll(startDate, endDate, PageRequest.of(page, size));
 
-    log.info(attendances.getContent().toString());
     model.addAttribute("startDate", startDate);
     model.addAttribute("endDate", endDate);
     model.addAttribute("page", page);
     model.addAttribute("size", size);
     model.addAttribute("quantity",quantity);
     model.addAttribute("attendances", attendances);
-    return "attendance";
+    model.addAttribute("contentFragment", "fragments/attendance-fragments");
+    return "index";
   }
 
   @RequestMapping("/filter")

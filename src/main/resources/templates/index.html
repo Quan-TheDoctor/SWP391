@@ -16,18 +16,13 @@
     <script type="text/javascript" th:src="@{/js/AddPart.js}"></script>
     <script type="text/javascript" th:src="@{/js/employee.js}"></script>
 </head>
-<body class="bg-gradient-to-r from-[#E8F0FA] via-[#B4CAF3] to-violet-500 ">
-<div class="flex flex-col gap-2 h-screen">
+<body>
+<div th:replace="~{fragments/sidebar :: sidebar}"></div>
 
-<!--    <div th:replace="~{${header}}"></div>-->
-    <div class="flex justify-end px-[20rem] py-4 gap-5">
-        <a th:href="@{/employee}" th:text="Employee" class="px-4 py-2 bg-[#E5BEBE] rounded-lg"></a>
-        <a th:href="@{/attendance}" th:text="Attendance" class="px-4 py-2 bg-[#E5BEBE] rounded-lg"></a>
-    </div>
+<main>
+    <div th:replace="${contentFragment}"></div>
+</main>
 
-    <div class="flex-1 h-screen flex flex-col gap-2 rounded-lg overflow-y-scroll">
-        <div th:replace="~{${fragments}}"></div>
-    </div>
-</div>
+<!--<div th:replace="~{fragments/footer :: footer}"></div>-->
 </body>
 </html>
