@@ -3,6 +3,7 @@ package com.se1873.js.springboot.project.controller;
 import com.se1873.js.springboot.project.dto.EmployeeDTO;
 import com.se1873.js.springboot.project.entity.Department;
 import com.se1873.js.springboot.project.entity.Position;
+import com.se1873.js.springboot.project.entity.User;
 import com.se1873.js.springboot.project.repository.EmployeeRepository;
 import com.se1873.js.springboot.project.service.DepartmentService;
 import com.se1873.js.springboot.project.service.EmployeeService;
@@ -40,8 +41,7 @@ public class EmployeeController {
   private final EmployeeRepository employeeRepository;
   private final DepartmentService departmentService;
   private final PositionService positionService;
-  private List<Department> departments;
-  private List<Position> positions;
+  private final GlobalController globalController;
   private Page<EmployeeDTO> employeeDTOPage;
   private final static String EMPLOYEE = "employee";
 
@@ -54,7 +54,8 @@ public class EmployeeController {
   @RequestMapping
   public String employee(
     @PageableDefault(size = 10, sort = "employeeId", direction = Sort.Direction.ASC) Pageable pageable,
-    Model model) {
+    Model model,
+    @ModelAttribute("loggedInUser") User loggedInUser) {
 
     Page<EmployeeDTO> employees = employeeService.getAll(pageable);
     var totalEmployees = employeeRepository.count();
@@ -65,21 +66,26 @@ public class EmployeeController {
 
     employeeDTOPage = employees;
 
+    addCommonAttributes(model);
+    globalController.createAuditLog(loggedInUser, "Navigate to /employee/ successfully", "Navigate");
     model.addAttribute("totalEmployees", totalEmployees);
     model.addAttribute("avgSalary", avgSalary);
     model.addAttribute("employees", employees);
     model.addAttribute("currentRequestURI", "/employee");
     model.addAttribute("contentFragment", "fragments/employee-fragments");
-    addCommonAttributes(model);
     return "index";
   }
 
   @RequestMapping("/view")
   public String view(Model model,
-                     @RequestParam("employeeId") Integer employeeId) {
+                     @RequestParam("employeeId") Integer employeeId,
+                     @ModelAttribute("loggedInUser") User loggedInUser) {
     var employeeDTO = employeeService.getEmployeeByEmployeeId(employeeId);
-    model.addAttribute("departments", departments);
+
+    addCommonAttributes(model);
+    globalController.createAuditLog(loggedInUser, "View details of Employee #" + employeeDTO.getEmployeeId() , "Navigate");
     model.addAttribute("employeeDTO", employeeDTO);
+    model.addAttribute("currentRequestURI", "/employee");
     model.addAttribute("contentFragment", "fragments/employee-view-fragments");
     return "index";
   }
@@ -87,7 +93,7 @@ public class EmployeeController {
   @RequestMapping("/create/form")
   public String createForm(Model model) {
 
-    model.addAttribute("departments", departments);
+    addCommonAttributes(model);
     model.addAttribute("employeeDTO", new EmployeeDTO());
     model.addAttribute("contentFragment", "fragments/employee-create-fragments");
     return "index";
@@ -99,8 +105,7 @@ public class EmployeeController {
                                Model model) {
 
     if (bindingResult.hasErrors()) {
-      model.addAttribute("departments", departments);
-      model.addAttribute("positions", positions);
+      addCommonAttributes(model);
       model.addAttribute("contentFragment", "fragments/employee-create-fragments");
       return "index";
     }
@@ -115,8 +120,7 @@ public class EmployeeController {
                                Model model) {
 
     if (bindingResult.hasErrors()) {
-      model.addAttribute("departments", departments);
-      model.addAttribute("positions", positions);
+      addCommonAttributes(model);
       model.addAttribute("contentFragment", "fragments/employee-view-fragments");
       return "index";
     }
@@ -138,10 +142,10 @@ public class EmployeeController {
 
     employeeDTOPage = employees;
 
+    addCommonAttributes(model);
+
     model.addAttribute("totalEmployees", totalEmployees);
     model.addAttribute("avgSalary", avgSalary);
-    model.addAttribute("departments", departments);
-    model.addAttribute("positions", positions);
     model.addAttribute("employees", employees);
     model.addAttribute("contentFragment", "fragments/employee-fragments");
     return "index";
@@ -159,11 +163,10 @@ public class EmployeeController {
 
     employeeDTOPage = employees;
 
+    addCommonAttributes(model);
     model.addAttribute("employees", employees);
     model.addAttribute("totalEmployees", totalEmployees);
     model.addAttribute("avgSalary", avgSalary);
-    model.addAttribute("departments", departments);
-    model.addAttribute("positions", positions);
     model.addAttribute("contentFragment", "fragments/employee-fragments");
     return "index";
   }

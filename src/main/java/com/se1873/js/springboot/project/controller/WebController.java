@@ -8,8 +8,9 @@ import org.springframework.web.bind.annotation.RequestMapping;
 @Controller
 public class WebController {
     @GetMapping("/")
-    public String home() {
-        return "home";
+    public String home(Model model) {
+        model.addAttribute("contentFragment", "fragments/homepage-fragments");
+        return "index";
     }
 
     @GetMapping("/dashboard")
