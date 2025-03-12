@@ -86,7 +86,7 @@
                     </div>
                     <div class="text-center sm:text-left">
                         <p class="text-xs sm:text-sm text-gray-500">Tổng sự kiện</p>
-                        <h2 class="text-lg sm:text-xl font-bold">1,245</h2>
+                        <h2 class="text-lg sm:text-xl font-bold" th:text="${quantity['totalLogs']}"></h2>
                     </div>
                 </div>
 
@@ -95,8 +95,8 @@
                         <i class="fas fa-info-circle text-lg sm:text-xl"></i>
                     </div>
                     <div class="text-center sm:text-left">
-                        <p class="text-xs sm:text-sm text-gray-500">Thông tin</p>
-                        <h2 class="text-lg sm:text-xl font-bold">1,042</h2>
+                        <p class="text-xs sm:text-sm text-gray-500">View</p>
+                        <h2 class="text-lg sm:text-xl font-bold" th:text="${quantity['totalViews']}"></h2>
                     </div>
                 </div>
 
@@ -105,8 +105,8 @@
                         <i class="fas fa-exclamation-triangle text-lg sm:text-xl"></i>
                     </div>
                     <div class="text-center sm:text-left">
-                        <p class="text-xs sm:text-sm text-gray-500">Cảnh báo</p>
-                        <h2 class="text-lg sm:text-xl font-bold">168</h2>
+                        <p class="text-xs sm:text-sm text-gray-500">Update</p>
+                        <h2 class="text-lg sm:text-xl font-bold" th:text="${quantity['totalUpdates']}"></h2>
                     </div>
                 </div>
 
@@ -115,8 +115,8 @@
                         <i class="fas fa-bug text-lg sm:text-xl"></i>
                     </div>
                     <div class="text-center sm:text-left">
-                        <p class="text-xs sm:text-sm text-gray-500">Lỗi</p>
-                        <h2 class="text-lg sm:text-xl font-bold">35</h2>
+                        <p class="text-xs sm:text-sm text-gray-500">Error</p>
+                        <h2 class="text-lg sm:text-xl font-bold" th:text="${quantity['totalErrors']}"></h2>
                     </div>
                 </div>
             </div>

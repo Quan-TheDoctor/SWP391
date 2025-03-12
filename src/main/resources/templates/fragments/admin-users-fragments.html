@@ -1,0 +1,395 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org"
+      xmlns:sec="http://www.thymeleaf.org/extras/spring-security">
+<head>
+    <meta charset="UTF-8">
+    <title>User Management</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+</head>
+<div th:fragment="main-content">
+    <main class="flex-1 ml-64 p-6">
+        <div class="max-w-7xl mx-auto space-y-6">
+            <!-- Page Header -->
+            <div class="flex justify-between items-center">
+                <div>
+                    <h1 class="text-2xl font-bold text-gray-800">User Management</h1>
+                    <p class="text-sm text-gray-500">Manage system users and their permissions</p>
+                </div>
+                <div class="flex gap-2">
+                    <a th:href="@{/admin/users/create}"
+                       class="px-4 py-2 bg-green-600 text-white rounded-md hover:bg-green-700 flex items-center gap-2">
+                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/>
+                        </svg>
+                        Add User
+                    </a>
+                    <a th:href="@{/admin/roles}"
+                       class="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 flex items-center gap-2">
+                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                  d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z"/>
+                        </svg>
+                        Manage Roles
+                    </a>
+                </div>
+            </div>
+
+            <!-- Stats Cards -->
+            <div class="grid grid-cols-1 md:grid-cols-4 gap-4">
+                <div class="bg-white p-4 rounded-lg shadow-sm">
+                    <div class="flex items-center gap-3">
+                        <div class="p-2 bg-blue-100 rounded-full">
+                            <svg class="w-6 h-6 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                      d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M13 7a4 4 0 11-8 0 4 4 0 018 0z"/>
+                            </svg>
+                        </div>
+                        <div>
+                            <p class="text-sm text-gray-500">Total Users</p>
+                            <p class="text-xl font-bold" th:text="${totalUsers}">0</p>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="bg-white p-4 rounded-lg shadow-sm">
+                    <div class="flex items-center gap-3">
+                        <div class="p-2 bg-green-100 rounded-full">
+                            <svg class="w-6 h-6 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                      d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z"/>
+                            </svg>
+                        </div>
+                        <div>
+                            <p class="text-sm text-gray-500">Active Users</p>
+                            <p class="text-xl font-bold" th:text="${activeUsers}">0</p>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="bg-white p-4 rounded-lg shadow-sm">
+                    <div class="flex items-center gap-3">
+                        <div class="p-2 bg-yellow-100 rounded-full">
+                            <svg class="w-6 h-6 text-yellow-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                      d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"/>
+                            </svg>
+                        </div>
+                        <div>
+                            <p class="text-sm text-gray-500">Locked Accounts</p>
+                            <p class="text-xl font-bold" th:text="${lockedUsers}">0</p>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="bg-white p-4 rounded-lg shadow-sm">
+                    <div class="flex items-center gap-3">
+                        <div class="p-2 bg-purple-100 rounded-full">
+                            <svg class="w-6 h-6 text-purple-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                      d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0z"/>
+                            </svg>
+                        </div>
+                        <div>
+                            <p class="text-sm text-gray-500">Total Roles</p>
+                            <p class="text-xl font-bold" th:text="${totalRoles}">0</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Search and Filter -->
+            <div class="bg-white rounded-lg shadow-sm p-4 space-y-4">
+                <div class="flex flex-col md:flex-row gap-4">
+                    <!-- Search Bar -->
+                    <form th:action="@{/admin/users/search}" method="get" class="flex flex-grow gap-2">
+                        <input type="text" name="query" placeholder="Search by username, email, name..."
+                               th:value="${param.query}"
+                               class="flex-grow p-2 border rounded-md focus:ring-2 focus:ring-blue-500">
+                        <button type="submit" class="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700">
+                            Search
+                        </button>
+                    </form>
+
+                    <!-- Role Filter -->
+                    <div class="w-full md:w-64">
+                        <form th:action="@{/admin/users}" method="get">
+                            <select name="role" onchange="this.form.submit()"
+                                    class="w-full p-2 border rounded-md focus:ring-2 focus:ring-blue-500">
+                                <option value="">All Roles</option>
+                                <option th:each="role : ${roles}"
+                                        th:value="${role.name}"
+                                        th:text="${role.name}"
+                                        th:selected="${param.role != null && param.role[0] == role.name}">
+                                </option>
+                            </select>
+                        </form>
+                    </div>
+
+                    <!-- Status Filter -->
+                    <div class="w-full md:w-64">
+                        <form th:action="@{/admin/users}" method="get">
+                            <select name="status" onchange="this.form.submit()"
+                                    class="w-full p-2 border rounded-md focus:ring-2 focus:ring-blue-500">
+                                <option value="">All Status</option>
+                                <option value="active" th:selected="${param.status != null && param.status[0] == 'active'}">Active</option>
+                                <option value="locked" th:selected="${param.status != null && param.status[0] == 'locked'}">Locked</option>
+                                <option value="inactive" th:selected="${param.status != null && param.status[0] == 'inactive'}">Inactive</option>
+                            </select>
+                        </form>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Users Table -->
+            <div class="bg-white rounded-lg shadow-sm overflow-hidden">
+                <div class="overflow-x-auto">
+                    <table class="w-full divide-y divide-gray-200">
+                        <thead class="bg-gray-50">
+                        <tr>
+                            <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                <a th:href="@{/admin/users(sort='username', dir=${param.dir != null && param.dir[0] == 'asc' ? 'desc' : 'asc'})}"
+                                   class="flex items-center gap-1 hover:text-gray-700">
+                                    Username
+                                    <svg th:if="${param.sort != null && param.sort[0] == 'username'}"
+                                         class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"
+                                         th:class="${param.dir != null && param.dir[0] == 'asc' ? 'rotate-180' : ''}">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 15l7-7 7 7"/>
+                                    </svg>
+                                </a>
+                            </th>
+                            <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                Name
+                            </th>
+                            <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                Email
+                            </th>
+                            <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                Role
+                            </th>
+                            <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                Status
+                            </th>
+                            <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                Last Login
+                            </th>
+                            <th class="px-4 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                Actions
+                            </th>
+                        </tr>
+                        </thead>
+                        <tbody class="divide-y divide-gray-200">
+                        <tr th:each="user : ${users.content}" class="hover:bg-gray-50">
+                            <td class="px-4 py-3 whitespace-nowrap">
+                                <div class="flex items-center">
+                                    <div class="h-8 w-8 rounded-full bg-gray-200 flex items-center justify-center text-gray-600 font-medium"
+                                         th:text="${#strings.substring(user.username, 0, 1).toUpperCase()}">U</div>
+                                    <div class="ml-3">
+                                        <div class="text-sm font-medium text-gray-900" th:text="${user.username}"></div>
+                                    </div>
+                                </div>
+                            </td>
+                            <td class="px-4 py-3 whitespace-nowrap">
+                                <div class="text-sm font-medium text-gray-900" th:text="${T(java.lang.String).format('%s %s', user.employee.firstName, user.employee.lastName)}"></div>
+                            </td>
+                            <td class="px-4 py-3 whitespace-nowrap">
+                                <div class="text-sm text-gray-900" th:text="${user.employeeCompanyEmail}"></div>
+                            </td>
+                            <td class="px-4 py-3 whitespace-nowrap">
+                                <span th:each="role, roleStat : ${user.roles}" class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full"
+                                      th:classappend="${
+                                        role.name == 'ADMIN' ? 'bg-red-100 text-red-800' :
+                                        role.name == 'MANAGER' ? 'bg-blue-100 text-blue-800' :
+                                        'bg-green-100 text-green-800'
+                                      }"
+                                      th:text="${role.name}">
+                                </span>
+                            </td>
+                            <td class="px-4 py-3 whitespace-nowrap">
+                                <span class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full"
+                                      th:classappend="${
+                                        user.status == 'ACTIVE' ? 'bg-green-100 text-green-800' :
+                                        user.status == 'LOCKED' ? 'bg-red-100 text-red-800' :
+                                        'bg-gray-100 text-gray-800'
+                                      }"
+                                      th:text="${user.status}">
+                                </span>
+                            </td>
+                            <td class="px-4 py-3 whitespace-nowrap text-sm text-gray-500"
+                                th:text="${user.lastLogin != null ? #temporals.format(user.lastLogin, 'dd/MM/yyyy HH:mm') : 'Never'}">
+                            </td>
+                            <td class="px-4 py-3 whitespace-nowrap text-right text-sm font-medium">
+                                <div class="flex justify-end gap-2">
+                                    <a th:href="@{/admin/users/edit/{id}(id=${user.id})}"
+                                       class="text-blue-600 hover:text-blue-900">
+                                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                                  d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"/>
+                                        </svg>
+                                    </a>
+                                    <button th:if="${user.status == 'ACTIVE'}"
+                                            th:data-user-id="${user.id}"
+                                            th:data-username="${user.username}"
+                                            onclick="showLockModal(this.getAttribute('data-user-id'), this.getAttribute('data-username'))"
+                                            class="text-yellow-600 hover:text-yellow-900">
+                                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                                  d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"/>
+                                        </svg>
+                                    </button>
+                                    <button th:if="${user.status == 'LOCKED'}"
+                                            th:data-user-id="${user.id}"
+                                            th:data-username="${user.username}"
+                                            onclick="showUnlockModal(this.getAttribute('data-user-id'), this.getAttribute('data-username'))"
+                                            class="text-green-600 hover:text-green-900">
+                                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                                  d="M8 11V7a4 4 0 118 0m-4 8v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2z"/>
+                                        </svg>
+                                    </button>
+                                    <button th:data-user-id="${user.id}"
+                                            th:data-username="${user.username}"
+                                            onclick="showDeleteModal(this.getAttribute('data-user-id'), this.getAttribute('data-username'))"
+                                            class="text-red-600 hover:text-red-900">
+                                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                                  d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/>
+                                        </svg>
+                                    </button>
+                                </div>
+                            </td>
+                        </tr>
+                        <tr th:if="${users.empty}">
+                            <td colspan="7" class="px-4 py-4 text-center text-sm text-gray-500">
+                                No users found
+                            </td>
+                        </tr>
+                        </tbody>
+                    </table>
+                </div>
+
+                <!-- Pagination -->
+                <div th:replace="~{fragments/pagination :: pagination(${users}, '/admin/users', ${param.sort != null ? param.sort[0] : 'username'}, ${param.dir != null ? param.dir[0] : 'asc'})}"></div>
+            </div>
+        </div>
+    </main>
+
+    <!-- Lock User Modal -->
+    <div id="lockUserModal" class="fixed inset-0 bg-gray-600 bg-opacity-50 flex items-center justify-center z-50 hidden">
+        <div class="bg-white rounded-lg shadow-lg max-w-md w-full">
+            <div class="p-4 border-b">
+                <h3 class="text-lg font-semibold text-gray-900">Lock User Account</h3>
+            </div>
+            <div class="p-4">
+                <p class="text-gray-700 mb-4">Are you sure you want to lock the account for <span id="lockUserName" class="font-semibold"></span>? This will prevent the user from logging in.</p>
+
+                <form id="lockUserForm" th:action="@{/admin/users/lock}" method="post">
+                    <input type="hidden" id="lockUserId" name="userId">
+
+                    <div class="mb-4">
+                        <label class="block text-sm font-medium text-gray-700 mb-1">Reason for locking</label>
+                        <textarea name="reason" rows="2" class="w-full border rounded-md p-2 focus:ring-blue-500 focus:border-blue-500"
+                                  placeholder="Please provide a reason for locking this account"></textarea>
+                    </div>
+
+                    <div class="flex justify-end gap-2">
+                        <button type="button" onclick="closeModal('lockUserModal')"
+                                class="px-4 py-2 bg-gray-200 text-gray-800 rounded-md hover:bg-gray-300">
+                            Cancel
+                        </button>
+                        <button type="submit" class="px-4 py-2 bg-yellow-600 text-white rounded-md hover:bg-yellow-700">
+                            Lock Account
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <!-- Unlock User Modal -->
+    <div id="unlockUserModal" class="fixed inset-0 bg-gray-600 bg-opacity-50 flex items-center justify-center z-50 hidden">
+        <div class="bg-white rounded-lg shadow-lg max-w-md w-full">
+            <div class="p-4 border-b">
+                <h3 class="text-lg font-semibold text-gray-900">Unlock User Account</h3>
+            </div>
+            <div class="p-4">
+                <p class="text-gray-700 mb-4">Are you sure you want to unlock the account for <span id="unlockUserName" class="font-semibold"></span>?</p>
+
+                <form id="unlockUserForm" th:action="@{/admin/users/unlock}" method="post">
+                    <input type="hidden" id="unlockUserId" name="userId">
+
+                    <div class="flex justify-end gap-2">
+                        <button type="button" onclick="closeModal('unlockUserModal')"
+                                class="px-4 py-2 bg-gray-200 text-gray-800 rounded-md hover:bg-gray-300">
+                            Cancel
+                        </button>
+                        <button type="submit" class="px-4 py-2 bg-green-600 text-white rounded-md hover:bg-green-700">
+                            Unlock Account
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <!-- Delete User Modal -->
+    <div id="deleteUserModal" class="fixed inset-0 bg-gray-600 bg-opacity-50 flex items-center justify-center z-50 hidden">
+        <div class="bg-white rounded-lg shadow-lg max-w-md w-full">
+            <div class="p-4 border-b">
+                <h3 class="text-lg font-semibold text-gray-900">Delete User</h3>
+            </div>
+            <div class="p-4">
+                <p class="text-gray-700 mb-4">Are you sure you want to delete the user <span id="deleteUserName" class="font-semibold"></span>? This action cannot be undone.</p>
+
+                <form id="deleteUserForm" th:action="@{/admin/users/delete}" method="post">
+                    <input type="hidden" id="deleteUserId" name="userId">
+
+                    <div class="flex justify-end gap-2">
+                        <button type="button" onclick="closeModal('deleteUserModal')"
+                                class="px-4 py-2 bg-gray-200 text-gray-800 rounded-md hover:bg-gray-300">
+                            Cancel
+                        </button>
+                        <button type="submit" class="px-4 py-2 bg-red-600 text-white rounded-md hover:bg-red-700">
+                            Delete User
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        function showLockModal(userId, username) {
+            document.getElementById('lockUserId').value = userId;
+            document.getElementById('lockUserName').textContent = username;
+            document.getElementById('lockUserModal').classList.remove('hidden');
+        }
+
+        function showUnlockModal(userId, username) {
+            document.getElementById('unlockUserId').value = userId;
+            document.getElementById('unlockUserName').textContent = username;
+            document.getElementById('unlockUserModal').classList.remove('hidden');
+        }
+
+        function showDeleteModal(userId, username) {
+            document.getElementById('deleteUserId').value = userId;
+            document.getElementById('deleteUserName').textContent = username;
+            document.getElementById('deleteUserModal').classList.remove('hidden');
+        }
+
+        function closeModal(modalId) {
+            document.getElementById(modalId).classList.add('hidden');
+        }
+
+        // Close modals when clicking outside
+        document.addEventListener('click', function(event) {
+            const modals = ['lockUserModal', 'unlockUserModal', 'deleteUserModal'];
+            modals.forEach(modalId => {
+                const modal = document.getElementById(modalId);
+                if (event.target === modal) {
+                    closeModal(modalId);
+                }
+            });
+        });
+    </script>
+</div>
+</html>

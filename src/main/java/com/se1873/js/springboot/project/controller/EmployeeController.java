@@ -67,7 +67,6 @@ public class EmployeeController {
     employeeDTOPage = employees;
 
     addCommonAttributes(model);
-    globalController.createAuditLog(loggedInUser, "Navigate to /employee/ successfully", "Navigate");
     model.addAttribute("totalEmployees", totalEmployees);
     model.addAttribute("avgSalary", avgSalary);
     model.addAttribute("employees", employees);
@@ -83,7 +82,7 @@ public class EmployeeController {
     var employeeDTO = employeeService.getEmployeeByEmployeeId(employeeId);
 
     addCommonAttributes(model);
-    globalController.createAuditLog(loggedInUser, "View details of Employee #" + employeeDTO.getEmployeeId() , "Navigate");
+    globalController.createAuditLog(loggedInUser, "View details of Employee #" + employeeDTO.getEmployeeId() , "View");
     model.addAttribute("employeeDTO", employeeDTO);
     model.addAttribute("currentRequestURI", "/employee");
     model.addAttribute("contentFragment", "fragments/employee-view-fragments");
@@ -102,14 +101,17 @@ public class EmployeeController {
   @PostMapping("/create/save")
   public String createEmployee(@Valid @ModelAttribute("employeeDTO") EmployeeDTO employeeDTO,
                                BindingResult bindingResult,
-                               Model model) {
+                               Model model,
+                               @ModelAttribute("loggedInUser") User loggedInUser) {
 
     if (bindingResult.hasErrors()) {
-      addCommonAttributes(model);
+      model.addAttribute("departments", departmentService.getAllDepartments());
+      globalController.createAuditLog(loggedInUser, "Create new Employee" , "Error");
       model.addAttribute("contentFragment", "fragments/employee-create-fragments");
       return "index";
     }
 
+    globalController.createAuditLog(loggedInUser, "Create new Employee ID #" + employeeDTO.getEmployeeId() , "Create");
     employeeService.saveEmployee(employeeDTO);
     return "redirect:/employee";
   }
@@ -117,14 +119,17 @@ public class EmployeeController {
   @PostMapping("/create/update")
   public String updateEmployee(@Valid @ModelAttribute("employeeDTO") EmployeeDTO employeeDTO,
                                BindingResult bindingResult,
-                               Model model) {
+                               Model model,
+                               @ModelAttribute("loggedInUser") User loggedInUser) {
 
     if (bindingResult.hasErrors()) {
       addCommonAttributes(model);
+      globalController.createAuditLog(loggedInUser, "Update Employee ID #" + employeeDTO.getEmployeeId() , "Error");
       model.addAttribute("contentFragment", "fragments/employee-view-fragments");
       return "index";
     }
 
+    globalController.createAuditLog(loggedInUser, "Update Employee ID #" + employeeDTO.getEmployeeId() , "Update");
     employeeService.saveEmployee(employeeDTO);
     return "redirect:/employee";
   }
@@ -134,7 +139,8 @@ public class EmployeeController {
                        @RequestParam("field") String field,
                        @RequestParam("value") String value,
                        @RequestParam(value = "page", defaultValue = "0") int page,
-                       @RequestParam(value = "size", defaultValue = "10") int size) {
+                       @RequestParam(value = "size", defaultValue = "10") int size,
+                       @ModelAttribute("loggedInUser") User loggedInUser) {
     Pageable pageable = PageRequest.of(page, size);
     var employees = employeeService.filterByField(field, value, pageable);
     var totalEmployees = employees.getTotalElements();
@@ -142,8 +148,8 @@ public class EmployeeController {
 
     employeeDTOPage = employees;
 
+    globalController.createAuditLog(loggedInUser, "Filter list Employee by " + field , "View");
     addCommonAttributes(model);
-
     model.addAttribute("totalEmployees", totalEmployees);
     model.addAttribute("avgSalary", avgSalary);
     model.addAttribute("employees", employees);
@@ -155,7 +161,8 @@ public class EmployeeController {
   public String search(Model model,
                        @RequestParam("query") String query,
                        @RequestParam(value = "page", defaultValue = "0") int page,
-                       @RequestParam(value = "size", defaultValue = "10") int size) {
+                       @RequestParam(value = "size", defaultValue = "10") int size,
+                       @ModelAttribute("loggedInUser") User loggedInUser) {
     Pageable pageable = PageRequest.of(page, size);
     var employees = employeeService.search(pageable, query);
     var totalEmployees = employees.getTotalElements();
@@ -163,6 +170,7 @@ public class EmployeeController {
 
     employeeDTOPage = employees;
 
+    globalController.createAuditLog(loggedInUser, "Search Employee by " + query , "View");
     addCommonAttributes(model);
     model.addAttribute("employees", employees);
     model.addAttribute("totalEmployees", totalEmployees);
@@ -176,10 +184,12 @@ public class EmployeeController {
                      @RequestParam("field") String field,
                      @RequestParam("direction") String direction,
                      @RequestParam(value = "page", defaultValue = "0") int page,
-                     @RequestParam(value = "size", defaultValue = "10") int size) {
+                     @RequestParam(value = "size", defaultValue = "10") int size,
+                     @ModelAttribute("loggedInUser") User loggedInUser) {
     Pageable pageable = PageRequest.of(page, size);
     var employees = employeeService.sort(employeeDTOPage, direction, field);
 
+    globalController.createAuditLog(loggedInUser, "Sort Employee by " + field + " in " + direction + " order", "View");
     model.addAttribute("employees", employees);
     model.addAttribute("direction", direction);
     model.addAttribute("currentSortField", field);
@@ -214,9 +224,8 @@ public class EmployeeController {
   public ResponseEntity<Resource> exportEmployees(
     @RequestParam(value = "selectedEmployees", required = false) String selectedEmployees,
     @RequestParam(value = "department", required = false, defaultValue = "all") String department,
-    @RequestParam(value = "position", required = false, defaultValue = "all") String position) {
-
-    log.info("Exporting employee data. Selected IDs: {}, Department: {}, Position: {}", selectedEmployees, department, position);
+    @RequestParam(value = "position", required = false, defaultValue = "all") String position,
+    @ModelAttribute("loggedInUser") User loggedInUser) {
 
     List<Integer> employeeIds = (selectedEmployees != null && !selectedEmployees.isEmpty())
       ? Arrays.stream(selectedEmployees.split(",")).map(Integer::parseInt).toList()
@@ -224,6 +233,7 @@ public class EmployeeController {
 
     Resource file = employeeService.exportToExcel(employeeIds, department, position);
 
+    globalController.createAuditLog(loggedInUser, "Exports list Employees" , "Export");
     return ResponseEntity.ok()
       .header(HttpHeaders.CONTENT_DISPOSITION, "attachment; filename=employees.xlsx")
       .contentType(MediaType.APPLICATION_OCTET_STREAM)
