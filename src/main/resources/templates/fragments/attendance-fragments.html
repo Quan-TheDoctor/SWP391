@@ -1,0 +1,276 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org"
+      xmlns:sec="http://www.thymeleaf.org/extras/spring-security">
+<head>
+    <meta charset="UTF-8">
+    <title>Employee Management</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+</head>
+<div th:fragment="main-content" xmlns:sec="http://www.w3.org/1999/xhtml">
+<main class="flex-1 ml-64 p-6">
+    <!-- Original content sections here -->
+    <div class="max-w-7xl mx-auto space-y-6">
+        <!-- Header Section -->
+        <div class="flex flex-col md:flex-row gap-4 items-center justify-between">
+            <!-- Search Bar -->
+            <div class="flex-1 w-full md:w-auto">
+                <form th:action="@{/attendance/search}" method="get" class="flex gap-2">
+                    <input type="text" name="query" placeholder="Search employee..."
+                           class="w-full p-2 border rounded-md focus:ring-2 focus:ring-blue-500"
+                           th:value="${searchQuery}">
+                    <button type="submit" class="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700">
+                        Search
+                    </button>
+                </form>
+            </div>
+
+            <div class="flex gap-2">
+                <a th:href="@{/attendance/create/form}"
+                   class="px-4 py-2 bg-purple-600 text-white rounded-md hover:bg-purple-700 flex items-center gap-2">
+                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                              d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"/>
+                    </svg>
+                    Create
+                </a>
+            </div>
+            <div class="flex gap-2">
+                <a th:href="@{/attendance/summary}"
+                   class="px-4 py-2 bg-purple-600 text-white rounded-md hover:bg-purple-700 flex items-center gap-2">
+                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                              d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"/>
+                    </svg>
+                    Summary
+                </a>
+            </div>
+            <!-- Action Buttons -->
+            <div class="flex gap-2">
+                <button class="px-4 py-2 bg-purple-600 text-white rounded-md hover:bg-purple-700 flex items-center gap-2">
+                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                              d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"/>
+                    </svg>
+                    Export
+                </button>
+            </div>
+        </div>
+
+        <!-- Summary Cards -->
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-4" th:object="${quantity}">
+            <div class="bg-green-50 p-4 rounded-lg shadow-sm">
+                <div class="flex items-center gap-3">
+                    <div class="p-2 bg-green-100 rounded-full">
+                        <svg class="w-6 h-6 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                  d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"/>
+                        </svg>
+                    </div>
+                    <div>
+                        <p class="text-sm text-gray-500">Total Present Days</p>
+                        <p class="text-xl font-bold" th:text="${quantity['Đúng giờ']} ?: 0"></p>
+
+                    </div>
+                </div>
+            </div>
+
+            <div class="bg-yellow-50 p-4 rounded-lg shadow-sm">
+                <div class="flex items-center gap-3">
+                    <div class="p-2 bg-yellow-100 rounded-full">
+                        <svg class="w-6 h-6 text-yellow-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                  d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/>
+                        </svg>
+                    </div>
+                    <div>
+                        <p class="text-sm text-gray-500">Late Arrivals</p>
+                        <p class="text-xl font-bold" th:text="${quantity['Đi muộn']} ?: 0"></p>
+                    </div>
+                </div>
+            </div>
+
+            <div class="bg-red-50 p-4 rounded-lg shadow-sm">
+                <div class="flex items-center gap-3">
+                    <div class="p-2 bg-red-100 rounded-full">
+                        <svg class="w-6 h-6 text-red-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                  d="M6 18L18 6M6 6l12 12"/>
+                        </svg>
+                    </div>
+                    <div>
+                        <p class="text-sm text-gray-500">Absent Days</p>
+                        <p class="text-xl font-bold" th:text="${quantity['Vắng mặt']} ?: 0"></p>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Filter Section -->
+        <div class="bg-white rounded-lg shadow-sm p-4 space-y-4">
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <!-- Date Range Picker -->
+                <div class="space-y-2">
+                    <label class="block text-sm font-medium text-gray-700">Filter by Year/Month/Week</label>
+                    <div class="flex gap-2">
+                        <!-- Year Select -->
+                        <select id="yearSelect"
+                                class="w-full p-2 border rounded-md focus:ring-2 focus:ring-blue-500">
+                            <option value="">Year</option>
+                            <option th:each="year : ${#numbers.sequence(2020, 2030)}"
+                                    th:value="${year}"
+                                    th:text="${year}"></option>
+                        </select>
+
+                        <!-- Month Select -->
+                        <select id="monthSelect"
+                                class="w-full p-2 border rounded-md focus:ring-2 focus:ring-blue-500">
+                            <option value="">Month</option>
+                            <option th:each="month : ${#numbers.sequence(1, 12)}"
+                                    th:value="${month}"
+                                    th:text="${T(java.time.Month).of(month).toString()}"></option>
+                        </select>
+
+                        <!-- Week Select -->
+                        <select id="weekSelect"
+                                class="w-full p-2 border rounded-md focus:ring-2 focus:ring-blue-500">
+                            <option value="">Week</option>
+                            <option value="1">Week 1</option>
+                            <option value="2">Week 2</option>
+                            <option value="3">Week 3</option>
+                            <option value="4">Week 4</option>
+                            <option value="5">Week 5</option>
+                        </select>
+                    </div>
+                </div>
+
+                <!-- Status Filter -->
+                <div class="space-y-2">
+                    <form th:action="@{/attendance/filter(field='status')}">
+                        <input type="hidden" name="field" value="status"/>
+                        <label class="block text-sm font-medium text-gray-700">Attendance Status</label>
+                        <select name="status" onchange="this.form.submit()"
+                                class="w-full p-2 border rounded-md focus:ring-2 focus:ring-blue-500">
+                            <option value="">All Statuses</option>
+                            <option value="Đúng giờ">On Time</option>
+                            <option value="Đi muộn">Late</option>
+                            <option value="CHƯA CHẤM CÔNG">Not Checked</option>
+                        </select>
+                    </form>
+                </div>
+            </div>
+        </div>
+
+        <!-- Attendance Table -->
+        <div class="bg-white rounded-lg shadow-sm overflow-hidden">
+            <div class="overflow-x-auto">
+                <table class="w-full min-w-[1024px]">
+                    <thead class="bg-gray-50">
+                    <tr>
+                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">
+                            <input type="checkbox" id="selectAll" class="rounded border-gray-300">
+                        </th>
+                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Employee</th>
+                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Date</th>
+                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Clock In</th>
+                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Clock Out</th>
+                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Status</th>
+                    </tr>
+                    </thead>
+                    <tbody class="divide-y divide-gray-200 min-h-[400px]">
+                    <tr th:each="a : ${attendances.getContent()}" class="hover:bg-gray-50 transition-colors">
+                        <td class="px-6 py-4">
+                            <input type="checkbox" class="checkboxes rounded border-gray-300"
+                                   th:value="${a.getEmployeeId()}">
+                        </td>
+                        <td class="px-6 py-4">
+                            <span th:text="${T(java.lang.String).format('%s %s', a.getEmployeeFirstName(), a.getEmployeeLastName())}"></span>
+                        </td>
+                        <td class="px-6 py-4 attendanceDates"
+                            th:text="${#temporals.format(a.getAttendanceDate(), 'yyyy-MM-dd')}"></td>
+                        <td class="px-6 py-4 attendanceCheckIns"
+                            th:text="${a.getAttendanceCheckIn() != null ? #temporals.format(a.getAttendanceCheckIn(), 'HH:mm') : '--'}"></td>
+                        <td class="px-6 py-4 attendanceCheckOuts"
+                            th:text="${a.getAttendanceCheckOut() != null ? #temporals.format(a.getAttendanceCheckOut(), 'HH:mm') : '--'}"></td>
+                        <td class="px-6 py-4">
+                        <span th:text="${a.getAttendanceStatus()}"
+                              th:class="${#strings.toLowerCase(a.getAttendanceStatus())} == 'đúng giờ' ?
+                                  'px-2 py-1 rounded-full text-sm bg-green-100 text-green-800' :
+                                  'px-2 py-1 rounded-full text-sm bg-red-100 text-red-800'"></span>
+                        </td>
+                    </tr>
+                    <tr th:if="${attendances.isEmpty()}" class="h-[400px]">
+                        <td colspan="6" class="text-center text-gray-500 py-8">
+                            No attendance records found
+                        </td>
+                    </tr>
+                    </tbody>
+                </table>
+            </div>
+
+            <!-- Pagination -->
+            <div class="sticky bottom-0 bg-white border-t px-4 py-3">
+                <div class="flex items-center justify-between">
+                    <div class="hidden sm:flex-1 sm:flex sm:items-center sm:justify-between">
+                        <div>
+                            <p class="text-sm text-gray-700" th:if="${!attendances.isEmpty()}">
+                                Showing
+                                <span class="font-medium" th:text="${attendances.number * attendances.size + 1}"></span>
+                                to
+                                <span class="font-medium"
+                                      th:text="${(attendances.number + 1) * attendances.size > attendances.totalElements ? attendances.totalElements : (attendances.number + 1) * attendances.size}"></span>
+                                of
+                                <span class="font-medium" th:text="${attendances.totalElements}"></span>
+                                results
+                            </p>
+                        </div>
+                        <div>
+                            <nav class="relative z-0 inline-flex rounded-md shadow-sm -space-x-px"
+                                 aria-label="Pagination">
+                                <!-- Previous Button -->
+                                <a th:href="@{/attendance(page=${attendances.number - 1},
+                        startDate=${startDate},
+                        endDate=${endDate})}"
+                                   class="relative inline-flex items-center px-2 py-2 rounded-l-md border bg-white text-sm font-medium text-gray-500 hover:bg-gray-50"
+                                   th:classappend="${attendances.first} ? 'cursor-not-allowed bg-gray-50'">
+                                    <span class="sr-only">Previous</span>
+                                    <svg class="h-5 w-5" fill="currentColor" viewBox="0 0 20 20">
+                                        <path fill-rule="evenodd"
+                                              d="M12.707 5.293a1 1 0 010 1.414L9.414 10l3.293 3.293a1 1 0 01-1.414 1.414l-4-4a1 1 0 010-1.414l4-4a1 1 0 011.414 0z"
+                                              clip-rule="evenodd"/>
+                                    </svg>
+                                </a>
+
+                                <!-- Page Numbers -->
+                                <th:block th:each="i : ${#numbers.sequence(0, attendances.totalPages - 1)}">
+                                    <a th:href="@{/attendance(page=${i},
+                            startDate=${startDate},
+                            endDate=${endDate})}"
+                                       th:class="${i == attendances.number}
+                                   ? 'z-10 bg-blue-50 border-blue-500 text-blue-600 relative inline-flex items-center px-4 py-2 border text-sm font-medium'
+                                   : 'bg-white border-gray-300 text-gray-500 hover:bg-gray-50 relative inline-flex items-center px-4 py-2 border text-sm font-medium'"
+                                       th:text="${i + 1}"></a>
+                                </th:block>
+
+                                <!-- Next Button -->
+                                <a th:href="@{/attendance(page=${attendances.number + 1},
+                        startDate=${startDate},
+                        endDate=${endDate})}"
+                                   class="relative inline-flex items-center px-2 py-2 rounded-r-md border bg-white text-sm font-medium text-gray-500 hover:bg-gray-50"
+                                   th:classappend="${attendances.last} ? 'cursor-not-allowed bg-gray-50'">
+                                    <span class="sr-only">Next</span>
+                                    <svg class="h-5 w-5" fill="currentColor" viewBox="0 0 20 20">
+                                        <path fill-rule="evenodd"
+                                              d="M7.293 14.707a1 1 0 010-1.414L10.586 10 7.293 6.707a1 1 0 011.414-1.414l4 4a1 1 0 0101.414l-4 4a1 1 0 01-1.414 0z"
+                                              clip-rule="evenodd"/>
+                                    </svg>
+                                </a>
+                            </nav>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</main>
+</div>
+</html>
