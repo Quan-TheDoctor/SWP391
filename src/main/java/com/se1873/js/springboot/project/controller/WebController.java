@@ -9,12 +9,12 @@ import org.springframework.web.bind.annotation.RequestMapping;
 public class WebController {
     @GetMapping("/")
     public String home() {
-        return "home"; // Trả về home.html
+        return "home";
     }
 
     @GetMapping("/dashboard")
     public String dashboard() {
-        return "dashboard"; // Trả về dashboard.html (chỉ truy cập khi đăng nhập)
+        return "dashboard";
     }
 
     @GetMapping("/login")
@@ -25,10 +25,11 @@ public class WebController {
         if (logout != null) {
             model.addAttribute("logoutMsg", "Bạn đã đăng xuất thành công!");
         }
-        return "login"; // Trả về login.html
+        return "login";
     }
     @RequestMapping("/homepage")
     public String homepage(Model model){
-        return "homepage";
+        model.addAttribute("contentFragment", "fragments/homepage-fragments");
+        return "index";
     }
 }

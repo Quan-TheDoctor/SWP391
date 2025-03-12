@@ -20,6 +20,7 @@
             z-index: 1000;
             border-radius: 8px;
         }
+
         .overlay {
             display: none;
             position: fixed;
@@ -30,6 +31,7 @@
             background-color: rgba(0, 0, 0, 0.5);
             z-index: 999;
         }
+
         .close-btn {
             position: absolute;
             top: 10px;
@@ -59,6 +61,22 @@
 
     <form th:action="@{/attendance/summary/calculate}" th:object="${payrollCalculationForm}" method="post">
         <input type="hidden" th:field="*{selectedDepartmentId}">
+        <div class="mt-6 flex justify-end gap-5">
+            <button type="submit"
+                    class="px-6 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors
+                               flex items-center">
+                <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 mr-2" fill="none" viewBox="0 0 24 24"
+                     stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                          d="M9 7h6m0 10v-3m-3 3h.01M9 17h.01M9 14h.01M12 14h.01M15 11h.01M12 11h.01M9 11h.01M7 21h10a2 2 0 002-2V5a2 2 0 00-2-2H7a2 2 0 00-2 2v14a2 2 0 002 2z"/>
+                </svg>
+                Tính lương
+            </button>
+            <a th:href="@{/attendance}"
+               class="px-6 py-2 bg-gray-600 text-white rounded-lg shadow-md hover:bg-gray-700 transition-all duration-200 transform hover:scale-105">
+                Back
+            </a>
+        </div>
         <div class="overflow-x-auto rounded-lg border">
             <table class="min-w-full">
                 <thead class="bg-gray-50">
@@ -68,7 +86,6 @@
                     <th class="px-6 py-3 text-left text-sm font-medium text-gray-700">Đi muộn</th>
                     <th class="px-6 py-3 text-left text-sm font-medium text-gray-700">Nghỉ</th>
                     <th class="px-6 py-3 text-left text-sm font-medium text-gray-700">Làm thêm (giờ)</th>
-                    <th class="px-6 py-3 text-left text-sm font-medium text-gray-700">Thao tác</th>
                 </tr>
                 </thead>
                 <tbody class="divide-y divide-gray-200">
@@ -96,43 +113,15 @@
                                th:field="*{payrollCalculations[__${stat.index}__].overtimeHours}"
                                class="w-24 p-1 border rounded focus:ring-2 focus:ring-blue-500" readonly>
                     </td>
-                    <td class="px-6 py-4">
-                        <input type="hidden" name="employeeId" th:value="${dto.employeeId()}">
-                        <button type="submit"
-                                formmethod="post"
-                                th:formaction="@{/attendance/summary/removeEmployee}"
-                                class="remove-btn px-3 py-1.5 bg-red-600 text-white rounded-md hover:bg-red-700 transition-colors flex items-center">
-                            <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 mr-1" fill="none"
-                                 viewBox="0 0 24 24" stroke="currentColor">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                                      d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/>
-                            </svg>
-                            Xóa
-                        </button>
-                    </td>
                 </tr>
                 </tbody>
             </table>
-        </div>
-
-        <div class="mt-6 flex justify-end">
-            <button type="submit"
-                    class="px-6 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors
-                               flex items-center">
-                <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 mr-2" fill="none" viewBox="0 0 24 24"
-                     stroke="currentColor">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                          d="M9 7h6m0 10v-3m-3 3h.01M9 17h.01M9 14h.01M12 14h.01M15 11h.01M12 11h.01M9 11h.01M7 21h10a2 2 0 002-2V5a2 2 0 00-2-2H7a2 2 0 00-2 2v14a2 2 0 002 2z"/>
-                </svg>
-                Tính lương
-            </button>
         </div>
     </form>
 </div>
 
 </body>
 </html>
-
 
 
 <div class="overlay" th:if="${error}" id="overlay"></div>
@@ -145,7 +134,7 @@
 </div>
 <script>
 
-    document.addEventListener("DOMContentLoaded", function() {
+    document.addEventListener("DOMContentLoaded", function () {
         const errorPopup = document.getElementById("errorPopup");
         const overlay = document.getElementById("overlay");
 
@@ -156,7 +145,7 @@
 
         document.querySelectorAll('.remove-btn').forEach(btn => {
             btn.addEventListener('click', (e) => {
-                if(!confirm('Bạn có chắc chắn muốn xóa nhân viên này khỏi bảng?')) {
+                if (!confirm('Bạn có chắc chắn muốn xóa nhân viên này khỏi bảng?')) {
                     e.preventDefault();
                 }
             });

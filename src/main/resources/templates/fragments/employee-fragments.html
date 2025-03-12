@@ -1,0 +1,282 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org"
+      xmlns:sec="http://www.thymeleaf.org/extras/spring-security">
+<head>
+    <meta charset="UTF-8">
+    <title>Employee Management</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+</head>
+<div th:fragment="main-content" xmlns:sec="http://www.w3.org/1999/xhtml">
+    <main class="flex-1 ml-64 p-6">
+        <!-- Original content sections here -->
+        <div class="max-w-7xl mx-auto space-y-6">
+            <div class="flex items-center gap-2 w-full">
+                <!-- Search Bar -->
+                <form th:action="@{/employee/search}" method="get" class="flex flex-grow gap-2">
+                    <input type="text" name="query" placeholder="Search employee..."
+                           class="flex-grow p-2 border rounded-md focus:ring-2 focus:ring-blue-500">
+                    <button type="submit" class="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700">
+                        Search
+                    </button>
+                </form>
+                <div sec:authorize="hasAnyRole('ADMIN','MANAGER')" class="flex gap-2">
+                    <a th:href="@{/employee/create/form}"
+                       class="px-4 py-2 bg-green-600 text-white rounded-md hover:bg-green-700 flex items-center gap-2">
+                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/>
+                        </svg>
+                        Create
+                    </a>
+
+                    <a th:href="@{/employee/export/view}"
+                       class="px-4 py-2 bg-indigo-600 text-white rounded-md hover:bg-indigo-700 flex items-center gap-2">
+                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                  d="M12 16v-4m0 0l-3 3m3-3l3 3M4 12h16"/>
+                        </svg>
+                        Export
+                    </a>
+                </div>
+            </div>
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+                <div class="bg-blue-50 p-4 rounded-lg shadow-sm">
+                    <div class="flex items-center gap-3">
+                        <div class="p-2 bg-blue-100 rounded-full">
+                            <svg class="w-6 h-6 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                      d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"/>
+                            </svg>
+                        </div>
+                        <div>
+                            <p class="text-sm text-gray-500">Total Employees</p>
+                            <p class="text-xl font-bold" th:text="${totalEmployees}"></p>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="bg-green-50 p-4 rounded-lg shadow-sm">
+                    <div class="flex items-center gap-3">
+                        <div class="p-2 bg-green-100 rounded-full">
+                            <svg class="w-6 h-6 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                      d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/>
+                            </svg>
+                        </div>
+                        <div>
+                            <p class="text-sm text-gray-500">Active Employees</p>
+                            <p class="text-xl font-bold" th:text="${activeEmployees}"></p>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="bg-purple-50 p-4 rounded-lg shadow-sm">
+                    <div class="flex items-center gap-3">
+                        <div class="p-2 bg-purple-100 rounded-full">
+                            <svg class="w-6 h-6 text-purple-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                      d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/>
+                            </svg>
+                        </div>
+                        <div>
+                            <p class="text-sm text-gray-500">Avg. Salary</p>
+                            <p class="text-xl font-bold"
+                               th:text="${avgSalary != null ? T(java.lang.String).format('%,.0f', avgSalary) : '0'}"></p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="bg-white rounded-lg shadow-sm p-4 space-y-4">
+                <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+                    <div class="space-y-2">
+                        <form th:action="@{/employee/filter}">
+                            <input type="hidden" name="field" value="department"/>
+                            <label class="block text-sm font-medium text-gray-700">Department</label>
+                            <select name="value" onchange="this.form.submit()"
+                                    class="w-full p-2 border rounded-md focus:ring-2 focus:ring-blue-500">
+                                <option value="all">All Departments</option>
+                                <option th:each="dept : ${departments}"
+                                        th:value="${dept.departmentName}"
+                                        th:text="${dept.departmentName}"
+                                        th:selected="${param.value != null && param.value[0] == dept.departmentName}">
+                                </option>
+                            </select>
+                        </form>
+                    </div>
+
+                    <div class="space-y-2">
+                        <form th:action="@{/employee/filter(field='position')}">
+                            <input type="hidden" name="field" value="position"/>
+                            <label class="block text-sm font-medium text-gray-700">Position</label>
+                            <select name="value" onchange="this.form.submit()"
+                                    class="w-full p-2 border rounded-md focus:ring-2 focus:ring-blue-500">
+                                <option value="all">All Positions</option>
+                                <option th:each="pos : ${positions}"
+                                        th:value="${pos.positionName}"
+                                        th:text="${pos.positionName}"
+                                        th:selected="${param.value != null && param.value[0] == pos.positionName}">
+                                </option>
+                            </select>
+                        </form>
+                    </div>
+
+                    <div class="space-y-2">
+                        <form th:action="@{/employee/filter(field='employmentType')}">
+                            <input type="hidden" name="field" value="employmentType"/>
+                            <label class="block text-sm font-medium text-gray-700">Employment Type</label>
+                            <select name="value" onchange="this.form.submit()"
+                                    class="w-full p-2 border rounded-md focus:ring-2 focus:ring-blue-500">
+                                <option value="all">All Types</option>
+                                <option value="Full-time">Full-time</option>
+                                <option value="Part-time">Part-time</option>
+                                <option value="Contract">Contract</option>
+                            </select>
+                        </form>
+                    </div>
+                </div>
+            </div>
+
+            <div class="bg-white rounded-lg shadow-sm overflow-hidden border border-gray-100">
+                <div class="overflow-x-auto">
+                    <table class="w-full min-w-[1024px] divide-y divide-gray-200">
+                        <thead class="bg-gray-50">
+                        <tr>
+                            <th class="px-4 py-3 text-left text-sm font-semibold text-gray-600">
+                                <a th:href="@{/employee/sort(field='firstName', direction=${direction == 'asc' ? 'desc' : 'asc'})}"
+                                   class="flex items-center gap-2 group">
+                                    <span>Employee Name</span>
+                                    <svg th:if="${currentSortField == 'firstName'}"
+                                         class="w-4 h-4 text-gray-400 group-hover:text-blue-600 transition-colors"
+                                         th:classappend="${direction == 'asc'} ? 'rotate-180' : ''"
+                                         fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                              d="M5 15l7-7 7 7"/>
+                                    </svg>
+                                </a>
+                            </th>
+                            <th class="px-4 py-3 text-left text-sm font-semibold text-gray-600">Department</th>
+                            <th class="px-4 py-3 text-left text-sm font-semibold text-gray-600">Position</th>
+                            <th class="px-4 py-3 text-left text-sm font-semibold text-gray-600">Start Date</th>
+                            <th class="px-4 py-3 text-right text-sm font-semibold text-gray-600">Monthly Salary</th>
+                        </tr>
+                        </thead>
+                        <tbody class="divide-y divide-gray-200 bg-white">
+                        <tr th:each="e : ${employees.getContent()}"
+                            class="hover:bg-blue-50 hover:cursor-pointer transition-colors duration-150"
+                            onclick="handleRowClick(this)"
+                            th:data-employee-id="${e.employeeId}">
+                            <td class="px-4 py-4 text-sm text-gray-700"
+                                th:text="${T(java.lang.String).format('%s %s', e.employeeFirstName, e.employeeLastName)}">
+                            </td>
+                            <td class="px-4 py-4 text-sm text-gray-700" th:text="${e.departmentName}"></td>
+                            <td class="px-4 py-4 text-sm text-gray-700" th:text="${e.positionName}"></td>
+                            <td class="px-4 py-4 text-sm text-gray-500"
+                                th:text="${#temporals.format(e.employmentHistoryStartDate, 'dd/MM/yyyy')}"></td>
+                            <td class="px-4 py-4 text-sm text-right font-medium text-gray-900"
+                                th:text="${T(java.lang.String).format('%,.0f₫', e.contractBaseSalary)}">
+                            </td>
+                        </tr>
+
+                        <tr th:if="${employees.isEmpty()}">
+                            <td colspan="6" class="px-4 py-6 text-center text-gray-500 text-sm">
+                                No employees found matching your criteria
+                            </td>
+                        </tr>
+                        </tbody>
+                    </table>
+                </div>
+
+                <form th:action="@{/employee/view}"
+                      method="get"
+                      id="employee-view-form">
+                    <input type="hidden" name="employeeId" id="selectedEmployeeId">
+                </form>
+                <!--            Pagination              -->
+
+                <div class="border-t border-gray-100 px-4 py-3">
+                    <div class="flex items-center justify-between">
+                        <div class="flex-1 flex items-center gap-4">
+                            <p class="text-sm text-gray-700" th:if="${!employees.isEmpty()}">
+                                Showing
+                                <span class="font-medium" th:text="${employees.number * employees.size + 1}"></span>
+                                -
+                                <span class="font-medium"
+                                      th:text="${(employees.number + 1) * employees.size > employees.totalElements ? employees.totalElements : (employees.number + 1) * employees.size}"></span>
+                                of
+                                <span class="font-medium" th:text="${employees.totalElements}"></span>
+                                results
+                            </p>
+                        </div>
+
+                        <nav class="flex items-center gap-1">
+                            <a th:href="@{/employee(page=${employees.number - 1}, sortField=${currentSortField}, direction=${direction})}"
+                               class="p-2 rounded hover:bg-gray-100 disabled:opacity-50"
+                               th:classappend="${employees.first} ? 'pointer-events-none text-gray-300' : 'text-gray-600'">
+                                <svg class="w-5 h-5" fill="currentColor" viewBox="0 0 20 20">
+                                    <path fill-rule="evenodd"
+                                          d="M12.707 5.293a1 1 0 010 1.414L9.414 10l3.293 3.293a1 1 0 01-1.414 1.414l-4-4a1 1 0 010-1.414l4-4a1 1 0 011.414 0z"
+                                          clip-rule="evenodd"/>
+                                </svg>
+                            </a>
+
+                            <template th:each="i : ${#numbers.sequence(0, employees.totalPages - 1)}">
+                                <a th:href="@{/employee(page=${i}, sortField=${currentSortField}, direction=${direction})}"
+                                   class="px-3 py-1 rounded text-sm"
+                                   th:class="${i == employees.number}
+                           ? 'bg-blue-100 text-blue-600 font-medium'
+                           : 'text-gray-600 hover:bg-gray-100'"
+                                   th:text="${i + 1}"></a>
+                            </template>
+
+                            <a th:href="@{/employee(page=${employees.number + 1}, sortField=${currentSortField}, direction=${direction})}"
+                               class="p-2 rounded hover:bg-gray-100 disabled:opacity-50"
+                               th:classappend="${employees.last} ? 'pointer-events-none text-gray-300' : 'text-gray-600'">
+                                <svg class="w-5 h-5" fill="currentColor" viewBox="0 0 20 20">
+                                    <path fill-rule="evenodd"
+                                          d="M7.293 14.707a1 1 0 010-1.414L10.586 10 7.293 6.707a1 1 0 011.414-1.414l4 4a1 1 0 0101.414l-4 4a1 1 0 01-1.414 0z"
+                                          clip-rule="evenodd"/>
+                                </svg>
+                            </a>
+                        </nav>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </main>
+</div>
+
+<script>
+    function handleRowClick(row) {
+        const employeeId = row.dataset.employeeId;
+        console.log('Selected Employee ID:', employeeId);
+        if(employeeId) {
+            document.getElementById('selectedEmployeeId').value = employeeId;
+            document.getElementById('employee-view-form').submit();
+        }
+    }
+    document.querySelectorAll('.menu-toggle').forEach(button => {
+        button.addEventListener('click', () => {
+            const submenu = button.nextElementSibling;
+            const arrow = button.querySelector('svg:last-child');
+
+            submenu.classList.toggle('hidden');
+            arrow.classList.toggle('rotate-180');
+
+            document.querySelectorAll('.submenu').forEach(otherMenu => {
+                if (otherMenu !== submenu && !otherMenu.classList.contains('hidden')) {
+                    otherMenu.classList.add('hidden');
+                    otherMenu.previousElementSibling.querySelector('svg:last-child')
+                        .classList.remove('rotate-180');
+                }
+            });
+        });
+    });
+
+    document.addEventListener('keydown', (e) => {
+        if ((e.ctrlKey || e.metaKey) && e.key === '/') {
+            e.preventDefault();
+            document.querySelector('input[type="search"]').focus();
+        }
+    });
+</script>
+</html>

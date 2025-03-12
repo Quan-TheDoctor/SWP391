@@ -1,302 +1,373 @@
 <!DOCTYPE html>
-<html lang="en" xmlns:th="http://www.thymeleaf.org" xmlns:sec="http://www.thymeleaf.org/extras/spring-security">
+<html xmlns:th="http://www.thymeleaf.org"
+      xmlns:sec="http://www.thymeleaf.org/extras/spring-security">
 <head>
     <meta charset="UTF-8">
-    <title>Payroll Management</title>
+    <title>Employee Management</title>
     <script src="https://cdn.tailwindcss.com"></script>
-    <script type="text/javascript" src="https://cdn.jsdelivr.net/jquery/latest/jquery.min.js"></script>
-    <script type="text/javascript" src="https://cdn.jsdelivr.net/momentjs/latest/moment.min.js"></script>
-    <script type="text/javascript" src="https://cdn.jsdelivr.net/npm/daterangepicker/daterangepicker.min.js"></script>
-    <link rel="stylesheet" type="text/css" href="https://cdn.jsdelivr.net/npm/daterangepicker/daterangepicker.css"/>
 </head>
-<body class="bg-gray-100 min-h-screen p-6">
 
-<div class="max-w-7xl mx-auto space-y-6">
+<!-- Sidebar -->
+<aside class="w-64 bg-white shadow-lg fixed h-full flex flex-col z-50">
+    <!-- Logo Section -->
+    <div class="p-4 border-b">
+        <img src="/logo-normal.png" class="h-8 hidden md:block" alt="Logo">
+        <img src="/logo-small.png" class="h-8 md:hidden" alt="Small Logo">
+    </div>
 
-    <!-- Header Section -->
-    <div class="flex flex-col md:flex-row gap-4 items-center justify-end">
-        <div class="flex gap-2">
-            <a th:href="@{/homepage}"
-               class="px-4 py-2 bg-blue-300 text-white rounded-md hover:bg-blue-700 flex items-center gap-2">
-                Homepage
-            </a>
-        </div>
-        <div class="flex gap-2">
-            <a th:href="@{/employee}"
-               class="px-4 py-2 bg-blue-300 text-white rounded-md hover:bg-blue-700 flex items-center gap-2">
-                Employee
-            </a>
-        </div>
-        <div class="flex gap-2">
-            <a th:href="@{/attendance}"
-               class="px-4 py-2 bg-blue-300 text-white rounded-md hover:bg-blue-700 flex items-center gap-2">
-                Attendance
-            </a>
-        </div>
-        <div class="flex gap-2">
-            <a th:href="@{/payroll}"
-               class="px-4 py-2 bg-blue-300 text-white rounded-md hover:bg-blue-700 flex items-center gap-2">
-                Payroll
-            </a>
-        </div>
-        <div class="flex gap-2">
-            <a th:href="@{/request}"
-               class="px-4 py-2 bg-blue-300 text-white rounded-md hover:bg-blue-700 flex items-center gap-2">
-                Request
-            </a>
+    <!-- User Profile -->
+    <div class="p-4 border-b">
+        <div class="flex items-center gap-3 flex-col md:flex-row">
+            <!--            <img th:src="${#authentication.principal.avatarUrl}"-->
+            <!--                 class="w-10 h-10 rounded-full"-->
+            <!--                 alt="User avatar"-->
+            <!--                 th:alt="${#authentication.principal.username}">-->
+            <div class="text-center md:text-left">
+                <p class="font-semibold">admin</p>
+            </div>
         </div>
     </div>
-    <div class="flex flex-col md:flex-row gap-4 items-center justify-between">
-        <!-- Search Bar -->
-        <div class="flex-1 w-full md:w-auto">
-            <form th:action="@{/payroll/search}" class="flex gap-2">
-                <input type="text" name="query" placeholder="Search employee..."
-                       class="w-full p-2 border rounded-md focus:ring-2 focus:ring-blue-500">
-                <button type="submit" class="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700">
-                    Search
-                </button>
-            </form>
-        </div>
 
-        <!-- Action Buttons -->
-        <div class="flex gap-2">
-            <form th:action="@{/payroll/policies}" method="get">
-                <button type="submit" class="px-4 py-2 bg-gray-400 text-white rounded-md hover:bg-green-700 flex items-center gap-2">
+    <!-- Main Menu -->
+    <nav class="flex-1 overflow-y-auto">
+        <ul class="space-y-1 p-2">
+            <!-- Dashboard -->
+            <li>
+                <a href="/homepage" class="flex items-center gap-2 p-2 hover:bg-gray-100 rounded">
+                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                              d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6"></path>
+                    </svg>
+                    <span>Dashboard</span>
+                </a>
+            </li>
+
+            <!-- HRM Section -->
+            <li class="relative">
+                <button class="w-full flex items-center gap-2 p-2 hover:bg-gray-100 rounded menu-toggle">
+                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                              d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z"></path>
+                    </svg>
+                    <span>HR Management</span>
+                    <svg class="w-4 h-4 ml-auto transform transition-transform rotate-180" fill="none"
+                         stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path>
+                    </svg>
+                </button>
+                <ul class="pl-4 space-y-1 submenu">
+                    <li>
+                        <a href="/employee"
+                           class="flex items-center gap-2 p-2 hover:bg-gray-100 rounded bg-blue-50 text-blue-600">
+                            <span class="text-sm">Employees</span>
+                        </a>
+                    </li>
+                    <li>
+                        <a href="/attendance" class="flex items-center gap-2 p-2 hover:bg-gray-100 rounded">
+                            <span class="text-sm">Attendance</span>
+                        </a>
+                    </li>
+                    <li>
+                        <a href="/payroll" class="flex items-center gap-2 p-2 hover:bg-gray-100 rounded">
+                            <span class="text-sm">Payroll</span>
+                        </a>
+                    </li>
+                    <li>
+                        <a href="/request" class="flex items-center gap-2 p-2 hover:bg-gray-100 rounded">
+                            <span class="text-sm">Requests</span>
+                        </a>
+                    </li>
+                </ul>
+            </li>
+
+            <!-- Admin Section -->
+            <li class="relative">
+                <button class="w-full flex items-center gap-2 p-2 hover:bg-gray-100 rounded menu-toggle">
+                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                              d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z"></path>
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                              d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"></path>
+                    </svg>
+                    <span>Administration</span>
+                    <svg class="w-4 h-4 ml-auto transform transition-transform" fill="none" stroke="currentColor"
+                         viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path>
+                    </svg>
+                </button>
+                <ul class="hidden pl-4 space-y-1 submenu">
+                    <li>
+                        <a href="/employee/create/form" class="flex items-center gap-2 p-2 hover:bg-gray-100 rounded">
+                            <span class="text-sm">Create Employee</span>
+                        </a>
+                    </li>
+                    <li>
+                        <a href="/employee/export/view" class="flex items-center gap-2 p-2 hover:bg-gray-100 rounded">
+                            <span class="text-sm">Export Data</span>
+                        </a>
+                    </li>
+                </ul>
+            </li>
+        </ul>
+    </nav>
+</aside>
+
+<!-- Main Content -->
+<main class="flex-1 ml-64 p-6">
+    <!-- Original content sections here -->
+    <div class="max-w-7xl mx-auto space-y-6">
+
+        <div class="flex flex-col md:flex-row gap-4 items-center justify-between">
+            <!-- Search Bar -->
+            <div class="flex-1 w-full md:w-auto">
+                <form th:action="@{/payroll/search}" class="flex gap-2">
+                    <input type="text" name="query" placeholder="Search employee..."
+                           class="w-full p-2 border rounded-md focus:ring-2 focus:ring-blue-500">
+                    <button type="submit" class="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700">
+                        Search
+                    </button>
+                </form>
+            </div>
+
+            <!-- Action Buttons -->
+            <div class="flex gap-2">
+                <form th:action="@{/payroll/policies}" method="get">
+                    <button type="submit" class="px-4 py-2 bg-gray-400 text-white rounded-md hover:bg-green-700 flex items-center gap-2">
+                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/>
+                        </svg>
+                        Setting
+                    </button>
+                </form>
+                <button class="px-4 py-2 bg-green-600 text-white rounded-md hover:bg-green-700 flex items-center gap-2">
                     <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/>
                     </svg>
-                    Setting
+                    Insert
                 </button>
-            </form>
-            <button class="px-4 py-2 bg-green-600 text-white rounded-md hover:bg-green-700 flex items-center gap-2">
-                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/>
-                </svg>
-                Insert
-            </button>
-            <button class="px-4 py-2 bg-purple-600 text-white rounded-md hover:bg-purple-700 flex items-center gap-2">
-                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"/>
-                </svg>
-                Export
-            </button>
-        </div>
-    </div>
-
-
-    <!-- Summary Cards -->
-    <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-        <div class="bg-green-50 p-4 rounded-lg shadow-sm">
-            <div class="flex items-center gap-3">
-                <div class="p-2 bg-green-100 rounded-full">
-                    <svg class="w-6 h-6 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"/>
+                <button class="px-4 py-2 bg-purple-600 text-white rounded-md hover:bg-purple-700 flex items-center gap-2">
+                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"/>
                     </svg>
-                </div>
-                <div>
-                    <p class="text-sm text-gray-500">Total Net Salary</p>
-                    <p class="text-xl font-bold" th:text="${totalNetSalary != null ? T(java.lang.String).format('%,.0f', totalNetSalary) : '0'}"></p>
-                </div>
+                    Export
+                </button>
             </div>
         </div>
 
-        <div class="bg-red-50 p-4 rounded-lg shadow-sm">
-            <div class="flex items-center gap-3">
-                <div class="p-2 bg-red-100 rounded-full">
-                    <svg class="w-6 h-6 text-red-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/>
-                    </svg>
-                </div>
-                <div>
-                    <p class="text-sm text-gray-500">Total Unpaid Salary</p>
-                    <p class="text-xl font-bold" th:text="${unpaidSalary != null ? T(java.lang.String).format('%,.0f', unpaidSalary) : '0'}"></p>
-                </div>
-            </div>
-        </div>
-    </div>
 
-    <!-- Filter Section -->
-    <div class="bg-white rounded-lg shadow-sm p-3 space-y-4">
-        <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
-            <!-- Date Range Picker -->
-            <div class="space-y-2">
-                <label class="block text-sm font-medium text-gray-700">Date Range</label>
-                <input id="daterange" name="dates" class="w-full p-2 border rounded-md cursor-pointer">
-            </div>
-
-            <!-- Salary Range -->
-            <div class="space-y-2">
-                <form class="flex flex-col gap-2" th:action="@{/payroll/filter(field='startSalary,endSalary')}">
-                    <input type="hidden" name="field" value="startSalary,endSalary"/>
-                    <label class="block text-sm font-medium text-gray-700">Salary Range</label>
-                    <select name="value" onchange="this.form.submit()"
-                            class="w-full p-2 border rounded-md focus:ring-2 focus:ring-blue-500">
-                        <option value="all"
-                                th:selected="${(param.value != null) && (param.value[0] == 'all')}">
-                            Tất cả
-                        </option>
-                        <option value="0,10000000" th:selected="${(param.value != null) && (param.value[0] == '0,10000000')}">
-                            0 ~ 10,000,000
-                        </option>
-                        <option value="10000000,20000000"
-                                th:selected="${(param.value != null) && (param.value[0] == '10000000,20000000')}">
-                            10,000,000 ~ 20,000,000
-                        </option>
-                        <option value="20000000,50000000"
-                                th:selected="${(param.value != null) && (param.value[0] == '20000000,50000000')}">
-                            20,000,000 ~ 50,000,000
-                        </option>
-                    </select>
-                </form>
-            </div>
-
-            <!-- Payment Status -->
-            <div class="space-y-2">
-                <form class="flex flex-col gap-2" th:action="@{/payroll/filter(field='paymentStatus')}">
-                    <input type="hidden" name="field" value="paymentStatus"/>
-                    <label class="block text-sm font-medium text-gray-700">Payment Status</label>
-                    <select name="value" onchange="this.form.submit()"
-                            class="w-full p-2 border rounded-md focus:ring-2 focus:ring-blue-500">
-                        <option value="all"
-                                th:selected="${(param.value != null) && (param.value[0] == 'all')}">
-                            Tất cả
-                        </option>
-                        <option value="Chưa thanh toán"
-                                th:selected="${(param.value != null) && (param.value[0] == 'Chưa thanh toán')}">
-                            Chưa thanh toán
-                        </option>
-                        <option value="Đã thanh toán"
-                                th:selected="${(param.value != null) && (param.value[0] == 'Đã thanh toán')}">
-                            Đã thanh toán
-                        </option>
-                    </select>
-                </form>
-            </div>
-        </div>
-    </div>
-
-
-    <!-- Payroll Table -->
-    <div class="bg-white rounded-lg shadow-sm overflow-hidden flex flex-col min-h-[390px]">
-        <div class="overflow-x-auto flex-1">
-            <table class="w-full min-w-[1024px] h-full">
-                <thead class="bg-gray-50">
-                <tr>
-                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">
-                        <input type="checkbox" id="selectAllCheckboxes" class="rounded border-gray-300">
-                    </th>
-                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase flex gap-2">
-                        <a th:href="@{/payroll/sort(field='employee.firstName', direction = ${direction == 'asc' ? 'desc' : 'asc'})}"
-                           class="hover:text-blue-600">Name</a>
-                        <svg th:if="${direction == 'asc'}" class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 15l7-7 7 7"/>
+        <!-- Summary Cards -->
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div class="bg-green-50 p-4 rounded-lg shadow-sm">
+                <div class="flex items-center gap-3">
+                    <div class="p-2 bg-green-100 rounded-full">
+                        <svg class="w-6 h-6 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"/>
                         </svg>
-                        <svg th:if="${direction == 'desc'}" class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/>
-                        </svg>
-                    </th>
-                    <th class="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase">
-                        <a th:href="@{/payroll/sort(field='baseSalary', direction = ${direction == 'asc' ? 'desc' : 'asc'})}"
-                           class="hover:text-blue-600">Base Salary</a>
-                    </th>
-                    <th class="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase">
-                        <a th:href="@{/payroll/sort(field='netSalary', direction = ${direction == 'asc' ? 'desc' : 'asc'})}"
-                           class="hover:text-blue-600">Net Salary</a>
-                    </th>
-                    <th class="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase">
-                        <a th:href="@{/payroll/sort(field='deductions,insuranceDeduction', direction = ${direction == 'asc' ? 'desc' : 'asc'})}"
-                           class="hover:text-blue-600">Total Deduction</a>
-                    </th>
-                    <th class="px-6 py-3 text-center text-xs font-medium text-gray-500 uppercase">
-                        <a th:href="@{/payroll/sort(field='month,year', direction = ${direction == 'asc' ? 'desc' : 'asc'})}"
-                           class="hover:text-blue-600">Paid Date</a>
-                    </th>
-                    <th class="px-6 py-3 text-center text-xs font-medium text-gray-500 uppercase">
-                        <a th:href="@{/payroll/sort(field='paymentStatus', direction = ${direction == 'asc' ? 'desc' : 'asc'})}"
-                           class="hover:text-blue-600">Status</a>
-                    </th>
-                </tr>
-                </thead>
-                <tbody class="divide-y divide-gray-200">
-                <tr class="cursor-pointer" th:each="p : ${payrolls}"
-                    th:onclick="|window.location.href='/payroll/detail?salaryId=' + ${p.getSalaryRecordId()}|">
+                    </div>
+                    <div>
+                        <p class="text-sm text-gray-500">Total Net Salary</p>
+                        <p class="text-xl font-bold" th:text="${totalNetSalary != null ? T(java.lang.String).format('%,.0f', totalNetSalary) : '0'}"></p>
+                    </div>
+                </div>
+            </div>
 
-                <td class="px-6 py-4">
-                        <input type="checkbox" name="subCheckboxes" class="rounded border-gray-300">
-                    </td>
-                    <td class="px-6 py-4">
-                        <span th:text="${T(java.lang.String).format('%s %s', p.getEmployeeFirstName(), p.getEmployeeLastName())}"></span>
-                    </td>
-                    <td class="px-6 py-4 text-right">
-                        <span th:text="${T(java.lang.String).format('%,.0f', p.getSalaryRecordBaseSalary())}"></span>
-                    </td>
-                    <td class="px-6 py-4 text-right">
-                        <span th:text="${T(java.lang.String).format('%,.0f', p.getSalaryRecordNetSalary())}"></span>
-                    </td>
-                    <td class="px-6 py-4 text-right">
-                        <span th:text="${T(java.lang.String).format('%,.0f', (p.calculatedPersonalDeduction + p.calculatedPersonalDependentDeduction))}"></span>
-                    </td>
-                    <td class="px-6 py-4 text-center">
-                        <span th:text="${T(java.lang.String).format('%d/%d', p.getSalaryRecordMonth(), p.getSalaryRecordYear())}"></span>
-                    </td>
-                    <td class="px-6 py-4 text-center">
+            <div class="bg-red-50 p-4 rounded-lg shadow-sm">
+                <div class="flex items-center gap-3">
+                    <div class="p-2 bg-red-100 rounded-full">
+                        <svg class="w-6 h-6 text-red-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/>
+                        </svg>
+                    </div>
+                    <div>
+                        <p class="text-sm text-gray-500">Total Unpaid Salary</p>
+                        <p class="text-xl font-bold" th:text="${unpaidSalary != null ? T(java.lang.String).format('%,.0f', unpaidSalary) : '0'}"></p>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Filter Section -->
+        <div class="bg-white rounded-lg shadow-sm p-3 space-y-4">
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+                <!-- Date Range Picker -->
+                <div class="space-y-2">
+                    <label class="block text-sm font-medium text-gray-700">Date Range</label>
+                    <input id="daterange" name="dates" class="w-full p-2 border rounded-md cursor-pointer">
+                </div>
+
+                <!-- Salary Range -->
+                <div class="space-y-2">
+                    <form class="flex flex-col gap-2" th:action="@{/payroll/filter(field='startSalary,endSalary')}">
+                        <input type="hidden" name="field" value="startSalary,endSalary"/>
+                        <label class="block text-sm font-medium text-gray-700">Salary Range</label>
+                        <select name="value" onchange="this.form.submit()"
+                                class="w-full p-2 border rounded-md focus:ring-2 focus:ring-blue-500">
+                            <option value="all"
+                                    th:selected="${(param.value != null) && (param.value[0] == 'all')}">
+                                Tất cả
+                            </option>
+                            <option value="0,10000000" th:selected="${(param.value != null) && (param.value[0] == '0,10000000')}">
+                                0 ~ 10,000,000
+                            </option>
+                            <option value="10000000,20000000"
+                                    th:selected="${(param.value != null) && (param.value[0] == '10000000,20000000')}">
+                                10,000,000 ~ 20,000,000
+                            </option>
+                            <option value="20000000,50000000"
+                                    th:selected="${(param.value != null) && (param.value[0] == '20000000,50000000')}">
+                                20,000,000 ~ 50,000,000
+                            </option>
+                        </select>
+                    </form>
+                </div>
+
+                <!-- Payment Status -->
+                <div class="space-y-2">
+                    <form class="flex flex-col gap-2" th:action="@{/payroll/filter(field='paymentStatus')}">
+                        <input type="hidden" name="field" value="paymentStatus"/>
+                        <label class="block text-sm font-medium text-gray-700">Payment Status</label>
+                        <select name="value" onchange="this.form.submit()"
+                                class="w-full p-2 border rounded-md focus:ring-2 focus:ring-blue-500">
+                            <option value="all"
+                                    th:selected="${(param.value != null) && (param.value[0] == 'all')}">
+                                Tất cả
+                            </option>
+                            <option value="Chưa thanh toán"
+                                    th:selected="${(param.value != null) && (param.value[0] == 'Chưa thanh toán')}">
+                                Chưa thanh toán
+                            </option>
+                            <option value="Đã thanh toán"
+                                    th:selected="${(param.value != null) && (param.value[0] == 'Đã thanh toán')}">
+                                Đã thanh toán
+                            </option>
+                        </select>
+                    </form>
+                </div>
+            </div>
+        </div>
+
+
+        <!-- Payroll Table -->
+        <div class="bg-white rounded-lg shadow-sm overflow-hidden flex flex-col min-h-[390px]">
+            <div class="overflow-x-auto flex-1">
+                <table class="w-full min-w-[1024px] h-full">
+                    <thead class="bg-gray-50">
+                    <tr>
+                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">
+                            <input type="checkbox" id="selectAllCheckboxes" class="rounded border-gray-300">
+                        </th>
+                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase flex gap-2">
+                            <a th:href="@{/payroll/sort(field='employee.firstName', direction = ${direction == 'asc' ? 'desc' : 'asc'})}"
+                               class="hover:text-blue-600">Name</a>
+                            <svg th:if="${direction == 'asc'}" class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 15l7-7 7 7"/>
+                            </svg>
+                            <svg th:if="${direction == 'desc'}" class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/>
+                            </svg>
+                        </th>
+                        <th class="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase">
+                            <a th:href="@{/payroll/sort(field='baseSalary', direction = ${direction == 'asc' ? 'desc' : 'asc'})}"
+                               class="hover:text-blue-600">Base Salary</a>
+                        </th>
+                        <th class="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase">
+                            <a th:href="@{/payroll/sort(field='netSalary', direction = ${direction == 'asc' ? 'desc' : 'asc'})}"
+                               class="hover:text-blue-600">Net Salary</a>
+                        </th>
+                        <th class="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase">
+                            <a th:href="@{/payroll/sort(field='deductions,insuranceDeduction', direction = ${direction == 'asc' ? 'desc' : 'asc'})}"
+                               class="hover:text-blue-600">Total Deduction</a>
+                        </th>
+                        <th class="px-6 py-3 text-center text-xs font-medium text-gray-500 uppercase">
+                            <a th:href="@{/payroll/sort(field='month,year', direction = ${direction == 'asc' ? 'desc' : 'asc'})}"
+                               class="hover:text-blue-600">Paid Date</a>
+                        </th>
+                        <th class="px-6 py-3 text-center text-xs font-medium text-gray-500 uppercase">
+                            <a th:href="@{/payroll/sort(field='paymentStatus', direction = ${direction == 'asc' ? 'desc' : 'asc'})}"
+                               class="hover:text-blue-600">Status</a>
+                        </th>
+                    </tr>
+                    </thead>
+                    <tbody class="divide-y divide-gray-200">
+                    <tr class="cursor-pointer" th:each="p : ${payrolls}"
+                        th:onclick="|window.location.href='/payroll/detail?salaryId=' + ${p.getSalaryRecordId()}|">
+
+                        <td class="px-6 py-4">
+                            <input type="checkbox" name="subCheckboxes" class="rounded border-gray-300">
+                        </td>
+                        <td class="px-6 py-4">
+                            <span th:text="${T(java.lang.String).format('%s %s', p.getEmployeeFirstName(), p.getEmployeeLastName())}"></span>
+                        </td>
+                        <td class="px-6 py-4 text-right">
+                            <span th:text="${T(java.lang.String).format('%,.0f', p.getSalaryRecordBaseSalary())}"></span>
+                        </td>
+                        <td class="px-6 py-4 text-right">
+                            <span th:text="${T(java.lang.String).format('%,.0f', p.getSalaryRecordNetSalary())}"></span>
+                        </td>
+                        <td class="px-6 py-4 text-right">
+                            <span th:text="${T(java.lang.String).format('%,.0f', (p.calculatedPersonalDeduction + p.calculatedPersonalDependentDeduction))}"></span>
+                        </td>
+                        <td class="px-6 py-4 text-center">
+                            <span th:text="${T(java.lang.String).format('%d/%d', p.getSalaryRecordMonth(), p.getSalaryRecordYear())}"></span>
+                        </td>
+                        <td class="px-6 py-4 text-center">
                                 <span th:text="${p.getSalaryRecordPaymentStatus()}"
                                       th:class="${p.getSalaryRecordPaymentStatus() == 'Đã thanh toán' ?
                                           'text-green-600': 'text-red-600'} "></span>
-                    </td>
-                </tr>
-                </tbody>
-            </table>
-        </div>
-        <div class="sticky bottom-0 bg-white border-t px-4 py-3">
-            <div class="flex items-center justify-between">
-                <div class="flex-1 flex justify-between sm:hidden">
-                    <a href="#" class="relative inline-flex items-center px-4 py-2 border text-sm font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50"> Previous </a>
-                    <a href="#" class="ml-3 relative inline-flex items-center px-4 py-2 border text-sm font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50"> Next </a>
-                </div>
-                <div class="hidden sm:flex-1 sm:flex sm:items-center sm:justify-between">
-                    <div>
-                        <p class="text-sm text-gray-700">
-                            Showing
-                            <span class="font-medium" th:text="${payrolls.number * payrolls.size + 1}"></span>
-                            to
-                            <span class="font-medium" th:text="${(payrolls.number + 1) * payrolls.size > payrolls.totalElements ? payrolls.totalElements : (payrolls.number + 1) * payrolls.size}"></span>
-                            of
-                            <span class="font-medium" th:text="${payrolls.totalElements}"></span>
-                            results
-                        </p>
+                        </td>
+                    </tr>
+                    </tbody>
+                </table>
+            </div>
+            <div class="sticky bottom-0 bg-white border-t px-4 py-3">
+                <div class="flex items-center justify-between">
+                    <div class="flex-1 flex justify-between sm:hidden">
+                        <a href="#" class="relative inline-flex items-center px-4 py-2 border text-sm font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50"> Previous </a>
+                        <a href="#" class="ml-3 relative inline-flex items-center px-4 py-2 border text-sm font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50"> Next </a>
                     </div>
-                    <div>
-                        <nav class="relative z-0 inline-flex rounded-md shadow-sm -space-x-px" aria-label="Pagination">
-                            <a th:href="@{/payroll(page=${payrolls.number - 1})}"
-                               class="relative inline-flex items-center px-2 py-2 rounded-l-md border bg-white text-sm font-medium text-gray-500 hover:bg-gray-50">
-                                <span class="sr-only">Previous</span>
-                                <svg class="h-5 w-5" fill="currentColor" viewBox="0 0 20 20">
-                                    <path fill-rule="evenodd" d="M12.707 5.293a1 1 0 010 1.414L9.414 10l3.293 3.293a1 1 0 01-1.414 1.414l-4-4a1 1 0 010-1.414l4-4a1 1 0 011.414 0z" clip-rule="evenodd"/>
-                                </svg>
-                            </a>
-                            <th:block th:each="i : ${#numbers.sequence(0, payrolls.totalPages - 1)}">
-                                <a th:href="@{/payroll(page=${i})}"
-                                   th:class="${i == payrolls.number} ?
+                    <div class="hidden sm:flex-1 sm:flex sm:items-center sm:justify-between">
+                        <div>
+                            <p class="text-sm text-gray-700">
+                                Showing
+                                <span class="font-medium" th:text="${payrolls.number * payrolls.size + 1}"></span>
+                                to
+                                <span class="font-medium" th:text="${(payrolls.number + 1) * payrolls.size > payrolls.totalElements ? payrolls.totalElements : (payrolls.number + 1) * payrolls.size}"></span>
+                                of
+                                <span class="font-medium" th:text="${payrolls.totalElements}"></span>
+                                results
+                            </p>
+                        </div>
+                        <div>
+                            <nav class="relative z-0 inline-flex rounded-md shadow-sm -space-x-px" aria-label="Pagination">
+                                <a th:href="@{/payroll(page=${payrolls.number - 1})}"
+                                   class="relative inline-flex items-center px-2 py-2 rounded-l-md border bg-white text-sm font-medium text-gray-500 hover:bg-gray-50">
+                                    <span class="sr-only">Previous</span>
+                                    <svg class="h-5 w-5" fill="currentColor" viewBox="0 0 20 20">
+                                        <path fill-rule="evenodd" d="M12.707 5.293a1 1 0 010 1.414L9.414 10l3.293 3.293a1 1 0 01-1.414 1.414l-4-4a1 1 0 010-1.414l4-4a1 1 0 011.414 0z" clip-rule="evenodd"/>
+                                    </svg>
+                                </a>
+                                <th:block th:each="i : ${#numbers.sequence(0, payrolls.totalPages - 1)}">
+                                    <a th:href="@{/payroll(page=${i})}"
+                                       th:class="${i == payrolls.number} ?
                                            'z-10 bg-blue-50 border-blue-500 text-blue-600 relative inline-flex items-center px-4 py-2 border text-sm font-medium' :
                                            'bg-white border-gray-300 text-gray-500 hover:bg-gray-50 relative inline-flex items-center px-4 py-2 border text-sm font-medium'"
-                                   th:text="${i + 1}"></a>
-                            </th:block>
-                            <a th:href="@{/payroll(page=${payrolls.number + 1})}"
-                               class="relative inline-flex items-center px-2 py-2 rounded-r-md border bg-white text-sm font-medium text-gray-500 hover:bg-gray-50">
-                                <span class="sr-only">Next</span>
-                                <svg class="h-5 w-5" fill="currentColor" viewBox="0 0 20 20">
-                                    <path fill-rule="evenodd" d="M7.293 14.707a1 1 0 010-1.414L10.586 10 7.293 6.707a1 1 0 011.414-1.414l4 4a1 1 0 0101.414l-4 4a1 1 0 01-1.414 0z" clip-rule="evenodd"/>
-                                </svg>
-                            </a>
-                        </nav>
+                                       th:text="${i + 1}"></a>
+                                </th:block>
+                                <a th:href="@{/payroll(page=${payrolls.number + 1})}"
+                                   class="relative inline-flex items-center px-2 py-2 rounded-r-md border bg-white text-sm font-medium text-gray-500 hover:bg-gray-50">
+                                    <span class="sr-only">Next</span>
+                                    <svg class="h-5 w-5" fill="currentColor" viewBox="0 0 20 20">
+                                        <path fill-rule="evenodd" d="M7.293 14.707a1 1 0 010-1.414L10.586 10 7.293 6.707a1 1 0 011.414-1.414l4 4a1 1 0 0101.414l-4 4a1 1 0 01-1.414 0z" clip-rule="evenodd"/>
+                                    </svg>
+                                </a>
+                            </nav>
+                        </div>
                     </div>
                 </div>
             </div>
         </div>
     </div>
-</div>
-
+</main>
 <script>
     document.addEventListener("DOMContentLoaded", function () {
         const urlParams = new URLSearchParams(window.location.search);

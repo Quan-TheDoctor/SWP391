@@ -7,6 +7,7 @@ import com.se1873.js.springboot.project.mapper.EmployeeDTOMapper;
 import com.se1873.js.springboot.project.repository.*;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.poi.ss.formula.functions.T;
 import org.apache.poi.ss.util.CellRangeAddress;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
@@ -24,7 +25,9 @@ import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.time.LocalDate;
 import java.util.ArrayList;
+import java.util.Comparator;
 import java.util.List;
+import java.util.function.Function;
 import java.util.stream.Collectors;
 
 @Service
@@ -44,8 +47,7 @@ public class EmployeeService {
   public Page<EmployeeDTO> getAll(Pageable pageable) {
     return employeeRepository.findAll(pageable).map(employeeDTOMapper::toDTO);
   }
-//lấy employee DTO thì gọi map(employeeDTOMapper::toDTO)
-  //lấy entity từ dto thì oigj map(employeeDTOMapper::toEntity)
+
   public Page<EmployeeDTO> getEmployeesByDepartmentId(Integer departmentId, Pageable pageable) {
     return filterEmployeesByCondition(
       getAll(pageable),
@@ -64,6 +66,32 @@ public class EmployeeService {
   }
   public EmployeeDTO getEmployeeByEmployeeId(Integer employeeId) {
     return employeeDTOMapper.toDTO(employeeRepository.getEmployeeByEmployeeId(employeeId));
+  }
+
+  public Page<EmployeeDTO> sort(Page<EmployeeDTO> source, String direction, String field) {
+    if(source == null)
+      source = getAll(PageRequest.of(0, 5));
+    List<EmployeeDTO> sorted = source.getContent().stream()
+      .sorted(getComparator(field, direction))
+      .collect(Collectors.toList());
+
+    return new PageImpl<>(sorted, source.getPageable(), sorted.size());
+  }
+
+  private  java. util. Comparator<EmployeeDTO> getComparator(String field, String direction) {
+    return switch (field) {
+      case "firstName" ->
+        Comparator.comparing(EmployeeDTO::getEmployeeFirstName, direction.equals("asc") ? Comparator.reverseOrder() : Comparator.naturalOrder());
+      case "departmentName" ->
+        Comparator.comparing(EmployeeDTO::getDepartmentName, direction.equals("asc") ? Comparator.reverseOrder() : Comparator.naturalOrder());
+      case "positionName" ->
+        Comparator.comparing(EmployeeDTO::getPositionName, direction.equals("asc") ? Comparator.reverseOrder() : Comparator.naturalOrder());
+      case "startDate" ->
+        Comparator.comparing(EmployeeDTO::getEmploymentHistoryStartDate, direction.equals("asc") ? Comparator.reverseOrder() : Comparator.naturalOrder());
+      case "salary" ->
+        Comparator.comparing(EmployeeDTO::getContractBaseSalary, direction.equals("asc") ? Comparator.reverseOrder() : Comparator.naturalOrder());
+      default -> Comparator.comparing(EmployeeDTO::getEmployeeFirstName, Comparator.naturalOrder());
+    };
   }
 
   private void editEmployee(Employee employee, EmployeeDTO employeeDTO) {

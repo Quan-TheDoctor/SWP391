@@ -1,0 +1,619 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <title>Dashboard</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdn.jsdelivr.net/npm/echarts@5/dist/echarts.min.js"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/all.min.css">
+
+    <style>
+        .dashboard {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+            gap: 1rem;
+            padding: 0.5rem;
+        }
+        .card {
+            background: white;
+            padding: 1rem;
+            border-radius: 0.5rem;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+        }
+        .card .icon {
+            font-size: 1.5rem;
+            padding: 0.75rem;
+            border-radius: 50%;
+            background: rgba(99, 102, 241, 0.1);
+        }
+        .chart-container {
+            position: relative;
+            background: white;
+            padding: 1rem;
+            border-radius: 0.5rem;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+            height: 100%;
+            display: flex;
+            flex-direction: column;
+        }
+        .chart-header {
+            margin-bottom: 0.5rem;
+        }
+        .chart-body {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+        }
+        .chart-wrapper {
+            height: 180px;
+            position: relative;
+        }
+        .chart {
+            width: 100%;
+            height: 100%;
+            position: absolute;
+            top: 0;
+            left: 0;
+        }
+        .status-list {
+            margin-top: 1rem;
+        }
+        .department-list {
+            margin-top: 1rem;
+            padding-top: 0.5rem;
+            border-top: 1px solid #e2e8f0;
+        }
+        .employee-list {
+            margin-top: 1rem;
+        }
+        .employee-item {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 0.5rem 0;
+        }
+        .employee-info {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+        .employee-avatar {
+            width: 2rem;
+            height: 2rem;
+            border-radius: 50%;
+            background-color: #e2e8f0;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: 600;
+            font-size: 0.75rem;
+            color: #475569;
+        }
+        .footer-action {
+            margin-top: auto;
+            padding-top: 0.75rem;
+            border-top: 1px solid #e2e8f0;
+            text-align: center;
+        }
+    </style>
+</head>
+<div th:fragment="main-content" xmlns:sec="http://www.w3.org/1999/xhtml">
+    <main class="bg-gray-100 min-h-screen p-4">
+        <div class="max-w-7xl mx-auto space-y-4">
+            <div class="dashboard">
+                <div class="card">
+                    <i class="icon fas fa-users text-blue-500"></i>
+                    <div>
+                        <p class="text-sm text-gray-500">Tổng nhân viên</p>
+                        <h2 class="text-xl font-bold">45</h2>
+                    </div>
+                </div>
+
+                <div class="card">
+                    <i class="icon fas fa-fingerprint text-green-500"></i>
+                    <div>
+                        <p class="text-sm text-gray-500">Chấm công hôm nay</p>
+                        <h2 class="text-xl font-bold">38/45</h2>
+                    </div>
+                </div>
+
+                <div class="card">
+                    <i class="icon fas fa-chart-line text-purple-500"></i>
+                    <div>
+                        <p class="text-sm text-gray-500">Hiệu suất</p>
+                        <h2 class="text-xl font-bold">92%</h2>
+                    </div>
+                </div>
+
+                <div class="card">
+                    <i class="icon fas fa-inbox text-orange-500"></i>
+                    <div>
+                        <p class="text-sm text-gray-500">Yêu cầu chờ</p>
+                        <h2 class="text-xl font-bold">12</h2>
+                    </div>
+                </div>
+            </div>
+
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-3" style="min-height: 480px">
+                <!-- Employee Distribution Chart -->
+                <div class="chart-container">
+                    <div class="chart-header flex justify-between items-center">
+                        <h3 class="text-sm font-semibold">Phân bổ nhân viên</h3>
+                        <select class="departmentPicker text-xs border rounded px-2 py-1">
+                            <option>Tất cả</option>
+                            <option>Phòng IT</option>
+                            <option>Phòng Nhân sự</option>
+                        </select>
+                    </div>
+
+                    <div class="chart-body">
+                        <div class="chart-wrapper">
+                            <div id="employeeChart" class="chart"></div>
+                        </div>
+
+                        <div class="status-list">
+                            <h4 class="text-sm font-medium mb-2">Trạng thái</h4>
+                            <div class="space-y-2">
+                                <div class="flex items-center justify-between">
+                                    <div class="flex items-center">
+                                        <span class="inline-block w-3 h-3 rounded-full bg-blue-500 mr-2"></span>
+                                        <span class="text-sm text-gray-600">Đang làm việc</span>
+                                    </div>
+                                    <span class="text-sm font-medium" id="available-percent">100%</span>
+                                </div>
+                                <div class="flex items-center justify-between">
+                                    <div class="flex items-center">
+                                        <span class="inline-block w-3 h-3 rounded-full bg-red-500 mr-2"></span>
+                                        <span class="text-sm text-gray-600">Không khả dụng</span>
+                                    </div>
+                                    <span class="text-sm font-medium" id="unavailable-percent">0%</span>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="department-list">
+                            <div class="flex justify-between items-center">
+                                <h4 class="text-sm font-medium">Phòng ban</h4>
+                                <span class="text-xs text-gray-500">Nhân viên</span>
+                            </div>
+                            <div class="space-y-2 mt-2">
+                                <div class="flex items-center justify-between">
+                                    <span class="text-sm text-gray-600">Phòng IT</span>
+                                    <span class="text-sm font-medium">15</span>
+                                </div>
+                                <div class="flex items-center justify-between">
+                                    <span class="text-sm text-gray-600">Phòng Nhân sự</span>
+                                    <span class="text-sm font-medium">12</span>
+                                </div>
+                                <div class="flex items-center justify-between">
+                                    <span class="text-sm text-gray-600">Phòng Marketing</span>
+                                    <span class="text-sm font-medium">10</span>
+                                </div>
+                                <div class="flex items-center justify-between">
+                                    <span class="text-sm text-gray-600">Phòng Kế toán</span>
+                                    <span class="text-sm font-medium">8</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Attendance Chart -->
+                <div class="chart-container">
+                    <div class="chart-header flex justify-between items-center">
+                        <h3 class="text-sm font-semibold">Attendance Overview</h3>
+                        <button class="text-xs border rounded px-3 py-1 flex items-center gap-1">
+                            <i class="fas fa-calendar-day"></i> Today
+                        </button>
+                    </div>
+
+                    <div class="chart-body">
+                        <div class="chart-wrapper">
+                            <div id="attendanceChart" class="chart"></div>
+                        </div>
+
+                        <div class="status-list">
+                            <h4 class="text-sm font-medium mb-2">Status</h4>
+                            <div class="space-y-2">
+                                <div class="flex items-center justify-between">
+                                    <div class="flex items-center">
+                                        <span class="inline-block w-3 h-3 rounded-full bg-green-500 mr-2"></span>
+                                        <span class="text-sm text-gray-600">Present</span>
+                                    </div>
+                                    <span class="text-sm font-medium" id="present-percent">59%</span>
+                                </div>
+                                <div class="flex items-center justify-between">
+                                    <div class="flex items-center">
+                                        <span class="inline-block w-3 h-3 rounded-full bg-teal-800 mr-2"></span>
+                                        <span class="text-sm text-gray-600">Late</span>
+                                    </div>
+                                    <span class="text-sm font-medium" id="late-percent">21%</span>
+                                </div>
+                                <div class="flex items-center justify-between">
+                                    <div class="flex items-center">
+                                        <span class="inline-block w-3 h-3 rounded-full bg-yellow-400 mr-2"></span>
+                                        <span class="text-sm text-gray-600">Permission</span>
+                                    </div>
+                                    <span class="text-sm font-medium" id="permission-percent">2%</span>
+                                </div>
+                                <div class="flex items-center justify-between">
+                                    <div class="flex items-center">
+                                        <span class="inline-block w-3 h-3 rounded-full bg-red-600 mr-2"></span>
+                                        <span class="text-sm text-gray-600">Absent</span>
+                                    </div>
+                                    <span class="text-sm font-medium" id="absent-percent">15%</span>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="footer-action flex justify-between items-center">
+                            <div class="flex items-center">
+                                <span class="text-sm text-gray-600 mr-2">Total Absenties</span>
+                                <div class="flex -space-x-2">
+                                    <div class="w-6 h-6 rounded-full bg-blue-400 border-2 border-white flex items-center justify-center text-xs text-white">1</div>
+                                    <div class="w-6 h-6 rounded-full bg-green-400 border-2 border-white flex items-center justify-center text-xs text-white">2</div>
+                                    <div class="w-6 h-6 rounded-full bg-orange-400 border-2 border-white flex items-center justify-center text-xs text-white">3</div>
+                                    <div class="w-6 h-6 rounded-full bg-gray-300 border-2 border-white flex items-center justify-center text-xs text-gray-600">+1</div>
+                                </div>
+                            </div>
+                            <a href="#" class="text-sm text-orange-500 hover:underline">View Details</a>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Payroll Chart -->
+                <div class="chart-container">
+                    <div class="chart-header flex justify-between items-center">
+                        <h3 class="text-sm font-semibold">Thống kê lương 2025</h3>
+                        <select class="yearPicker text-xs border rounded px-2 py-1" data-chart="payrollChart1">
+                            <option>2025</option>
+                            <option>2022</option>
+                        </select>
+                    </div>
+
+                    <div class="chart-body">
+                        <div class="chart-wrapper">
+                            <div id="payrollChart1" class="chart"></div>
+                        </div>
+
+                        <div class="employee-list">
+                            <h4 class="text-sm font-medium mb-2">Top lương cao nhất</h4>
+                            <div class="space-y-3">
+                                <div class="employee-item">
+                                    <div class="employee-info">
+                                        <div class="employee-avatar">NT</div>
+                                        <div>
+                                            <p class="text-sm font-medium">Nguyễn Thành</p>
+                                            <p class="text-xs text-gray-500">Giám đốc</p>
+                                        </div>
+                                    </div>
+                                    <span class="text-sm font-medium">45.000.000 đ</span>
+                                </div>
+                                <div class="employee-item">
+                                    <div class="employee-info">
+                                        <div class="employee-avatar">LH</div>
+                                        <div>
+                                            <p class="text-sm font-medium">Lê Hương</p>
+                                            <p class="text-xs text-gray-500">Trưởng phòng IT</p>
+                                        </div>
+                                    </div>
+                                    <span class="text-sm font-medium">38.000.000 đ</span>
+                                </div>
+                                <div class="employee-item">
+                                    <div class="employee-info">
+                                        <div class="employee-avatar">TM</div>
+                                        <div>
+                                            <p class="text-sm font-medium">Trần Minh</p>
+                                            <p class="text-xs text-gray-500">Trưởng phòng NS</p>
+                                        </div>
+                                    </div>
+                                    <span class="text-sm font-medium">35.000.000 đ</span>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="footer-action">
+                            <a href="#" class="text-sm text-orange-500 hover:underline">Xem tất cả nhân viên</a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <script>
+            document.addEventListener("DOMContentLoaded", () => {
+                const employeeChart = echarts.init(document.getElementById('employeeChart'));
+                const attendanceChart = echarts.init(document.getElementById('attendanceChart'));
+                const payrollChart1 = echarts.init(document.getElementById('payrollChart1'));
+
+                window.addEventListener('resize', function() {
+                    employeeChart.resize();
+                    attendanceChart.resize();
+                    payrollChart1.resize();
+                });
+
+                fetchEmployeeData(employeeChart);
+                fetchAttendanceData(attendanceChart);
+                fetchPayrollData(payrollChart1);
+
+                document.querySelectorAll('.yearPicker').forEach(picker => {
+                    picker.addEventListener('change', (e) => {
+                        const chartId = e.target.getAttribute('data-chart');
+                        const chart = echarts.getInstanceByDom(document.getElementById(chartId));
+                        fetchPayrollData(chart, e.target.value);
+                    });
+                });
+
+                document.querySelector('.departmentPicker').addEventListener('change', (e) => {
+                    fetchEmployeeData(employeeChart, e.target.value);
+                });
+            });
+
+            async function fetchEmployeeData(chart, department = 'Tất cả') {
+                try {
+                    const response = await fetch("/api/employee/employeeAvailable");
+                    let data;
+
+                    try {
+                        data = await response.json();
+                    } catch (e) {
+                        data = null;
+                    }
+
+                    const employeeData = data || {
+                        totalAvailableEmployees: 45,
+                        totalUnavailableEmployees: 0
+                    };
+
+                    const availablePercent = Math.round((employeeData.totalAvailableEmployees /
+                        (employeeData.totalAvailableEmployees + employeeData.totalUnavailableEmployees || 1)) * 100);
+                    const unavailablePercent = 100 - availablePercent;
+
+                    document.getElementById('available-percent').textContent = availablePercent + '%';
+                    document.getElementById('unavailable-percent').textContent = unavailablePercent + '%';
+
+                    const option = {
+                        tooltip: {
+                            trigger: 'item',
+                            formatter: '{b}: {c} ({d}%)'
+                        },
+                        series: [{
+                            type: 'pie',
+                            radius: ['50%', '70%'],
+                            center: ['50%', '50%'],
+                            avoidLabelOverlap: false,
+                            itemStyle: {
+                                borderRadius: 5,
+                                borderColor: '#fff',
+                                borderWidth: 1
+                            },
+                            label: { show: false },
+                            emphasis: { label: { show: false } },
+                            data: [
+                                {
+                                    value: employeeData.totalAvailableEmployees,
+                                    name: 'Đang làm việc',
+                                    itemStyle: { color: '#36A2EB' }
+                                },
+                                {
+                                    value: employeeData.totalUnavailableEmployees,
+                                    name: 'Không khả dụng',
+                                    itemStyle: { color: '#FF6384' }
+                                }
+                            ]
+                        }]
+                    };
+
+                    chart.setOption(option);
+                } catch (error) {
+                    console.error("Lỗi khi lấy dữ liệu nhân viên:", error);
+                }
+            }
+
+            async function fetchAttendanceData(chart) {
+                try {
+                    const response = await fetch("/api/attendance/attendancesByDay?date=2025-03-03");
+                    let data;
+
+                    try {
+                        data = await response.json();
+                    } catch (e) {
+                        data = null;
+                    }
+
+                    const attendanceData = {
+                        present: data?.present || 59,
+                        late: data?.late || 21,
+                        permission: data?.permission || 2,
+                        absent: data?.absent || 15,
+                        total: data?.total || 120
+                    };
+
+                    Object.keys(attendanceData).forEach(key => {
+                        if (isNaN(attendanceData[key])) {
+                            switch (key) {
+                                case 'present': attendanceData[key] = 59; break;
+                                case 'late': attendanceData[key] = 21; break;
+                                case 'permission': attendanceData[key] = 2; break;
+                                case 'absent': attendanceData[key] = 15; break;
+                                case 'total': attendanceData[key] = 120; break;
+                            }
+                        }
+                    });
+
+                    document.getElementById('present-percent').textContent = attendanceData.present + '%';
+                    document.getElementById('late-percent').textContent = attendanceData.late + '%';
+                    document.getElementById('permission-percent').textContent = attendanceData.permission + '%';
+                    document.getElementById('absent-percent').textContent = attendanceData.absent + '%';
+
+                    const option = {
+                        series: [{
+                            type: 'gauge',
+                            startAngle: 180,
+                            endAngle: 0,
+                            center: ['50%', '60%'],
+                            radius: '100%',
+                            min: 0,
+                            max: 100,
+                            splitNumber: 4,
+                            axisLine: {
+                                lineStyle: {
+                                    width: 30,
+                                    color: [
+                                        [attendanceData.absent/100, '#e53e3e'],
+                                        [(attendanceData.absent + attendanceData.permission)/100, '#ecc94b'],
+                                        [(attendanceData.absent + attendanceData.permission + attendanceData.late)/100, '#154e4c'],
+                                        [1, '#10b981']
+                                    ]
+                                }
+                            },
+                            pointer: { show: false },
+                            axisTick: { show: false },
+                            splitLine: { show: false },
+                            axisLabel: { show: false },
+                            detail: {
+                                valueAnimation: true,
+                                formatter: function(value) {
+                                    return parseInt(value);
+                                },
+                                offsetCenter: [0, '0%'],
+                                fontSize: 30,
+                                fontWeight: 'bold',
+                                color: '#333'
+                            },
+                            title: {
+                                offsetCenter: [0, '30%'],
+                                fontSize: 14,
+                                color: '#999',
+                                fontWeight: 'normal'
+                            },
+                            data: [{
+                                value: parseInt(attendanceData.total),
+                                name: 'Total Attendance',
+                                title: {
+                                    offsetCenter: ['0%', '-40%'],
+                                    fontSize: 10,
+                                    color: '#666'
+                                },
+                                detail: {
+                                    offsetCenter: ['0%', '-15%'],
+                                    fontSize: 28,
+                                    color: '#333',
+                                    fontWeight: 'bold'
+                                }
+                            }]
+                        }]
+                    };
+
+                    chart.setOption(option);
+                } catch (error) {
+                    console.error("Lỗi khi lấy dữ liệu chấm công:", error);
+                }
+            }
+
+            async function fetchPayrollData(chart, year = '2025') {
+                try {
+                    const response = await fetch(`/api/payroll/totalpayrollByYear?year=${year}`);
+                    let data;
+
+                    try {
+                        data = await response.json();
+                    } catch (e) {
+                        data = null;
+                    }
+
+                    const payrollData = data || [
+                        { month: 'Jan', total: 120000000 },
+                        { month: 'Feb', total: 132000000 },
+                        { month: 'Mar', total: 125000000 },
+                        { month: 'Apr', total: 130000000 },
+                        { month: 'May', total: 135000000 },
+                        { month: 'Jun', total: 140000000 },
+                        { month: 'Jul', total: 138000000 },
+                        { month: 'Aug', total: 142000000 },
+                        { month: 'Sep', total: 145000000 },
+                        { month: 'Oct', total: 150000000 },
+                        { month: 'Nov', total: 155000000 },
+                        { month: 'Dec', total: 160000000 }
+                    ];
+
+                    let months = [];
+                    let totals = [];
+
+                    if (Array.isArray(data) && data.length > 0) {
+                        data.forEach((d) => {
+                            months.push(d.month);
+                            totals.push(d.total);
+                        });
+                    } else {
+                        payrollData.forEach((d) => {
+                            months.push(d.month);
+                            totals.push(d.total);
+                        });
+                    }
+
+                    const option = {
+                        tooltip: {
+                            trigger: 'axis',
+                            formatter: function(params) {
+                                return params[0].name + ': ' +
+                                    (params[0].value / 1000000).toFixed(1) + ' triệu';
+                            }
+                        },
+                        grid: {
+                            top: '15%',
+                            left: '3%',
+                            right: '4%',
+                            bottom: '3%',
+                            containLabel: true
+                        },
+                        xAxis: {
+                            type: 'category',
+                            data: months,
+                            axisLine: { lineStyle: { color: '#999' } },
+                            axisLabel: { fontSize: 9, interval: 1, rotate: 30 }
+                        },
+                        yAxis: {
+                            type: 'value',
+                            axisLine: { show: false },
+                            axisLabel: {
+                                fontSize: 9,
+                                formatter: function(value) {
+                                    return (value / 1000000) + 'M';
+                                }
+                            },
+                            splitLine: { lineStyle: { type: 'dashed', color: '#eee' } }
+                        },
+                        series: [{
+                            data: totals,
+                            type: 'line',
+                            smooth: true,
+                            symbol: 'circle',
+                            symbolSize: 4,
+                            lineStyle: { width: 2, color: '#36A2EB' },
+                            itemStyle: { color: '#36A2EB' },
+                            areaStyle: {
+                                color: {
+                                    type: 'linear',
+                                    x: 0, y: 0, x2: 0, y2: 1,
+                                    colorStops: [
+                                        { offset: 0, color: 'rgba(54, 162, 235, 0.3)' },
+                                        { offset: 1, color: 'rgba(54, 162, 235, 0.05)' }
+                                    ]
+                                }
+                            }
+                        }]
+                    };
+
+                    chart.setOption(option);
+                } catch (error) {
+                    console.error("Lỗi khi lấy dữ liệu lương:", error);
+                }
+            }
+        </script>
+    </main>
+</div>
+</html>
