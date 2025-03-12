@@ -16,6 +16,9 @@ import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.ModelAttribute;
 import org.springframework.web.bind.annotation.RequestMapping;
 
+import java.util.HashMap;
+import java.util.Map;
+
 @Controller
 @Slf4j
 @RequiredArgsConstructor
@@ -25,14 +28,27 @@ public class AdminController {
   private final UserService userService;
   private final AuditLogService auditLogService;
   private final GlobalController globalController;
+  Map<String, Integer> quantity = new HashMap<>();
 
-  @GetMapping("/logs")
+  @GetMapping
   public String index(Model model,
                       @ModelAttribute("loggedInUser") User loggedInUser,
                       @PageableDefault(size = 10, sort = "createdAt", direction = Sort.Direction.DESC) Pageable pageable) {
-    var auditLogs = auditLogService.getAll(pageable);
+    var users = userService.getAll(pageable);
 
-    globalController.createAuditLog(loggedInUser, "Navigate to /admin/ successfully", "Navigate");
+    log.info(users.getContent().toString());
+    model.addAttribute("users", users);
+    model.addAttribute("contentFragment", "fragments/admin-users-fragments");
+    return "index";
+  }
+
+  @GetMapping("/logs")
+  public String logs(Model model,
+                      @ModelAttribute("loggedInUser") User loggedInUser,
+                      @PageableDefault(size = 10, sort = "createdAt", direction = Sort.Direction.DESC) Pageable pageable) {
+    var auditLogs = auditLogService.getAll(pageable);
+    quantity = auditLogService.getQuantity();
+    model.addAttribute("quantity", quantity);
     model.addAttribute("auditLogs", auditLogs);
     model.addAttribute("contentFragment", "fragments/admin-logs-fragments");
     return "index";
