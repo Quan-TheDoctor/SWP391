@@ -3,17 +3,13 @@ package com.se1873.js.springboot.project.controller;
 import com.se1873.js.springboot.project.dto.EmployeeDTO;
 import com.se1873.js.springboot.project.entity.Department;
 import com.se1873.js.springboot.project.entity.Position;
-import com.se1873.js.springboot.project.repository.DepartmentRepository;
 import com.se1873.js.springboot.project.repository.EmployeeRepository;
-import com.se1873.js.springboot.project.repository.PositionRepository;
 import com.se1873.js.springboot.project.service.DepartmentService;
 import com.se1873.js.springboot.project.service.EmployeeService;
 import com.se1873.js.springboot.project.service.PositionService;
-import jakarta.annotation.PostConstruct;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.cache.annotation.Cacheable;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
@@ -93,7 +89,8 @@ public class EmployeeController {
 
     model.addAttribute("departments", departments);
     model.addAttribute("employeeDTO", new EmployeeDTO());
-    return "employee-create";
+    model.addAttribute("contentFragment", "fragments/employee-create-fragments");
+    return "index";
   }
 
   @PostMapping("/create/save")
@@ -104,7 +101,8 @@ public class EmployeeController {
     if (bindingResult.hasErrors()) {
       model.addAttribute("departments", departments);
       model.addAttribute("positions", positions);
-      return "employee-create";
+      model.addAttribute("contentFragment", "fragments/employee-create-fragments");
+      return "index";
     }
 
     employeeService.saveEmployee(employeeDTO);
@@ -119,7 +117,8 @@ public class EmployeeController {
     if (bindingResult.hasErrors()) {
       model.addAttribute("departments", departments);
       model.addAttribute("positions", positions);
-      return "employee-view";
+      model.addAttribute("contentFragment", "fragments/employee-view-fragments");
+      return "index";
     }
 
     employeeService.saveEmployee(employeeDTO);
@@ -144,7 +143,8 @@ public class EmployeeController {
     model.addAttribute("departments", departments);
     model.addAttribute("positions", positions);
     model.addAttribute("employees", employees);
-    return "employee";
+    model.addAttribute("contentFragment", "fragments/employee-fragments");
+    return "index";
   }
 
   @RequestMapping("/search")
@@ -164,7 +164,8 @@ public class EmployeeController {
     model.addAttribute("avgSalary", avgSalary);
     model.addAttribute("departments", departments);
     model.addAttribute("positions", positions);
-    return "employee";
+    model.addAttribute("contentFragment", "fragments/employee-fragments");
+    return "index";
   }
 
   @RequestMapping("/sort")
@@ -179,7 +180,8 @@ public class EmployeeController {
     model.addAttribute("employees", employees);
     model.addAttribute("direction", direction);
     model.addAttribute("currentSortField", field);
-    return "employee";
+    model.addAttribute("contentFragment", "fragments/employee-fragments");
+    return "index";
   }
 
   @RequestMapping("/export/view")
@@ -200,7 +202,8 @@ public class EmployeeController {
     model.addAttribute("selectedPosition", position);
 
     addCommonAttributes(model);
-    return "employee-export";
+    model.addAttribute("contentFragment", "fragments/employee-export-fragments");
+    return "index";
   }
 
 

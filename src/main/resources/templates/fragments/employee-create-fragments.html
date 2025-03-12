@@ -11,7 +11,8 @@
         }
     </style>
 </head>
-<body class="bg-gray-100 min-h-screen flex flex-col">
+<body>
+<div th:fragment="main-content" xmlns:sec="http://www.w3.org/1999/xhtml">
 <div class="flex-grow p-8">
     <div class="max-w-4xl mx-auto bg-white rounded-xl shadow-lg overflow-hidden h-full flex flex-col">
         <form th:action="@{/employee/create/save}" method="post" th:object="${employeeDTO}"
@@ -330,5 +331,6 @@
         }
     }
 </script>
+</div>
 </body>
 </html>

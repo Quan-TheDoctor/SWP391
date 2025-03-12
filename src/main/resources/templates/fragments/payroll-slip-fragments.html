@@ -1,0 +1,145 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Payslip</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 20px;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 800px;
+            margin: auto;
+            border: 1px solid #ccc;
+            padding: 20px;
+        }
+
+        .header {
+            text-align: center;
+            font-size: 24px;
+            font-weight: bold;
+            margin-bottom: 10px;
+        }
+
+        .company-name {
+            text-align: center;
+            font-size: 18px;
+            font-weight: bold;
+            text-transform: uppercase;
+            margin-bottom: 20px;
+        }
+
+        .employee-details {
+            margin-bottom: 20px;
+        }
+
+        .employee-details p {
+            margin: 5px 0;
+        }
+
+        .table-container {
+            width: 100%;
+            border-collapse: collapse;
+        }
+
+        .table-container th, .table-container td {
+            border: 1px solid #ccc;
+            padding: 8px;
+            text-align: left;
+        }
+
+        .table-container th {
+            background-color: #f4f4f4;
+        }
+
+        .total-pay {
+            font-size: 18px;
+            font-weight: bold;
+            text-align: right;
+            margin-top: 20px;
+        }
+
+        .footer {
+            margin-top: 40px;
+            text-align: right;
+            font-size: 14px;
+        }
+    </style>
+</head>
+<div th:fragment="main-content" xmlns:sec="http://www.w3.org/1999/xhtml">
+    <div class="container" th:if="${payroll != null}">
+        <div class="header">PAYSLIP</div>
+        <div class="company-name">Công ty 1 mình tao</div>
+
+        <div class="employee-details" th:if="${payroll != null}">
+            <p><strong>Employee’s Name:</strong><a
+                    th:text="${payroll.getEmployeeFirstName() + ' ' + payroll.getEmployeeLastName()}"></a></p>
+            <p><strong>Pay Period:</strong><a
+                    th:text="${payroll.getSalaryRecordMonth()}+ '/'+ ${payroll.getSalaryRecordYear()}"></a></p>
+        </div>
+
+        <table class="table-container">
+            <tr>
+                <th>Description</th>
+                <th>Amount (VND)</th>
+            </tr>
+            <tr>
+                <td>Basic salary (1)</td>
+                <td th:text="${T(java.lang.String).format('%,.0f VND',payroll.getSalaryRecordBaseSalary())}"></td>
+            </tr>
+            <tr>
+                <td>Overtime pay (2)</td>
+                <td th:text="${T(java.lang.String).format('%,.0f VND',payroll.getSalaryRecordOvertimePay())}"></td>
+            </tr>
+
+            <tr>
+                <td>SHUI (3)</td>
+                <td th:text="${T(java.lang.String).format('%,.0f VND',payroll.getCalculatedPersonalInsuranceDeduction())}"></td>
+            </tr>
+            <tr>
+                <td>Total gross salary (4) = (1 + 2 - 3)</td>
+                <td th:text="${T(java.lang.String).format('%,.0f VND',payroll.getSalaryRecordBaseSalary() + payroll.getSalaryRecordOvertimePay() - payroll.getCalculatedPersonalInsuranceDeduction())}"></td>
+            </tr>
+            <tr>
+                <td>Taxed income(5) = (4 - 9)</td>
+                <td th:text="${T(java.lang.String).format('%,.0f VND',payroll.getTotalGrossSalary())}"></td>
+            </tr>
+
+            <tr>
+                <td>PIT (6)</td>
+                <td th:text="${T(java.lang.String).format('%,.0f VND',payroll.getTotalTaxAmount())}"></td>
+            </tr>
+            <tr>
+                <td>Family Circumstance Deduction (7)</td>
+                <td th:text="${T(java.lang.String).format('%,.0f VND',payroll.getCalculatedPersonalDependentDeduction())}"></td>
+            </tr>
+            <tr>
+                <td>Personal deductions (8)</td>
+                <td th:text="${T(java.lang.String).format('%,.0f VND',payroll.getCalculatedPersonalDeduction())}"></td>
+            </tr>
+            <tr>
+                <td>Total deductions (9) = (7 + 8)</td>
+                <td th:text="${T(java.lang.String).format('%,.0f VND',payroll.getCalculatedPersonalDeduction() + payroll.getCalculatedPersonalDependentDeduction())}"></td>
+            </tr>
+            <tr>
+                <td>Allowance (9)</td>
+                <td th:text="${T(java.lang.String).format('%,.0f VND',payroll.getSalaryRecordTotalAllowance())}"></td>
+            </tr>
+        </table>
+
+        <div class="total-pay">
+            Take home pay (10)= (4 - 6 + 9): <a
+                th:text="${T(java.lang.String).format('%,.0f VND',payroll.getSalaryRecordTotalAllowance() + payroll.getSalaryRecordBaseSalary() + payroll.getSalaryRecordOvertimePay() - payroll.getTotalTaxAmount() - payroll.getCalculatedPersonalInsuranceDeduction())}"></a>
+        </div>
+
+        <div class="footer">
+            HCMC, 30 Nov 2024 <br>
+            Prepared by: ___________ &nbsp;&nbsp;&nbsp;&nbsp; Approved by: ___________
+        </div>
+    </div>
+</div>
+</html>

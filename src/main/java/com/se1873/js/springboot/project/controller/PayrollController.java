@@ -35,7 +35,8 @@ public class PayrollController {
     model.addAttribute("payrolls", payrolls);
     model.addAttribute("totalNetSalary", totalNetSalary);
     model.addAttribute("unpaidSalary", unpaidSalary);
-    return "payroll";
+    model.addAttribute("contentFragment", "fragments/payroll-fragments");
+    return "index";
   }
 
   @RequestMapping("/policies")
@@ -44,7 +45,8 @@ public class PayrollController {
     FinancialPolicyDTOList financialPolicyDTOList = new FinancialPolicyDTOList();
     financialPolicyDTOList.setFinancialPolicies(policies);
     model.addAttribute("financialPolicyDTOList", financialPolicyDTOList);
-    return "policies";
+    model.addAttribute("contentFragment", "fragments/financial-policies-fragments");
+    return "index";
   }
 
   @RequestMapping("/policies/save")
@@ -57,27 +59,31 @@ public class PayrollController {
     }
 
     if (bindingResult.hasErrors()) {
-      return "policies";
+      model.addAttribute("contentFragment", "fragments/financial-policies-fragments");
+      return "index";
     }
     if ("save".equals(service)) {
       financialPolicyService.saveAll(financialPolicyDTOList.getFinancialPolicies());
       model.addAttribute("message", "Update successfully");
     }
-    return "policies";
+    model.addAttribute("contentFragment", "fragments/financial-policies-fragments");
+    return "index";
   }
 
   @GetMapping("/detail")
   public String getPayrollDetail(@RequestParam("salaryId") Integer id, Model model) {
     PayrollDTO payroll = salaryRecordService.payrollDTO(id);
     model.addAttribute("payroll", payroll);
-    return "payroll-details";
+    model.addAttribute("contentFragment", "fragments/payroll-details-fragments");
+    return "index";
   }
 
   @GetMapping("/slip")
   public String getPayrollSlip(@RequestParam("salaryId") Integer id, Model model) {
     PayrollDTO payroll = salaryRecordService.payrollDTO(id);
     model.addAttribute("payroll", payroll);
-    return "payroll-slip";
+    model.addAttribute("contentFragment", "fragments/payroll-slip-fragments");
+    return "index";
   }
 
 }

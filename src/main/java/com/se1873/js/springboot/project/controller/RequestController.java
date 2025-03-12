@@ -2,14 +2,12 @@ package com.se1873.js.springboot.project.controller;
 
 import com.se1873.js.springboot.project.dto.RequestDTO;
 import com.se1873.js.springboot.project.entity.Employee;
-import com.se1873.js.springboot.project.entity.Request;
 import com.se1873.js.springboot.project.entity.SalaryRecord;
 import com.se1873.js.springboot.project.entity.User;
 import com.se1873.js.springboot.project.repository.EmployeeRepository;
 import com.se1873.js.springboot.project.repository.SalaryRecordRepository;
 import com.se1873.js.springboot.project.repository.UserRepository;
 import com.se1873.js.springboot.project.service.RequestService;
-import com.se1873.js.springboot.project.service.SalaryRecordService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.core.io.Resource;
@@ -29,7 +27,6 @@ import org.springframework.web.bind.annotation.*;
 import org.springframework.web.server.ResponseStatusException;
 
 import java.util.*;
-import java.util.stream.Collectors;
 
 /**
  * Controller xử lý requests được gửi từ view bao gồm: view, filter, search, export, update request status,...
@@ -61,7 +58,8 @@ public class RequestController {
     model.addAttribute("requests", requests);
     addRequestStatistics(requests, model);
     model.addAttribute("requestTypes", requestService.getAllRequestTypes());
-    return viewName;
+    model.addAttribute("contentFragment", "fragments/request-fragments");
+    return "index";
   }
   private void addRequestStatistics(Page<RequestDTO> requests, Model model) {
     long totalPending = requests.stream()
@@ -93,7 +91,7 @@ public class RequestController {
    * @param model: Model chứa thuộc tính
    * @param page số Trang hiện tại
    * @param size item mỗi trang
-   * @return request.html
+   * @return request-fragments.html
    */
   @RequestMapping
   public String request(Model model,
@@ -109,7 +107,7 @@ public class RequestController {
    * @param value: giá trị
    * @param page số Trang hiện tại
    * @param size item mỗi trang
-   * @return request.html
+   * @return request-fragments.html
    */
   @RequestMapping("/filter")
   public String filter(Model model,
@@ -126,7 +124,7 @@ public class RequestController {
    * @param query giá trị tìm kiếm
    * @param page số Trang hiện tại
    * @param size item mỗi trang
-   * @return request.html
+   * @return request-fragments.html
    */
   @RequestMapping("/search")
   public String search(Model model,
@@ -138,7 +136,8 @@ public class RequestController {
     model.addAttribute("requests", requests);
     model.addAttribute("query", query);
     addRequestStatistics(requests, model);
-    return "request";
+    model.addAttribute("contentFragment", "fragments/request-fragments");
+    return "index";
   }
 
   /**
@@ -163,7 +162,8 @@ public class RequestController {
     model.addAttribute("requestTypes", requestService.getAllRequestTypes());
     model.addAttribute("selectedStatus", status);
     model.addAttribute("selectedType", type);
-    return "request-export";
+    model.addAttribute("contentFragment", "fragments/request-export-fragments");
+    return "index";
   }
 
   /**
@@ -220,7 +220,8 @@ public class RequestController {
     requestDTO.setSalaryRecords(salaryRecords);
 
     model.addAttribute("requestDTO", requestDTO);
-    return "request-view";
+    model.addAttribute("contentFragment", "fragments/request-view-fragments");
+    return "index";
   }
 
   @RequestMapping("/status")
@@ -284,8 +285,10 @@ public class RequestController {
       model.addAttribute("totalFinishedRequests", totalFinishedRequests);
       model.addAttribute("requestDTO", requestDTO);
       model.addAttribute("requests", requests);
-      return "request";
+      model.addAttribute("contentFragment", "fragments/request-fragments");
+      return "index";
     }
-    return "request";
+    model.addAttribute("contentFragment", "fragments/request-fragments");
+    return "index";
   }
 }
