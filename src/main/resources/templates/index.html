@@ -15,6 +15,26 @@
     <link th:href="@{/css/output.css}" rel="stylesheet"/>
     <script type="text/javascript" th:src="@{/js/AddPart.js}"></script>
     <script type="text/javascript" th:src="@{/js/employee.js}"></script>
+
+    <!-- Sidebar CSS -->
+    <style>
+        .submenu {
+            max-height: 0;
+            overflow: hidden;
+            transition: max-height 0.3s ease-out, opacity 0.2s ease;
+            opacity: 0;
+        }
+
+        .submenu.open {
+            max-height: 1000px;
+            opacity: 1;
+            transition: max-height 0.5s ease-in, opacity 0.3s ease;
+        }
+
+        .menu-toggle svg {
+            transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+    </style>
 </head>
 <body>
 <div th:replace="~{fragments/sidebar :: sidebar}"></div>
@@ -22,7 +42,108 @@
 <main>
     <div th:replace="${contentFragment}"></div>
 </main>
+<!-- Sidebar JavaScript -->
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        const menuToggles = document.querySelectorAll('.menu-toggle');
+        const activeLinks = document.querySelectorAll('.bg-blue-50');
 
-<!--<div th:replace="~{fragments/footer :: footer}"></div>-->
+        document.querySelectorAll('.submenu').forEach(submenu => {
+            submenu.classList.remove('open');
+        });
+
+        function openMenuAndParents(element) {
+            let submenu = element.closest('.submenu');
+
+            while (submenu) {
+                submenu.classList.add('open');
+
+                const toggle = submenu.previousElementSibling;
+                if (toggle && toggle.classList.contains('menu-toggle')) {
+                    const arrow = toggle.querySelector('svg:last-child');
+                    if (arrow) arrow.classList.add('rotate-180');
+                }
+
+                submenu = submenu.parentElement.closest('.submenu');
+            }
+        }
+
+        if (activeLinks.length > 0) {
+            activeLinks.forEach(link => {
+                openMenuAndParents(link);
+            });
+        }
+
+        menuToggles.forEach(toggle => {
+            toggle.addEventListener('click', function(e) {
+                e.preventDefault();
+                e.stopPropagation();
+
+                const submenu = this.nextElementSibling;
+                if (!submenu || !submenu.classList.contains('submenu')) return;
+
+                const isOpen = submenu.classList.contains('open');
+
+                const parentSubmenu = this.closest('.submenu');
+
+                if (parentSubmenu) {
+                    parentSubmenu.querySelectorAll(':scope > li > .submenu').forEach(menu => {
+                        if (menu !== submenu) {
+                            menu.classList.remove('open');
+                            const menuToggle = menu.previousElementSibling;
+                            if (menuToggle) {
+                                const arrow = menuToggle.querySelector('svg:last-child');
+                                if (arrow) arrow.classList.remove('rotate-180');
+                            }
+                        }
+                    });
+                } else {
+                    document.querySelectorAll('nav > ul > li > .submenu').forEach(menu => {
+                        if (menu !== submenu) {
+                            menu.classList.remove('open');
+                            const menuToggle = menu.previousElementSibling;
+                            if (menuToggle) {
+                                const arrow = menuToggle.querySelector('svg:last-child');
+                                if (arrow) arrow.classList.remove('rotate-180');
+                            }
+                        }
+                    });
+                }
+
+                submenu.classList.toggle('open', !isOpen);
+                const arrow = this.querySelector('svg:last-child');
+                if (arrow) {
+                    arrow.classList.toggle('rotate-180', !isOpen);
+                }
+
+                if (isOpen) {
+                    submenu.querySelectorAll('.submenu.open').forEach(childMenu => {
+                        childMenu.classList.remove('open');
+                        const childToggle = childMenu.previousElementSibling;
+                        if (childToggle) {
+                            const childArrow = childToggle.querySelector('svg:last-child');
+                            if (childArrow) childArrow.classList.remove('rotate-180');
+                        }
+                    });
+                }
+            });
+        });
+
+        document.addEventListener('click', function(e) {
+            if (!e.target.closest('.menu-toggle') && !e.target.closest('.submenu')) {
+                document.querySelectorAll('.submenu.open').forEach(menu => {
+                    if (!menu.querySelector('.bg-blue-50')) {
+                        menu.classList.remove('open');
+                        const toggle = menu.previousElementSibling;
+                        if (toggle && toggle.classList.contains('menu-toggle')) {
+                            const arrow = toggle.querySelector('svg:last-child');
+                            if (arrow) arrow.classList.remove('rotate-180');
+                        }
+                    }
+                });
+            }
+        });
+    });
+</script>
 </body>
 </html>

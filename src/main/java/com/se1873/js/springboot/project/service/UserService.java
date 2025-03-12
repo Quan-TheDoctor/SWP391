@@ -9,6 +9,8 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.util.Optional;
+
 @Service
 @Slf4j
 @RequiredArgsConstructor
@@ -19,5 +21,9 @@ public class UserService {
 
   public Page<User> getAll(Pageable pageable) {
     return userRepository.findAll(pageable);
+  }
+
+  public Optional<User> findUserByUsername(String username) {
+    return userRepository.findUserByUsername(username);
   }
 }

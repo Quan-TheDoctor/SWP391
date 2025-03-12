@@ -38,33 +38,15 @@ import java.util.Optional;
 @RequestMapping("/attendance")
 @SessionAttributes({"payrollCalculationForm", "user"})
 public class AttendanceController {
-
   private final AttendanceService attendanceService;
   private final EmployeeService employeeService;
   private final DepartmentService departmentService;
   private final SalaryRecordService salaryRecordService;
-  private final UserRepository userRepository;
   private AttendanceDTOList attendanceDTOList = new AttendanceDTOList();
-
-  @ModelAttribute("departments")
-  public List<Department> getAllDepartments() {
-    return departmentService.getAllDepartments();
-  }
 
   @ModelAttribute("payrollCalculationForm")
   public PayrollCalculationForm payrollCalculationForm() {
     return new PayrollCalculationForm();
-  }
-
-  @ModelAttribute("user")
-  public User getCurrentUser(@AuthenticationPrincipal UserDetails userDetails, HttpSession session) {
-    if (userDetails == null) {
-      return null;
-    }
-    User user = userRepository.findUserByUsername(userDetails.getUsername())
-      .orElseThrow(() -> new UsernameNotFoundException("User not found"));
-    session.setAttribute("user", user);
-    return user;
   }
 
   Page<AttendanceDTO> attendances;
