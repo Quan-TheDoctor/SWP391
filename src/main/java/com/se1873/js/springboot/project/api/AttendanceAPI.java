@@ -1,25 +1,23 @@
 package com.se1873.js.springboot.project.api;
 
-import com.se1873.js.springboot.project.dto.AttendanceCountDTO;
-import com.se1873.js.springboot.project.dto.AttendanceDTO;
-import com.se1873.js.springboot.project.dto.AttendanceDTOList;
-import com.se1873.js.springboot.project.dto.EmployeeDTO;
+import com.se1873.js.springboot.project.dto.*;
 import com.se1873.js.springboot.project.entity.Attendance;
 import com.se1873.js.springboot.project.entity.Employee;
 import com.se1873.js.springboot.project.service.AttendanceService;
 import com.se1873.js.springboot.project.service.EmployeeService;
 import lombok.*;
 import lombok.extern.slf4j.Slf4j;
-import org.opencv.core.Core;
-import org.opencv.core.Mat;
-import org.opencv.core.MatOfByte;
-import org.opencv.imgcodecs.Imgcodecs;
+import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.LocalTime;
+import java.time.Month;
+import java.time.temporal.ChronoUnit;
+import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
 
@@ -35,7 +33,6 @@ public class AttendanceAPI {
   @RequestMapping("/attendancesByEmployeeId")
   public ResponseEntity<AttendanceDTO> getAttendancesByEmployeeId(@RequestParam("employeeId") Integer employeeId) {
     AttendanceDTO attendances = attendanceService.getAttendanceByEmployeeIdAndDate(employeeId, LocalDate.now());
-
     return ResponseEntity.ok(attendances);
   }
 
@@ -55,6 +52,37 @@ public class AttendanceAPI {
     AttendanceCountDTO attendanceCountDTO = attendanceService.countAvailableAttendance(date);
     log.info(attendanceCountDTO.toString());
     return ResponseEntity.ok(attendanceCountDTO);
+  }
+
+  @GetMapping("/weekly-trends")
+  public ResponseEntity<AttendanceAnalyticDTO.WeeklyTrendsDTO> getWeeklyTrends(
+    @RequestParam(required = false) Integer year,
+    @RequestParam(required = false) Integer month,
+    @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate startDate,
+    @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate endDate) {
+
+    AttendanceAnalyticDTO.WeeklyTrendsDTO data = attendanceService.getWeeklyTrends(year, month, startDate, endDate);
+    return ResponseEntity.ok(data);
+  }
+
+  @GetMapping("/monthly-trends")
+  public ResponseEntity<AttendanceAnalyticDTO.MonthlyTrendsDTO> getMonthlyTrends(
+    @RequestParam(required = false) Integer year,
+    @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate startDate,
+    @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate endDate) {
+
+    AttendanceAnalyticDTO.MonthlyTrendsDTO data = attendanceService.getMonthlyTrends(year, startDate, endDate);
+    return ResponseEntity.ok(data);
+  }
+
+  @GetMapping("/department-comparison")
+  public ResponseEntity<AttendanceAnalyticDTO.DepartmentComparisonDTO> getDepartmentComparison(
+    @RequestParam(required = false) Integer year,
+    @RequestParam(required = false) Integer month,
+    @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate date) {
+
+    AttendanceAnalyticDTO.DepartmentComparisonDTO data = attendanceService.getDepartmentComparison(year, month, date);
+    return ResponseEntity.ok(data);
   }
 
   @PostMapping("/recognize")
@@ -83,6 +111,48 @@ public class AttendanceAPI {
     }
   }
 
+  @PutMapping("/update")
+  public ResponseEntity<?> updateAttendanceRecord(@RequestBody AttendanceDTO record) {
+    Double overtimeHours = calculateOvertimeHours(record.getAttendanceCheckIn(), record.getAttendanceCheckOut());
+
+    if (record.getAttendanceOvertimeHours() == null || record.getAttendanceOvertimeHours() == 0) {
+      record.setAttendanceOvertimeHours(overtimeHours);
+    }
+
+    attendanceService.updateAttendanceRecord(record);
+
+    log.info(record.toString());
+
+    return ResponseEntity.ok().body(Map.of(
+      "success", true,
+      "message", "Attendance record updated successfully"
+    ));
+  }
+
+  private Double calculateOvertimeHours(LocalTime checkIn, LocalTime checkOut) {
+    if (checkIn == null || checkOut == null) {
+      return 0.0;
+    }
+
+    try {
+      LocalTime standardEnd = LocalTime.of(18, 0);
+
+      double overtimeHours = 0.0;
+
+      if (checkOut.isAfter(standardEnd)) {
+        long overtimeMinutes = ChronoUnit.MINUTES.between(standardEnd, checkOut);
+        overtimeHours = Math.round(overtimeMinutes / 6.0) / 10.0;
+      }
+
+      return overtimeHours;
+    } catch (Exception e) {
+      log.error("Error calculating overtime hours: {}", e.getMessage());
+      return 0.0;
+    }
+  }
+
+
+
   @Data
   @Builder
   @NoArgsConstructor
@@ -91,6 +161,5 @@ public class AttendanceAPI {
     private int id;
     private String name;
     private String timestamp;
-
   }
 }

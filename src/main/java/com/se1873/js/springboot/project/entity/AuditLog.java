@@ -24,8 +24,11 @@ public class AuditLog {
   @Column(name = "action_type")
   private String actionType;
 
+  @Column(name = "action_level")
+  private String actionLevel;
+
   @ToString.Exclude
-  @ManyToOne(cascade = CascadeType.ALL)
+  @ManyToOne
   @JoinColumn(name = "user_id")
   private User user;
 

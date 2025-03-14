@@ -17,10 +17,10 @@ public class UserDTO {
   private Integer userId;
   private String username;
   private String role;
+  private String status;
+  private LocalDateTime lastLogin;
   private LocalDateTime updatedAt;
   private LocalDateTime createdAt;
-  private Employee employee;
-  private List<AuditLog> auditLogs;
 
   private Integer employeeId;
   private String employeeCode;

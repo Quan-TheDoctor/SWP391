@@ -12,6 +12,7 @@ import org.springframework.format.annotation.NumberFormat;
 
 import java.time.LocalDate;
 import java.time.LocalDateTime;
+import java.util.ArrayList;
 import java.util.List;
 
 @Data
@@ -38,6 +39,7 @@ public class EmployeeDTO {
   private String employeeBankAccount;
   private String employeeBankName;
   private String employeeTaxCode;
+  private byte[] picture;
 
   private Integer departmentId;
   private String departmentName;
@@ -70,5 +72,5 @@ public class EmployeeDTO {
   @NumberFormat(style = NumberFormat.Style.NUMBER) private Double contractBaseSalary;
   @DateTimeFormat(pattern = "yyyy-MM-dd") private LocalDate contractSignDate;
 
-  private List<Dependent> dependents;
+  private List<DependentDTO> dependents = new ArrayList<>();
 }

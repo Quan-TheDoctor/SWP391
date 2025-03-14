@@ -27,6 +27,12 @@ public class User {
   @Column(name = "role")
   private String role;
 
+  @Column(name = "status")
+  private String status;
+
+  @Column(name = "last_login")
+  private LocalDateTime lastLogin;
+
   @Column(name = "updated_at")
   private LocalDateTime updatedAt;
 

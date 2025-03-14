@@ -17,6 +17,7 @@ public class AuditLogDTO {
   private Integer logId;
   private String actionInfo;
   private String actionType;
+  private String actionLevel;
   private User user;
   private LocalDateTime createdAt;
   private Integer userId;

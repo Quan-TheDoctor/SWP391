@@ -173,6 +173,8 @@ create table users
     password_hash text NOT NULL,
     email         text,
     role          text      default 'ADMIN',
+    status        text default 'Active',
+    last_login    TIMESTAMP DEFAULT NULL,
     updated_at    TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     created_at    TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
@@ -183,6 +185,7 @@ create table audit_logs
     user_id     INTEGER REFERENCES users (user_id),
     action_type text,
     action_info text,
+    action_level text,
     created_at  TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
 
