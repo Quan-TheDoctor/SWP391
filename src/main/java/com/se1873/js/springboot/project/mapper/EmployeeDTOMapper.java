@@ -5,8 +5,10 @@ import com.se1873.js.springboot.project.entity.*;
 import org.mapstruct.*;
 import org.springframework.beans.factory.annotation.Autowired;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
+import java.util.stream.Collectors;
 
 @Mapper(
   componentModel = "spring",
@@ -14,10 +16,14 @@ import java.util.Optional;
     DepartmentDTOMapper.class,
     PositionDTOMapper.class,
     EmploymentHistoryDTOMapper.class,
-    ContractDTOMapper.class
+    ContractDTOMapper.class,
+    DependentDTOMapper.class
   }
 )
 public abstract class EmployeeDTOMapper {
+  @Autowired
+  private DependentDTOMapper dependentDTOMapper;
+
   @Mapping(target = "departmentId", ignore = true)
   @Mapping(target = "departmentName", ignore = true)
   @Mapping(target = "departmentDescription", ignore = true)
@@ -73,6 +79,7 @@ public abstract class EmployeeDTOMapper {
     employeeDTO.setEmployeeCompanyEmail(employee.getCompanyEmail());
     employeeDTO.setEmployeePhone(employee.getPhoneNumber());
     employeeDTO.setEmployeeMaritalStatus(employee.getMaritalStatus());
+    employeeDTO.setPicture(employee.getPicture());
 
     EmploymentHistory currentEmploymentHistory = getCurrentEmploymentHistory(employee);
     if (currentEmploymentHistory != null) {
@@ -84,6 +91,14 @@ public abstract class EmployeeDTOMapper {
       mapContract(currentContract, employeeDTO);
     }
 
+    if (employee.getDependents() != null && !employee.getDependents().isEmpty()) {
+      List<DependentDTO> dependentDTOs = employee.getDependents().stream()
+        .map(dependentDTOMapper::toDTO)
+        .collect(Collectors.toList());
+      employeeDTO.setDependents(dependentDTOs);
+    } else {
+      employeeDTO.setDependents(new ArrayList<>());
+    }
   }
 
   private void mapEmploymentHistory(EmploymentHistory history, EmployeeDTO dto) {

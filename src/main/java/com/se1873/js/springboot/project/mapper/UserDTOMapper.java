@@ -14,7 +14,6 @@ import java.util.List;
   }
 )
 public abstract class UserDTOMapper {
-
   @Mapping(target = "employeeId", ignore = true)
   @Mapping(target = "employeeCode", ignore = true)
   @Mapping(target = "employeeFirstName", ignore = true)
@@ -41,11 +40,12 @@ public abstract class UserDTOMapper {
     userDTO.setUserId(user.getUserId());
     userDTO.setUsername(user.getUsername());
     userDTO.setRole(user.getRole());
+    userDTO.setStatus(user.getStatus());
+    userDTO.setLastLogin(user.getLastLogin());
     userDTO.setCreatedAt(user.getCreatedAt());
     userDTO.setUpdatedAt(user.getUpdatedAt());
 
     if (user.getEmployee() != null) {
-      userDTO.setEmployee(user.getEmployee());
       userDTO.setEmployeeId(user.getEmployee().getEmployeeId());
       userDTO.setEmployeeCode(user.getEmployee().getEmployeeCode());
       userDTO.setEmployeeFirstName(user.getEmployee().getFirstName());
@@ -62,10 +62,6 @@ public abstract class UserDTOMapper {
       userDTO.setEmployeeCompanyEmail(user.getEmployee().getCompanyEmail());
       userDTO.setEmployeePhone(user.getEmployee().getPhoneNumber());
       userDTO.setEmployeeMaritalStatus(user.getEmployee().getMaritalStatus());
-    }
-
-    if (user.getAuditLogs() != null) {
-      userDTO.setAuditLogs(user.getAuditLogs());
     }
   }
 

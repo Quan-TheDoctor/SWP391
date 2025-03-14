@@ -1,0 +1,411 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta name="_csrf" th:content="${_csrf.token}"/>
+    <meta name="_csrf_header" th:content="${_csrf.headerName}"/>
+
+    <title>Face Recognition System</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script defer src="https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js"></script>
+    <style>
+        .scrollbar::-webkit-scrollbar {
+            width: 8px;
+            height: 8px;
+        }
+
+        .scrollbar::-webkit-scrollbar-track {
+            background: #f1f5f9;
+        }
+
+        .scrollbar::-webkit-scrollbar-thumb {
+            background: #cbd5e1;
+            border-radius: 4px;
+        }
+
+        [x-cloak] {
+            display: none !important;
+        }
+    </style>
+</head>
+<div th:fragment="main-content" class="max-w-7xl mx-auto p-6">
+    <div class="flex flex-col lg:flex-row gap-6 h-[85vh]">
+
+        <!-- Info Sidebar -->
+        <div class="w-full lg:w-80 flex-shrink-0 bg-white rounded-xl shadow-sm border border-gray-200">
+            <div class="p-6 border-b border-gray-100">
+                <div class="relative group">
+                    <div class="w-32 h-32 mx-auto bg-gradient-to-r from-blue-100 to-purple-100 rounded-full overflow-hidden flex items-center justify-center">
+                        <svg xmlns="http://www.w3.org/2000/svg" class="h-16 w-16 text-blue-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M9 3v2m6-2v2M9 19v2m6-2v2M5 9H3m2 6H3m18-6h-2m2 6h-2M7 19h10a2 2 0 002-2V7a2 2 0 00-2-2H7a2 2 0 00-2 2v10a2 2 0 002 2zM9 9h6v6H9V9z" />
+                        </svg>
+                    </div>
+                </div>
+
+                <div class="mt-4 text-center space-y-1">
+                    <h2 class="text-xl font-semibold text-gray-800">Face Recognition</h2>
+                    <p class="text-sm text-blue-600 font-medium">Attendance System</p>
+                </div>
+            </div>
+
+            <div class="p-4 space-y-4">
+                <div class="space-y-2">
+                    <h3 class="text-sm font-medium text-gray-700 uppercase tracking-wider">System Status</h3>
+                    <div id="statusContainer" class="mt-2 p-3 rounded-md bg-gray-50">
+                        <div class="flex items-center">
+                            <div class="h-3 w-3 rounded-full bg-gray-300 mr-2" id="statusIndicator"></div>
+                            <p id="statusText" class="text-sm text-gray-600">System is idle</p>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="border-t border-gray-100 pt-4">
+                    <h3 class="text-sm font-medium text-gray-700 uppercase tracking-wider">Instructions</h3>
+                    <ul class="mt-2 space-y-2 text-sm text-gray-600">
+                        <li class="flex items-start">
+                            <span class="inline-flex items-center justify-center h-5 w-5 rounded-full bg-blue-100 text-blue-600 text-xs mr-2 mt-0.5">1</span>
+                            <span>Register with your ID and name</span>
+                        </li>
+                        <li class="flex items-start">
+                            <span class="inline-flex items-center justify-center h-5 w-5 rounded-full bg-blue-100 text-blue-600 text-xs mr-2 mt-0.5">2</span>
+                            <span>Take photos by pressing 's' key when camera is active</span>
+                        </li>
+                        <li class="flex items-start">
+                            <span class="inline-flex items-center justify-center h-5 w-5 rounded-full bg-blue-100 text-blue-600 text-xs mr-2 mt-0.5">3</span>
+                            <span>Train the model with your photos</span>
+                        </li>
+                        <li class="flex items-start">
+                            <span class="inline-flex items-center justify-center h-5 w-5 rounded-full bg-blue-100 text-blue-600 text-xs mr-2 mt-0.5">4</span>
+                            <span>Start recognition to check in/out</span>
+                        </li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+
+        <!-- Main Content -->
+        <div class="flex-1 flex flex-col bg-white rounded-xl shadow-sm border border-gray-200"
+             x-data="{ activeTab: 'register' }">
+            <!-- Tab Navigation -->
+            <nav class="flex border-b border-gray-200 overflow-x-auto">
+                <button type="button"
+                        @click="activeTab = 'register'"
+                        :class="activeTab === 'register'
+                        ? 'border-b-2 border-blue-500 text-blue-600'
+                        : 'text-gray-500 hover:text-gray-700'"
+                        class="px-6 py-3 text-sm font-medium transition-colors whitespace-nowrap">
+                    Register User
+                </button>
+
+                <button type="button"
+                        @click="activeTab = 'train'"
+                        :class="activeTab === 'train'
+                        ? 'border-b-2 border-blue-500 text-blue-600'
+                        : 'text-gray-500 hover:text-gray-700'"
+                        class="px-6 py-3 text-sm font-medium transition-colors whitespace-nowrap">
+                    Train Model
+                </button>
+
+                <button type="button"
+                        @click="activeTab = 'recognize'"
+                        :class="activeTab === 'recognize'
+                        ? 'border-b-2 border-blue-500 text-blue-600'
+                        : 'text-gray-500 hover:text-gray-700'"
+                        class="px-6 py-3 text-sm font-medium transition-colors whitespace-nowrap">
+                    Recognize
+                </button>
+            </nav>
+
+            <!-- Tab Content -->
+            <div class="flex-1 overflow-y-auto scrollbar p-6">
+                <!-- Register User -->
+                <div x-show="activeTab === 'register'"
+                     x-transition:enter="transition ease-out duration-200"
+                     x-transition:enter-start="opacity-0 translate-y-1"
+                     x-transition:enter-end="opacity-100 translate-y-0"
+                     x-transition:leave="transition ease-in duration-150"
+                     x-transition:leave-start="opacity-100 translate-y-0"
+                     x-transition:leave-end="opacity-0 translate-y-1"
+                     class="space-y-6">
+                    <div class="bg-white rounded-lg">
+                        <h3 class="text-lg font-semibold text-gray-800 mb-4">Register New User</h3>
+                        <div class="space-y-4">
+                            <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                <div>
+                                    <label for="userId" class="block text-sm font-medium text-gray-700 mb-1">User ID</label>
+                                    <input type="number" id="userId" placeholder="Enter a number between 1-10000"
+                                           class="w-full px-3 py-2 border rounded-md focus:ring-2 focus:ring-blue-500">
+                                </div>
+                                <div>
+                                    <label for="userName" class="block text-sm font-medium text-gray-700 mb-1">Full Name</label>
+                                    <input type="text" id="userName" placeholder="Enter your name if you're a new user"
+                                           class="w-full px-3 py-2 border rounded-md focus:ring-2 focus:ring-blue-500">
+                                </div>
+                            </div>
+
+                            <div class="bg-blue-50 rounded-md p-4 text-sm text-blue-700">
+                                <div class="flex">
+                                    <svg class="h-5 w-5 text-blue-400 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                                    </svg>
+                                    <p>When the camera starts, press the <span class="font-mono bg-blue-100 px-1 rounded">s</span> key to capture a photo. Take multiple photos from different angles for better recognition.</p>
+                                </div>
+                            </div>
+
+                            <div class="flex justify-end space-x-3">
+                                <button onclick="takePhotos()" class="px-4 py-2 bg-blue-600 text-white text-sm font-medium rounded-md hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 transition-colors">
+                                    Start Camera
+                                </button>
+                                <button onclick="stopProcess()" class="px-4 py-2 bg-red-600 text-white text-sm font-medium rounded-md hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-red-500 focus:ring-offset-2 transition-colors">
+                                    Stop Camera
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Train Model -->
+                <div x-show="activeTab === 'train'"
+                     x-transition:enter="transition ease-out duration-200"
+                     x-transition:enter-start="opacity-0 translate-y-1"
+                     x-transition:enter-end="opacity-100 translate-y-0"
+                     x-transition:leave="transition ease-in duration-150"
+                     x-transition:leave-start="opacity-100 translate-y-0"
+                     x-transition:leave-end="opacity-0 translate-y-1"
+                     x-cloak
+                     class="space-y-6">
+                    <div class="bg-white rounded-lg">
+                        <h3 class="text-lg font-semibold text-gray-800 mb-4">Train Recognition Model</h3>
+
+                        <div class="bg-yellow-50 rounded-md p-4 text-sm text-yellow-700 mb-4">
+                            <div class="flex">
+                                <svg class="h-5 w-5 text-yellow-400 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
+                                </svg>
+                                <div>
+                                    <p class="font-medium">Important:</p>
+                                    <p>Training the model may take some time depending on the number of photos. The system will be unavailable during training.</p>
+                                </div>
+                            </div>
+                        </div>
+
+                        <p class="text-gray-600 mb-6">After taking photos, you need to train the model to recognize your face. This process analyzes all the photos and creates a recognition profile for each registered user.</p>
+
+                        <div class="flex justify-end">
+                            <button onclick="trainModel()" class="px-4 py-2 bg-green-600 text-white text-sm font-medium rounded-md hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-green-500 focus:ring-offset-2 transition-colors">
+                                Start Training
+                            </button>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Recognize -->
+                <div x-show="activeTab === 'recognize'"
+                     x-transition:enter="transition ease-out duration-200"
+                     x-transition:enter-start="opacity-0 translate-y-1"
+                     x-transition:enter-end="opacity-100 translate-y-0"
+                     x-transition:leave="transition ease-in duration-150"
+                     x-transition:leave-start="opacity-100 translate-y-0"
+                     x-transition:leave-end="opacity-0 translate-y-1"
+                     x-cloak
+                     class="space-y-6">
+                    <div class="bg-white rounded-lg">
+                        <h3 class="text-lg font-semibold text-gray-800 mb-4">Face Recognition</h3>
+
+                        <div class="bg-gray-50 rounded-md p-6 text-center mb-6">
+                            <svg xmlns="http://www.w3.org/2000/svg" class="h-16 w-16 mx-auto text-gray-400 mb-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2" />
+                            </svg>
+                            <p class="text-gray-600 mb-2">Start recognition to automatically check in/out when your face is detected.</p>
+                            <p class="text-sm text-gray-500">The system will record attendance with timestamp when a registered face is recognized.</p>
+                        </div>
+
+                        <div class="flex justify-between">
+                            <button onclick="stopProcess()" class="px-4 py-2 bg-gray-600 text-white text-sm font-medium rounded-md hover:bg-gray-700 focus:outline-none focus:ring-2 focus:ring-gray-500 focus:ring-offset-2 transition-colors">
+                                Stop Recognition
+                            </button>
+                            <button onclick="startRecognition()" class="px-4 py-2 bg-blue-600 text-white text-sm font-medium rounded-md hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 transition-colors">
+                                Start Recognition
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+    const csrfToken = document.querySelector('meta[name="_csrf"]').getAttribute('content');
+    const csrfHeader = document.querySelector('meta[name="_csrf_header"]').getAttribute('content');
+    setInterval(checkStatus, 5000);
+
+    function updateStatus(status, message) {
+        const statusContainer = document.getElementById('statusContainer');
+        const statusIndicator = document.getElementById('statusIndicator');
+        const statusText = document.getElementById('statusText');
+
+        statusText.textContent = message;
+
+        if (status === 'running') {
+            statusIndicator.className = 'h-3 w-3 rounded-full bg-yellow-400 mr-2';
+            statusContainer.className = 'mt-2 p-3 rounded-md bg-yellow-50';
+        } else if (status === 'success') {
+            statusIndicator.className = 'h-3 w-3 rounded-full bg-green-400 mr-2';
+            statusContainer.className = 'mt-2 p-3 rounded-md bg-green-50';
+        } else if (status === 'error') {
+            statusIndicator.className = 'h-3 w-3 rounded-full bg-red-400 mr-2';
+            statusContainer.className = 'mt-2 p-3 rounded-md bg-red-50';
+        } else {
+            statusIndicator.className = 'h-3 w-3 rounded-full bg-gray-300 mr-2';
+            statusContainer.className = 'mt-2 p-3 rounded-md bg-gray-50';
+        }
+    }
+
+    function checkStatus() {
+        fetch('/api/face-recognition/status')
+            .then(response => {
+                if (!response.ok) {
+                    throw new Error(`HTTP error! Status: ${response.status}`);
+                }
+                return response.json();
+            })
+            .then(data => {
+                if (data.status === 'running') {
+                    updateStatus('running', 'System is running...');
+                } else if (data.status === 'error') {
+                    updateStatus('error', data.message || 'Connection error');
+                } else {
+                    updateStatus('idle', 'System is idle');
+                }
+            })
+            .catch(error => {
+                console.error('Error checking status:', error);
+                updateStatus('error', 'Cannot connect to recognition system');
+
+                clearInterval(statusInterval);
+                setTimeout(() => {
+                    statusInterval = setInterval(checkStatus, 2000);
+                }, 10000);
+            });
+    }
+
+    let statusInterval;
+    function initStatusCheck() {
+        checkStatus(); // Check immediately
+        statusInterval = setInterval(checkStatus, 2000); // Then check every 2 seconds
+    }
+
+    document.addEventListener('DOMContentLoaded', initStatusCheck);
+
+
+    function takePhotos() {
+        const userId = document.getElementById('userId').value;
+        const userName = document.getElementById('userName').value;
+
+        if (!userId) {
+            alert('Please enter a User ID');
+            return;
+        }
+
+        fetch('/api/face-recognition/take-photos', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                [csrfHeader]: csrfToken
+            },
+            body: JSON.stringify({
+                id: userId,
+                name: userName
+            })
+        })
+            .then(response => response.json())
+            .then(data => {
+                if (data.status === 'success') {
+                    updateStatus('success', data.message);
+                } else {
+                    updateStatus('error', data.message);
+                }
+            })
+            .catch(error => {
+                console.error('Error:', error);
+                updateStatus('error', 'An error occurred');
+            });
+    }
+
+    function trainModel() {
+        fetch('/api/face-recognition/train', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                [csrfHeader]: csrfToken
+            }
+        })
+            .then(response => response.json())
+            .then(data => {
+                if (data.status === 'success') {
+                    updateStatus('success', data.message);
+                } else {
+                    updateStatus('error', data.message);
+                }
+            })
+            .catch(error => {
+                console.error('Error:', error);
+                updateStatus('error', 'An error occurred');
+            });
+    }
+
+    function startRecognition() {
+
+        fetch('/api/face-recognition/recognize', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                [csrfHeader]: csrfToken
+            },
+            body: JSON.stringify({})
+        })
+            .then(response => {
+                if (!response.ok) {
+                    throw new Error(`HTTP error! Status: ${response.status}`);
+                }
+                return response.json();
+            })
+            .then(data => {
+                if (data.status === 'success') {
+                    updateStatus('success', data.message);
+                } else {
+                    updateStatus('error', data.message);
+                }
+            })
+            .catch(error => {
+                console.error('Error:', error);
+                updateStatus('error', 'An error occurred');
+            });
+    }
+
+
+    function stopProcess() {
+        fetch('/api/face-recognition/stop', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                [csrfHeader]: csrfToken
+            },
+            body: JSON.stringify({})
+        })
+            .then(response => response.json())
+            .then(data => {
+                if (data.status === 'success') {
+                    updateStatus('success', data.message);
+                } else {
+                    updateStatus('error', data.message);
+                }
+            })
+            .catch(error => {
+                console.error('Error:', error);
+                updateStatus('error', 'An error occurred');
+            });
+    }
+
+</script>
+</html>

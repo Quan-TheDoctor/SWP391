@@ -1,8 +1,10 @@
 package com.se1873.js.springboot.project.service;
 
+import com.se1873.js.springboot.project.dto.DependentDTO;
 import com.se1873.js.springboot.project.dto.EmployeeCountDTO;
 import com.se1873.js.springboot.project.dto.EmployeeDTO;
 import com.se1873.js.springboot.project.entity.*;
+import com.se1873.js.springboot.project.mapper.DependentDTOMapper;
 import com.se1873.js.springboot.project.mapper.EmployeeDTOMapper;
 import com.se1873.js.springboot.project.repository.*;
 import lombok.RequiredArgsConstructor;
@@ -27,6 +29,7 @@ import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.List;
+import java.util.Map;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 
@@ -35,6 +38,7 @@ import java.util.stream.Collectors;
 @Slf4j
 @RequiredArgsConstructor
 public class EmployeeService {
+  private final DependentDTOMapper dependentDTOMapper;
   private final EmploymentHistoryRepository employmentHistoryRepository;
   private final DepartmentRepository departmentRepository;
   private final PositionRepository positionRepository;
@@ -299,6 +303,13 @@ public class EmployeeService {
     createUserAccount(employee, dto.getEmployeeCompanyEmail());
     createInitialEmploymentHistory(employee, department, position, dto);
     createInitialContract(employee, dto);
+
+    if (dto.getDependents() != null) {
+      handleDependents(employee, dto.getDependents());
+    }
+
+    // Lưu employee sau khi đã thêm dependents
+    employeeRepository.save(employee);
   }
 
   private void updateExistingEmployeeWithRelatedRecords(EmployeeDTO dto, Department department, Position position) {
@@ -306,7 +317,16 @@ public class EmployeeService {
     updateEmployeeDetails(employee, dto);
     handleEmploymentHistoryChanges(employee, department, position, dto);
     handleContractChanges(employee, dto);
+
+    // Xử lý dependents trước khi lưu employee
+    if (dto.getDependents() != null) {
+      handleDependents(employee, dto.getDependents());
+    }
+
+    // Lưu employee sau khi đã cập nhật dependents
+    employeeRepository.save(employee);
   }
+
   // endregion
   // region Employee Management Helpers
   private Employee createAndSaveBaseEmployee(EmployeeDTO dto) {
@@ -331,6 +351,7 @@ public class EmployeeService {
     employee.setTaxCode(dto.getEmployeeTaxCode());
     employee.setEmployeeCode(dto.getEmployeeCode());
     employee.setCompanyEmail(dto.getEmployeeCompanyEmail());
+    employee.setPicture(dto.getPicture());
   }
   // endregion
   // region Employment History Management
@@ -444,6 +465,74 @@ public class EmployeeService {
     userRepository.save(user);
   }
   // endregion
+// region Dependent Management
+  private void handleDependents(Employee employee, List<DependentDTO> dependentDTOs) {
+    // Kiểm tra và khởi tạo danh sách dependents nếu cần
+    if (employee.getDependents() == null) {
+      employee.setDependents(new ArrayList<>());
+    }
+
+    // Nếu không có dependents trong DTO, không làm gì cả
+    if (dependentDTOs == null || dependentDTOs.isEmpty()) {
+      return;
+    }
+
+    // Lọc các dependents hợp lệ (có fullName)
+    List<DependentDTO> validDependents = dependentDTOs.stream()
+      .filter(dep -> dep != null && dep.getFullName() != null && !dep.getFullName().isEmpty())
+      .collect(Collectors.toList());
+
+    // Nếu không có dependent hợp lệ, không làm gì cả
+    if (validDependents.isEmpty()) {
+      return;
+    }
+
+    // Xử lý cho employee hiện có (cập nhật/thêm mới dependents)
+    if (!employee.getDependents().isEmpty()) {
+      // Tạo map các dependents hiện có theo ID để dễ tra cứu
+      Map<Integer, Dependent> existingDependentsMap = employee.getDependents().stream()
+        .collect(Collectors.toMap(Dependent::getDependentId, Function.identity(), (a, b) -> a));
+
+      for (DependentDTO dependentDTO : validDependents) {
+        if (dependentDTO.getDependentId() != null && existingDependentsMap.containsKey(dependentDTO.getDependentId())) {
+          // Cập nhật dependent hiện có
+          Dependent existingDependent = existingDependentsMap.get(dependentDTO.getDependentId());
+          updateDependentDetails(existingDependent, dependentDTOMapper.toEntity(dependentDTO));
+          existingDependentsMap.remove(dependentDTO.getDependentId());
+        } else {
+          // Thêm dependent mới
+          createNewDependent(employee, dependentDTOMapper.toEntity(dependentDTO));
+        }
+      }
+    } else {
+      // Cho employee mới, thêm tất cả dependents hợp lệ
+      for (DependentDTO dependentDTO : validDependents) {
+        createNewDependent(employee, dependentDTOMapper.toEntity(dependentDTO));
+      }
+    }
+
+    // Log để debug
+    log.info("Added {} dependents to employee", employee.getDependents().size());
+  }
+
+  private void createNewDependent(Employee employee, Dependent dependentDTO) {
+    Dependent dependent = new Dependent();
+    updateDependentDetails(dependent, dependentDTO);
+    dependent.setEmployee(employee);
+
+    employee.getDependents().add(dependent);
+    log.info("Added new dependent: {}", dependent.getFullName());
+  }
+
+  private void updateDependentDetails(Dependent dependent, Dependent dependentDTO) {
+    dependent.setFullName(dependentDTO.getFullName());
+    dependent.setRelationship(dependentDTO.getRelationship());
+    dependent.setBirthDate(dependentDTO.getBirthDate());
+    dependent.setIdNumber(dependentDTO.getIdNumber());
+    dependent.setIsTaxDependent(dependentDTO.getIsTaxDependent());
+  }
+// endregion
+
 
   public int countEmployees(){
     return employeeRepository.getEmployeeCount();
@@ -461,4 +550,5 @@ public class EmployeeService {
     }
     return employeeCountDTO;
   }
+
 }

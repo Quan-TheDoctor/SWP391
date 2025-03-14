@@ -5,10 +5,45 @@
     <title>Audit Log</title>
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        primary: {
+                            50: '#f5f3ff',
+                            100: '#ede9fe',
+                            200: '#ddd6fe',
+                            300: '#c4b5fd',
+                            400: '#a78bfa',
+                            500: '#8b5cf6',
+                            600: '#7c3aed',
+                            700: '#6d28d9',
+                            800: '#5b21b6',
+                            900: '#4c1d95',
+                        },
+                        secondary: {
+                            50: '#eef2ff',
+                            100: '#e0e7ff',
+                            200: '#c7d2fe',
+                            300: '#a5b4fc',
+                            400: '#818cf8',
+                            500: '#6366f1',
+                            600: '#4f46e5',
+                            700: '#4338ca',
+                            800: '#3730a3',
+                            900: '#312e81',
+                        }
+                    }
+                }
+            }
+        }
+    </script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/all.min.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/animate.css/4.1.1/animate.min.css"/>
+    <script src="https://cdn.jsdelivr.net/npm/echarts@5.4.3/dist/echarts.min.js"></script>
 </head>
 <div th:fragment="main-content" xmlns:sec="http://www.w3.org/1999/xhtml">
-    <!-- Sidebar Toggle Button (visible on all screens) -->
     <div class="fixed top-4 left-4 z-50" id="sidebar-toggle">
         <button class="bg-white p-2 rounded-lg shadow-md hover:bg-gray-100 transition-colors">
             <i class="fas fa-bars text-gray-600"></i>
@@ -16,147 +51,259 @@
     </div>
 
     <main class="bg-gray-100 min-h-screen p-2 sm:p-4 transition-all duration-300" id="main-content">
-        <div class="max-w-7xl mx-auto space-y-3 sm:space-y-4">
-            <!-- Page Header -->
-            <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-2">
+        <div class="max-w-7xl mx-auto space-y-6">
+            <div class="flex flex-col md:flex-row gap-4 items-center justify-between p-4 bg-gradient-to-r from-primary-600 to-secondary-600 rounded-lg text-white shadow-lg animate__animated animate__fadeIn">
                 <div>
-                    <h1 class="text-xl sm:text-2xl font-bold text-gray-800">Audit Log</h1>
-                    <p class="text-xs sm:text-sm text-gray-500">Theo dõi hoạt động hệ thống và người dùng</p>
-                </div>
-                <div class="flex items-center gap-2">
-                    <button class="bg-white text-gray-600 px-3 py-1.5 rounded-lg shadow text-xs sm:text-sm flex items-center gap-1 hover:bg-gray-50">
-                        <i class="fas fa-download"></i>
-                        <span>Export</span>
-                    </button>
-                    <button class="bg-orange-500 text-white px-3 py-1.5 rounded-lg shadow text-xs sm:text-sm flex items-center gap-1 hover:bg-orange-600">
-                        <i class="fas fa-trash-alt"></i>
-                        <span>Clear Logs</span>
-                    </button>
+                    <h1 class="text-2xl font-bold">Audit Log</h1>
+                    <p class="text-primary-100">Tracking System behaviors and user actions</p>
                 </div>
             </div>
 
-            <!-- Filter Section -->
-            <div class="bg-white rounded-lg shadow p-3">
-                <div class="flex flex-col sm:flex-row gap-2 sm:gap-4">
-                    <div class="flex-1">
-                        <label class="block text-xs text-gray-500 mb-1">Tìm kiếm</label>
-                        <div class="relative">
-                            <input type="text" placeholder="Tìm theo người dùng, hành động..."
-                                   class="w-full border rounded-lg pl-8 pr-3 py-1.5 text-sm focus:outline-none focus:ring-2 focus:ring-orange-500 focus:border-transparent">
-                            <i class="fas fa-search absolute left-3 top-2.5 text-gray-400"></i>
-                        </div>
+            <div class="grid grid-cols-1 lg:grid-cols-2 gap-6 animate__animated animate__fadeIn">
+                <div class="bg-white p-4 rounded-lg shadow-lg">
+                    <h2 class="text-lg font-semibold mb-2 text-gray-700">Action Distribution</h2>
+                    <div id="actionTypesChart" class="w-full h-64"></div>
+                </div>
+
+                <div class="bg-white p-4 rounded-lg shadow-lg">
+                    <h2 class="text-lg font-semibold mb-2 text-gray-700">Activities</h2>
+                    <div id="activityTimelineChart" class="w-full h-64"></div>
+                </div>
+            </div>
+
+            <div id="activityTimelineData" class="hidden"
+                 th:data-dates="${activityTimeline != null ? activityTimeline.dates : ''}"
+                 th:data-views="${activityTimeline != null ? activityTimeline.views : ''}"
+                 th:data-navigates="${activityTimeline != null ? activityTimeline.navigates : ''}"
+                 th:data-updates="${activityTimeline != null ? activityTimeline.updates : ''}"
+                 th:data-creates="${activityTimeline != null ? activityTimeline.creates : ''}"
+                 th:data-errors="${activityTimeline != null ? activityTimeline.errors : ''}">
+            </div>
+
+            <div class="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-4 animate__animated animate__fadeIn">
+                <div class="bg-white p-4 rounded-lg shadow-lg flex flex-col items-center">
+                    <div class="bg-primary-50 p-3 rounded-full text-primary-500 mb-2">
+                        <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                  d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"/>
+                        </svg>
                     </div>
-                    <div class="w-full sm:w-40">
-                        <label class="block text-xs text-gray-500 mb-1">Loại sự kiện</label>
-                        <select class="w-full border rounded-lg px-3 py-1.5 text-sm focus:outline-none focus:ring-2 focus:ring-orange-500 focus:border-transparent">
-                            <option value="">Tất cả</option>
-                            <option value="login">Đăng nhập</option>
-                            <option value="create">Tạo mới</option>
-                            <option value="update">Cập nhật</option>
-                            <option value="delete">Xóa</option>
-                            <option value="export">Xuất dữ liệu</option>
-                        </select>
+                    <p class="text-sm text-gray-500">All</p>
+                    <h2 class="text-xl font-bold" id="totalLogs" th:text="${quantity['totalLogs']}">0</h2>
+                </div>
+
+                <div class="bg-white p-4 rounded-lg shadow-lg flex flex-col items-center">
+                    <div class="bg-green-50 p-3 rounded-full text-green-500 mb-2">
+                        <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                  d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/>
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                  d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"/>
+                        </svg>
                     </div>
-                    <div class="w-full sm:w-40">
-                        <label class="block text-xs text-gray-500 mb-1">Mức độ</label>
-                        <select class="w-full border rounded-lg px-3 py-1.5 text-sm focus:outline-none focus:ring-2 focus:ring-orange-500 focus:border-transparent">
-                            <option value="">Tất cả</option>
-                            <option value="info">Thông tin</option>
-                            <option value="warning">Cảnh báo</option>
-                            <option value="error">Lỗi</option>
-                        </select>
+                    <p class="text-sm text-gray-500">View</p>
+                    <h2 class="text-xl font-bold" id="totalViews" th:text="${quantity['totalViews']}">0</h2>
+                </div>
+
+                <div class="bg-white p-4 rounded-lg shadow-lg flex flex-col items-center">
+                    <div class="bg-blue-50 p-3 rounded-full text-blue-500 mb-2">
+                        <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                  d="M9 5l7 7-7 7"/>
+                        </svg>
                     </div>
-                    <div class="w-full sm:w-44">
-                        <label class="block text-xs text-gray-500 mb-1">Thời gian</label>
-                        <input type="date" class="w-full border rounded-lg px-3 py-1.5 text-sm focus:outline-none focus:ring-2 focus:ring-orange-500 focus:border-transparent">
+                    <p class="text-sm text-gray-500">Navigate</p>
+                    <h2 class="text-xl font-bold" id="totalNavigates" th:text="${quantity['totalNavigates']}">0</h2>
+                </div>
+
+                <div class="bg-white p-4 rounded-lg shadow-lg flex flex-col items-center">
+                    <div class="bg-yellow-50 p-3 rounded-full text-yellow-500 mb-2">
+                        <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                  d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"/>
+                        </svg>
                     </div>
-                    <div class="flex items-end">
-                        <button class="bg-orange-500 text-white px-4 py-1.5 rounded-lg text-sm hover:bg-orange-600">
-                            Lọc
-                        </button>
+                    <p class="text-sm text-gray-500">Update</p>
+                    <h2 class="text-xl font-bold" id="totalUpdates" th:text="${quantity['totalUpdates']}">0</h2>
+                </div>
+
+                <div class="bg-white p-4 rounded-lg shadow-lg flex flex-col items-center">
+                    <div class="bg-purple-50 p-3 rounded-full text-purple-500 mb-2">
+                        <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                  d="M12 6v6m0 0v6m0-6h6m-6 0H6"/>
+                        </svg>
+                    </div>
+                    <p class="text-sm text-gray-500">Create</p>
+                    <h2 class="text-xl font-bold" id="totalCreates" th:text="${quantity['totalCreates']}">0</h2>
+                </div>
+
+                <div class="bg-white p-4 rounded-lg shadow-lg flex flex-col items-center">
+                    <div class="bg-red-50 p-3 rounded-full text-red-500 mb-2">
+                        <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                  d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/>
+                        </svg>
+                    </div>
+                    <p class="text-sm text-gray-500">Error</p>
+                    <h2 class="text-xl font-bold" id="totalErrors" th:text="${quantity['totalErrors']}">0</h2>
+                </div>
+            </div>
+
+            <div class="bg-white rounded-lg shadow-lg p-4 space-y-4 animate__animated animate__fadeInUp">
+                <div class="flex flex-col md:flex-row gap-4">
+                    <div class="w-full md:w-auto flex-1">
+                        <label class="block text-sm text-gray-500 mb-1">Search</label>
+                        <form th:action="@{/admin/logs}" method="get" class="relative">
+                            <input type="text" name="query" placeholder="Find by user"
+                                   th:value="${param.query}"
+                                   class="w-full border rounded-lg pl-8 pr-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent">
+                            <svg class="w-4 h-4 absolute left-3 top-2.5 text-gray-400" fill="none" stroke="currentColor"
+                                 viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                      d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/>
+                            </svg>
+                            <button type="submit" class="hidden">Search</button>
+                            <input type="hidden" name="actionType" th:value="${param.actionType}" th:if="${param.actionType != null}">
+                            <input type="hidden" name="date" th:value="${param.date}" th:if="${param.date != null}">
+                            <input type="hidden" name="sort" th:value="${param.sort}" th:if="${param.sort != null}">
+                            <input type="hidden" name="dir" th:value="${param.dir}" th:if="${param.dir != null}">
+                        </form>
+                    </div>
+
+                    <div class="w-full md:w-40">
+                        <label class="block text-sm text-gray-500 mb-1">Type</label>
+                        <form th:action="@{/admin/logs}" method="get">
+                            <select name="actionType" onchange="this.form.submit()"
+                                    class="w-full border rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent">
+                                <option value="">Tất cả</option>
+                                <option value="Navigate"
+                                        th:selected="${param.actionType != null && param.actionType[0] == 'Navigate'}">
+                                    Navigate
+                                </option>
+                                <option value="View"
+                                        th:selected="${param.actionType != null && param.actionType[0] == 'View'}">View
+                                </option>
+                                <option value="Create"
+                                        th:selected="${param.actionType != null && param.actionType[0] == 'Create'}">
+                                    Create
+                                </option>
+                                <option value="Update"
+                                        th:selected="${param.actionType != null && param.actionType[0] == 'Update'}">
+                                    Update
+                                </option>
+                                <option value="Error"
+                                        th:selected="${param.actionType != null && param.actionType[0] == 'Error'}">
+                                    Error
+                                </option>
+                            </select>
+                            <input type="hidden" name="query" th:value="${param.query}" th:if="${param.query != null}">
+                            <input type="hidden" name="date" th:value="${param.date}" th:if="${param.date != null}">
+                            <input type="hidden" name="sort" th:value="${param.sort}" th:if="${param.sort != null}">
+                            <input type="hidden" name="dir" th:value="${param.dir}" th:if="${param.dir != null}">
+                        </form>
+                    </div>
+
+                    <div class="w-full md:w-44">
+                        <label class="block text-sm text-gray-500 mb-1">Time</label>
+                        <form th:action="@{/admin/logs}" method="get">
+                            <input type="date" name="date" th:value="${param.date}" onchange="this.form.submit()"
+                                   class="w-full border rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent">
+                            <input type="hidden" name="query" th:value="${param.query}" th:if="${param.query != null}">
+                            <input type="hidden" name="actionType" th:value="${param.actionType}" th:if="${param.actionType != null}">
+                            <input type="hidden" name="sort" th:value="${param.sort}" th:if="${param.sort != null}">
+                            <input type="hidden" name="dir" th:value="${param.dir}" th:if="${param.dir != null}">
+                        </form>
                     </div>
                 </div>
             </div>
 
-            <!-- Stats Cards -->
-            <div class="grid grid-cols-2 sm:grid-cols-4 gap-2 sm:gap-3">
-                <div class="bg-white p-2 sm:p-3 rounded-lg shadow flex flex-col sm:flex-row items-center gap-2 sm:gap-3">
-                    <div class="bg-blue-50 p-2 rounded-full text-blue-500">
-                        <i class="fas fa-user-shield text-lg sm:text-xl"></i>
-                    </div>
-                    <div class="text-center sm:text-left">
-                        <p class="text-xs sm:text-sm text-gray-500">Tổng sự kiện</p>
-                        <h2 class="text-lg sm:text-xl font-bold" th:text="${quantity['totalLogs']}"></h2>
-                    </div>
-                </div>
-
-                <div class="bg-white p-2 sm:p-3 rounded-lg shadow flex flex-col sm:flex-row items-center gap-2 sm:gap-3">
-                    <div class="bg-green-50 p-2 rounded-full text-green-500">
-                        <i class="fas fa-info-circle text-lg sm:text-xl"></i>
-                    </div>
-                    <div class="text-center sm:text-left">
-                        <p class="text-xs sm:text-sm text-gray-500">View</p>
-                        <h2 class="text-lg sm:text-xl font-bold" th:text="${quantity['totalViews']}"></h2>
-                    </div>
-                </div>
-
-                <div class="bg-white p-2 sm:p-3 rounded-lg shadow flex flex-col sm:flex-row items-center gap-2 sm:gap-3">
-                    <div class="bg-yellow-50 p-2 rounded-full text-yellow-500">
-                        <i class="fas fa-exclamation-triangle text-lg sm:text-xl"></i>
-                    </div>
-                    <div class="text-center sm:text-left">
-                        <p class="text-xs sm:text-sm text-gray-500">Update</p>
-                        <h2 class="text-lg sm:text-xl font-bold" th:text="${quantity['totalUpdates']}"></h2>
-                    </div>
-                </div>
-
-                <div class="bg-white p-2 sm:p-3 rounded-lg shadow flex flex-col sm:flex-row items-center gap-2 sm:gap-3">
-                    <div class="bg-red-50 p-2 rounded-full text-red-500">
-                        <i class="fas fa-bug text-lg sm:text-xl"></i>
-                    </div>
-                    <div class="text-center sm:text-left">
-                        <p class="text-xs sm:text-sm text-gray-500">Error</p>
-                        <h2 class="text-lg sm:text-xl font-bold" th:text="${quantity['totalErrors']}"></h2>
-                    </div>
-                </div>
-            </div>
-
-            <!-- Audit Log Table -->
-            <div class="bg-white rounded-lg shadow overflow-hidden">
+            <div class="bg-white rounded-lg shadow-lg overflow-hidden animate__animated animate__fadeIn">
                 <div class="overflow-x-auto">
-                    <table class="min-w-full">
-                        <thead>
-                        <tr class="bg-gray-50 text-left">
-                            <th class="py-2 px-3 text-xs font-medium text-gray-500 uppercase tracking-wider">Thời gian</th>
-                            <th class="py-2 px-3 text-xs font-medium text-gray-500 uppercase tracking-wider">Người dùng</th>
-                            <th class="py-2 px-3 text-xs font-medium text-gray-500 uppercase tracking-wider">Loại</th>
-                            <th class="py-2 px-3 text-xs font-medium text-gray-500 uppercase tracking-wider">Hành động</th>
-                            <th class="py-2 px-3 text-xs font-medium text-gray-500 uppercase tracking-wider">Chi tiết</th>
+                    <table class="w-full min-w-[1024px]">
+                        <thead class="bg-gray-50">
+                        <tr>
+                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                <a th:href="@{/admin/logs(sort='createdAt', dir=${param.dir != null && param.dir[0] == 'asc' ? 'desc' : 'asc'}, query=${param.query}, actionType=${param.actionType}, date=${param.date})}"
+                                   class="flex items-center gap-1 hover:text-gray-700">
+                                    Time
+                                    <i th:if="${param.sort != null && param.sort[0] == 'createdAt'}"
+                                       class="fas fa-sort"
+                                       th:class="${param.dir != null && param.dir[0] == 'asc' ? 'fas fa-sort-up' : 'fas fa-sort-down'}"></i>
+                                </a>
+                            </th>
+                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                <a th:href="@{/admin/logs(sort='user.username', dir=${param.dir != null && param.dir[0] == 'asc' ? 'desc' : 'asc'}, query=${param.query}, actionType=${param.actionType}, date=${param.date})}"
+                                   class="flex items-center gap-1 hover:text-gray-700">
+                                    User
+                                    <i th:if="${param.sort != null && param.sort[0] == 'user.username'}"
+                                       class="fas fa-sort"
+                                       th:class="${param.dir != null && param.dir[0] == 'asc' ? 'fas fa-sort-up' : 'fas fa-sort-down'}"></i>
+                                </a>
+                            </th>
+                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                <a th:href="@{/admin/logs(sort='actionType', dir=${param.dir != null && param.dir[0] == 'asc' ? 'desc' : 'asc'}, query=${param.query}, actionType=${param.actionType}, date=${param.date})}"
+                                   class="flex items-center gap-1 hover:text-gray-700">
+                                    Type
+                                    <i th:if="${param.sort != null && param.sort[0] == 'actionType'}"
+                                       class="fas fa-sort"
+                                       th:class="${param.dir != null && param.dir[0] == 'asc' ? 'fas fa-sort-up' : 'fas fa-sort-down'}"></i>
+                                </a>
+                            </th>
+                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                Action
+                            </th>
+                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider text-right">
+                                Details
+                            </th>
                         </tr>
                         </thead>
-                        <tbody class="divide-y divide-gray-200">
-                        <!-- Log Entry -->
-                        <tr class="hover:bg-gray-50" th:each="log, logStat : ${auditLogs}">
-                            <td class="py-2 px-3 whitespace-nowrap text-xs">
-                                <div class="text-gray-900" th:text="${#temporals.format(log.createdAt, 'dd/MM/yyyy')}"></div>
-                                <div class="text-gray-500" th:text="${#temporals.format(log.createdAt, 'HH:mm:ss')}"></div>
+                        <tbody class="divide-y divide-gray-200 min-h-[400px]">
+                        <tr class="hover:bg-gray-50 transition-colors" th:each="log, logStat : ${auditLogs.content}">
+                            <td class="px-6 py-4 whitespace-nowrap">
+                                <div class="text-sm font-medium text-gray-900"
+                                     th:text="${#temporals.format(log.createdAt, 'dd/MM/yyyy')}"></div>
+                                <div class="text-sm text-gray-500"
+                                     th:text="${#temporals.format(log.createdAt, 'HH:mm:ss')}"></div>
                             </td>
-                            <td class="py-2 px-3 whitespace-nowrap">
+                            <td class="px-6 py-4 whitespace-nowrap">
                                 <div class="flex items-center">
-                                    <div class="w-6 h-6 rounded-full bg-blue-100 flex items-center justify-center text-xs font-semibold text-blue-700 mr-2"
+                                    <div class="w-8 h-8 rounded-full bg-primary-100 flex items-center justify-center text-xs font-semibold text-primary-700 mr-2"
                                          th:text="${T(java.lang.String).format('%c', log.user.username.toUpperCase().charAt(0))}"></div>
-                                    <span class="text-xs font-medium text-gray-900" th:text="${log.user.username}"></span>
+                                    <span class="text-sm font-medium text-gray-900"
+                                          th:text="${log.user.username}"></span>
                                 </div>
                             </td>
-                            <td class="py-2 px-3 whitespace-nowrap">
-                                <span class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full bg-blue-100 text-blue-800"
+                            <td class="px-6 py-4 whitespace-nowrap">
+                                <span th:if="${log.actionType == 'Navigate'}"
+                                      class="px-2 py-1 inline-flex text-xs leading-5 font-semibold rounded-full bg-blue-100 text-blue-800">
+                                    Navigate
+                                </span>
+                                <span th:if="${log.actionType == 'View'}"
+                                      class="px-2 py-1 inline-flex text-xs leading-5 font-semibold rounded-full bg-green-100 text-green-800">
+                                    View
+                                </span>
+                                <span th:if="${log.actionType == 'Create'}"
+                                      class="px-2 py-1 inline-flex text-xs leading-5 font-semibold rounded-full bg-purple-100 text-purple-800">
+                                    Create
+                                </span>
+                                <span th:if="${log.actionType == 'Update'}"
+                                      class="px-2 py-1 inline-flex text-xs leading-5 font-semibold rounded-full bg-yellow-100 text-yellow-800">
+                                    Update
+                                </span>
+                                <span th:if="${log.actionType == 'Error'}"
+                                      class="px-2 py-1 inline-flex text-xs leading-5 font-semibold rounded-full bg-red-100 text-red-800">
+                                    Error
+                                </span>
+                                <span th:if="${log.actionType != 'Navigate' && log.actionType != 'View' && log.actionType != 'Create' && log.actionType != 'Update' && log.actionType != 'Error'}"
+                                      class="px-2 py-1 inline-flex text-xs leading-5 font-semibold rounded-full bg-primary-100 text-primary-800"
                                       th:text="${log.actionType}">
                                 </span>
                             </td>
-                            <td class="py-2 px-3 whitespace-nowrap text-xs text-gray-900"
+                            <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500"
                                 th:text="${log.actionInfo}"></td>
-                            <td class="py-2 px-3 whitespace-nowrap text-xs text-gray-500">
-                                <button class="text-orange-500 hover:text-orange-700 view-log-btn"
+                            <td class="px-6 py-4 whitespace-nowrap text-right text-sm">
+                                <button class="text-primary-500 hover:text-primary-700 transition-colors view-log-btn"
                                         th:data-log-id="${log.logId}"
                                         th:data-log-date="${#temporals.format(log.createdAt, 'dd/MM/yyyy')}"
                                         th:data-log-time="${#temporals.format(log.createdAt, 'HH:mm:ss')}"
@@ -165,70 +312,90 @@
                                         th:data-log-action-info="${log.actionInfo}"
                                         th:data-log-user-id="${log.user.userId}"
                                         th:data-log-role="${log.user.role}">
-                                    <i class="fas fa-eye"></i>
+                                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                              d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/>
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                              d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"/>
+                                    </svg>
                                 </button>
+                            </td>
+                        </tr>
+                        <tr th:if="${auditLogs.isEmpty()}" class="h-[400px]">
+                            <td colspan="5" class="text-center text-gray-500 py-8">
+                                No records found
                             </td>
                         </tr>
                         </tbody>
                     </table>
                 </div>
 
-                <div th:replace="~{fragments/pagination :: pagination(${auditLogs}, '/admin/logs', null, null)}"></div>
-
+                <div th:with="sortField=(${param.sort != null and !param.sort.isEmpty()} ? ${param.sort[0]} : 'createdAt'),
+                direction=(${param.dir != null and !param.dir.isEmpty()} ? ${param.dir[0]} : 'desc')">
+                    <div th:replace="~{fragments/pagination :: pagination(${auditLogs}, '/admin/logs', ${sortField}, ${direction})}">
+                    </div>
+                </div>
             </div>
 
-            <!-- Log Details Modal (Hidden by default) -->
-            <div class="fixed inset-0 bg-black bg-opacity-50 z-50 hidden" id="log-detail-modal">
+            <div class="fixed inset-0 bg-black bg-opacity-50 z-50 hidden animate__animated animate__fadeIn"
+                 id="log-detail-modal">
                 <div class="flex items-center justify-center min-h-screen p-4">
-                    <div class="bg-white rounded-lg shadow-lg w-full max-w-2xl">
+                    <div class="bg-white rounded-lg shadow-lg w-full max-w-2xl animate__animated animate__zoomIn">
                         <div class="p-4 border-b flex justify-between items-center">
-                            <h3 class="font-bold text-lg">Chi tiết log</h3>
+                            <h3 class="font-bold text-lg">Log Details</h3>
                             <button class="text-gray-500 hover:text-gray-700" onclick="closeLogModal()">
-                                <i class="fas fa-times"></i>
+                                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                          d="M6 18L18 6M6 6l12 12"/>
+                                </svg>
                             </button>
                         </div>
                         <div class="p-4 max-h-96 overflow-y-auto">
                             <div class="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-4">
                                 <div>
-                                    <p class="text-xs text-gray-500 mb-1">Thời gian</p>
+                                    <p class="text-xs text-gray-500 mb-1">Time</p>
                                     <p class="text-sm font-medium" id="modal-date">--/--/---- --:--:--</p>
                                 </div>
                                 <div>
-                                    <p class="text-xs text-gray-500 mb-1">Người dùng</p>
+                                    <p class="text-xs text-gray-500 mb-1">User</p>
                                     <div class="flex items-center">
-                                        <div class="w-6 h-6 rounded-full bg-blue-100 flex items-center justify-center text-xs font-semibold text-blue-700 mr-2" id="modal-user-initial">--</div>
+                                        <div class="w-6 h-6 rounded-full bg-primary-100 flex items-center justify-center text-xs font-semibold text-primary-700 mr-2"
+                                             id="modal-user-initial">--
+                                        </div>
                                         <span class="text-sm font-medium" id="modal-username">------</span>
                                     </div>
                                 </div>
                                 <div>
-                                    <p class="text-xs text-gray-500 mb-1">ID người dùng</p>
+                                    <p class="text-xs text-gray-500 mb-1">ID</p>
                                     <p class="text-sm font-medium" id="modal-user-id">--</p>
                                 </div>
                                 <div>
-                                    <p class="text-xs text-gray-500 mb-1">Vai trò</p>
-                                    <span class="px-2 py-0.5 inline-flex text-xs leading-5 font-semibold rounded-full bg-blue-100 text-blue-800" id="modal-role">
+                                    <p class="text-xs text-gray-500 mb-1">Role</p>
+                                    <span class="px-2 py-0.5 inline-flex text-xs leading-5 font-semibold rounded-full bg-primary-100 text-primary-800"
+                                          id="modal-role">
                                         --
                                     </span>
                                 </div>
                                 <div>
-                                    <p class="text-xs text-gray-500 mb-1">Loại hành động</p>
-                                    <span class="px-2 py-0.5 inline-flex text-xs leading-5 font-semibold rounded-full bg-blue-100 text-blue-800" id="modal-action-type">
+                                    <p class="text-xs text-gray-500 mb-1">Action Type</p>
+                                    <span class="px-2 py-0.5 inline-flex text-xs leading-5 font-semibold rounded-full bg-primary-100 text-primary-800"
+                                          id="modal-action-type">
                                         --
                                     </span>
                                 </div>
                                 <div>
-                                    <p class="text-xs text-gray-500 mb-1">ID Log</p>
+                                    <p class="text-xs text-gray-500 mb-1">Log ID</p>
                                     <p class="text-sm font-medium" id="modal-log-id">--</p>
                                 </div>
                             </div>
 
                             <div class="mb-4">
-                                <p class="text-xs text-gray-500 mb-1">Mô tả hành động</p>
+                                <p class="text-xs text-gray-500 mb-1">Info</p>
                                 <p class="text-sm" id="modal-action-info">--</p>
                             </div>
 
                             <div>
-                                <p class="text-xs text-gray-500 mb-1">Dữ liệu chi tiết</p>
+                                <p class="text-xs text-gray-500 mb-1">Details</p>
                                 <pre class="bg-gray-50 p-3 rounded text-xs overflow-x-auto" id="modal-json-data">
 {
   "logId": "--",
@@ -243,7 +410,8 @@
                             </div>
                         </div>
                         <div class="p-4 border-t flex justify-end">
-                            <button class="bg-gray-200 text-gray-700 px-4 py-1.5 rounded-lg text-sm hover:bg-gray-300" onclick="closeLogModal()">
+                            <button class="bg-gray-200 text-gray-700 px-4 py-1.5 rounded-lg text-sm hover:bg-gray-300 transition-colors"
+                                    onclick="closeLogModal()">
                                 Đóng
                             </button>
                         </div>
@@ -258,35 +426,34 @@
                 const mainContent = document.getElementById('main-content');
                 const sidebar = document.querySelector('aside');
 
-                const sidebarCollapsed = localStorage.getItem('sidebarCollapsed') === 'true';
+                if (sidebar) {
+                    const sidebarCollapsed = localStorage.getItem('sidebarCollapsed') === 'true';
 
-                if (sidebarCollapsed) {
-                    sidebar.classList.add('collapsed');
-                    mainContent.classList.add('sidebar-collapsed');
+                    if (sidebarCollapsed) {
+                        sidebar.classList.add('collapsed');
+                        mainContent.classList.add('sidebar-collapsed');
+                    }
+
+                    sidebarToggle.addEventListener('click', () => {
+                        sidebar.classList.toggle('collapsed');
+                        mainContent.classList.toggle('sidebar-collapsed');
+
+                        localStorage.setItem('sidebarCollapsed', sidebar.classList.contains('collapsed'));
+                    });
                 }
 
-                sidebarToggle.addEventListener('click', () => {
-                    sidebar.classList.toggle('collapsed');
-                    mainContent.classList.toggle('sidebar-collapsed');
-
-                    localStorage.setItem('sidebarCollapsed', sidebar.classList.contains('collapsed'));
-                });
-
-                // Add click event to all view log buttons
                 document.querySelectorAll('.view-log-btn').forEach(button => {
                     button.addEventListener('click', () => {
-                        // Get data from button attributes
                         const logId = button.getAttribute('data-log-id');
                         const date = button.getAttribute('data-log-date');
                         const time = button.getAttribute('data-log-time');
                         const username = button.getAttribute('data-log-username');
-                        const userInitial = button.getAttribute('data-log-initial');
+                        const userInitial = username ? username.charAt(0).toUpperCase() : '';
                         const actionType = button.getAttribute('data-log-action-type');
                         const actionInfo = button.getAttribute('data-log-action-info');
                         const userId = button.getAttribute('data-log-user-id');
                         const role = button.getAttribute('data-log-role');
 
-                        // Update modal content
                         document.getElementById('modal-date').textContent = `${date} ${time}`;
                         document.getElementById('modal-username').textContent = username;
                         document.getElementById('modal-user-initial').textContent = userInitial;
@@ -296,7 +463,6 @@
                         document.getElementById('modal-role').textContent = role;
                         document.getElementById('modal-log-id').textContent = logId;
 
-                        // Update JSON data
                         const jsonData = {
                             logId: logId,
                             userId: userId,
@@ -309,14 +475,224 @@
 
                         document.getElementById('modal-json-data').textContent = JSON.stringify(jsonData, null, 2);
 
-                        // Show modal
-                        document.getElementById('log-detail-modal').classList.remove('hidden');
+                        const modal = document.getElementById('log-detail-modal');
+                        modal.classList.remove('hidden');
                     });
                 });
+
+                document.getElementById('log-detail-modal').addEventListener('click', function (event) {
+                    if (event.target === this) {
+                        closeLogModal();
+                    }
+                });
+
+                initializeCharts();
             });
 
             function closeLogModal() {
                 document.getElementById('log-detail-modal').classList.add('hidden');
+            }
+
+            function initializeCharts() {
+                const totalLogs = parseInt(document.getElementById('totalLogs').textContent) || 0;
+                const totalViews = parseInt(document.getElementById('totalViews').textContent) || 0;
+                const totalNavigates = parseInt(document.getElementById('totalNavigates').textContent) || 0;
+                const totalUpdates = parseInt(document.getElementById('totalUpdates').textContent) || 0;
+                const totalCreates = parseInt(document.getElementById('totalCreates').textContent) || 0;
+                const totalErrors = parseInt(document.getElementById('totalErrors').textContent) || 0;
+
+                const actionTypesChart = echarts.init(document.getElementById('actionTypesChart'));
+                const actionTypesOption = {
+                    tooltip: {
+                        trigger: 'item',
+                        formatter: '{a} <br/>{b}: {c} ({d}%)'
+                    },
+                    legend: {
+                        orient: 'vertical',
+                        right: 10,
+                        top: 'center',
+                        data: ['View', 'Navigate', 'Update', 'Create', 'Error']
+                    },
+                    series: [
+                        {
+                            name: 'Loại hành động',
+                            type: 'pie',
+                            radius: ['50%', '70%'],
+                            avoidLabelOverlap: false,
+                            itemStyle: {
+                                borderRadius: 10,
+                                borderColor: '#fff',
+                                borderWidth: 2
+                            },
+                            label: {
+                                show: false,
+                                position: 'center'
+                            },
+                            emphasis: {
+                                label: {
+                                    show: true,
+                                    fontSize: '16',
+                                    fontWeight: 'bold'
+                                }
+                            },
+                            labelLine: {
+                                show: false
+                            },
+                            data: [
+                                {value: totalViews, name: 'View', itemStyle: {color: '#10B981'}},
+                                {value: totalNavigates, name: 'Navigate', itemStyle: {color: '#3B82F6'}},
+                                {value: totalUpdates, name: 'Update', itemStyle: {color: '#F59E0B'}},
+                                {value: totalCreates, name: 'Create', itemStyle: {color: '#8B5CF6'}},
+                                {value: totalErrors, name: 'Error', itemStyle: {color: '#EF4444'}}
+                            ]
+                        }
+                    ]
+                };
+                actionTypesChart.setOption(actionTypesOption);
+
+                const activityTimelineChart = echarts.init(document.getElementById('activityTimelineChart'));
+
+                const timelineDataElement = document.getElementById('activityTimelineData');
+
+                let dates = [];
+                let viewData = [];
+                let navigateData = [];
+                let updateData = [];
+                let createData = [];
+                let errorData = [];
+
+                if (timelineDataElement) {
+                    const datesString = timelineDataElement.getAttribute('data-dates');
+                    const viewsString = timelineDataElement.getAttribute('data-views');
+                    const navigatesString = timelineDataElement.getAttribute('data-navigates');
+                    const updatesString = timelineDataElement.getAttribute('data-updates');
+                    const createsString = timelineDataElement.getAttribute('data-creates');
+                    const errorsString = timelineDataElement.getAttribute('data-errors');
+
+                    if (datesString && datesString.length > 0) {
+                        dates = datesString.split(',');
+                        viewData = viewsString ? viewsString.split(',').map(Number) : [];
+                        navigateData = navigatesString ? navigatesString.split(',').map(Number) : [];
+                        updateData = updatesString ? updatesString.split(',').map(Number) : [];
+                        createData = createsString ? createsString.split(',').map(Number) : [];
+                        errorData = errorsString ? errorsString.split(',').map(Number) : [];
+                    } else {
+                        const today = new Date();
+                        for (let i = 6; i >= 0; i--) {
+                            const date = new Date(today);
+                            date.setDate(today.getDate() - i);
+                            dates.push(`${date.getDate()}/${date.getMonth() + 1}`);
+
+                            viewData.push(Math.floor(Math.random() * (totalViews / 7 || 1)));
+                            navigateData.push(Math.floor(Math.random() * (totalNavigates / 7 || 1)));
+                            updateData.push(Math.floor(Math.random() * (totalUpdates / 7 || 1)));
+                            createData.push(Math.floor(Math.random() * (totalCreates / 7 || 1)));
+                            errorData.push(Math.floor(Math.random() * (totalErrors / 7 || 1)));
+                        }
+                    }
+                } else {
+                    const today = new Date();
+                    for (let i = 6; i >= 0; i--) {
+                        const date = new Date(today);
+                        date.setDate(today.getDate() - i);
+                        dates.push(`${date.getDate()}/${date.getMonth() + 1}`);
+
+                        viewData.push(Math.floor(Math.random() * (totalViews / 7 || 1)));
+                        navigateData.push(Math.floor(Math.random() * (totalNavigates / 7 || 1)));
+                        updateData.push(Math.floor(Math.random() * (totalUpdates / 7 || 1)));
+                        createData.push(Math.floor(Math.random() * (totalCreates / 7 || 1)));
+                        errorData.push(Math.floor(Math.random() * (totalErrors / 7 || 1)));
+                    }
+                }
+
+                const activityTimelineOption = {
+                    tooltip: {
+                        trigger: 'axis',
+                        axisPointer: {
+                            type: 'shadow'
+                        }
+                    },
+                    legend: {
+                        data: ['View', 'Navigate', 'Update', 'Create', 'Error'],
+                        bottom: 0
+                    },
+                    grid: {
+                        left: '3%',
+                        right: '4%',
+                        bottom: '15%',
+                        top: '3%',
+                        containLabel: true
+                    },
+                    xAxis: [
+                        {
+                            type: 'category',
+                            data: dates
+                        }
+                    ],
+                    yAxis: [
+                        {
+                            type: 'value'
+                        }
+                    ],
+                    series: [
+                        {
+                            name: 'View',
+                            type: 'bar',
+                            stack: 'total',
+                            emphasis: {
+                                focus: 'series'
+                            },
+                            itemStyle: {color: '#10B981'},
+                            data: viewData
+                        },
+                        {
+                            name: 'Navigate',
+                            type: 'bar',
+                            stack: 'total',
+                            emphasis: {
+                                focus: 'series'
+                            },
+                            itemStyle: {color: '#3B82F6'},
+                            data: navigateData
+                        },
+                        {
+                            name: 'Update',
+                            type: 'bar',
+                            stack: 'total',
+                            emphasis: {
+                                focus: 'series'
+                            },
+                            itemStyle: {color: '#F59E0B'},
+                            data: updateData
+                        },
+                        {
+                            name: 'Create',
+                            type: 'bar',
+                            stack: 'total',
+                            emphasis: {
+                                focus: 'series'
+                            },
+                            itemStyle: {color: '#8B5CF6'},
+                            data: createData
+                        },
+                        {
+                            name: 'Error',
+                            type: 'bar',
+                            stack: 'total',
+                            emphasis: {
+                                focus: 'series'
+                            },
+                            itemStyle: {color: '#EF4444'},
+                            data: errorData
+                        }
+                    ]
+                };
+                activityTimelineChart.setOption(activityTimelineOption);
+
+                window.addEventListener('resize', function () {
+                    actionTypesChart.resize();
+                    activityTimelineChart.resize();
+                });
             }
         </script>
     </main>

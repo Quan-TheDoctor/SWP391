@@ -2,6 +2,7 @@ package com.se1873.js.springboot.project.controller;
 
 import com.se1873.js.springboot.project.dto.EmployeeDTO;
 import com.se1873.js.springboot.project.entity.Department;
+import com.se1873.js.springboot.project.entity.Employee;
 import com.se1873.js.springboot.project.entity.Position;
 import com.se1873.js.springboot.project.entity.User;
 import com.se1873.js.springboot.project.repository.EmployeeRepository;
@@ -22,11 +23,10 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.validation.BindingResult;
-import org.springframework.web.bind.annotation.ModelAttribute;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.bind.annotation.*;
 import org.springframework.core.io.Resource;
+import org.springframework.web.multipart.MultipartFile;
+import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 
 import java.util.Arrays;
 import java.util.List;
@@ -56,7 +56,6 @@ public class EmployeeController {
     @PageableDefault(size = 10, sort = "employeeId", direction = Sort.Direction.ASC) Pageable pageable,
     Model model,
     @ModelAttribute("loggedInUser") User loggedInUser) {
-
     Page<EmployeeDTO> employees = employeeService.getAll(pageable);
     var totalEmployees = employeeRepository.count();
     var avgSalary = employees.getContent().stream()
@@ -81,8 +80,9 @@ public class EmployeeController {
                      @ModelAttribute("loggedInUser") User loggedInUser) {
     var employeeDTO = employeeService.getEmployeeByEmployeeId(employeeId);
 
+    log.info(employeeDTO.toString());
     addCommonAttributes(model);
-    globalController.createAuditLog(loggedInUser, "View details of Employee #" + employeeDTO.getEmployeeId() , "View");
+    globalController.createAuditLog(loggedInUser, "View details of Employee #" + employeeDTO.getEmployeeId() , "View", "Normal");
     model.addAttribute("employeeDTO", employeeDTO);
     model.addAttribute("currentRequestURI", "/employee");
     model.addAttribute("contentFragment", "fragments/employee-view-fragments");
@@ -97,24 +97,36 @@ public class EmployeeController {
     model.addAttribute("contentFragment", "fragments/employee-create-fragments");
     return "index";
   }
-
   @PostMapping("/create/save")
-  public String createEmployee(@Valid @ModelAttribute("employeeDTO") EmployeeDTO employeeDTO,
-                               BindingResult bindingResult,
-                               Model model,
-                               @ModelAttribute("loggedInUser") User loggedInUser) {
+  public String saveEmployee(@ModelAttribute EmployeeDTO employeeDTO,
+                             @RequestParam(value = "avatarFile", required = false) MultipartFile avatarFile,
+                             RedirectAttributes redirectAttributes) {
+    try {
+      if (avatarFile != null && !avatarFile.isEmpty()) {
+        employeeDTO.setPicture(avatarFile.getBytes());
+      }
 
-    if (bindingResult.hasErrors()) {
-      model.addAttribute("departments", departmentService.getAllDepartments());
-      globalController.createAuditLog(loggedInUser, "Create new Employee" , "Error");
-      model.addAttribute("contentFragment", "fragments/employee-create-fragments");
-      return "index";
+      log.info(employeeDTO.toString());
+      employeeService.saveEmployee(employeeDTO);
+      redirectAttributes.addFlashAttribute("message", "Employee created successfully");
+      return "redirect:/employee";
+    } catch (Exception e) {
+      redirectAttributes.addFlashAttribute("message", "Error creating employee: " + e.getMessage());
+      return "redirect:/employee/create/form";
     }
-
-    globalController.createAuditLog(loggedInUser, "Create new Employee ID #" + employeeDTO.getEmployeeId() , "Create");
-    employeeService.saveEmployee(employeeDTO);
-    return "redirect:/employee";
   }
+
+  @GetMapping("/avatar/{id}")
+  public ResponseEntity<byte[]> getAvatar(@PathVariable Integer id) {
+    EmployeeDTO employee = employeeService.getEmployeeByEmployeeId(id);
+    if (employee != null && employee.getPicture() != null) {
+      return ResponseEntity.ok()
+        .contentType(MediaType.IMAGE_PNG)
+        .body(employee.getPicture());
+    }
+    return ResponseEntity.notFound().build();
+  }
+
 
   @PostMapping("/create/update")
   public String updateEmployee(@Valid @ModelAttribute("employeeDTO") EmployeeDTO employeeDTO,
@@ -124,12 +136,12 @@ public class EmployeeController {
 
     if (bindingResult.hasErrors()) {
       addCommonAttributes(model);
-      globalController.createAuditLog(loggedInUser, "Update Employee ID #" + employeeDTO.getEmployeeId() , "Error");
+      globalController.createAuditLog(loggedInUser, "Update Employee ID #" + employeeDTO.getEmployeeId() , "Error", "Normal");
       model.addAttribute("contentFragment", "fragments/employee-view-fragments");
       return "index";
     }
 
-    globalController.createAuditLog(loggedInUser, "Update Employee ID #" + employeeDTO.getEmployeeId() , "Update");
+    globalController.createAuditLog(loggedInUser, "Update Employee ID #" + employeeDTO.getEmployeeId() , "Update", "Normal");
     employeeService.saveEmployee(employeeDTO);
     return "redirect:/employee";
   }
@@ -148,7 +160,7 @@ public class EmployeeController {
 
     employeeDTOPage = employees;
 
-    globalController.createAuditLog(loggedInUser, "Filter list Employee by " + field , "View");
+    globalController.createAuditLog(loggedInUser, "Filter list Employee by " + field , "View", "Normal");
     addCommonAttributes(model);
     model.addAttribute("totalEmployees", totalEmployees);
     model.addAttribute("avgSalary", avgSalary);
@@ -170,7 +182,7 @@ public class EmployeeController {
 
     employeeDTOPage = employees;
 
-    globalController.createAuditLog(loggedInUser, "Search Employee by " + query , "View");
+    globalController.createAuditLog(loggedInUser, "Search Employee by " + query , "View", "Normal");
     addCommonAttributes(model);
     model.addAttribute("employees", employees);
     model.addAttribute("totalEmployees", totalEmployees);
@@ -189,7 +201,7 @@ public class EmployeeController {
     Pageable pageable = PageRequest.of(page, size);
     var employees = employeeService.sort(employeeDTOPage, direction, field);
 
-    globalController.createAuditLog(loggedInUser, "Sort Employee by " + field + " in " + direction + " order", "View");
+    globalController.createAuditLog(loggedInUser, "Sort Employee by " + field + " in " + direction + " order", "View", "Normal");
     model.addAttribute("employees", employees);
     model.addAttribute("direction", direction);
     model.addAttribute("currentSortField", field);
@@ -206,6 +218,7 @@ public class EmployeeController {
     Pageable pageable = PageRequest.of(page, size);
     var employees = employeeService.exportFilteredEmployees(department, position, pageable);
     var totalEmployees = employees.getTotalElements();
+
 
     model.addAttribute("totalEmployees", totalEmployees);
     model.addAttribute("currentPage", page + 1);
@@ -233,7 +246,7 @@ public class EmployeeController {
 
     Resource file = employeeService.exportToExcel(employeeIds, department, position);
 
-    globalController.createAuditLog(loggedInUser, "Exports list Employees" , "Export");
+    globalController.createAuditLog(loggedInUser, "Exports list Employees" , "Export", "Normal");
     return ResponseEntity.ok()
       .header(HttpHeaders.CONTENT_DISPOSITION, "attachment; filename=employees.xlsx")
       .contentType(MediaType.APPLICATION_OCTET_STREAM)

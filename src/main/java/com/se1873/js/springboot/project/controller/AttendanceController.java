@@ -56,7 +56,12 @@ public class AttendanceController {
                            @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate startDate,
                            @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate endDate,
                            @RequestParam(value = "page", defaultValue = "0") Integer page,
-                           @RequestParam(value = "size", defaultValue = "5") Integer size) {
+                           @RequestParam(value = "size", defaultValue = "5") Integer size,
+                           @RequestParam(value = "view", required = false) String view) {
+    if("kanban".equals(view)) {
+      List<AttendanceDTO> allAttendances = attendanceService.getAllAttendances();
+      model.addAttribute("allAttendances", allAttendances);
+    }
     if (startDate == null || endDate == null) {
       startDate = LocalDate.now();
       endDate = LocalDate.now();
@@ -78,7 +83,7 @@ public class AttendanceController {
 
   @RequestMapping("/filter")
   public String filterStatus(Model model,
-                             @RequestParam("status") String status,
+                             @RequestParam(value = "status", required = false) String status,
                              @RequestParam(value = "page", defaultValue = "0") Integer page,
                              @RequestParam(value = "size", defaultValue = "5") Integer size,
                              @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate startDate,
@@ -145,8 +150,8 @@ public class AttendanceController {
   @RequestMapping("/summary")
   public String showPage(@ModelAttribute PayrollCalculationForm form,
                          Model model,
-                         @ModelAttribute("user") User user) {
-    if (user == null) {
+                         @ModelAttribute("loggedInUser") User loggedInUser) {
+    if (loggedInUser == null) {
       return "redirect:/login";
     }
 
@@ -182,7 +187,8 @@ public class AttendanceController {
         form.getPayrollCalculations().add(dto);
       }
     }
-    model.addAttribute("user", user);
+    model.addAttribute("departments", departmentService.getAllDepartments());
+    model.addAttribute("user", loggedInUser);
     model.addAttribute("payrollCalculationForm", form);
     model.addAttribute("contentFragment", "fragments/attendance-summary-fragments");
     return "index";
@@ -209,14 +215,14 @@ public class AttendanceController {
   public String calculatePayroll(@Valid @ModelAttribute PayrollCalculationForm form,
                                  BindingResult result,
                                  RedirectAttributes redirectAttributes,
-                                 @ModelAttribute("user") User user) {
+                                 @ModelAttribute("loggedInUser") User loggedInUser) {
     if (result.hasErrors()) {
       redirectAttributes.addFlashAttribute("error", "Cần chọn ít nhất 1 người để tổng hợp công");
       redirectAttributes.addFlashAttribute("payrollCalculationForm", form);
       return "redirect:/attendance/summary";
     }
 
-    form.setRequesterId(user.getUserId());
+    form.setRequesterId(loggedInUser.getUserId());
     salaryRecordService.savePayroll(form);
     return "redirect:/request";
   }

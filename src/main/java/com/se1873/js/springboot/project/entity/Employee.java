@@ -38,6 +38,9 @@ public class Employee {
   @Column(name = "gender")
   private String gender;
 
+  @Column(name = "picture")
+  private byte[] picture;
+
   @Column(name = "id_number", unique = true, nullable = false)
   private String idNumber;
 

@@ -13,6 +13,11 @@ public class WebController {
         return "index";
     }
 
+    @GetMapping("/face-recognition")
+    public String faceRecognitionPage(Model model) {
+        model.addAttribute("contentFragment", "fragments/face-recognition-fragments");
+        return "index";
+    }
     @GetMapping("/dashboard")
     public String dashboard() {
         return "dashboard";

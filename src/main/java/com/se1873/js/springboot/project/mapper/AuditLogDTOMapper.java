@@ -29,6 +29,7 @@ public abstract class AuditLogDTOMapper {
     auditLogDTO.setLogId(auditLog.getLogId());
     auditLogDTO.setActionInfo(auditLog.getActionInfo());
     auditLogDTO.setActionType(auditLog.getActionType());
+    auditLogDTO.setActionLevel(auditLog.getActionLevel());
     auditLogDTO.setCreatedAt(auditLog.getCreatedAt());
 
     if (auditLog.getUser() != null) {

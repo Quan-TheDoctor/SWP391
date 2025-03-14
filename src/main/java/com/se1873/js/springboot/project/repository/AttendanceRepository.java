@@ -9,6 +9,7 @@ import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 
 import java.time.LocalDate;
+import java.util.Arrays;
 import java.util.List;
 import java.util.Optional;
 
@@ -53,4 +54,7 @@ public interface AttendanceRepository extends JpaRepository<Attendance, Long> {
     """, nativeQuery = true)
   Page<Attendance> searchAttendanceByEmployeeName(@Param("searchText") String searchText, Pageable pageable);
 
+  List<Attendance>  findAllByDateBetween(LocalDate dateAfter, LocalDate dateBefore);
+
+  Attendance findByAttendanceId(Integer attendanceId);
 }
