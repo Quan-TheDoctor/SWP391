@@ -6,10 +6,17 @@ import com.se1873.js.springboot.project.service.*;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.core.io.Resource;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.format.annotation.DateTimeFormat;
+import org.springframework.http.HttpHeaders;
+import org.springframework.http.MediaType;
+import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
+import org.springframework.security.core.userdetails.UserDetails;
+import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.validation.BindingResult;
@@ -17,6 +24,8 @@ import org.springframework.web.bind.annotation.*;
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 
 import java.time.LocalDate;
+import java.util.*;
+import java.util.stream.Collectors;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
@@ -222,4 +231,60 @@ public class AttendanceController {
 
     return "redirect:/attendance";
   }
+  @RequestMapping("/export")
+  public ResponseEntity<Resource> exportAttendance(
+          @RequestParam(value = "selectedEmployees", required = false) String selectedEmployees,
+          @RequestParam(value = "startDate", required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate startDate,
+          @RequestParam(value = "endDate", required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate endDate) {
+
+    List<Integer> employeeIds = (selectedEmployees != null && !selectedEmployees.isEmpty())
+            ? Arrays.stream(selectedEmployees.split(",")).map(Integer::parseInt).collect(Collectors.toList())
+            : null;
+
+    if (startDate == null) {
+      startDate = LocalDate.of(2020, 1, 1);
+    }
+    if (endDate == null) {
+      endDate = LocalDate.now();
+    }
+
+    Resource file = attendanceService.exportAttendanceToExcel(employeeIds, startDate, endDate);
+
+    return ResponseEntity.ok()
+            .header(HttpHeaders.CONTENT_DISPOSITION, "attachment; filename=attendance.xlsx")
+            .contentType(MediaType.APPLICATION_OCTET_STREAM)
+            .body(file);
+  }
+
+  @RequestMapping("/export/view")
+  public String viewExportAttendance(
+          @RequestParam(value = "startDate", required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate startDate,
+          @RequestParam(value = "endDate", required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate endDate,
+          @RequestParam(value = "status", required = false) String status,
+          @RequestParam(value = "page", defaultValue = "0") Integer page,
+          @RequestParam(value = "size", defaultValue = "10") Integer size,
+          Model model) {
+
+    if (startDate == null || endDate == null) {
+      startDate = LocalDate.of(2020, 1, 1);
+      endDate = LocalDate.now();
+    }
+
+    Page<AttendanceDTO> attendances = attendanceService.getAll(startDate, endDate, status, PageRequest.of(page, size));
+
+    model.addAttribute("attendances", attendances);
+    model.addAttribute("startDate", startDate);
+    model.addAttribute("endDate", endDate);
+    model.addAttribute("status", status);
+    model.addAttribute("page", page);
+    model.addAttribute("size", size);
+    model.addAttribute("totalAttendances", attendances.getTotalElements());
+    model.addAttribute("totalPages", attendances.getTotalPages());
+    model.addAttribute("currentPage", page + 1);
+    model.addAttribute("contentFragment", "fragments/attendance-export-fragments");
+
+    return "index";
+  }
+
+
 }
