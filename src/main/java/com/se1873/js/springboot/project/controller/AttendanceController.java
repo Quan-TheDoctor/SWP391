@@ -1,15 +1,8 @@
 package com.se1873.js.springboot.project.controller;
 
 import com.se1873.js.springboot.project.dto.*;
-import com.se1873.js.springboot.project.entity.Department;
 import com.se1873.js.springboot.project.entity.User;
-import com.se1873.js.springboot.project.repository.DepartmentRepository;
-import com.se1873.js.springboot.project.repository.UserRepository;
-import com.se1873.js.springboot.project.service.AttendanceService;
-import com.se1873.js.springboot.project.service.DepartmentService;
-import com.se1873.js.springboot.project.service.EmployeeService;
-import com.se1873.js.springboot.project.service.SalaryRecordService;
-import jakarta.servlet.http.HttpSession;
+import com.se1873.js.springboot.project.service.*;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -17,9 +10,6 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.format.annotation.DateTimeFormat;
-import org.springframework.security.core.annotation.AuthenticationPrincipal;
-import org.springframework.security.core.userdetails.UserDetails;
-import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.validation.BindingResult;
@@ -30,7 +20,6 @@ import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
-import java.util.Optional;
 
 @Controller
 @Slf4j
@@ -157,9 +146,9 @@ public class AttendanceController {
 
     if (form.getSelectedDepartmentId() != null) {
       form.getPayrollCalculations().clear();
-      Page<EmployeeDTO> employees = employeeService.getEmployeesByDepartmentId(form.getSelectedDepartmentId(), PageRequest.of(0, 10));
+      Page<EmployeeDTO> employees = employeeService.getEmployeesByDepartmentId(form.getSelectedDepartmentId(), PageRequest.of(0, 100));
       model.addAttribute("employees", employees.getContent());
-
+      log.info(employees.getContent().toString());
       for (var employee : employees.getContent()) {
         List<AttendanceDTO> attendanceDTOS = attendanceService.getAttendancesByEmployeeIdAndDate(employee.getEmployeeId(), LocalDate.now());
         int workDays = Math.toIntExact(

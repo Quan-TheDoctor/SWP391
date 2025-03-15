@@ -13,7 +13,6 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
-import java.util.ArrayList;
 import java.util.List;
 
 @RestController
@@ -24,7 +23,7 @@ public class EmployeeAPI {
 
   private final EmployeeService employeeService;
 
-    @RequestMapping("/employeeAvailable")
+  @RequestMapping("/employeeAvailable")
     public ResponseEntity<EmployeeCountDTO> employeeAvailable() {
         EmployeeCountDTO employeeDTO = employeeService.getEmployeeDTOIsCurrent();
         return ResponseEntity.ok(employeeDTO);
