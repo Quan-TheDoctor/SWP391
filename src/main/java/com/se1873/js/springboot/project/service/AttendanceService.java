@@ -10,6 +10,11 @@ import com.se1873.js.springboot.project.mapper.DepartmentDTOMapper;
 import com.se1873.js.springboot.project.repository.*;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.poi.ss.usermodel.*;
+import org.apache.poi.ss.util.CellRangeAddress;
+import org.apache.poi.xssf.usermodel.XSSFWorkbook;
+import org.springframework.core.io.ByteArrayResource;
+import org.springframework.core.io.Resource;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.PageRequest;
@@ -18,6 +23,8 @@ import org.springframework.messaging.simp.SimpMessagingTemplate;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.io.ByteArrayOutputStream;
+import java.io.IOException;
 import java.time.*;
 import java.time.format.DateTimeFormatter;
 import java.time.format.TextStyle;
@@ -839,5 +846,103 @@ public class AttendanceService {
       throw e;
     }
   }
+  public Resource exportAttendanceToExcel(List<Integer> employeeIds, LocalDate startDate, LocalDate endDate) {
+    Pageable pageable = PageRequest.of(0, 1000);
+    List<Attendance> attendances;
 
+    if (employeeIds != null && !employeeIds.isEmpty()) {
+      attendances = attendanceRepository.findAllByEmployee_EmployeeIdIn(employeeIds);
+    } else {
+      attendances = attendanceRepository.findAttendancesByDateRange(startDate, endDate);
+    }
+
+
+    try (Workbook workbook = new XSSFWorkbook(); ByteArrayOutputStream out = new ByteArrayOutputStream()) {
+      Sheet sheet = workbook.createSheet("Attendance");
+
+      Font titleFont = workbook.createFont();
+      titleFont.setBold(true);
+      titleFont.setFontHeightInPoints((short) 16);
+
+      CellStyle titleStyle = workbook.createCellStyle();
+      titleStyle.setFont(titleFont);
+      titleStyle.setAlignment(HorizontalAlignment.CENTER);
+      titleStyle.setVerticalAlignment(VerticalAlignment.CENTER);
+
+      Row titleRow = sheet.createRow(0);
+      Cell titleCell = titleRow.createCell(0);
+      titleCell.setCellValue("Attendance Data Export");
+      titleCell.setCellStyle(titleStyle);
+
+      sheet.addMergedRegion(new CellRangeAddress(0, 0, 0, 5));  // Merge columns for title
+
+      Font headerFont = workbook.createFont();
+      headerFont.setBold(true);
+      headerFont.setFontHeightInPoints((short) 12);
+      headerFont.setColor(IndexedColors.WHITE.getIndex());
+
+      CellStyle headerStyle = workbook.createCellStyle();
+      headerStyle.setFillForegroundColor(IndexedColors.BLUE_GREY.getIndex());
+      headerStyle.setFillPattern(FillPatternType.SOLID_FOREGROUND);
+      headerStyle.setFont(headerFont);
+      headerStyle.setAlignment(HorizontalAlignment.CENTER);
+      headerStyle.setVerticalAlignment(VerticalAlignment.CENTER);
+      headerStyle.setBorderBottom(BorderStyle.THIN);
+      headerStyle.setBorderTop(BorderStyle.THIN);
+      headerStyle.setBorderRight(BorderStyle.THIN);
+      headerStyle.setBorderLeft(BorderStyle.THIN);
+
+      CellStyle dataStyle = workbook.createCellStyle();
+      dataStyle.setBorderBottom(BorderStyle.THIN);
+      dataStyle.setBorderTop(BorderStyle.THIN);
+      dataStyle.setBorderRight(BorderStyle.THIN);
+      dataStyle.setBorderLeft(BorderStyle.THIN);
+
+      Row headerRow = sheet.createRow(1);
+      String[] columns = {"Employee ID", "Name", "Date", "Check In", "Check Out", "Status"};
+      for (int i = 0; i < columns.length; i++) {
+        Cell cell = headerRow.createCell(i);
+        cell.setCellValue(columns[i]);
+        cell.setCellStyle(headerStyle);
+      }
+
+      int rowIdx = 2;
+      for (Attendance attendance : attendances) {
+        Row row = sheet.createRow(rowIdx++);
+        row.createCell(0).setCellValue(attendance.getEmployee().getEmployeeId());
+        row.createCell(1).setCellValue(attendance.getEmployee().getFirstName() + " " + attendance.getEmployee().getLastName());
+        row.createCell(2).setCellValue(attendance.getDate().toString());
+        row.createCell(3).setCellValue(attendance.getCheckIn() != null ? attendance.getCheckIn().toString() : "");
+        row.createCell(4).setCellValue(attendance.getCheckOut() != null ? attendance.getCheckOut().toString() : "");
+        row.createCell(5).setCellValue(attendance.getStatus());
+
+        for (int i = 0; i < 6; i++) {
+          row.getCell(i).setCellStyle(dataStyle);
+        }
+      }
+
+      for (int i = 0; i < columns.length; i++) {
+        sheet.autoSizeColumn(i);
+      }
+
+      workbook.write(out);
+      return new ByteArrayResource(out.toByteArray());
+    } catch (IOException e) {
+      log.error("Error exporting attendance data to Excel", e);
+      throw new RuntimeException("Error exporting attendance data to Excel", e);
+    }
+  }
+  public Page<AttendanceDTO> getAll(LocalDate startDate, LocalDate endDate, String status, Pageable pageable) {
+    log.info("Fetching attendance records from {} to {} with status: {}", startDate, endDate, status);
+
+    Page<Attendance> attendances;
+    if (status != null && !status.isEmpty()) {
+      attendances = attendanceRepository.findAttendancesByStatusAndDateRange(startDate, endDate, status, pageable);
+    } else {
+      attendances = attendanceRepository.findAttendancesByDateRange(startDate, endDate, pageable);
+    }
+
+    log.info("Fetched {} attendance records", attendances.getTotalElements());
+    return attendances.map(attendanceDTOMapper::toDTO);
+  }
 }
