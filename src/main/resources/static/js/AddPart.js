@@ -33,9 +33,6 @@ const DependentHandler = {
                 input.name = fieldName.replace('[]', `[${index}]`);
                 input.value = '';
             }
-            // if (fieldName === 'dependents[].dependentId') {
-            //     input.value = index + 1;
-            // }
         });
 
         const deleteButton = this.createDeleteButton();

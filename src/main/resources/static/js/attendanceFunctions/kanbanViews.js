@@ -1,5 +1,4 @@
 document.addEventListener('DOMContentLoaded', function() {
-    // Get all attendance data if available
     const allAttendancesElement = document.getElementById('allAttendancesData');
     let allAttendances = [];
 
@@ -11,15 +10,12 @@ document.addEventListener('DOMContentLoaded', function() {
         }
     }
 
-    // Initialize view toggles
     initializeViewToggles(allAttendances);
 
-    // Initialize Kanban view if data is available
     if (allAttendances.length > 0) {
         initializeKanbanView(allAttendances);
     }
 
-    // Initialize other components
     initializeAnalyticsTabs();
     initializeDateRangePicker();
     initializeFilterPanels();
@@ -35,13 +31,12 @@ function initializeViewToggles(allAttendances) {
     viewToggles.forEach(toggle => {
         toggle.addEventListener('click', function(e) {
             if (this.tagName === 'A' && this.getAttribute('href')) {
-                return; // Let the link handle navigation
+                return;
             }
 
             e.preventDefault();
             const view = this.dataset.view;
 
-            // Update toggle buttons
             viewToggles.forEach(btn => {
                 btn.classList.remove('active', 'bg-primary-50', 'text-primary-600');
                 btn.classList.add('bg-white', 'text-gray-700');
@@ -50,14 +45,12 @@ function initializeViewToggles(allAttendances) {
             this.classList.add('active', 'bg-primary-50', 'text-primary-600');
             this.classList.remove('bg-white', 'text-gray-700');
 
-            // Show corresponding content
             viewContents.forEach(content => {
                 content.classList.add('hidden');
             });
 
             document.getElementById(view + 'View').classList.remove('hidden');
 
-            // Toggle appropriate filter sections
             if (view === 'table') {
                 if (tableFilters) tableFilters.classList.remove('hidden');
                 if (kanbanFilters) kanbanFilters.classList.add('hidden');
@@ -65,13 +58,11 @@ function initializeViewToggles(allAttendances) {
                 if (tableFilters) tableFilters.classList.add('hidden');
                 if (kanbanFilters) kanbanFilters.classList.remove('hidden');
 
-                // Populate Kanban view if we have data
                 if (allAttendances && allAttendances.length > 0) {
                     populateKanbanView(allAttendances);
                 }
             }
 
-            // Update URL with view parameter
             const url = new URL(window.location.href);
             url.searchParams.set('view', view);
             history.pushState({}, '', url.toString());

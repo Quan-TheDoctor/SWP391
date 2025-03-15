@@ -19,10 +19,6 @@ public interface EmployeeRepository extends JpaRepository<Employee, Long> {
 
   Employee findEmployeeByEmployeeId(Integer employeeId);
 
-//  @Query("SELECT e FROM Employee e " +
-//          "JOIN EmploymentHistory eh ON e.employeeId = eh.employee.employeeId " +
-//          "JOIN Department d ON eh.department.departmentId = d.departmentId " +
-//          "where d.departmentName = :departmentName and eh.isCurrent = true")
   @Query("SELECT e FROM Employee e " +
           "JOIN e.employmentHistories eh " +
           "JOIN eh.department d " +
