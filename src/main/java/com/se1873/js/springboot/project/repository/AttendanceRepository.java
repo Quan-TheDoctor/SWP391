@@ -57,4 +57,21 @@ public interface AttendanceRepository extends JpaRepository<Attendance, Long> {
   List<Attendance>  findAllByDateBetween(LocalDate dateAfter, LocalDate dateBefore);
 
   Attendance findByAttendanceId(Integer attendanceId);
+  @Query("SELECT a FROM Attendance a WHERE a.employee.employeeId IN :employeeIds")
+  List<Attendance> findAllByEmployee_EmployeeIdIn(@Param("employeeIds") List<Integer> employeeIds);
+  @Query("SELECT a FROM Attendance a WHERE a.date BETWEEN :startDate AND :endDate")
+  List<Attendance> findAttendancesByDateRange(@Param("startDate") LocalDate startDate,
+                                              @Param("endDate") LocalDate endDate);
+
+
+
+  @Query("SELECT a FROM Attendance a WHERE a.date BETWEEN :startDate AND :endDate AND a.status = :status")
+  Page<Attendance> findAttendancesByStatusAndDateRange(@Param("startDate") LocalDate startDate,
+                                                       @Param("endDate") LocalDate endDate,
+                                                       @Param("status") String status,
+                                                       Pageable pageable);
+  @Query("SELECT a FROM Attendance a WHERE a.date BETWEEN :startDate AND :endDate")
+  Page<Attendance> findAttendancesByDateRange(@Param("startDate") LocalDate startDate,
+                                              @Param("endDate") LocalDate endDate,
+                                              Pageable pageable);
 }
