@@ -48,6 +48,10 @@ public class User {
   @OneToMany(mappedBy = "user", cascade = CascadeType.ALL)
   private List<AuditLog> auditLogs;
 
+  @ToString.Exclude
+  @OneToMany(mappedBy = "user", cascade = CascadeType.ALL)
+  private List<Message> messages;
+
   @PrePersist
   protected void onCreate() {
     this.createdAt = LocalDateTime.now();

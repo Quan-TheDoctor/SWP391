@@ -3,23 +3,25 @@ package com.se1873.js.springboot.project.service;
 import com.se1873.js.springboot.project.dto.*;
 import com.se1873.js.springboot.project.entity.Attendance;
 import com.se1873.js.springboot.project.entity.Employee;
+import com.se1873.js.springboot.project.entity.User;
 import com.se1873.js.springboot.project.mapper.AttendanceDTOMapper;
+import com.se1873.js.springboot.project.mapper.ChannelDTOMapper;
 import com.se1873.js.springboot.project.mapper.DepartmentDTOMapper;
-import com.se1873.js.springboot.project.repository.AttendanceRepository;
-import com.se1873.js.springboot.project.repository.DepartmentRepository;
-import com.se1873.js.springboot.project.repository.EmployeeRepository;
+import com.se1873.js.springboot.project.repository.*;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
+import org.springframework.messaging.simp.SimpMessagingTemplate;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.time.*;
 import java.time.format.DateTimeFormatter;
 import java.time.format.TextStyle;
+import java.time.temporal.ChronoUnit;
 import java.time.temporal.TemporalAdjusters;
 import java.time.temporal.WeekFields;
 import java.util.*;
@@ -31,14 +33,18 @@ import java.util.stream.Collectors;
 @Slf4j
 @RequiredArgsConstructor
 public class AttendanceService {
+  private final ChannelDTOMapper channelDTOMapper;
   private final DepartmentDTOMapper departmentDTOMapper;
 
   private final EmployeeService employeeService;
   private final AttendanceRepository attendanceRepository;
   private final EmployeeRepository employeeRepository;
   private final AttendanceDTOMapper attendanceDTOMapper;
-  private final DepartmentRepository departmentRepository;
   private final DepartmentService departmentService;
+  private final SimpMessagingTemplate simpMessagingTemplate;
+  private final ChannelService channelService;
+  private final ChannelRepository channelRepository;
+  private final UserRepository userRepository;
 
   public Page<AttendanceDTO> getAll(LocalDate startDate, LocalDate endDate, Pageable pageable) {
     var employees = employeeRepository.findAll();
@@ -308,7 +314,6 @@ public class AttendanceService {
 
     long workingDays = 0;
     for (LocalDate date = start; !date.isAfter(end); date = date.plusDays(1)) {
-      // Skip weekends (adjust if your working days are different)
       if (date.getDayOfWeek() != DayOfWeek.SATURDAY && date.getDayOfWeek() != DayOfWeek.SUNDAY) {
         workingDays++;
       }
@@ -601,7 +606,6 @@ public class AttendanceService {
       .map(departmentDTOMapper::toDTO)
       .collect(Collectors.toList());
 
-    // Calculate working days in the period
     int workingDays = 0;
     for (LocalDate currentDate = start; !currentDate.isAfter(end); currentDate = currentDate.plusDays(1)) {
       if (currentDate.getDayOfWeek() != DayOfWeek.SATURDAY && currentDate.getDayOfWeek() != DayOfWeek.SUNDAY) {
@@ -734,6 +738,106 @@ public class AttendanceService {
       .departments(departmentData)
       .summary(summary)
       .build();
+  }
+
+  public String checkAttendance(Integer employeeId, String type) {
+    if("clockin".equals(type)) {
+      AttendanceDTO attendanceDTO = getAttendanceByEmployeeIdAndDate(employeeId, LocalDate.now());
+      Employee employee = employeeRepository.findEmployeeByEmployeeId(employeeId);
+      if(attendanceDTO.getAttendanceCheckIn() != null) return "Already Clock In";
+      Attendance attendance = Attendance.builder()
+        .checkIn(LocalTime.now())
+        .checkOut(null)
+        .date(LocalDate.now())
+        .status("Đúng giờ")
+        .employee(employee)
+        .build();
+
+      saveAttendance(attendance);
+      String notificationText = "Employee ID #" + employee.getEmployeeId() + " clock-in";
+      ChannelDTO systemChannel = channelDTOMapper.toDTO(channelRepository.getChannelByChannelName("System"));
+
+      User adminUser = userRepository.findUserByRole("SYSTEM");
+      MessageDTO messageDTO = MessageDTO.builder()
+        .channelId(systemChannel.getChannelId())
+        .userId(adminUser.getUserId())
+        .username("System Notification")
+        .messageContent(notificationText)
+        .messageCreatedAt(LocalDateTime.now())
+        .build();
+
+      MessageDTO savedMessage = channelService.saveMessage(messageDTO);
+
+      simpMessagingTemplate.convertAndSend(
+        "/topic/chat/" + systemChannel.getChannelId(),
+        savedMessage
+      );
+      return "Clock In";
+    } else if("clockout".equals(type)) {
+      AttendanceDTO attendance = getAttendanceByEmployeeIdAndDate(employeeId, LocalDate.now());
+      log.info(attendance.toString());
+      if(attendance.getAttendanceCheckIn() == null) return "Not yet Clock In";
+      if(attendance.getAttendanceCheckOut() != null) return "Already Clock Out";
+      attendance.setAttendanceCheckOut(LocalTime.now());
+      attendance.setAttendanceOvertimeHours(calculateOvertimeHours(attendance.getAttendanceCheckIn(), attendance.getAttendanceCheckOut()));
+
+      Attendance existedAttendance = attendanceRepository.findByAttendanceId(attendance.getAttendanceId());
+      existedAttendance.setCheckOut(attendance.getAttendanceCheckOut());
+      existedAttendance.setOvertimeHours(attendance.getAttendanceOvertimeHours());
+
+      saveAttendance(existedAttendance);
+      String notificationText = "Employee ID #" + attendance.getEmployeeId() + " clock-out";
+      ChannelDTO systemChannel = channelDTOMapper.toDTO(channelRepository.getChannelByChannelName("System"));
+
+      User adminUser = userRepository.findUserByRole("SYSTEM");
+      MessageDTO messageDTO = MessageDTO.builder()
+        .channelId(systemChannel.getChannelId())
+        .userId(adminUser.getUserId())
+        .username("System Notification")
+        .messageContent(notificationText)
+        .messageCreatedAt(LocalDateTime.now())
+        .build();
+
+      MessageDTO savedMessage = channelService.saveMessage(messageDTO);
+
+      simpMessagingTemplate.convertAndSend(
+        "/topic/chat/" + systemChannel.getChannelId(),
+        savedMessage
+      );
+      return "Clock Out";
+    }
+    return null;
+  }
+  private Double calculateOvertimeHours(LocalTime checkIn, LocalTime checkOut) {
+    if (checkIn == null || checkOut == null) {
+      return 0.0;
+    }
+
+    try {
+      LocalTime standardEnd = LocalTime.of(18, 0);
+
+      double overtimeHours = 0.0;
+
+      if (checkOut.isAfter(standardEnd)) {
+        long overtimeMinutes = ChronoUnit.MINUTES.between(standardEnd, checkOut);
+        overtimeHours = Math.round(overtimeMinutes / 6.0) / 10.0;
+      }
+
+      return overtimeHours;
+    } catch (Exception e) {
+      log.error("Error calculating overtime hours: {}", e.getMessage());
+      return 0.0;
+    }
+  }
+  public void saveAttendance(Attendance attendance) {
+    try {
+      log.info("Saving attendance: {}", attendance);
+      Attendance saved = attendanceRepository.save(attendance);
+      log.info("Saved attendance with ID: {}", saved.getAttendanceId());
+    } catch (Exception e) {
+      log.error("Error saving attendance: ", e);
+      throw e;
+    }
   }
 
 }

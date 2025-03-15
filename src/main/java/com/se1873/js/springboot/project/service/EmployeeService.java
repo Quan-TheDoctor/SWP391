@@ -49,8 +49,20 @@ public class EmployeeService {
   private final EmployeeDTOMapper employeeDTOMapper;
 
   public Page<EmployeeDTO> getAll(Pageable pageable) {
-    return employeeRepository.findAll(pageable).map(employeeDTOMapper::toDTO);
+    Page<Employee> employeePage = employeeRepository.findAll(pageable);
+
+    List<EmployeeDTO> filteredList = employeePage.getContent().stream()
+      .map(employeeDTOMapper::toDTO)
+      .filter(e -> !e.getIsDeleted())
+      .collect(Collectors.toList());
+
+    return new PageImpl<>(
+      filteredList,
+      pageable,
+      employeePage.getTotalElements()
+    );
   }
+
 
   public Page<EmployeeDTO> getEmployeesByDepartmentId(Integer departmentId, Pageable pageable) {
     return filterEmployeesByCondition(
@@ -59,6 +71,7 @@ public class EmployeeService {
       pageable
     );
   }
+
   private Page<EmployeeDTO> filterEmployeesByCondition(Page<EmployeeDTO> source,
                                                        java.util.function.Predicate<EmployeeDTO> condition,
                                                        Pageable pageable) {
@@ -68,12 +81,13 @@ public class EmployeeService {
       .collect(Collectors.toList());
     return new PageImpl<>(filtered, pageable, filtered.size());
   }
+
   public EmployeeDTO getEmployeeByEmployeeId(Integer employeeId) {
     return employeeDTOMapper.toDTO(employeeRepository.getEmployeeByEmployeeId(employeeId));
   }
 
   public Page<EmployeeDTO> sort(Page<EmployeeDTO> source, String direction, String field) {
-    if(source == null)
+    if (source == null)
       source = getAll(PageRequest.of(0, 5));
     List<EmployeeDTO> sorted = source.getContent().stream()
       .sorted(getComparator(field, direction))
@@ -82,7 +96,7 @@ public class EmployeeService {
     return new PageImpl<>(sorted, source.getPageable(), sorted.size());
   }
 
-  private  java. util. Comparator<EmployeeDTO> getComparator(String field, String direction) {
+  private java.util.Comparator<EmployeeDTO> getComparator(String field, String direction) {
     return switch (field) {
       case "firstName" ->
         Comparator.comparing(EmployeeDTO::getEmployeeFirstName, direction.equals("asc") ? Comparator.reverseOrder() : Comparator.naturalOrder());
@@ -119,7 +133,8 @@ public class EmployeeService {
 
   public Page<EmployeeDTO> filterByField(String field, String value, Pageable pageable) {
     return switch (field.toLowerCase()) {
-      case "department" -> employeeRepository.findEmployeesByDepartmentName(value, pageable).map(employeeDTOMapper::toDTO);
+      case "department" ->
+        employeeRepository.findEmployeesByDepartmentName(value, pageable).map(employeeDTOMapper::toDTO);
       case "position" -> employeeRepository.findEmployeesByPositionName(value, pageable).map(employeeDTOMapper::toDTO);
       case "all" -> getAll(pageable);
       default -> throw new IllegalArgumentException("Invalid field: " + field);
@@ -143,16 +158,15 @@ public class EmployeeService {
       employees = employeeRepository.findAllByEmployeeIdIn(employeeIds);
     } else if (!"all".equals(departmentFilter) && !"all".equals(positionFilter)) {
       employees = employeeRepository.findEmployeesByDepartmentName(departmentFilter, pageable).toList()
-              .stream()
-              .filter(emp -> employeeRepository.findEmployeesByPositionName(positionFilter, pageable)
-                      .toList().stream().anyMatch(e -> e.getEmployeeId().equals(emp.getEmployeeId())))
-              .toList();
+        .stream()
+        .filter(emp -> employeeRepository.findEmployeesByPositionName(positionFilter, pageable)
+          .toList().stream().anyMatch(e -> e.getEmployeeId().equals(emp.getEmployeeId())))
+        .toList();
     } else if (!"all".equals(departmentFilter)) {
       employees = employeeRepository.findEmployeesByDepartmentName(departmentFilter, pageable).toList();
     } else if (!"all".equals(positionFilter)) {
       employees = employeeRepository.findEmployeesByPositionName(positionFilter, pageable).toList();
     } else {
-      // Nếu không chọn ai và không có bộ lọc => lấy tất cả nhân viên
       employees = employeeRepository.findAll(pageable).getContent();
     }
 
@@ -163,24 +177,20 @@ public class EmployeeService {
     try (Workbook workbook = new XSSFWorkbook(); ByteArrayOutputStream out = new ByteArrayOutputStream()) {
       Sheet sheet = workbook.createSheet("Employees");
 
-      // Tạo font cho tiêu đề chính
       Font titleFont = workbook.createFont();
       titleFont.setBold(true);
       titleFont.setFontHeightInPoints((short) 16);
 
-      // Tạo style cho tiêu đề chính
       CellStyle titleStyle = workbook.createCellStyle();
       titleStyle.setFont(titleFont);
       titleStyle.setAlignment(HorizontalAlignment.CENTER);
       titleStyle.setVerticalAlignment(VerticalAlignment.CENTER);
 
-      // Tạo hàng tiêu đề chính
       Row titleRow = sheet.createRow(0);
       Cell titleCell = titleRow.createCell(0);
       titleCell.setCellValue("Information Employee");
       titleCell.setCellStyle(titleStyle);
 
-      // Merge ô để tiêu đề nằm giữa (A1:E1)
       sheet.addMergedRegion(new CellRangeAddress(0, 0, 0, 4));
 
       // Tạo font cho tiêu đề cột
@@ -308,7 +318,6 @@ public class EmployeeService {
       handleDependents(employee, dto.getDependents());
     }
 
-    // Lưu employee sau khi đã thêm dependents
     employeeRepository.save(employee);
   }
 
@@ -318,12 +327,10 @@ public class EmployeeService {
     handleEmploymentHistoryChanges(employee, department, position, dto);
     handleContractChanges(employee, dto);
 
-    // Xử lý dependents trước khi lưu employee
     if (dto.getDependents() != null) {
       handleDependents(employee, dto.getDependents());
     }
 
-    // Lưu employee sau khi đã cập nhật dependents
     employeeRepository.save(employee);
   }
 
@@ -352,7 +359,9 @@ public class EmployeeService {
     employee.setEmployeeCode(dto.getEmployeeCode());
     employee.setCompanyEmail(dto.getEmployeeCompanyEmail());
     employee.setPicture(dto.getPicture());
+    employee.setIsDeleted(false);
   }
+
   // endregion
   // region Employment History Management
   private void createInitialEmploymentHistory(Employee employee, Department department, Position position, EmployeeDTO dto) {
@@ -392,6 +401,7 @@ public class EmployeeService {
     history.setEndDate(LocalDate.now());
     employmentHistoryRepository.save(history);
   }
+
   private void createNewEmploymentHistory(Employee employee, Department department, Position position) {
     EmploymentHistory newHistory = EmploymentHistory.builder()
       .employee(employee)
@@ -402,6 +412,7 @@ public class EmployeeService {
       .build();
     employmentHistoryRepository.save(newHistory);
   }
+
   // endregion
   // region Contract Management
   private void createInitialContract(Employee employee, EmployeeDTO dto) {
@@ -453,6 +464,7 @@ public class EmployeeService {
     contract.setSignDate(dto.getContractSignDate());
     contractRepository.save(contract);
   }
+
   // endregion
   // region User Account Management
   private void createUserAccount(Employee employee, String email) {
@@ -464,54 +476,45 @@ public class EmployeeService {
       .build();
     userRepository.save(user);
   }
+
   // endregion
 // region Dependent Management
   private void handleDependents(Employee employee, List<DependentDTO> dependentDTOs) {
-    // Kiểm tra và khởi tạo danh sách dependents nếu cần
     if (employee.getDependents() == null) {
       employee.setDependents(new ArrayList<>());
     }
 
-    // Nếu không có dependents trong DTO, không làm gì cả
     if (dependentDTOs == null || dependentDTOs.isEmpty()) {
       return;
     }
 
-    // Lọc các dependents hợp lệ (có fullName)
     List<DependentDTO> validDependents = dependentDTOs.stream()
       .filter(dep -> dep != null && dep.getFullName() != null && !dep.getFullName().isEmpty())
       .collect(Collectors.toList());
 
-    // Nếu không có dependent hợp lệ, không làm gì cả
     if (validDependents.isEmpty()) {
       return;
     }
 
-    // Xử lý cho employee hiện có (cập nhật/thêm mới dependents)
     if (!employee.getDependents().isEmpty()) {
-      // Tạo map các dependents hiện có theo ID để dễ tra cứu
       Map<Integer, Dependent> existingDependentsMap = employee.getDependents().stream()
         .collect(Collectors.toMap(Dependent::getDependentId, Function.identity(), (a, b) -> a));
 
       for (DependentDTO dependentDTO : validDependents) {
         if (dependentDTO.getDependentId() != null && existingDependentsMap.containsKey(dependentDTO.getDependentId())) {
-          // Cập nhật dependent hiện có
           Dependent existingDependent = existingDependentsMap.get(dependentDTO.getDependentId());
           updateDependentDetails(existingDependent, dependentDTOMapper.toEntity(dependentDTO));
           existingDependentsMap.remove(dependentDTO.getDependentId());
         } else {
-          // Thêm dependent mới
           createNewDependent(employee, dependentDTOMapper.toEntity(dependentDTO));
         }
       }
     } else {
-      // Cho employee mới, thêm tất cả dependents hợp lệ
       for (DependentDTO dependentDTO : validDependents) {
         createNewDependent(employee, dependentDTOMapper.toEntity(dependentDTO));
       }
     }
 
-    // Log để debug
     log.info("Added {} dependents to employee", employee.getDependents().size());
   }
 
@@ -534,19 +537,19 @@ public class EmployeeService {
 // endregion
 
 
-  public int countEmployees(){
+  public int countEmployees() {
     return employeeRepository.getEmployeeCount();
   }
 
-  public EmployeeCountDTO getEmployeeDTOIsCurrent(){
+  public EmployeeCountDTO getEmployeeDTOIsCurrent() {
     EmployeeCountDTO employeeCountDTO = EmployeeCountDTO.builder()
-            .totalAvailableEmployees(0).totalUnavailableEmployees(0).build();
+      .totalAvailableEmployees(0).totalUnavailableEmployees(0).build();
     List<EmployeeDTO> employeeDTO = employeeRepository.findAll().stream().map(employeeDTOMapper::toDTO).collect(Collectors.toList());
     for (EmployeeDTO employeeDTO1 : employeeDTO) {
       System.out.println(employeeDTO1);
-      if(employeeDTO1.getContractIsPresent() && employeeDTO1.getEmploymentHistoryIsCurrent()){
+      if (employeeDTO1.getContractIsPresent() && employeeDTO1.getEmploymentHistoryIsCurrent()) {
         employeeCountDTO.setTotalAvailableEmployees(employeeCountDTO.getTotalAvailableEmployees() + 1);
-      } else employeeCountDTO.setTotalUnavailableEmployees(employeeCountDTO.getTotalUnavailableEmployees() + 1) ;
+      } else employeeCountDTO.setTotalUnavailableEmployees(employeeCountDTO.getTotalUnavailableEmployees() + 1);
     }
     return employeeCountDTO;
   }

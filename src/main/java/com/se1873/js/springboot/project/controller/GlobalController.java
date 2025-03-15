@@ -16,6 +16,7 @@ import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.ControllerAdvice;
 import org.springframework.web.bind.annotation.ModelAttribute;
+import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 
 @Slf4j
 @ControllerAdvice
@@ -38,6 +39,12 @@ public class GlobalController {
     return userService.findUserByUsername(userDetails.getUsername())
       .orElseThrow(() -> new UsernameNotFoundException("User not found"));
   }
+
+  public void sendMessage(RedirectAttributes redirectAttributes, String message, String type) {
+    redirectAttributes.addFlashAttribute("message", message);
+    redirectAttributes.addFlashAttribute("messageType", type);
+  }
+
   public void createAuditLog(User userRef, String action, String actionType, String level) {
     try {
       AuditLog auditLog = new AuditLog();
