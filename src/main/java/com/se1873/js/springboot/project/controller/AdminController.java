@@ -27,7 +27,10 @@ import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 
 import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 import java.util.stream.Collectors;
 
 @Controller
@@ -98,7 +101,6 @@ public class AdminController {
     model.addAttribute("lockedUsers", lockedUsers);
     model.addAttribute("totalRoles", totalRoles);
     model.addAttribute("contentFragment", "fragments/admin-users-fragments");
-
     return "index";
   }
 

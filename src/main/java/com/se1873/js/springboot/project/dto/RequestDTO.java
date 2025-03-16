@@ -1,5 +1,6 @@
 package com.se1873.js.springboot.project.dto;
 
+import com.se1873.js.springboot.project.entity.LeavePolicy;
 import com.se1873.js.springboot.project.entity.SalaryRecord;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -19,7 +20,6 @@ public class RequestDTO {
   private Integer requesterId;
   private String requesterName;
   private String reason;
-
   private List<Integer> payrollIds;
 
   @DateTimeFormat(pattern = "yyyy-MM-dd")
@@ -39,5 +39,6 @@ public class RequestDTO {
   private Integer approvalId;
   private String requestType;
   private LeaveDTO leaveDTO;
+  private LeavePolicy leavePolicy;
   private List<SalaryRecord> salaryRecords;
 }

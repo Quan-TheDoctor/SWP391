@@ -14,7 +14,7 @@ import java.util.List;
 public interface SalaryRecordRepository extends JpaRepository<SalaryRecord, Long> {
 
     SalaryRecord findSalaryRecordBySalaryId(Integer salaryId);
-    Page<SalaryRecord> getSalaryRecordsByEmployee_EmployeeId(Integer employeeId, Pageable pageable);
+
 
     @Query("SELECT s FROM SalaryRecord s WHERE s.employee.employeeId = :employeeId " +
             "AND s.month = :month " +
@@ -29,5 +29,8 @@ public interface SalaryRecordRepository extends JpaRepository<SalaryRecord, Long
             "WHERE s.year = :year GROUP BY s.month ORDER BY s.month")
     List<Object[]> getTotalSalaryByMonth(@Param("year") int year);
 
-    Page<SalaryRecord> findSalaryRecordsByMonthAndYear(Pageable pageable,Integer month,Integer year);
+    Page<SalaryRecord> findSalaryRecordsByEmployee_EmployeeId(Pageable pageable,Integer employeeId);
+
+
+    Page<SalaryRecord> getSalaryRecordsByEmployee_EmployeeIdAndYear(Integer employeeId,Integer year, Pageable pageable);
 }
