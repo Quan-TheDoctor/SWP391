@@ -112,20 +112,6 @@ CREATE TABLE attendance
     created_at     TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
 
--- Bảng nghỉ phép
-CREATE TABLE leaves
-(
-    leave_id    SERIAL PRIMARY KEY,
-    employee_id INTEGER REFERENCES employees (employee_id),
-    leave_type  VARCHAR(50) NOT NULL,
-    start_date  DATE        NOT NULL,
-    end_date    DATE        NOT NULL,
-    total_days  INTEGER     NOT NULL,
-    status      VARCHAR(20) NOT NULL,
-    reason      TEXT,
-    approved_by INTEGER REFERENCES employees (employee_id),
-    created_at  TIMESTAMP DEFAULT CURRENT_TIMESTAMP
-);
 
 -- Bảng lương tháng
 CREATE TABLE salary_records
@@ -206,6 +192,51 @@ CREATE TABLE requests
     total_days      INTEGER,
     note            TEXT
 );
+
+CREATE TABLE notifications
+(
+    notification_id SERIAL PRIMARY KEY,
+    user_id         INTEGER REFERENCES users (user_id),
+    request_id      INTEGER REFERENCES requests (request_id),
+    type            TEXT NOT NULL,
+    message         TEXT NOT NULL,
+    status          TEXT      default 'unread',
+    create_at       TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);
+
+CREATE TABLE leave_policies
+(
+    leave_policy_id   SERIAL PRIMARY KEY,
+    leave_policy_name text,
+    leave_policy_amount INTEGER
+);
+
+-- Bảng nghỉ phép
+CREATE TABLE leaves
+(
+    leave_id    SERIAL PRIMARY KEY,
+    employee_id INTEGER REFERENCES employees (employee_id),
+    leave_type  VARCHAR(50) NOT NULL,
+    start_date  DATE        NOT NULL,
+    end_date    DATE        NOT NULL,
+    total_days  INTEGER     NOT NULL,
+    status      VARCHAR(20) NOT NULL,
+    reason      TEXT,
+    leave_allowed_day INTEGER NOT NULL,
+    leave_policy_id INTEGER REFERENCES leave_policies(leave_policy_id),
+    approved_by INTEGER REFERENCES employees (employee_id),
+    created_at  TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);
+
+INSERT INTO leave_policies(leave_policy_id, leave_policy_name,leave_policy_amount)
+VALUES (1,'annual leave',12),
+       (2,'sick leave',10),
+       (3,'maternity leave',180),
+       (4,'wedding leave',3),
+       (5,'funeral leave',4),
+       (6,'no pay leave',1000);
+
+
 
 create table financial_policies
 (
@@ -361,9 +392,9 @@ VALUES (1, 8, 1, '2020-01-01', '2021-06-30', false, 'Thăng chức', 'QD001/2020
        (2, 8, 3, '2021-06-01', NULL, true, 'Thăng chức', 'QD001/2021'),
        (2, 8, 2, '2019-01-01', '2021-05-31', false, 'Thăng chức', 'QD002/2019');
 -- Leaves (10 records)
-INSERT INTO leaves (employee_id, leave_type, start_date, end_date, total_days, status, reason, approved_by)
-VALUES (1, 'Nghỉ phép năm', '2023-07-10', '2023-07-14', 5, 'Đã duyệt', 'Nghỉ mát cùng gia đình', 2),
-       (1, 'Nghỉ không lương', '2023-10-01', '2023-10-05', 5, 'Từ chối', 'Việc cá nhân', 2);
+-- INSERT INTO leaves (employee_id, leave_type, start_date, end_date, total_days, status, reason, approved_by)
+-- VALUES (1, 'Nghỉ phép năm', '2023-07-10', '2023-07-14', 5, 'Đã duyệt', 'Nghỉ mát cùng gia đình', 2),
+--        (1, 'Nghỉ không lương', '2023-10-01', '2023-10-05', 5, 'Từ chối', 'Việc cá nhân', 2);
 
 -- Salary Records (10 records)
 INSERT INTO salary_records (employee_id, month, year, base_salary, total_allowance,

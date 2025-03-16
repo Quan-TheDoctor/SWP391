@@ -48,12 +48,17 @@ public class SalaryRecordService {
   }
 
   public Page<PayrollDTO> filterByMonth(Pageable pageable, Integer month, Integer year, Integer employeeId) {
-    Page<SalaryRecord> salaryRecords = salaryRecordRepository.findSalaryRecordsByEmployeeAndMonthAndYear(pageable,month,year,employeeId);
+    Page<SalaryRecord> salaryRecords;
+    if(month == null && year == null){
+       salaryRecords = salaryRecordRepository.findSalaryRecordsByEmployee_EmployeeId(pageable,employeeId);
+    }else{
+       salaryRecords = salaryRecordRepository.findSalaryRecordsByEmployeeAndMonthAndYear(pageable,month,year,employeeId);
+    }
     return salaryRecords.map(salaryRecord -> payrollDTO(salaryRecord.getSalaryId()));
   }
 
   public Page<PayrollDTO> getPayrollByEmployeeId(Pageable pageable, Integer employeeId){
-    Page<SalaryRecord> salaryRecords = salaryRecordRepository.getSalaryRecordsByEmployee_EmployeeId(employeeId,pageable);
+    Page<SalaryRecord> salaryRecords = salaryRecordRepository.getSalaryRecordsByEmployee_EmployeeIdAndYear(employeeId,LocalDate.now().getYear(),pageable);
     return salaryRecords.map(salaryRecord -> payrollDTO(salaryRecord.getSalaryId()));
   }
 

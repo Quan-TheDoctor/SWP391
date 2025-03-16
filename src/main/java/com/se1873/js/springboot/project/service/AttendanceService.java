@@ -69,15 +69,18 @@ public class AttendanceService {
         startDate, endDate, employee.getEmployeeId()
       );
 
-      Map<LocalDate, Attendance> attendanceMap = attendances.stream()
-        .collect(Collectors.toMap(Attendance::getDate, Function.identity()));
+      Map<LocalDate, List<Attendance>> attendanceMap = attendances.stream()
+              .collect(Collectors.groupingBy(Attendance::getDate));
+
 
       List<LocalDate> datesInRange = startDate.datesUntil(endDate.plusDays(1)).toList();
 
       for (LocalDate date : datesInRange) {
-        Attendance attendance = attendanceMap.get(date);
-        if (attendance != null) {
-          attendanceDTOS.add(attendanceDTOMapper.toDTO(attendance));
+        List<Attendance> attendancesOnDate = attendanceMap.get(date);
+        if (attendancesOnDate != null) {
+          for (Attendance attendance : attendancesOnDate) {
+            attendanceDTOS.add(attendanceDTOMapper.toDTO(attendance));
+          }
         } else {
           attendanceDTOS.add(createDefaultAttendanceDTO(employee, date));
         }
@@ -98,7 +101,7 @@ public class AttendanceService {
     );
   }
   public Page<AttendanceDTO> getAttendanceByEmployeeId(Integer employeeId,Pageable pageale){
-    Page<Attendance> attendances = attendanceRepository.getAttendanceByEmployee_EmployeeId(employeeId,pageale);
+    Page<Attendance> attendances = attendanceRepository.findAttendancesByEmployee_EmployeeIdAndDate(LocalDate.now().getYear(),employeeId,pageale);
     return attendances.map(attendanceDTOMapper::toDTO);
   }
   public Page<AttendanceDTO> filterByMonth(Pageable pageable,Integer month,Integer year,Integer employeeId){
@@ -130,7 +133,7 @@ public class AttendanceService {
         countOntime++;
       }else if("Đi muộn".equals(attendance.getStatus())){
         countLate++;
-      }else if("Vắng mặt".equals(attendance.getStatus())){
+      }else if("Nghỉ".equals(attendance.getStatus())){
         countAbsent++;
       }
     }
@@ -145,13 +148,15 @@ public class AttendanceService {
     int countOntime = 0;
     int countLate = 0;
     int countAbsent = 0;
-    List<Attendance> getAll = attendanceRepository.findAllByEmployee_EmployeeId(employeeId);
+    int year = LocalDate.now().getYear();
+    int month = LocalDate.now().getMonthValue();
+    List<Attendance> getAll = attendanceRepository.findAllByEmployee_EmployeeIdAndDate(year,month,employeeId);
     for (Attendance attendance : getAll) {
       if ("Đúng giờ".equals(attendance.getStatus())) {
         countOntime++;
       }else if("Đi muộn".equals(attendance.getStatus())){
         countLate++;
-      }else if("Vắng mặt".equals(attendance.getStatus())){
+      }else if("Nghỉ".equals(attendance.getStatus())){
         countAbsent++;
       }
     }
