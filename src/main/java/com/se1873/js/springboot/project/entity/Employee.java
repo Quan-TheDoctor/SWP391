@@ -100,7 +100,6 @@ public class Employee {
   @ToString.Exclude
   @OneToMany(mappedBy = "employee", cascade = CascadeType.ALL, fetch = FetchType.LAZY, orphanRemoval = true)
   private List<Leave> leaves = new ArrayList<>();
-
   @ToString.Exclude
   @OneToMany(mappedBy = "employee", cascade = CascadeType.ALL, fetch = FetchType.LAZY, orphanRemoval = true)
   private List<Attendance> attendances = new ArrayList<>();
@@ -110,6 +109,9 @@ public class Employee {
   @ToString.Exclude
   @OneToOne(mappedBy = "employee", cascade = CascadeType.ALL)
   private User user;
+
+  @Column(name = "is_deleted")
+  private Boolean isDeleted;
 
   @PrePersist
   protected void onCreate() {

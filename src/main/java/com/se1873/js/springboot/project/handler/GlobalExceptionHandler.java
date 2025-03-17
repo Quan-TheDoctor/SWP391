@@ -9,7 +9,6 @@ import org.springframework.web.bind.annotation.ControllerAdvice;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 
 public class GlobalExceptionHandler {
-//  @ExceptionHandler(ChangeSetPersister.NotFoundException.class)
   public ResponseEntity<ErrorResponse> handleNotFoundException(ChangeSetPersister.NotFoundException ex) {
     ErrorResponse er = new ErrorResponse() {
       @Override
@@ -28,7 +27,6 @@ public class GlobalExceptionHandler {
     return ResponseEntity.status(404).body(er);
   }
 
-//  @ExceptionHandler(Exception.class)
   public ResponseEntity<ErrorResponse> handleGeneralException(Exception ex) {
     ErrorResponse er = new ErrorResponse() {
       @Override

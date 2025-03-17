@@ -44,9 +44,18 @@ public class User {
   @JoinColumn(name = "employee_id")
   private Employee employee;
 
+
+  @ToString.Exclude
+  @OneToMany(mappedBy = "user", cascade = CascadeType.ALL, orphanRemoval = true)
+  private List<Notification> notifications;
+
   @ToString.Exclude
   @OneToMany(mappedBy = "user", cascade = CascadeType.ALL)
   private List<AuditLog> auditLogs;
+
+  @ToString.Exclude
+  @OneToMany(mappedBy = "user", cascade = CascadeType.ALL)
+  private List<Message> messages;
 
   @PrePersist
   protected void onCreate() {
@@ -55,6 +64,6 @@ public class User {
 
   @PreUpdate
   protected void onUpdate() {
-    updatedAt = LocalDateTime.now();
+    this.updatedAt = LocalDateTime.now();
   }
 }

@@ -24,7 +24,8 @@ Create TABLE employees
     bank_name         VARCHAR(100),
     tax_code          VARCHAR(20),
     Created_at        TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-    updated_at        TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+    updated_at        TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    is_deleted        bool      default false
 );
 
 -- Bảng phòng ban (với trường manager_id mới)
@@ -156,27 +157,27 @@ Create TABLE dependents
 -- Bảng người dùng
 Create TABLE users
 (
-    user_id       SERIAL PRIMARY KEY,
-    employee_id   INTEGER REFERENCES employees (employee_id),
-    username      text NOT NULL,
-    password_hash text NOT NULL,
-    email         text,
-    role          text      default 'ADMIN',
-    status        text default 'Active',
-    last_Authentication    TIMESTAMP DEFAULT NULL,
-    updated_at    TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-    Created_at    TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+    user_id             SERIAL PRIMARY KEY,
+    employee_id         INTEGER REFERENCES employees (employee_id),
+    username            text NOT NULL,
+    password_hash       text NOT NULL,
+    email               text,
+    role                text      default 'USER',
+    status              text      default 'Active',
+    last_Authentication TIMESTAMP DEFAULT NULL,
+    updated_at          TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    Created_at          TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
 
 -- Bảng nhật ký hệ thống
 Create TABLE audit_logs
 (
-    log_id      SERIAL PRIMARY KEY,
-    user_id     INTEGER REFERENCES users (user_id),
-    action_type text,
-    action_info text,
+    log_id       SERIAL PRIMARY KEY,
+    user_id      INTEGER REFERENCES users (user_id),
+    action_type  text,
+    action_info  text,
     action_level text,
-    Created_at  TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+    Created_at   TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
 
 -- Bảng yêu cầu
@@ -318,46 +319,58 @@ VALUES
 
 -- Thêm tài khoản người dùng
 INSERT INTO users (employee_id, username, password_hash)
-VALUES
-    (1, 'annguyen', '1'),
-    (2, 'hungtran', '1'),
-    (3, 'huongle', '1'),
-    (4, 'ducpham', '1'),
-    (5, 'tungvo', '1'),
-    (6, 'mainguyen', '1'),
-    (7, 'hieutran', '1'),
-    (8, 'hado', '1'),
-    (9, 'tuanhoang', '1'),
-    (10, 'thaoly', '1'),
-    (11, 'binhnguyen', '1'),
-    (12, 'lantran', '1'),
-    (13, 'cuongle', '1'),
-    (14, 'hongpham', '1'),
-    (15, 'trungvu', '1');
+VALUES (1, 'annguyen', '$2a$10$cUtg8nvDC7PnZLe5eZGVDO4fwD5yvRhemp/vFXDG67OxDMSv7fHbm'),
+       (2, 'hungtran', '$2a$10$cUtg8nvDC7PnZLe5eZGVDO4fwD5yvRhemp/vFXDG67OxDMSv7fHbm'),
+       (3, 'huongle', '$2a$10$cUtg8nvDC7PnZLe5eZGVDO4fwD5yvRhemp/vFXDG67OxDMSv7fHbm'),
+       (4, 'ducpham', '$2a$10$cUtg8nvDC7PnZLe5eZGVDO4fwD5yvRhemp/vFXDG67OxDMSv7fHbm'),
+       (5, 'tungvo', '$2a$10$cUtg8nvDC7PnZLe5eZGVDO4fwD5yvRhemp/vFXDG67OxDMSv7fHbm'),
+       (6, 'mainguyen', '$2a$10$cUtg8nvDC7PnZLe5eZGVDO4fwD5yvRhemp/vFXDG67OxDMSv7fHbm'),
+       (7, 'hieutran', '$2a$10$cUtg8nvDC7PnZLe5eZGVDO4fwD5yvRhemp/vFXDG67OxDMSv7fHbm'),
+       (8, 'hado', '$2a$10$cUtg8nvDC7PnZLe5eZGVDO4fwD5yvRhemp/vFXDG67OxDMSv7fHbm'),
+       (9, 'tuanhoang', '$2a$10$cUtg8nvDC7PnZLe5eZGVDO4fwD5yvRhemp/vFXDG67OxDMSv7fHbm'),
+       (10, 'thaoly', '$2a$10$cUtg8nvDC7PnZLe5eZGVDO4fwD5yvRhemp/vFXDG67OxDMSv7fHbm'),
+       (11, 'binhnguyen', '$2a$10$cUtg8nvDC7PnZLe5eZGVDO4fwD5yvRhemp/vFXDG67OxDMSv7fHbm'),
+       (12, 'lantran', '$2a$10$cUtg8nvDC7PnZLe5eZGVDO4fwD5yvRhemp/vFXDG67OxDMSv7fHbm'),
+       (13, 'cuongle', '$2a$10$cUtg8nvDC7PnZLe5eZGVDO4fwD5yvRhemp/vFXDG67OxDMSv7fHbm'),
+       (14, 'hongpham', '$2a$10$cUtg8nvDC7PnZLe5eZGVDO4fwD5yvRhemp/vFXDG67OxDMSv7fHbm'),
+       (15, 'trungvu', '$2a$10$cUtg8nvDC7PnZLe5eZGVDO4fwD5yvRhemp/vFXDG67OxDMSv7fHbm');
+
+INSERT INTO employees (employee_code, first_name, last_name, birth_date, gender,
+                       id_number, permanent_address, temporary_address,
+                       personal_email, company_email, phone_number,
+                       marital_status, bank_account, bank_name, tax_code)
+VALUES ('SYSTEM', 'System', 'Notification', '2000-01-01', 'Other',
+        'SYSTEM123456', 'System Address', 'System Address',
+        'system@system.com', 'system@company.com', '0000000000',
+        'N/A', 'N/A', 'N/A', 'N/A');
+
+INSERT INTO users (employee_id, username, password_hash, role)
+SELECT employee_id, 'system', '$2a$10$cUtg8nvDC7PnZLe5eZGVDO4fwD5yvRhemp/vFXDG67OxDMSv7fHbm', 'SYSTEM'
+FROM employees
+WHERE employee_code = 'SYSTEM';
 
 -- Thêm phòng ban (với manager_id)
 INSERT INTO departments (department_name, department_code, description, manager_id)
-VALUES
-    ('Ban Giám đốc', 'BGD', 'Ban lãnh đạo công ty', 1),
+VALUES ('Ban Giám đốc', 'BGD', 'Ban lãnh đạo công ty', 1),
 
-    ('Phòng Phát triển Phần mềm', 'DEV', 'Phòng phát triển ứng dụng và phần mềm', 3),
-    ('Phòng An ninh Thông tin', 'SEC', 'Phòng đảm bảo bảo mật cho hệ thống và dữ liệu', 5),
-    ('Phòng Kiểm thử và Đảm bảo Chất lượng', 'QA', 'Phòng kiểm thử phần mềm và đảm bảo chất lượng', 7),
-    ('Phòng Quản trị Hệ thống', 'SYS', 'Quản lý cơ sở hạ tầng công nghệ thông tin', 4),
-    ('Phòng Phân tích Dữ liệu', 'DATA', 'Phòng phân tích dữ liệu và hỗ trợ quyết định', 6),
+       ('Phòng Phát triển Phần mềm', 'DEV', 'Phòng phát triển ứng dụng và phần mềm', 3),
+       ('Phòng An ninh Thông tin', 'SEC', 'Phòng đảm bảo bảo mật cho hệ thống và dữ liệu', 5),
+       ('Phòng Kiểm thử và Đảm bảo Chất lượng', 'QA', 'Phòng kiểm thử phần mềm và đảm bảo chất lượng', 7),
+       ('Phòng Quản trị Hệ thống', 'SYS', 'Quản lý cơ sở hạ tầng công nghệ thông tin', 4),
+       ('Phòng Phân tích Dữ liệu', 'DATA', 'Phòng phân tích dữ liệu và hỗ trợ quyết định', 6),
 
-    ('Phòng Kinh doanh', 'SLS', 'Phòng tiếp cận và chăm sóc khách hàng', 2),
-    ('Phòng Marketing', 'MKT', 'Phòng xây dựng chiến lược marketing và truyền thông', 3),
-    ('Phòng Hỗ trợ Khách hàng', 'SUP', 'Phòng hỗ trợ và giải quyết khiếu nại khách hàng', 6),
+       ('Phòng Kinh doanh', 'SLS', 'Phòng tiếp cận và chăm sóc khách hàng', 2),
+       ('Phòng Marketing', 'MKT', 'Phòng xây dựng chiến lược marketing và truyền thông', 3),
+       ('Phòng Hỗ trợ Khách hàng', 'SUP', 'Phòng hỗ trợ và giải quyết khiếu nại khách hàng', 6),
 
-    ('Phòng Nhân sự', 'HRM', 'Quản lý tuyển dụng và phát triển nhân sự', 4),
-    ('Phòng Hành chính', 'ADM', 'Quản lý các công việc hành chính văn phòng', 7),
+       ('Phòng Nhân sự', 'HRM', 'Quản lý tuyển dụng và phát triển nhân sự', 4),
+       ('Phòng Hành chính', 'ADM', 'Quản lý các công việc hành chính văn phòng', 7),
 
-    ('Phòng Kế toán', 'ACC', 'Quản lý kế toán và báo cáo tài chính', 5),
-    ('Phòng Phân tích Tài chính', 'FIN-ANAL', 'Phân tích tài chính và lập báo cáo tài chính', 4),
+       ('Phòng Kế toán', 'ACC', 'Quản lý kế toán và báo cáo tài chính', 5),
+       ('Phòng Phân tích Tài chính', 'FIN-ANAL', 'Phân tích tài chính và lập báo cáo tài chính', 4),
 
-    ('Phòng Nghiên cứu', 'RES', 'Nghiên cứu công nghệ và xu hướng mới', 3),
-    ('Phòng Phát triển Sản phẩm', 'PROD', 'Phát triển sản phẩm và chuyển giao từ nghiên cứu', 2);
+       ('Phòng Nghiên cứu', 'RES', 'Nghiên cứu công nghệ và xu hướng mới', 3),
+       ('Phòng Phát triển Sản phẩm', 'PROD', 'Phát triển sản phẩm và chuyển giao từ nghiên cứu', 2);
 
 -- Thêm chức vụ
 INSERT INTO positions (position_name, department_id, position_code, level, description)
@@ -586,60 +599,60 @@ VALUES
 
 -- Thêm nghỉ phép
 INSERT INTO leaves (employee_id, leave_type, start_date, end_date, total_days, status, reason, approved_by)
-VALUES
-    (1, 'Nghỉ phép năm', '2023-07-10', '2023-07-14', 5, 'Đã duyệt', 'Nghỉ mát cùng gia đình', 2),
+VALUES (1, 'Nghỉ phép năm', '2023-07-10', '2023-07-14', 5, 'Đã duyệt', 'Nghỉ mát cùng gia đình', 2),
 
-    (3, 'Nghỉ phép năm', '2023-05-15', '2023-05-19', 5, 'Đã duyệt', 'Nghỉ du lịch', 1),
-    (3, 'Nghỉ ốm', '2023-08-10', '2023-08-11', 2, 'Đã duyệt', 'Bị cảm cúm', 1),
+       (3, 'Nghỉ phép năm', '2023-05-15', '2023-05-19', 5, 'Đã duyệt', 'Nghỉ du lịch', 1),
+       (3, 'Nghỉ ốm', '2023-08-10', '2023-08-11', 2, 'Đã duyệt', 'Bị cảm cúm', 1),
 
-    (5, 'Nghỉ phép năm', '2023-07-03', '2023-07-07', 5, 'Đã duyệt', 'Nghỉ mát cùng gia đình', 1),
+       (5, 'Nghỉ phép năm', '2023-07-03', '2023-07-07', 5, 'Đã duyệt', 'Nghỉ mát cùng gia đình', 1),
 
-    (6, 'Nghỉ không lương', '2023-09-18', '2023-09-22', 5, 'Đã duyệt', 'Việc gia đình', 1),
+       (6, 'Nghỉ không lương', '2023-09-18', '2023-09-22', 5, 'Đã duyệt', 'Việc gia đình', 1),
 
-    (7, 'Nghỉ phép năm', '2023-04-24', '2023-04-28', 5, 'Đã duyệt', 'Nghỉ du lịch', 1),
+       (7, 'Nghỉ phép năm', '2023-04-24', '2023-04-28', 5, 'Đã duyệt', 'Nghỉ du lịch', 1),
 
-    (8, 'Nghỉ phép năm', '2023-06-19', '2023-06-23', 5, 'Đã duyệt', 'Nghỉ du lịch', 3),
+       (8, 'Nghỉ phép năm', '2023-06-19', '2023-06-23', 5, 'Đã duyệt', 'Nghỉ du lịch', 3),
 
-    (10, 'Nghỉ ốm', '2023-10-05', '2023-10-06', 2, 'Đã duyệt', 'Bị sốt', 7),
+       (10, 'Nghỉ ốm', '2023-10-05', '2023-10-06', 2, 'Đã duyệt', 'Bị sốt', 7),
 
-    (11, 'Nghỉ phép năm', '2023-08-21', '2023-08-25', 5, 'Đã duyệt', 'Nghỉ du lịch', 3),
+       (11, 'Nghỉ phép năm', '2023-08-21', '2023-08-25', 5, 'Đã duyệt', 'Nghỉ du lịch', 3),
 
-    (13, 'Nghỉ không lương', '2023-11-13', '2023-11-17', 5, 'Đã duyệt', 'Việc gia đình', 2),
+       (13, 'Nghỉ không lương', '2023-11-13', '2023-11-17', 5, 'Đã duyệt', 'Việc gia đình', 2),
 
-    (14, 'Nghỉ ốm', '2023-09-07', '2023-09-08', 2, 'Đã duyệt', 'Bị cảm cúm', 4),
+       (14, 'Nghỉ ốm', '2023-09-07', '2023-09-08', 2, 'Đã duyệt', 'Bị cảm cúm', 4),
 
-    (15, 'Nghỉ phép năm', '2023-10-16', '2023-10-20', 5, 'Đã duyệt', 'Nghỉ du lịch', 5);
+       (15, 'Nghỉ phép năm', '2023-10-16', '2023-10-20', 5, 'Đã duyệt', 'Nghỉ du lịch', 5);
 -- Generate attendance records for all employees (20 days each)
-WITH date_range AS (
-    SELECT generate_series(
-                   (date_trunc('month', (CURRENT_TIMESTAMP AT TIME ZONE 'Asia/Ho_Chi_Minh'))::date), -- First day of month
-                   (date_trunc('month', (CURRENT_TIMESTAMP AT TIME ZONE 'Asia/Ho_Chi_Minh'))::date + INTERVAL '60 days'), -- +60 days
-                   INTERVAL '1 day'
-           )::date AS work_date
-)
-INSERT INTO attendance (employee_id, date, check_in, check_out, status, overtime_hours)
-SELECT
-    e.employee_id,
-    d.work_date,
-    CASE
-        WHEN random() < 0.5 THEN '08:00:00'::time
-        ELSE '08:30:00'::time
-        END AS check_in,
-    CASE
-        WHEN random() < 0.5 THEN '18:00:00'::time
-        ELSE '18:30:00'::time
-        END AS check_out,
-    CASE
-        WHEN random() < 0.9 THEN 'Đúng giờ'
-        ELSE 'Đi muộn ' || (5 + (random() * 25)::integer)::text || 'p'
-        END AS status,
-    CASE
-        WHEN random() < 0.3 THEN round((random() * 2)::numeric, 1)
-        ELSE 0
-        END AS overtime_hours
+WITH date_range AS (SELECT generate_series(
+                                   (date_trunc('month',
+                                               (CURRENT_TIMESTAMP AT TIME ZONE 'Asia/Ho_Chi_Minh'))::date), -- First day of month
+                                   (date_trunc('month', (CURRENT_TIMESTAMP AT TIME ZONE 'Asia/Ho_Chi_Minh'))::date +
+                                    INTERVAL '60 days'), -- +60 days
+                                   INTERVAL '1 day'
+                           )::date AS work_date)
+INSERT
+INTO attendance (employee_id, date, check_in, check_out, status, overtime_hours)
+SELECT e.employee_id,
+       d.work_date,
+       CASE
+           WHEN random() < 0.5 THEN '08:00:00'::time
+           ELSE '08:30:00'::time
+           END AS check_in,
+       CASE
+           WHEN random() < 0.5 THEN '18:00:00'::time
+           ELSE '18:30:00'::time
+           END AS check_out,
+       CASE
+           WHEN random() < 0.9 THEN 'Đúng giờ'
+           ELSE 'Đi muộn ' || (5 + (random() * 25)::integer)::text || 'p'
+           END AS status,
+       CASE
+           WHEN random() < 0.3 THEN round((random() * 2)::numeric, 1)
+           ELSE 0
+           END AS overtime_hours
 FROM employees e
          CROSS JOIN date_range d
-WHERE EXTRACT(DOW FROM d.work_date) BETWEEN 1 AND 5;  -- Weekdays only
+WHERE EXTRACT(DOW FROM d.work_date) BETWEEN 1 AND 5;
+-- Weekdays only
 
 
 -- Tiếp tục thêm dữ liệu lương
@@ -668,53 +681,72 @@ VALUES
 
 -- Thêm nhật ký hệ thống
 INSERT INTO audit_logs (user_id, action_type, action_info, action_level)
-VALUES
-    (1, 'Authentication', 'Đăng nhập hệ thống', 'INFO'),
-    (1, 'Create', 'Tạo yêu cầu kết toán lương tháng 3/2023', 'INFO'),
-    (2, 'APPROVE', 'Phê duyệt yêu cầu kết toán lương tháng 3/2023', 'INFO'),
-    (1, 'Create', 'Tạo yêu cầu kết toán lương tháng 4/2023', 'INFO'),
-    (2, 'APPROVE', 'Phê duyệt yêu cầu kết toán lương tháng 4/2023', 'INFO'),
+VALUES (1, 'Authentication', 'Đăng nhập hệ thống', 'INFO'),
+       (1, 'Create', 'Tạo yêu cầu kết toán lương tháng 3/2023', 'INFO'),
+       (2, 'APPROVE', 'Phê duyệt yêu cầu kết toán lương tháng 3/2023', 'INFO'),
+       (1, 'Create', 'Tạo yêu cầu kết toán lương tháng 4/2023', 'INFO'),
+       (2, 'APPROVE', 'Phê duyệt yêu cầu kết toán lương tháng 4/2023', 'INFO'),
 
-    (3, 'Authentication', 'Đăng nhập hệ thống', 'INFO'),
-    (3, 'Create', 'Tạo yêu cầu nghỉ phép', 'INFO'),
-    (1, 'APPROVE', 'Phê duyệt yêu cầu nghỉ phép của Lê Thị Hương', 'INFO'),
+       (3, 'Authentication', 'Đăng nhập hệ thống', 'INFO'),
+       (3, 'Create', 'Tạo yêu cầu nghỉ phép', 'INFO'),
+       (1, 'APPROVE', 'Phê duyệt yêu cầu nghỉ phép của Lê Thị Hương', 'INFO'),
 
-    (5, 'Authentication', 'Đăng nhập hệ thống', 'INFO'),
-    (5, 'Create', 'Tạo yêu cầu nghỉ phép', 'INFO'),
-    (1, 'APPROVE', 'Phê duyệt yêu cầu nghỉ phép của Võ Thanh Tùng', 'INFO'),
+       (5, 'Authentication', 'Đăng nhập hệ thống', 'INFO'),
+       (5, 'Create', 'Tạo yêu cầu nghỉ phép', 'INFO'),
+       (1, 'APPROVE', 'Phê duyệt yêu cầu nghỉ phép của Võ Thanh Tùng', 'INFO'),
 
-    (6, 'Authentication', 'Đăng nhập hệ thống', 'INFO'),
-    (6, 'Create', 'Tạo yêu cầu nghỉ không lương', 'INFO'),
-    (1, 'APPROVE', 'Phê duyệt yêu cầu nghỉ không lương của Nguyễn Thị Mai', 'INFO'),
+       (6, 'Authentication', 'Đăng nhập hệ thống', 'INFO'),
+       (6, 'Create', 'Tạo yêu cầu nghỉ không lương', 'INFO'),
+       (1, 'APPROVE', 'Phê duyệt yêu cầu nghỉ không lương của Nguyễn Thị Mai', 'INFO'),
 
-    (8, 'Authentication', 'Đăng nhập hệ thống', 'INFO'),
-    (8, 'Create', 'Tạo yêu cầu nghỉ phép', 'INFO'),
-    (3, 'APPROVE', 'Phê duyệt yêu cầu nghỉ phép của Đỗ Thị Hà', 'INFO'),
+       (8, 'Authentication', 'Đăng nhập hệ thống', 'INFO'),
+       (8, 'Create', 'Tạo yêu cầu nghỉ phép', 'INFO'),
+       (3, 'APPROVE', 'Phê duyệt yêu cầu nghỉ phép của Đỗ Thị Hà', 'INFO'),
 
-    (9, 'Authentication', 'Đăng nhập hệ thống', 'INFO'),
-    (9, 'Create', 'Tạo yêu cầu tăng lương', 'INFO'),
+       (9, 'Authentication', 'Đăng nhập hệ thống', 'INFO'),
+       (9, 'Create', 'Tạo yêu cầu tăng lương', 'INFO'),
 
-    (10, 'Authentication', 'Đăng nhập hệ thống', 'INFO'),
-    (10, 'Create', 'Tạo yêu cầu nghỉ ốm', 'INFO'),
-    (7, 'APPROVE', 'Phê duyệt yêu cầu nghỉ ốm của Lý Thanh Thảo', 'INFO'),
+       (10, 'Authentication', 'Đăng nhập hệ thống', 'INFO'),
+       (10, 'Create', 'Tạo yêu cầu nghỉ ốm', 'INFO'),
+       (7, 'APPROVE', 'Phê duyệt yêu cầu nghỉ ốm của Lý Thanh Thảo', 'INFO'),
 
-    (11, 'Authentication', 'Đăng nhập hệ thống', 'INFO'),
-    (11, 'Create', 'Tạo yêu cầu tăng lương', 'INFO'),
-    (3, 'APPROVE', 'Phê duyệt yêu cầu tăng lương của Nguyễn Văn Bình', 'INFO'),
+       (11, 'Authentication', 'Đăng nhập hệ thống', 'INFO'),
+       (11, 'Create', 'Tạo yêu cầu tăng lương', 'INFO'),
+       (3, 'APPROVE', 'Phê duyệt yêu cầu tăng lương của Nguyễn Văn Bình', 'INFO'),
 
-    (12, 'Authentication', 'Đăng nhập hệ thống', 'INFO'),
-    (12, 'Create', 'Tạo yêu cầu bổ sung phụ cấp', 'INFO'),
-    (4, 'APPROVE', 'Phê duyệt yêu cầu bổ sung phụ cấp của Trần Thị Lan', 'INFO'),
+       (12, 'Authentication', 'Đăng nhập hệ thống', 'INFO'),
+       (12, 'Create', 'Tạo yêu cầu bổ sung phụ cấp', 'INFO'),
+       (4, 'APPROVE', 'Phê duyệt yêu cầu bổ sung phụ cấp của Trần Thị Lan', 'INFO'),
 
-    (14, 'Authentication', 'Đăng nhập hệ thống', 'INFO'),
-    (14, 'Create', 'Tạo yêu cầu bổ sung phụ cấp', 'INFO'),
-    (4, 'REJECT', 'Từ chối yêu cầu bổ sung phụ cấp của Phạm Thị Hồng', 'INFO'),
+       (14, 'Authentication', 'Đăng nhập hệ thống', 'INFO'),
+       (14, 'Create', 'Tạo yêu cầu bổ sung phụ cấp', 'INFO'),
+       (4, 'REJECT', 'Từ chối yêu cầu bổ sung phụ cấp của Phạm Thị Hồng', 'INFO'),
 
-    (2, 'Authentication', 'Đăng nhập hệ thống', 'INFO'),
-    (2, 'Update', 'Chỉnh sửa thông tin nhân viên Đỗ Thị Hà', 'INFO'),
+       (2, 'Authentication', 'Đăng nhập hệ thống', 'INFO'),
+       (2, 'Update', 'Chỉnh sửa thông tin nhân viên Đỗ Thị Hà', 'INFO'),
 
-    (4, 'Authentication', 'Đăng nhập hệ thống', 'INFO'),
-    (4, 'Update', 'Chỉnh sửa thông tin hợp đồng của Lý Thanh Thảo', 'INFO'),
+       (4, 'Authentication', 'Đăng nhập hệ thống', 'INFO'),
+       (4, 'Update', 'Chỉnh sửa thông tin hợp đồng của Lý Thanh Thảo', 'INFO'),
 
-    (1, 'View', 'Sao lưu dữ liệu hệ thống', 'INFO'),
-    (2, 'View', 'Khôi phục dữ liệu hệ thống', 'WARNING');
+       (1, 'View', 'Sao lưu dữ liệu hệ thống', 'INFO'),
+       (2, 'View', 'Khôi phục dữ liệu hệ thống', 'WARNING');
+
+create table channels
+(
+    channel_id   SERIAL PRIMARY KEY,
+    channel_name TEXT NOT NULL,
+    created_at   TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);
+
+INSERT INTO channels(channel_name)
+values ('General'),
+       ('System');
+
+create table messages
+(
+    message_id      SERIAL PRIMARY KEY,
+    channel_id      INTEGER REFERENCES channels (channel_id),
+    user_id         INTEGER REFERENCES users (user_id),
+    message_content TEXT,
+    created_at      TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);
