@@ -1,5 +1,6 @@
 package com.se1873.js.springboot.project.controller;
 
+import com.se1873.js.springboot.project.dto.RequestCreationRequestDTO;
 import com.se1873.js.springboot.project.dto.RequestDTO;
 import com.se1873.js.springboot.project.entity.Employee;
 import com.se1873.js.springboot.project.entity.SalaryRecord;
@@ -7,6 +8,7 @@ import com.se1873.js.springboot.project.entity.User;
 import com.se1873.js.springboot.project.repository.EmployeeRepository;
 import com.se1873.js.springboot.project.repository.SalaryRecordRepository;
 import com.se1873.js.springboot.project.repository.UserRepository;
+import com.se1873.js.springboot.project.service.DepartmentService;
 import com.se1873.js.springboot.project.service.RequestService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -41,6 +43,7 @@ public class RequestController {
   private static final String REQUEST_TYPE_LEAVE = "Đơn xin nghỉ";
 
   private final RequestService requestService;
+  private final DepartmentService departmentService;
   private final UserRepository userRepository;
   private final EmployeeRepository employeeRepository;
   private final SalaryRecordRepository salaryRecordRepository;
@@ -63,8 +66,8 @@ public class RequestController {
   }
   private void addRequestStatistics(Page<RequestDTO> requests, Model model) {
     long totalPending = requests.stream()
-      .filter(r -> REQUEST_STATUS_PENDING.equalsIgnoreCase(r.getRequestStatus()))
-      .count();
+            .filter(r -> REQUEST_STATUS_PENDING.equalsIgnoreCase(r.getRequestStatus()))
+            .count();
 
     model.addAttribute("totalRequests", requests.getTotalElements());
     model.addAttribute("totalPendingRequests", totalPending);
@@ -73,7 +76,7 @@ public class RequestController {
   private User getAuthenticatedUser() {
     Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
     return userRepository.findUserByUsername(authentication.getName())
-      .orElseThrow(() -> new ResponseStatusException(HttpStatus.UNAUTHORIZED, "User not found"));
+            .orElseThrow(() -> new ResponseStatusException(HttpStatus.UNAUTHORIZED, "User not found"));
   }
 
   private Employee getEmployeeForUser(User user) {
@@ -82,8 +85,8 @@ public class RequestController {
 
   private void enrichWithSalaryRecords(RequestDTO requestDTO) {
     List<SalaryRecord> records = requestDTO.getPayrollIds().stream()
-      .map(salaryRecordRepository::findSalaryRecordBySalaryId)
-      .toList();
+            .map(salaryRecordRepository::findSalaryRecordBySalaryId)
+            .toList();
     requestDTO.setSalaryRecords(records);
   }
   /**
@@ -174,15 +177,15 @@ public class RequestController {
    */
   @RequestMapping("/export")
   public ResponseEntity<Resource> exportRequests(
-    @RequestParam(value = "status", required = false, defaultValue = "all") String status,
-    @RequestParam(value = "type", required = false, defaultValue = "all") String type) {
+          @RequestParam(value = "status", required = false, defaultValue = "all") String status,
+          @RequestParam(value = "type", required = false, defaultValue = "all") String type) {
     log.info("Exporting request data to Excel. Status: {}, Type: {}", status, type);
     Resource file = requestService.exportToExcel(status, type);
 
     return ResponseEntity.ok()
-      .header(HttpHeaders.CONTENT_DISPOSITION, "attachment; filename=requests.xlsx")
-      .contentType(MediaType.APPLICATION_OCTET_STREAM)
-      .body(file);
+            .header(HttpHeaders.CONTENT_DISPOSITION, "attachment; filename=requests.xlsx")
+            .contentType(MediaType.APPLICATION_OCTET_STREAM)
+            .body(file);
   }
 
   /**
@@ -200,10 +203,9 @@ public class RequestController {
     Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
     String name = authentication.getName();
     User user = userRepository.findUserByUsername(name)
-      .orElseThrow(() -> new RuntimeException("Không tìm thấy người dùng"));
+            .orElseThrow(() -> new RuntimeException("Không tìm thấy người dùng"));
     int id = user.getEmployee().getEmployeeId();
     Employee employee = employeeRepository.getEmployeeByEmployeeId(id);
-
 
     requestService.save(requestDTO, user, employee);
     return "redirect:/user/detail?success=true";
@@ -233,7 +235,7 @@ public class RequestController {
     Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
     String name = authentication.getName();
     User user = userRepository.findUserByUsername(name)
-      .orElseThrow(() -> new RuntimeException("Không tìm thấy người dùng"));
+            .orElseThrow(() -> new RuntimeException("Không tìm thấy người dùng"));
 
     if ("Hạch toán lương".equals(type)) {
       switch (field) {
@@ -291,4 +293,34 @@ public class RequestController {
     model.addAttribute("contentFragment", "fragments/request-fragments");
     return "index";
   }
+
+
+  @GetMapping("/create/form")
+  public String createRequestForm (Model model) {
+    var result = departmentService.getAllDepartments();
+    model.addAttribute("departmentList", result);
+
+    var requestDTO = requestService.getAllRequests();
+    model.addAttribute("requestDTO", requestDTO);
+    return "request-create";
+  }
+
+
+  @PostMapping("/create")
+  public String createRequest(@ModelAttribute("request") RequestCreationRequestDTO request, Model model) {
+    var result = requestService.createRequest(request);
+    model.addAttribute("result", result);
+    var requestDTO = requestService.getAllRequests();
+    model.addAttribute("requestDTOList", requestDTO);
+    return "redirect:/request/create/form";
+  }
+
+  @GetMapping("/view/{id}")
+  public String getDetailRequest(@PathVariable Long id, Model model) {
+    var result = requestService.getDetailRequest(id);
+    model.addAttribute("requestDetail", result);
+
+    return "request-detail";
+  }
+
 }
