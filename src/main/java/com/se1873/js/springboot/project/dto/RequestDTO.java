@@ -6,7 +6,6 @@ import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 import org.springframework.format.annotation.DateTimeFormat;
-
 import java.time.LocalDate;
 import java.util.List;
 
@@ -19,7 +18,7 @@ public class RequestDTO {
   private Integer requesterId;
   private String requesterName;
   private String reason;
-
+  private Integer departmentId;
   private List<Integer> payrollIds;
 
   @DateTimeFormat(pattern = "yyyy-MM-dd")

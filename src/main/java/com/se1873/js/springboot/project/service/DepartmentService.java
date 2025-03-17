@@ -9,7 +9,6 @@ import org.springframework.cache.annotation.CacheEvict;
 import org.springframework.cache.annotation.Cacheable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-
 import java.util.List;
 
 @Service
@@ -33,9 +32,9 @@ public class DepartmentService {
 
   private DepartmentDTO convertDepartmentToDepartmentDTO(Department department) {
     return DepartmentDTO
-      .builder()
-      .departmentId(department.getDepartmentId())
-      .departmentName(department.getDepartmentName())
-      .build();
+            .builder()
+            .departmentId(department.getDepartmentId())
+            .departmentName(department.getDepartmentName())
+            .build();
   }
 }
