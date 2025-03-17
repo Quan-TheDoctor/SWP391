@@ -28,7 +28,6 @@ def take_photos():
     """Start the photo capture process for a user"""
     global current_process, system_status
 
-    # Stop any existing process
     if current_process and current_process.poll() is None:
         current_process.terminate()
         current_process = None
@@ -44,7 +43,6 @@ def take_photos():
                 'message': 'User ID is required'
             })
 
-        # Update system status
         system_status = {
             "status": "running",
             "message": f"Taking photos for user {user_id}",
@@ -62,7 +60,6 @@ def take_photos():
                 current_process = subprocess.Popen(cmd)
                 current_process.wait()
 
-                # Update status when complete
                 if current_process.returncode == 0:
                     system_status = {
                         "status": "success",
@@ -105,27 +102,23 @@ def train_model():
     """Train the face recognition model"""
     global current_process, system_status
 
-    # Stop any existing process
     if current_process and current_process.poll() is None:
         current_process.terminate()
         current_process = None
 
     try:
-        # Update system status
         system_status = {
             "status": "running",
             "message": "Training face recognition model...",
             "last_updated": time.time()
         }
 
-        # Start the training process in a separate thread
         def run_training():
             global current_process, system_status
             try:
                 current_process = subprocess.Popen(['python', 'train_model.py'])
                 current_process.wait()
 
-                # Update status when complete
                 if current_process.returncode == 0:
                     system_status = {
                         "status": "success",
@@ -166,6 +159,7 @@ def train_model():
 @app.route('/api/recognize', methods=['POST'])
 def recognize():
     global current_process, system_status
+    type_param = request.args.get('type', 'default')
 
     if current_process and current_process.poll() is None:
         current_process.terminate()
@@ -181,7 +175,7 @@ def recognize():
         def run_recognition():
             global current_process, system_status
             try:
-                current_process = subprocess.Popen(['python', 'face_recognition.py'])
+                current_process = subprocess.Popen(['python', 'face_recognition.py', type_param])
                 current_process.wait()
 
                 if current_process.returncode == 0:

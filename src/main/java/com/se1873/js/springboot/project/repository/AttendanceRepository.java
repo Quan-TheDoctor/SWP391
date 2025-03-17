@@ -7,6 +7,7 @@ import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
+import org.springframework.web.bind.annotation.RequestParam;
 
 import java.time.LocalDate;
 import java.util.Arrays;
@@ -17,7 +18,8 @@ import java.util.Optional;
 public interface AttendanceRepository extends JpaRepository<Attendance, Long> {
   List<Attendance> getAttendanceByDateBetweenAndEmployee_EmployeeId(LocalDate dateAfter, LocalDate dateBefore, Integer employeeEmployeeId);
   Optional<Attendance> findByDateAndEmployee_EmployeeId(LocalDate date, Integer employeeId);
-  Page<Attendance> getAttendanceByEmployee_EmployeeId(Integer employeeId, Pageable pageable);
+
+
 
   @Query("SELECT a FROM Attendance a WHERE a.date = :date")
   List<Attendance> findAttendancesByDate(@Param("date") LocalDate date);
@@ -39,7 +41,19 @@ public interface AttendanceRepository extends JpaRepository<Attendance, Long> {
 
   Page<Attendance> findAttendancesByStatus(Pageable pageable, String status);
 
-  List<Attendance> findAllByEmployee_EmployeeId(Integer employeeId);
+  @Query("select a from Attendance a " +
+          "where a.employee.employeeId = :employeeId and " +
+          "extract(year from a.date) = :year and " +
+          "extract(month from a.date) = :month ")
+  List<Attendance> findAllByEmployee_EmployeeIdAndDate(@RequestParam("year") Integer year,
+                                                       @RequestParam("month") Integer month,
+                                                       Integer employeeId);
+
+  @Query("select a from Attendance a " +
+          "where extract(year from a.date) = :year ")
+  Page<Attendance> findAttendancesByEmployee_EmployeeIdAndDate(@RequestParam("year") Integer year,
+                                                               Integer employeeId,
+                                                               Pageable pageable);
 
   @Query(value = """
         SELECT a.*, CONCAT(e.first_name, ' ', e.last_name) AS full_name

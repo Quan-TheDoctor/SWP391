@@ -559,18 +559,6 @@
 </div>
 
 <script>
-    document.addEventListener('DOMContentLoaded', function() {
-        const successMessage = /*[[${successMessage}]]*/ null;
-        const errorMessage = /*[[${errorMessage}]]*/ null;
-
-        if (successMessage) {
-            ToastManager.toastNotify(successMessage, 'success');
-        }
-
-        if (errorMessage) {
-            ToastManager.toastNotify(errorMessage, 'error');
-        }
-    });
     document.addEventListener('alpine:init', () => {
         Alpine.data('formHandler', () => ({
             submit() {

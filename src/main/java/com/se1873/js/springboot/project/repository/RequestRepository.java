@@ -9,6 +9,7 @@ import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 
+import java.time.LocalDate;
 import java.util.List;
 import java.util.Optional;
 
@@ -24,4 +25,10 @@ public interface RequestRepository extends JpaRepository<Request, Long> {
     Page<Request> searchRequestsByRequester(@Param("requesterName") String requesterName, Pageable pageable);
 
     Page<Request> findByStatus(String status, Pageable pageable);
+
+
+    @Query("select r from Request r " +
+            "where extract(year from r.createdAt) = :year " +
+            "and extract(month from r.createdAt) = :month")
+    Page<Request> findByDate(Pageable pageable, Integer month, Integer year);
 }

@@ -1,9 +1,6 @@
 package com.se1873.js.springboot.project.controller;
 
 import com.se1873.js.springboot.project.dto.EmployeeDTO;
-import com.se1873.js.springboot.project.entity.Department;
-import com.se1873.js.springboot.project.entity.Employee;
-import com.se1873.js.springboot.project.entity.Position;
 import com.se1873.js.springboot.project.entity.User;
 import com.se1873.js.springboot.project.repository.EmployeeRepository;
 import com.se1873.js.springboot.project.service.DepartmentService;
@@ -106,7 +103,6 @@ public class EmployeeController {
         employeeDTO.setPicture(avatarFile.getBytes());
       }
 
-      log.info(employeeDTO.toString());
       employeeService.saveEmployee(employeeDTO);
       redirectAttributes.addFlashAttribute("message", "Employee created successfully");
       return "redirect:/employee";
@@ -132,17 +128,18 @@ public class EmployeeController {
   public String updateEmployee(@Valid @ModelAttribute("employeeDTO") EmployeeDTO employeeDTO,
                                BindingResult bindingResult,
                                Model model,
-                               @ModelAttribute("loggedInUser") User loggedInUser) {
+                               @ModelAttribute("loggedInUser") User loggedInUser, RedirectAttributes redirectAttributes) {
 
     if (bindingResult.hasErrors()) {
       addCommonAttributes(model);
       globalController.createAuditLog(loggedInUser, "Update Employee ID #" + employeeDTO.getEmployeeId() , "Error", "Normal");
-      model.addAttribute("contentFragment", "fragments/employee-view-fragments");
-      return "index";
+      globalController.sendMessage(redirectAttributes, bindingResult.getFieldError().getDefaultMessage(), "Error");
+      return "redirect:/employee";
     }
 
     globalController.createAuditLog(loggedInUser, "Update Employee ID #" + employeeDTO.getEmployeeId() , "Update", "Normal");
     employeeService.saveEmployee(employeeDTO);
+    globalController.sendMessage(redirectAttributes, "Update employee ID #" + employeeDTO.getEmployeeId() + " successfully", "success");
     return "redirect:/employee";
   }
 

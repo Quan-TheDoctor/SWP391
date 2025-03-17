@@ -40,6 +40,7 @@ public class EmployeeDTO {
   private String employeeBankName;
   private String employeeTaxCode;
   private byte[] picture;
+  private Boolean isDeleted;
 
   private Integer departmentId;
   private String departmentName;

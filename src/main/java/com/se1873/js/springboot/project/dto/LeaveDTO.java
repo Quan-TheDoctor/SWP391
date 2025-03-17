@@ -1,5 +1,4 @@
 package com.se1873.js.springboot.project.dto;
-
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
@@ -21,5 +20,7 @@ public class LeaveDTO {
     private String status;
     private String reason;
     private LocalDateTime createdAt;
+    private Integer leaveAllowedDay;
+    private Integer leavePolicyId;
 
 }

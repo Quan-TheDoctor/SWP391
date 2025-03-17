@@ -80,6 +80,7 @@ public abstract class EmployeeDTOMapper {
     employeeDTO.setEmployeePhone(employee.getPhoneNumber());
     employeeDTO.setEmployeeMaritalStatus(employee.getMaritalStatus());
     employeeDTO.setPicture(employee.getPicture());
+    employeeDTO.setIsDeleted(employee.getIsDeleted());
 
     EmploymentHistory currentEmploymentHistory = getCurrentEmploymentHistory(employee);
     if (currentEmploymentHistory != null) {
@@ -157,4 +158,6 @@ public abstract class EmployeeDTOMapper {
       .findFirst()
       .orElse(null);
   }
+
+  abstract Employee toEntity(EmployeeDTO employeeDTO);
 }

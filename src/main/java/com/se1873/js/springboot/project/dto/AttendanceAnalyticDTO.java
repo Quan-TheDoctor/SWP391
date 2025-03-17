@@ -66,7 +66,6 @@ public class AttendanceAnalyticDTO {
     private BestDayDTO bestDay;
     private Double improvement;
 
-    // Cho monthly trends
     private Double monthlyAverage;
     private BestMonthDTO bestMonth;
     private Double yearOverYearChange;
