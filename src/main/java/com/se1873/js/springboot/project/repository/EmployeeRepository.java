@@ -1,17 +1,13 @@
 package com.se1873.js.springboot.project.repository;
 
-import com.se1873.js.springboot.project.dto.EmployeeDTO;
 import com.se1873.js.springboot.project.entity.Employee;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
-import org.springframework.data.domain.Sort;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
-
 import java.util.List;
-import java.util.Optional;
 
 @Repository
 public interface EmployeeRepository extends JpaRepository<Employee, Long> {
@@ -19,7 +15,7 @@ public interface EmployeeRepository extends JpaRepository<Employee, Long> {
 
   Employee findEmployeeByEmployeeId(Integer employeeId);
 
-//  @Query("SELECT e FROM Employee e " +
+  //  @Query("SELECT e FROM Employee e " +
 //          "JOIN EmploymentHistory eh ON e.employeeId = eh.employee.employeeId " +
 //          "JOIN Department d ON eh.department.departmentId = d.departmentId " +
 //          "where d.departmentName = :departmentName and eh.isCurrent = true")

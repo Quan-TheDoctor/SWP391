@@ -12,7 +12,6 @@ import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-
 import java.time.LocalDate;
 import java.util.*;
 
@@ -115,9 +114,9 @@ public class SalaryRecordService {
 
   public double calculatedPersonalInsuranceDeduction(int salaryId) {
     return calculateInsuranceOrFee(salaryId, 1)
-      + calculateInsuranceOrFee(salaryId, 3)
-      + calculateInsuranceOrFee(salaryId, 5)
-      + calculateInsuranceOrFee(salaryId, 7);
+            + calculateInsuranceOrFee(salaryId, 3)
+            + calculateInsuranceOrFee(salaryId, 5)
+            + calculateInsuranceOrFee(salaryId, 7);
   }
 
   public double calculatedPersonalDependentDeduction(int salaryId) {
@@ -128,13 +127,13 @@ public class SalaryRecordService {
 
   public double insuranceDeduction(int salaryId) {
     return calculateInsuranceOrFee(salaryId, 1)
-      + calculateInsuranceOrFee(salaryId, 2)
-      + calculateInsuranceOrFee(salaryId, 3)
-      + calculateInsuranceOrFee(salaryId, 4)
-      + calculateInsuranceOrFee(salaryId, 5)
-      + calculateInsuranceOrFee(salaryId, 6)
-      + calculateInsuranceOrFee(salaryId, 7)
-      + calculateInsuranceOrFee(salaryId, 8);
+            + calculateInsuranceOrFee(salaryId, 2)
+            + calculateInsuranceOrFee(salaryId, 3)
+            + calculateInsuranceOrFee(salaryId, 4)
+            + calculateInsuranceOrFee(salaryId, 5)
+            + calculateInsuranceOrFee(salaryId, 6)
+            + calculateInsuranceOrFee(salaryId, 7)
+            + calculateInsuranceOrFee(salaryId, 8);
   }
 
   public double totalDeductions(int salaryId) {
@@ -192,45 +191,45 @@ public class SalaryRecordService {
 
     double grossSalary = totalEarning - totalDeductions;
     return PayrollDTO.builder()
-      .employeeId(employee.getEmployeeId())
-      .employeeFirstName(employee.getFirstName())
-      .employeeLastName(employee.getLastName())
-      .employeeTaxCode(employee.getTaxCode())
-      .salaryRecordId(salaryRecords.getSalaryId())
-      .salaryRecordMonth(salaryRecords.getMonth())
-      .salaryRecordYear(salaryRecords.getYear())
-      .salaryRecordBaseSalary(salaryRecords.getBaseSalary())
-      .salaryRecordTotalAllowance(salaryRecords.getTotalAllowance())
-      .salaryRecordOvertimePay(salaryRecords.getOvertimePay())
-      .salaryRecordDeductions(totalDeductions(salaryId))
-      .salaryRecordTaxAmount(taxAmount)
-      .salaryRecordInsuranceDeduction(insuranceDeduction(salaryId))
-      .salaryRecordNetSalary(totalNetSalary)
-      .salaryRecordPaymentStatus(salaryRecords.getPaymentStatus())
-      .calculatedEmployeeHealthInsurance(calculatedEmployeeHealthInsurance)
-      .calculatedEmployeeHealthInsuranceAmount(calculatedEmployeeHealthInsuranceAmount)
-      .calculatedEmployeeSocialInsurance(calculatedEmployeeSocialInsurance)
-      .calculatedEmployeeSocialInsuranceAmount(calculatedEmployeeSocialInsuranceAmount)
-      .calculatedEmployeeUnionFee(calculatedEmployeeUnionFee)
-      .calculatedEmployeeUnionFeeAmount(calculatedEmployeeUnionFeeAmount)
-      .calculatedEmployeeUnemploymentInsurance(calculatedEmployeeUnemploymentInsurance)
-      .calculatedEmployeeUnemploymentInsuranceAmount(calculatedEmployeeUnemploymentInsuranceAmount)
-      .calculatedEmployerHealthInsurance(calculatedEmployerHealthInsurance)
-      .calculatedEmployerHealthInsuranceAmount(calculatedEmployerHealthInsuranceAmount)
-      .calculatedEmployerSocialInsurance(calculatedEmployerSocialInsurance)
-      .calculatedEmployerSocialInsuranceAmount(calculatedEmployerSocialInsuranceAmount)
-      .calculatedEmployerUnionFee(calculatedEmployerUnionFee)
-      .calculatedEmployerUnionFeeAmount(calculatedEmployerUnionFeeAmount)
-      .calculatedEmployerUnemploymentInsurance(calculatedEmployerUnemploymentInsurance)
-      .calculatedEmployerUnemploymentInsuranceAmount(calculatedEmployerUnemploymentInsuranceAmount)
-      .calculatedPersonalInsuranceDeduction(calculatedPersonalInsuranceDeduction)
-      .calculatedPersonalDeduction(calculatedPersonalDeduction)
-      .calculatedPersonalDependentDeduction(calculatedPersonalDependentDeduction)
-      .totalDeductions(totalDeductions(salaryId))
-      .totalTaxAmount(taxAmount)
-      .totalNetSalary(totalNetSalary)
-      .totalGrossSalary(grossSalary)
-      .build();
+            .employeeId(employee.getEmployeeId())
+            .employeeFirstName(employee.getFirstName())
+            .employeeLastName(employee.getLastName())
+            .employeeTaxCode(employee.getTaxCode())
+            .salaryRecordId(salaryRecords.getSalaryId())
+            .salaryRecordMonth(salaryRecords.getMonth())
+            .salaryRecordYear(salaryRecords.getYear())
+            .salaryRecordBaseSalary(salaryRecords.getBaseSalary())
+            .salaryRecordTotalAllowance(salaryRecords.getTotalAllowance())
+            .salaryRecordOvertimePay(salaryRecords.getOvertimePay())
+            .salaryRecordDeductions(totalDeductions(salaryId))
+            .salaryRecordTaxAmount(taxAmount)
+            .salaryRecordInsuranceDeduction(insuranceDeduction(salaryId))
+            .salaryRecordNetSalary(totalNetSalary)
+            .salaryRecordPaymentStatus(salaryRecords.getPaymentStatus())
+            .calculatedEmployeeHealthInsurance(calculatedEmployeeHealthInsurance)
+            .calculatedEmployeeHealthInsuranceAmount(calculatedEmployeeHealthInsuranceAmount)
+            .calculatedEmployeeSocialInsurance(calculatedEmployeeSocialInsurance)
+            .calculatedEmployeeSocialInsuranceAmount(calculatedEmployeeSocialInsuranceAmount)
+            .calculatedEmployeeUnionFee(calculatedEmployeeUnionFee)
+            .calculatedEmployeeUnionFeeAmount(calculatedEmployeeUnionFeeAmount)
+            .calculatedEmployeeUnemploymentInsurance(calculatedEmployeeUnemploymentInsurance)
+            .calculatedEmployeeUnemploymentInsuranceAmount(calculatedEmployeeUnemploymentInsuranceAmount)
+            .calculatedEmployerHealthInsurance(calculatedEmployerHealthInsurance)
+            .calculatedEmployerHealthInsuranceAmount(calculatedEmployerHealthInsuranceAmount)
+            .calculatedEmployerSocialInsurance(calculatedEmployerSocialInsurance)
+            .calculatedEmployerSocialInsuranceAmount(calculatedEmployerSocialInsuranceAmount)
+            .calculatedEmployerUnionFee(calculatedEmployerUnionFee)
+            .calculatedEmployerUnionFeeAmount(calculatedEmployerUnionFeeAmount)
+            .calculatedEmployerUnemploymentInsurance(calculatedEmployerUnemploymentInsurance)
+            .calculatedEmployerUnemploymentInsuranceAmount(calculatedEmployerUnemploymentInsuranceAmount)
+            .calculatedPersonalInsuranceDeduction(calculatedPersonalInsuranceDeduction)
+            .calculatedPersonalDeduction(calculatedPersonalDeduction)
+            .calculatedPersonalDependentDeduction(calculatedPersonalDependentDeduction)
+            .totalDeductions(totalDeductions(salaryId))
+            .totalTaxAmount(taxAmount)
+            .totalNetSalary(totalNetSalary)
+            .totalGrossSalary(grossSalary)
+            .build();
   }
   //endregion
 
@@ -243,12 +242,12 @@ public class SalaryRecordService {
       EmployeeDTO employeeDTO = employeeService.getEmployeeByEmployeeId(payroll.employeeId());
 
       SalaryCalculationResult calculated = calculateSalaryComponents(
-        employeeDTO.getContractBaseSalary(),
-        payroll.workedDays(),
-        payroll.lateDays(),
-        payroll.overtimeHours(),
-        workingDaysPerMonth,
-        lateDayPenalty
+              employeeDTO.getContractBaseSalary(),
+              payroll.workedDays(),
+              payroll.lateDays(),
+              payroll.overtimeHours(),
+              workingDaysPerMonth,
+              lateDayPenalty
       );
 
       SalaryRecord salaryRecord = buildInitialSalaryRecord(payroll, employeeDTO, calculated);
@@ -266,24 +265,24 @@ public class SalaryRecordService {
     Optional<User> approval = userRepository.findUserByUsername("annguyen");
 
     RequestDTO requestDTO = RequestDTO.builder()
-      .requesterId(form.getRequesterId())
-      .payrollIds(payrollIds)
-      .requestDate(LocalDate.now())
-      .requestType("Hạch toán lương")
-      .requestStatus("pending")
-      .approvalName(approval.get().getUsername())
-      .build();
+            .requesterId(form.getRequesterId())
+            .payrollIds(payrollIds)
+            .requestDate(LocalDate.now())
+            .requestType("Hạch toán lương")
+            .requestStatus("pending")
+            .approvalName(approval.get().getUsername())
+            .build();
 
     requestService.saveRequest(requestDTO, user.get(), approval.get());
   }
 
   private SalaryCalculationResult calculateSalaryComponents(
-    double contractBaseSalary,
-    int workedDays,
-    int lateDays,
-    double overtimeHours,
-    int workingDaysPerMonth,
-    double lateDayPenalty
+          double contractBaseSalary,
+          int workedDays,
+          int lateDays,
+          double overtimeHours,
+          int workingDaysPerMonth,
+          double lateDayPenalty
   ) {
     double dailyRate = contractBaseSalary / workingDaysPerMonth;
     double proratedBaseSalary = workedDays * dailyRate;
@@ -293,11 +292,11 @@ public class SalaryRecordService {
     double grossSalary = proratedBaseSalary + overtimePay - latePenaltyDeduction;
 
     return new SalaryCalculationResult(
-      dailyRate,
-      proratedBaseSalary,
-      latePenaltyDeduction,
-      overtimePay,
-      grossSalary
+            dailyRate,
+            proratedBaseSalary,
+            latePenaltyDeduction,
+            overtimePay,
+            grossSalary
     );
   }
 
@@ -308,23 +307,23 @@ public class SalaryRecordService {
   }
 
   private SalaryRecord buildInitialSalaryRecord(
-    PayrollCalculationDTO payroll,
-    EmployeeDTO employeeDTO,
-    SalaryCalculationResult calculated
+          PayrollCalculationDTO payroll,
+          EmployeeDTO employeeDTO,
+          SalaryCalculationResult calculated
   ) {
     return SalaryRecord.builder()
-      .employee(employeeRepository.findEmployeeByEmployeeId(payroll.employeeId()))
-      .baseSalary(calculated.proratedBaseSalary())
-      .month(LocalDate.now().getMonthValue())
-      .year(LocalDate.now().getYear())
-      .overtimePay(calculated.overtimePay())
-      .totalAllowance(0.0)
-      .deductions(calculated.latePenaltyDeduction())
-      .insuranceDeduction(0.0)
-      .taxAmount(0.0)
-      .netSalary(0.0)
-      .paymentStatus("Pending")
-      .build();
+            .employee(employeeRepository.findEmployeeByEmployeeId(payroll.employeeId()))
+            .baseSalary(calculated.proratedBaseSalary())
+            .month(LocalDate.now().getMonthValue())
+            .year(LocalDate.now().getYear())
+            .overtimePay(calculated.overtimePay())
+            .totalAllowance(0.0)
+            .deductions(calculated.latePenaltyDeduction())
+            .insuranceDeduction(0.0)
+            .taxAmount(0.0)
+            .netSalary(0.0)
+            .paymentStatus("Pending")
+            .build();
   }
 
   private void updateSalaryRecordWithCalculations(SalaryRecord salaryRecord) {
@@ -340,11 +339,11 @@ public class SalaryRecordService {
   }
 
   private record SalaryCalculationResult(
-    double dailyRate,
-    double proratedBaseSalary,
-    double latePenaltyDeduction,
-    double overtimePay,
-    double grossSalary
+          double dailyRate,
+          double proratedBaseSalary,
+          double latePenaltyDeduction,
+          double overtimePay,
+          double grossSalary
   ) {
   }
   //endregion
@@ -385,27 +384,27 @@ public class SalaryRecordService {
     double calculatedPersonalDependentDeduction = calculatedPersonalDependentDeduction(salaryId);
 
     return PayrollDTO.builder()
-      .calculatedEmployeeHealthInsurance(calculatedEmployeeHealthInsurance)
-      .calculatedEmployeeHealthInsuranceAmount(calculatedEmployeeHealthInsuranceAmount)
-      .calculatedEmployeeSocialInsurance(calculatedEmployeeSocialInsurance)
-      .calculatedEmployeeSocialInsuranceAmount(calculatedEmployeeSocialInsuranceAmount)
-      .calculatedEmployeeUnionFee(calculatedEmployeeUnionFee)
-      .calculatedEmployeeUnionFeeAmount(calculatedEmployeeUnionFeeAmount)
-      .calculatedEmployeeUnemploymentInsurance(calculatedEmployeeUnemploymentInsurance)
-      .calculatedEmployeeUnemploymentInsuranceAmount(calculatedEmployeeUnemploymentInsuranceAmount)
-      .calculatedEmployerHealthInsurance(calculatedEmployerHealthInsurance)
-      .calculatedEmployerHealthInsuranceAmount(calculatedEmployerHealthInsuranceAmount)
-      .calculatedEmployerSocialInsurance(calculatedEmployerSocialInsurance)
-      .calculatedEmployerSocialInsuranceAmount(calculatedEmployerSocialInsuranceAmount)
-      .calculatedEmployerUnionFee(calculatedEmployerUnionFee)
-      .calculatedEmployerUnionFeeAmount(calculatedEmployerUnionFeeAmount)
-      .calculatedEmployerUnemploymentInsurance(calculatedEmployerUnemploymentInsurance)
-      .calculatedEmployerUnemploymentInsuranceAmount(calculatedEmployerUnemploymentInsuranceAmount)
-      .calculatedPersonalInsuranceDeduction(calculatedPersonalInsuranceDeduction)
-      .calculatedPersonalDeduction(calculatedPersonalDeduction)
-      .calculatedPersonalDependentDeduction(calculatedPersonalDependentDeduction)
-      .totalNetSalary(netsalary)
+            .calculatedEmployeeHealthInsurance(calculatedEmployeeHealthInsurance)
+            .calculatedEmployeeHealthInsuranceAmount(calculatedEmployeeHealthInsuranceAmount)
+            .calculatedEmployeeSocialInsurance(calculatedEmployeeSocialInsurance)
+            .calculatedEmployeeSocialInsuranceAmount(calculatedEmployeeSocialInsuranceAmount)
+            .calculatedEmployeeUnionFee(calculatedEmployeeUnionFee)
+            .calculatedEmployeeUnionFeeAmount(calculatedEmployeeUnionFeeAmount)
+            .calculatedEmployeeUnemploymentInsurance(calculatedEmployeeUnemploymentInsurance)
+            .calculatedEmployeeUnemploymentInsuranceAmount(calculatedEmployeeUnemploymentInsuranceAmount)
+            .calculatedEmployerHealthInsurance(calculatedEmployerHealthInsurance)
+            .calculatedEmployerHealthInsuranceAmount(calculatedEmployerHealthInsuranceAmount)
+            .calculatedEmployerSocialInsurance(calculatedEmployerSocialInsurance)
+            .calculatedEmployerSocialInsuranceAmount(calculatedEmployerSocialInsuranceAmount)
+            .calculatedEmployerUnionFee(calculatedEmployerUnionFee)
+            .calculatedEmployerUnionFeeAmount(calculatedEmployerUnionFeeAmount)
+            .calculatedEmployerUnemploymentInsurance(calculatedEmployerUnemploymentInsurance)
+            .calculatedEmployerUnemploymentInsuranceAmount(calculatedEmployerUnemploymentInsuranceAmount)
+            .calculatedPersonalInsuranceDeduction(calculatedPersonalInsuranceDeduction)
+            .calculatedPersonalDeduction(calculatedPersonalDeduction)
+            .calculatedPersonalDependentDeduction(calculatedPersonalDependentDeduction)
+            .totalNetSalary(netsalary)
 
-      .build();
+            .build();
   }
 }

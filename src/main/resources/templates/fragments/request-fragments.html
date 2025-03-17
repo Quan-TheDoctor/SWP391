@@ -134,8 +134,7 @@
                         </td>
                         <td class="px-6 py-4">
                             <div class="flex gap-2">
-                                <a th:href="@{/request/view(requestId=${r.requestId})}"
-                                   class="text-blue-600 hover:text-blue-800">View</a>
+                                <a th:href="@{/request/view/{id}(id=${r.requestId})}" class="text-blue-600 hover:text-blue-800">View</a>
                                 <a th:if="${r.requestStatus eq 'pending'}"
                                    th:href="@{/request/status(field='approve',requestId=${r.requestId}, type=${r.getRequestType()})}"
                                    class="text-green-600 hover:text-green-800">Approve</a>
