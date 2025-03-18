@@ -311,17 +311,17 @@ public class RequestService {
 
       SalaryRecord newSalaryRecord = SalaryRecord.builder()
               .employee(employee)
-              .baseSalary(newSalary)  // Mức lương cơ bản
-              .month(LocalDate.now().getMonthValue())  // Tháng hiện tại
-              .year(LocalDate.now().getYear())  // Năm hiện tại
-              .totalAllowance(0.0)  // Tổng trợ cấp (có thể thay bằng giá trị hợp lý nếu có)
-              .overtimePay(0.0)  // Tiền làm thêm giờ (có thể thay bằng giá trị hợp lý nếu có)
-              .deductions(0.0)  // Khấu trừ (có thể thay bằng giá trị hợp lý nếu có)
-              .insuranceDeduction(0.0)  // Khấu trừ bảo hiểm
-              .taxAmount(0.0)  // Thuế
-              .netSalary(newSalary)  // Lương thực nhận, bạn có thể tính theo các trường trên
-              .paymentStatus("PENDING")  // Trạng thái thanh toán (có thể thay đổi tùy nhu cầu)
-              .createdAt(LocalDateTime.now())  // Thời gian tạo
+              .baseSalary(newSalary)
+              .month(LocalDate.now().getMonthValue())
+              .year(LocalDate.now().getYear())
+              .totalAllowance(0.0)
+              .overtimePay(0.0)
+              .deductions(0.0)
+              .insuranceDeduction(0.0)
+              .taxAmount(0.0)
+              .netSalary(newSalary)
+              .paymentStatus("PENDING")
+              .createdAt(LocalDateTime.now())
               .build();
 
       salaryRecordRepository.save(newSalaryRecord);
@@ -391,7 +391,7 @@ public class RequestService {
               Employee employee = request.getUser().getEmployee();
 
               if (employee == null || employee.getEmploymentHistories() == null || employee.getEmploymentHistories().isEmpty()) {
-                return null; // Hoặc trả về giá trị mặc định
+                return null;
               }
 
               Position position = employee.getEmploymentHistories().stream()
