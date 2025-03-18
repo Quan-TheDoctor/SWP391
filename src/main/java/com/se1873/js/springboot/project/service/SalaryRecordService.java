@@ -7,14 +7,22 @@ import com.se1873.js.springboot.project.entity.User;
 import com.se1873.js.springboot.project.repository.*;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.poi.ss.usermodel.*;
+import org.apache.poi.ss.util.CellRangeAddress;
+import org.apache.poi.xssf.usermodel.XSSFWorkbook;
+import org.springframework.core.io.ByteArrayResource;
+import org.springframework.core.io.Resource;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.io.ByteArrayOutputStream;
+import java.io.IOException;
 import java.time.LocalDate;
 import java.util.*;
+import java.util.stream.Collectors;
 
 @Slf4j
 @Service
@@ -407,5 +415,171 @@ public class SalaryRecordService {
       .totalNetSalary(netsalary)
 
       .build();
+  }
+  public Resource exportToExcel(List<Integer> payrollIds, LocalDate startDate, LocalDate endDate) {
+    List<SalaryRecord> salaryRecords = new ArrayList<>();
+
+    try {
+      if (payrollIds != null && !payrollIds.isEmpty()) {
+        // Find by ID list
+        log.info("Exporting by IDs: {}", payrollIds);
+        for (Integer id : payrollIds) {
+          SalaryRecord record = salaryRecordRepository.findSalaryRecordBySalaryId(id);
+          if (record != null) {
+            salaryRecords.add(record);
+          } else {
+            log.warn("Salary record not found for ID: {}", id);
+          }
+        }
+      } else if (startDate != null && endDate != null) {
+        // Find by date range
+        log.info("Exporting by date range: {} to {}", startDate, endDate);
+        int startMonth = startDate.getMonthValue();
+        int startYear = startDate.getYear();
+        int endMonth = endDate.getMonthValue();
+        int endYear = endDate.getYear();
+
+        // Get all records in the date range
+        List<SalaryRecord> allRecords = salaryRecordRepository.findAll();
+
+        salaryRecords = allRecords.stream()
+                .filter(record -> {
+                  int recordYear = record.getYear();
+                  int recordMonth = record.getMonth();
+
+                  int startTotalMonths = startYear * 12 + startMonth;
+                  int endTotalMonths = endYear * 12 + endMonth;
+                  int recordTotalMonths = recordYear * 12 + recordMonth;
+
+                  return recordTotalMonths >= startTotalMonths && recordTotalMonths <= endTotalMonths;
+                })
+                .collect(Collectors.toList());
+
+        log.info("Found {} records in date range", salaryRecords.size());
+      } else {
+        // No filter criteria provided, get all records
+        log.info("No filter criteria provided, getting all records");
+        salaryRecords = salaryRecordRepository.findAll();
+      }
+
+      if (salaryRecords.isEmpty()) {
+        log.warn("No salary records found for export");
+        // Create an empty workbook with just headers
+        return createEmptyExcelFile();
+      }
+
+      return createExcelFile(salaryRecords);
+    } catch (Exception e) {
+      log.error("Error exporting to Excel", e);
+      throw new RuntimeException("Error exporting to Excel", e);
+    }
+  }
+
+  private Resource createEmptyExcelFile() throws IOException {
+    try (Workbook workbook = new XSSFWorkbook(); ByteArrayOutputStream out = new ByteArrayOutputStream()) {
+      Sheet sheet = workbook.createSheet("Payroll");
+
+      // Create title and header rows
+      createTitleAndHeaderRows(workbook, sheet);
+
+      workbook.write(out);
+      return new ByteArrayResource(out.toByteArray());
+    }
+  }
+
+  private Resource createExcelFile(List<SalaryRecord> salaryRecords) throws IOException {
+    try (Workbook workbook = new XSSFWorkbook(); ByteArrayOutputStream out = new ByteArrayOutputStream()) {
+      Sheet sheet = workbook.createSheet("Payroll");
+
+      // Create title and header rows
+      createTitleAndHeaderRows(workbook, sheet);
+
+      // Create currency format
+      DataFormat format = workbook.createDataFormat();
+      CellStyle currencyStyle = workbook.createCellStyle();
+      currencyStyle.setDataFormat(format.getFormat("#,##0.00"));
+
+      // Add data rows
+      int rowIdx = 3;
+      for (SalaryRecord record : salaryRecords) {
+        Row row = sheet.createRow(rowIdx++);
+
+        // Employee name
+        Cell cell0 = row.createCell(0);
+        cell0.setCellValue(record.getEmployee().getFirstName() + " " + record.getEmployee().getLastName());
+
+        // Month and Year
+        row.createCell(1).setCellValue(record.getMonth());
+        row.createCell(2).setCellValue(record.getYear());
+
+        // Currency fields with formatting
+        Cell cell3 = row.createCell(3);
+        cell3.setCellValue(record.getBaseSalary());
+        cell3.setCellStyle(currencyStyle);
+
+        Cell cell4 = row.createCell(4);
+        cell4.setCellValue(record.getOvertimePay());
+        cell4.setCellStyle(currencyStyle);
+
+        Cell cell5 = row.createCell(5);
+        cell5.setCellValue(record.getDeductions());
+        cell5.setCellStyle(currencyStyle);
+
+        Cell cell6 = row.createCell(6);
+        cell6.setCellValue(record.getNetSalary());
+        cell6.setCellStyle(currencyStyle);
+
+        // Status
+        row.createCell(7).setCellValue(record.getPaymentStatus());
+      }
+
+      // Auto-size columns
+      for (int i = 0; i < 8; i++) {
+        sheet.autoSizeColumn(i);
+      }
+
+      workbook.write(out);
+      return new ByteArrayResource(out.toByteArray());
+    }
+  }
+
+  private void createTitleAndHeaderRows(Workbook workbook, Sheet sheet) {
+    // Title row
+    Font titleFont = workbook.createFont();
+    titleFont.setBold(true);
+    titleFont.setFontHeightInPoints((short) 16);
+
+    CellStyle titleStyle = workbook.createCellStyle();
+    titleStyle.setFont(titleFont);
+    titleStyle.setAlignment(HorizontalAlignment.CENTER);
+
+    Row titleRow = sheet.createRow(0);
+    Cell titleCell = titleRow.createCell(0);
+    titleCell.setCellValue("Payroll Report");
+    titleCell.setCellStyle(titleStyle);
+    sheet.addMergedRegion(new CellRangeAddress(0, 0, 0, 7));
+
+    // Header row
+    Font headerFont = workbook.createFont();
+    headerFont.setBold(true);
+    headerFont.setColor(IndexedColors.WHITE.getIndex());
+
+    CellStyle headerStyle = workbook.createCellStyle();
+    headerStyle.setFillForegroundColor(IndexedColors.BLUE_GREY.getIndex());
+    headerStyle.setFillPattern(FillPatternType.SOLID_FOREGROUND);
+    headerStyle.setFont(headerFont);
+    headerStyle.setAlignment(HorizontalAlignment.CENTER);
+    headerStyle.setBorderBottom(BorderStyle.THIN);
+    headerStyle.setBorderTop(BorderStyle.THIN);
+    headerStyle.setBorderRight(BorderStyle.THIN);
+    headerStyle.setBorderLeft(BorderStyle.THIN);
+
+    Row headerRow = sheet.createRow(2);
+    String[] columns = {"Employee", "Month", "Year", "Base Salary", "Overtime Pay", "Deductions", "Net Salary", "Status"};
+    for (int i = 0; i < columns.length; i++) {
+      Cell cell = headerRow.createCell(i);
+      cell.setCellValue(columns[i]);
+      cell.setCellStyle(headerStyle);
+    }
   }
 }

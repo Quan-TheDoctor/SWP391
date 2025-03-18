@@ -33,4 +33,9 @@ public interface SalaryRecordRepository extends JpaRepository<SalaryRecord, Long
 
 
     Page<SalaryRecord> getSalaryRecordsByEmployee_EmployeeIdAndYear(Integer employeeId,Integer year, Pageable pageable);
+    @Query("SELECT s FROM SalaryRecord s WHERE s.month = :month AND s.year = :year")
+    Page<SalaryRecord> findSalaryRecordsByMonthAndYear(Pageable pageable, @Param("month") Integer month, @Param("year") Integer year);
+    // Nếu bạn sử dụng kiểu Integer trong payrollIds, thay vì Long
+    List<SalaryRecord> findAllBySalaryIdIn(List<Long> salaryIds);
+
 }
