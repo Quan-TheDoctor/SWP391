@@ -1,0 +1,206 @@
+<!DOCTYPE html>
+<html lang="vi" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Chấm công - Modern Dashboard</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        .custom-scrollbar::-webkit-scrollbar {
+            width: 8px;
+        }
+
+        .custom-scrollbar::-webkit-scrollbar-track {
+            background: #f1f1f1;
+        }
+
+        .custom-scrollbar::-webkit-scrollbar-thumb {
+            background: #888;
+            border-radius: 4px;
+        }
+
+        .compact-table {
+            table-layout: fixed;
+        }
+
+        .compact-table td, .compact-table th {
+            padding: 0.75rem;
+            vertical-align: middle;
+        }
+    </style>
+    <script>
+        document.addEventListener("DOMContentLoaded", async () => {
+            const departmentFilter = document.getElementById("departmentFilter");
+            const departments = await fetch('/api/department/getAll')
+                .then(res => res.json())
+                .then(data => data);
+
+            departments.forEach(department => {
+                const option = document.createElement('option');
+                option.value = department.departmentId;
+                option.textContent = department.departmentName;
+                departmentFilter.appendChild(option);
+            });
+        });
+
+        function parseTime(timeString) {
+            const [hours, minutes] = timeString.split(':');
+            return {hours: parseInt(hours), minutes: parseInt(minutes)};
+        }
+
+        function calculateOvertime(checkIn, checkOut) {
+            const standardEndTime = parseTime("17:00");
+            const checkOutTime = parseTime(checkOut);
+
+            let overtime = 0;
+
+            if (checkOutTime.hours > standardEndTime.hours ||
+                (checkOutTime.hours === standardEndTime.hours && checkOutTime.minutes > standardEndTime.minutes)) {
+
+                const endMinutes = standardEndTime.hours * 60 + standardEndTime.minutes;
+                const checkoutMinutes = checkOutTime.hours * 60 + checkOutTime.minutes;
+                overtime = (checkoutMinutes - endMinutes) / 60;
+            }
+            return parseFloat(overtime.toFixed(2));
+        }
+
+        function updateOvertime(row) {
+            const checkIn = row.querySelector('input[type="time"]').value;
+            const checkOut = row.querySelectorAll('input[type="time"]')[1].value;
+
+            if (checkIn && checkOut) {
+                row.querySelector('input[type="number"]').value = calculateOvertime(checkIn, checkOut);
+            }
+        }
+
+        function reindexRows() {
+            const rows = document.querySelectorAll('#attendanceTable tbody tr');
+            rows.forEach((row, index) => {
+                row.querySelectorAll('input, select').forEach(input => {
+                    input.name = input.name.replace(/\[\d+\]/, `[${index}]`);
+                });
+                const hiddenInput = row.querySelector('input[type="hidden"]');
+                if (hiddenInput) {
+                    hiddenInput.name = `attendances[${index}].employeeId`;
+                }
+            });
+        }
+
+        function deleteRow(button) {
+            button.closest('tr').remove();
+            reindexRows();
+        }
+
+        function addEmployeeToTable(employeeId, employeeName) {
+            const tableBody = document.querySelector('#attendanceTable tbody');
+            const newRow = document.createElement('tr');
+            newRow.className = 'hover:bg-gray-50';
+
+            newRow.innerHTML = `
+        <td class="w-48 px-4 truncate">${employeeName}</td>
+        <td class="w-32"><input type="date" name="attendances[0].attendanceDate" required></td>
+        <td class="w-24"><input type="time"
+       pattern="[0-9]{2}:[0-9]{2}" name="attendances[0].attendanceCheckIn" onchange="updateOvertime(this.parentElement.parentElement)" required></td>
+        <td class="w-24"><input type="time"
+       pattern="[0-9]{2}:[0-9]{2}" name="attendances[0].attendanceCheckOut" onchange="updateOvertime(this.parentElement.parentElement)" required></td>
+        <td class="w-32"><input type="number" step="0.01" name="attendances[0].attendanceOvertimeHours" readonly></td>
+        <td class="w-36">
+            <select name="attendances[0].attendanceStatus">
+                <option value="PRESENT">Có mặt</option>
+                <option value="ABSENT">Vắng mặt</option>
+            </select>
+        </td>
+        <td class="w-24">
+            <button type="button" onclick="deleteRow(this)">Xóa</button>
+        </td>
+        <input type="hidden" name="attendances[0].employeeId" value="${employeeId}">
+    `;
+
+            tableBody.appendChild(newRow);
+            reindexRows();
+        }
+
+        async function filterEmployees() {
+            const departmentId = document.getElementById('departmentFilter').value;
+            const employeeList = document.getElementById('employeeList');
+            employeeList.innerHTML = '';
+
+            if (!departmentId) return;
+
+            const employees = await fetch(`/api/employee/getAllByDepartmentId?departmentId=${departmentId}`)
+                .then(res => res.json())
+                .then(data => data);
+
+            console.log(employees)
+
+            employees.forEach(employee => {
+                const employeeDiv = document.createElement('div');
+                employeeDiv.className = 'p-2 mb-2 flex justify-between items-center bg-white rounded shadow-sm hover:shadow-md transition-shadow';
+                employeeDiv.innerHTML = `
+                    <span class="truncate">${employee.employeeFirstName} ${employee.employeeLastName}</span>
+                    <button type="button"
+                        class="px-3 py-1 bg-blue-600 text-white rounded hover:bg-blue-700"
+                        onclick="addEmployeeToTable(${employee.employeeId}, '${employee.employeeFirstName} ${employee.employeeLastName}')">+</button>
+                `;
+                employeeList.appendChild(employeeDiv);
+            });
+        }
+    </script>
+</head>
+<div th:fragment="main-content" xmlns:sec="http://www.w3.org/1999/xhtml">
+<div class="max-w-7xl mx-auto">
+    <div class="mb-6">
+        <h1 class="text-2xl font-bold text-gray-800">📅 Quản lý chấm công</h1>
+        <p class="text-gray-600">Chọn phòng ban và thêm nhân viên vào bảng chấm công</p>
+    </div>
+
+    <div class="grid grid-cols-1 lg:grid-cols-4 gap-6">
+
+        <div class="lg:col-span-1">
+            <div class="bg-white rounded-xl shadow-sm p-4">
+                <div class="mb-4">
+                    <label class="block text-sm font-medium text-gray-700 mb-2">Phòng ban</label>
+                    <select id="departmentFilter" onchange="filterEmployees()"
+                            class="w-full p-2 border rounded-lg focus:ring-2 focus:ring-blue-500">
+                        <option value="">-- Chọn phòng ban --</option>
+                    </select>
+                </div>
+                <div id="employeeList" class="h-96 overflow-y-auto custom-scrollbar space-y-2">
+
+                </div>
+            </div>
+        </div>
+
+
+        <div class="lg:col-span-3">
+            <div class="bg-white rounded-xl shadow-sm p-4">
+                <form th:action="@{/attendance/create/save}" method="post" th:object="${attendanceDTOList}">
+                    <div class="mt-4 flex justify-end">
+                        <button type="submit"
+                                class="px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors">
+                            💾 Lưu chấm công
+                        </button>
+                    </div>
+                    <table id="attendanceTable" class="compact-table w-full">
+                        <thead class="bg-gray-50">
+                        <tr>
+                            <th class="w-48 text-left">Tên NV</th>
+                            <th class="w-32">Ngày</th>
+                            <th class="w-24">Check-in</th>
+                            <th class="w-24">Check-out</th>
+                            <th class="w-32">Overtime</th>
+                            <th class="w-36">Trạng thái</th>
+                            <th class="w-24">Thao tác</th>
+                        </tr>
+                        </thead>
+                        <tbody class="divide-y divide-gray-200">
+
+                        </tbody>
+                    </table>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+</div>
+</html>

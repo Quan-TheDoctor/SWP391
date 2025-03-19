@@ -12,5 +12,6 @@ public interface DepartmentDTOMapper extends EntityMapper<DepartmentDTO, Departm
   @Mapping(source = "departmentName", target = "departmentName")
   @Mapping(source = "description", target = "departmentDescription")
   @Mapping(source = "createdAt", target = "departmentCreatedAt")
+  @Mapping(source = "managerId", target = "managerId")
   DepartmentDTO toDTO(Department department);
 }

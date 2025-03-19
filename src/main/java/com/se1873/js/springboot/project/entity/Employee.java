@@ -38,6 +38,9 @@ public class Employee {
   @Column(name = "gender")
   private String gender;
 
+  @Column(name = "picture")
+  private byte[] picture;
+
   @Column(name = "id_number", unique = true, nullable = false)
   private String idNumber;
 
@@ -93,7 +96,6 @@ public class Employee {
   @ToString.Exclude
   @OneToMany(mappedBy = "employee", cascade = CascadeType.ALL, fetch = FetchType.LAZY, orphanRemoval = true)
   private List<Leave> leaves = new ArrayList<>();
-
   @ToString.Exclude
   @OneToMany(mappedBy = "employee", cascade = CascadeType.ALL, fetch = FetchType.LAZY, orphanRemoval = true)
   private List<Attendance> attendances = new ArrayList<>();
@@ -103,6 +105,9 @@ public class Employee {
   @ToString.Exclude
   @OneToOne(mappedBy = "employee", cascade = CascadeType.ALL)
   private User user;
+
+  @Column(name = "is_deleted")
+  private Boolean isDeleted;
 
   @PrePersist
   protected void onCreate() {

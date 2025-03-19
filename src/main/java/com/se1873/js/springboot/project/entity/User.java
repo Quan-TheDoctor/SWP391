@@ -27,6 +27,12 @@ public class User {
   @Column(name = "role")
   private String role;
 
+  @Column(name = "status")
+  private String status;
+
+  @Column(name = "last_login")
+  private LocalDateTime lastLogin;
+
   @Column(name = "updated_at")
   private LocalDateTime updatedAt;
 
@@ -41,6 +47,10 @@ public class User {
   @ToString.Exclude
   @OneToMany(mappedBy = "user", cascade = CascadeType.ALL)
   private List<AuditLog> auditLogs;
+
+  @ToString.Exclude
+  @OneToMany(mappedBy = "user", cascade = CascadeType.ALL)
+  private List<Message> messages;
 
   @PrePersist
   protected void onCreate() {

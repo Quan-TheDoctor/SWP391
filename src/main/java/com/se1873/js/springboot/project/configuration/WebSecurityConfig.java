@@ -1,8 +1,9 @@
 package com.se1873.js.springboot.project.configuration;
 
+import com.se1873.js.springboot.project.controller.GlobalController;
 import com.se1873.js.springboot.project.repository.EmployeeRepository;
 import com.se1873.js.springboot.project.repository.UserRepository;
-import jakarta.servlet.http.HttpServletRequest;
+import com.se1873.js.springboot.project.service.user.UserService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.context.annotation.Bean;
@@ -14,12 +15,8 @@ import org.springframework.security.core.userdetails.User;
 import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
-import org.springframework.security.crypto.password.NoOpPasswordEncoder;
-import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.util.matcher.AntPathRequestMatcher;
-
-import java.util.Optional;
 
 @Slf4j
 @Configuration
@@ -27,52 +24,48 @@ import java.util.Optional;
 @RequiredArgsConstructor
 public class WebSecurityConfig {
   @Bean
-  public SecurityFilterChain securityFilterChain(HttpSecurity http, UserRepository userRepository, EmployeeRepository employeeRepository) throws Exception {
+  public SecurityFilterChain securityFilterChain(HttpSecurity http, UserRepository userRepository, EmployeeRepository employeeRepository, UserService userService, GlobalController globalController) throws Exception {
     http
       .authorizeHttpRequests((requests) ->
         requests
-          .requestMatchers("/", "/home", "/login", "/request/**", "/css/**", "/js/**").permitAll() // Cho phép truy cập các trang này
-          .requestMatchers("/payroll", "/employee/employee-insert", "/employee").hasRole("ADMIN")
+          .requestMatchers("/api/face-recognition/recognition-success").permitAll()
+          .requestMatchers("/", "/home", "/login", "/request/**", "/css/**", "/js/**", "/api/attendance/recognize").permitAll() // Cho phép truy cập các trang này
+          .requestMatchers("/payroll/**", "/attendance/**", "/request/**", "/employee/employee-insert", "/employee/**").hasAnyRole("ADMIN")
+          .requestMatchers("/admin/**").hasRole("ADMIN")
           .anyRequest().authenticated() // Các trang khác yêu cầu đăng nhập
       )
       .formLogin((form) ->
-          form
-            .loginPage("/login") // Chỉ định trang login tùy chỉnh
-            .successHandler((request, response, authentication) -> {
-              boolean isAdmin = false;
-              for (GrantedAuthority ga : authentication.getAuthorities()) {
-                if (ga.getAuthority().equals("ROLE_ADMIN")) {
-                  isAdmin = true;
-                  break;
-                }
+        form
+          .loginPage("/login") // Chỉ định trang login tùy chỉnh
+          .successHandler((request, response, authentication) -> {
+            boolean isAdmin = false;
+            for (GrantedAuthority ga : authentication.getAuthorities()) {
+              if (ga.getAuthority().equals("ROLE_ADMIN")) {
+                isAdmin = true;
+                break;
               }
+            }
 
-              if (isAdmin) {
-                response.sendRedirect("/employee");
-              } else {
-//                                    String username = authentication.getName();
-//                                    Optional<com.se1873.js.springboot.project.entity.User> user = userRepository.findUserByUsername(username);
-//                                    int id = user.get().getEmployee().getEmployeeId();
-                response.sendRedirect("/user/detail");
-              }
-            })
-            .failureUrl("/login?error=true") // Xử lý lỗi đăng nhập
-            .permitAll()
+            User user = (User) authentication.getPrincipal();
+            userService.handleSuccessfulLogin(user.getUsername(), response);
+
+          })
+          .failureUrl("/login?error=true") // Xử lý lỗi đăng nhập
+          .permitAll()
       )
       .logout((logout) -> logout
         .logoutUrl("/logout")
         .logoutRequestMatcher(new AntPathRequestMatcher("/logout", "GET"))
         .logoutSuccessUrl("/login?logout=true") // Chuyển hướng sau khi đăng xuất
         .permitAll()
+      )
+      .csrf(csrf -> csrf
+        .ignoringRequestMatchers("/api/attendance/**", "/api/face-recognition/**")
       );
-
     return http.build();
   }
 
   @Bean
-//    public PasswordEncoder passwordEncoder() {
-//        return NoOpPasswordEncoder.getInstance();
-//    }
   public BCryptPasswordEncoder bCryptPasswordEncoder() {
     return new BCryptPasswordEncoder();
   }

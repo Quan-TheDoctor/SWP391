@@ -54,6 +54,9 @@ public class SalaryRecord {
   @Column(name = "created_at")
   private LocalDateTime createdAt;
 
+  @Column(name = "is_deleted")
+  private Boolean isDeleted;
+
   @PrePersist
   protected void onCreate() {
     this.createdAt = LocalDateTime.now();

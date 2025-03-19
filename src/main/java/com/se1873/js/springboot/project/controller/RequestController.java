@@ -1,15 +1,17 @@
 package com.se1873.js.springboot.project.controller;
 
+import com.se1873.js.springboot.project.dto.RequestCreationRequestDTO;
 import com.se1873.js.springboot.project.dto.RequestDTO;
 import com.se1873.js.springboot.project.entity.Employee;
-import com.se1873.js.springboot.project.entity.Request;
 import com.se1873.js.springboot.project.entity.SalaryRecord;
 import com.se1873.js.springboot.project.entity.User;
 import com.se1873.js.springboot.project.repository.EmployeeRepository;
 import com.se1873.js.springboot.project.repository.SalaryRecordRepository;
 import com.se1873.js.springboot.project.repository.UserRepository;
+import com.se1873.js.springboot.project.service.ChatNotificationService;
 import com.se1873.js.springboot.project.service.RequestService;
-import com.se1873.js.springboot.project.service.SalaryRecordService;
+import com.se1873.js.springboot.project.service.department.DepartmentService;
+import com.se1873.js.springboot.project.service.employee.EmployeeService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.core.io.Resource;
@@ -27,13 +29,10 @@ import org.springframework.ui.Model;
 import org.springframework.validation.BindingResult;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.server.ResponseStatusException;
+import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 
 import java.util.*;
-import java.util.stream.Collectors;
 
-/**
- * Controller xử lý requests được gửi từ view bao gồm: view, filter, search, export, update request status,...
- */
 @Controller
 @Slf4j
 @RequiredArgsConstructor
@@ -41,12 +40,13 @@ import java.util.stream.Collectors;
 public class RequestController {
   private static final Integer DEFAULT_PAGE_SIZE = 5;
   private static final String REQUEST_STATUS_PENDING = "pending";
-  private static final String REQUEST_TYPE_LEAVE = "Đơn xin nghỉ";
 
   private final RequestService requestService;
+  private final DepartmentService departmentService;
   private final UserRepository userRepository;
   private final EmployeeRepository employeeRepository;
   private final SalaryRecordRepository salaryRecordRepository;
+  private final EmployeeService employeeService;
 
   private Integer totalRequests = 0;
   private Integer totalPendingRequests = 0;
@@ -61,40 +61,19 @@ public class RequestController {
     model.addAttribute("requests", requests);
     addRequestStatistics(requests, model);
     model.addAttribute("requestTypes", requestService.getAllRequestTypes());
-    return viewName;
+    model.addAttribute("contentFragment", "fragments/request-fragments");
+    return "index";
   }
   private void addRequestStatistics(Page<RequestDTO> requests, Model model) {
     long totalPending = requests.stream()
-      .filter(r -> REQUEST_STATUS_PENDING.equalsIgnoreCase(r.getRequestStatus()))
-      .count();
+            .filter(r -> REQUEST_STATUS_PENDING.equalsIgnoreCase(r.getRequestStatus()))
+            .count();
 
     model.addAttribute("totalRequests", requests.getTotalElements());
     model.addAttribute("totalPendingRequests", totalPending);
     model.addAttribute("totalFinishedRequests", requests.getTotalElements() - totalPending);
   }
-  private User getAuthenticatedUser() {
-    Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
-    return userRepository.findUserByUsername(authentication.getName())
-      .orElseThrow(() -> new ResponseStatusException(HttpStatus.UNAUTHORIZED, "User not found"));
-  }
 
-  private Employee getEmployeeForUser(User user) {
-    return employeeRepository.getEmployeeByEmployeeId(user.getEmployee().getEmployeeId());
-  }
-
-  private void enrichWithSalaryRecords(RequestDTO requestDTO) {
-    List<SalaryRecord> records = requestDTO.getPayrollIds().stream()
-      .map(salaryRecordRepository::findSalaryRecordBySalaryId)
-      .toList();
-    requestDTO.setSalaryRecords(records);
-  }
-  /**
-   * Hiển thị trang view requests với statistics và pagination
-   * @param model: Model chứa thuộc tính
-   * @param page số Trang hiện tại
-   * @param size item mỗi trang
-   * @return request.html
-   */
   @RequestMapping
   public String request(Model model,
                         @RequestParam(value = "page", defaultValue = "0") int page,
@@ -102,15 +81,6 @@ public class RequestController {
     return populateRequestModel(model, requestService.getRequests(getPageable(page, size)), "request");
   }
 
-  /**
-   * Hiển thị trang view requests đã được filter theo lựa chọn
-   * @param model Model chứa thuộc tính
-   * @param field: trường filtẻ
-   * @param value: giá trị
-   * @param page số Trang hiện tại
-   * @param size item mỗi trang
-   * @return request.html
-   */
   @RequestMapping("/filter")
   public String filter(Model model,
                        @RequestParam("field") String field,
@@ -120,14 +90,6 @@ public class RequestController {
     return populateRequestModel(model, requestService.filter(field, value, getPageable(page, size)), "request");
   }
 
-  /**
-   * Tìm kiếm request theo text
-   * @param model Model chứa thuộc tính
-   * @param query giá trị tìm kiếm
-   * @param page số Trang hiện tại
-   * @param size item mỗi trang
-   * @return request.html
-   */
   @RequestMapping("/search")
   public String search(Model model,
                        @RequestParam("query") String query,
@@ -138,18 +100,10 @@ public class RequestController {
     model.addAttribute("requests", requests);
     model.addAttribute("query", query);
     addRequestStatistics(requests, model);
-    return "request";
+    model.addAttribute("contentFragment", "fragments/request-fragments");
+    return "index";
   }
 
-  /**
-   * Hiển thị trang export requests
-   * @param model Model chứa thuộc tính
-   * @param status Filter theo status
-   * @param type Filter theo type
-   * @param page số Trang hiện tại
-   * @param size item mỗi trang
-   * @return request-export.html
-   */
   @RequestMapping("/export/view")
   public String exportView(Model model,
                            @RequestParam(value = "status", required = false, defaultValue = "all") String status,
@@ -163,34 +117,23 @@ public class RequestController {
     model.addAttribute("requestTypes", requestService.getAllRequestTypes());
     model.addAttribute("selectedStatus", status);
     model.addAttribute("selectedType", type);
-    return "request-export";
+    model.addAttribute("contentFragment", "fragments/request-export-fragments");
+    return "index";
   }
 
-  /**
-   * Export ra file excels
-   * @param status Filter theo status
-   * @param type Filter theo type
-   * @return JSON ResponseEntity.ok()
-   */
   @RequestMapping("/export")
   public ResponseEntity<Resource> exportRequests(
-    @RequestParam(value = "status", required = false, defaultValue = "all") String status,
-    @RequestParam(value = "type", required = false, defaultValue = "all") String type) {
+          @RequestParam(value = "status", required = false, defaultValue = "all") String status,
+          @RequestParam(value = "type", required = false, defaultValue = "all") String type) {
     log.info("Exporting request data to Excel. Status: {}, Type: {}", status, type);
     Resource file = requestService.exportToExcel(status, type);
 
     return ResponseEntity.ok()
-      .header(HttpHeaders.CONTENT_DISPOSITION, "attachment; filename=requests.xlsx")
-      .contentType(MediaType.APPLICATION_OCTET_STREAM)
-      .body(file);
+            .header(HttpHeaders.CONTENT_DISPOSITION, "attachment; filename=requests.xlsx")
+            .contentType(MediaType.APPLICATION_OCTET_STREAM)
+            .body(file);
   }
 
-  /**
-   * Lưu request được gửi bởi người dùng
-   * @param requestDTO RequestDTO
-   * @param result BindingResult, Validation (?)
-   * @return redirect:/user/detail
-   */
   @RequestMapping("/save")
   public String save(@ModelAttribute("requestDTO") RequestDTO requestDTO,
                      BindingResult result) {
@@ -200,10 +143,9 @@ public class RequestController {
     Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
     String name = authentication.getName();
     User user = userRepository.findUserByUsername(name)
-      .orElseThrow(() -> new RuntimeException("Không tìm thấy người dùng"));
+            .orElseThrow(() -> new RuntimeException("Không tìm thấy người dùng"));
     int id = user.getEmployee().getEmployeeId();
     Employee employee = employeeRepository.getEmployeeByEmployeeId(id);
-
 
     requestService.save(requestDTO, user, employee);
     return "redirect:/user/detail?success=true";
@@ -214,38 +156,46 @@ public class RequestController {
     RequestDTO requestDTO = requestService.findRequestByRequestId(requestId);
     List<SalaryRecord> salaryRecords = new ArrayList<>();
     for (var r : requestDTO.getPayrollIds()) {
-      SalaryRecord sr = salaryRecordRepository.findSalaryRecordBySalaryId(r);
+      SalaryRecord sr = salaryRecordRepository.findSalaryRecordBySalaryIdAndIsDeleted(r, false);
       salaryRecords.add(sr);
     }
     requestDTO.setSalaryRecords(salaryRecords);
 
     model.addAttribute("requestDTO", requestDTO);
-    return "request-view";
+    model.addAttribute("contentFragment", "fragments/request-view-fragments");
+    return "index";
   }
 
   @RequestMapping("/status")
   public String approveRequest(Model model,
                                @RequestParam("requestId") Integer requestId,
                                @RequestParam("field") String field,
-                               @RequestParam("type") String type) {
+                               @RequestParam("type") String type, RedirectAttributes redirectAttributes) {
     RequestDTO requestDTO = requestService.findRequestByRequestId(requestId);
     Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
     String name = authentication.getName();
     User user = userRepository.findUserByUsername(name)
       .orElseThrow(() -> new RuntimeException("Không tìm thấy người dùng"));
+    log.info(requestDTO.toString());
+    if(!requestDTO.getApprovalName().equals(user.getUsername())) {
+
+      redirectAttributes.addFlashAttribute("message", "You're not authorized to approve this request");
+      redirectAttributes.addFlashAttribute("messageType", "error");
+      return "redirect:/request";
+    }
 
     if ("Hạch toán lương".equals(type)) {
       switch (field) {
         case "approve":
           if ("pending".equals(requestDTO.getRequestStatus())) {
-            requestDTO.setRequestStatus("approve");
+            requestDTO.setRequestStatus("Approved");
             requestDTO.setApprovalName(user.getUsername());
             requestService.updateStatus(requestDTO, type);
           }
           break;
         case "deny":
           if ("pending".equals(requestDTO.getRequestStatus())) {
-            requestDTO.setRequestStatus("deny");
+            requestDTO.setRequestStatus("Denied");
             requestService.updateStatus(requestDTO, type);
           }
           break;
@@ -279,14 +229,51 @@ public class RequestController {
         requestTypes.add(request.getRequestType());
       }
 
-
       model.addAttribute("totalRequests", totalRequests);
       model.addAttribute("totalPendingRequests", totalPendingRequests);
       model.addAttribute("totalFinishedRequests", totalFinishedRequests);
       model.addAttribute("requestDTO", requestDTO);
       model.addAttribute("requests", requests);
-      return "request";
+      model.addAttribute("contentFragment", "fragments/request-fragments");
+      return "index";
     }
-    return "request";
+    model.addAttribute("contentFragment", "fragments/request-fragments");
+    return "index";
   }
+
+
+  @GetMapping("/create/form")
+  public String createRequestForm (Model model) {
+    var result = departmentService.getAllDepartments();
+    model.addAttribute("departmentList", result);
+
+    var requestDTO = requestService.getAllRequests();
+    model.addAttribute("requestDTO", requestDTO);
+    return "request-create";
+  }
+
+
+  @PostMapping("/create")
+  public String createRequest(@ModelAttribute("request") RequestCreationRequestDTO request, Model model) {
+    var result = requestService.createRequest(request);
+    model.addAttribute("result", result);
+    var requestDTO = requestService.getAllRequests();
+    model.addAttribute("requestDTOList", requestDTO);
+    return "redirect:/request/create/form";
+  }
+
+  @GetMapping("/view/{id}")
+  public String getDetailRequest(@PathVariable Long id, Model model) {
+    var result = requestService.getDetailRequest(id);
+    model.addAttribute("requestDetail", result);
+    return "request-detail";
+  }
+//  @GetMapping("/view/{id}")
+//  public String getDetailRequest(@PathVariable Long id, Model model) {
+//    var result = requestService.getDetailRequest(id);
+//    model.addAttribute("requestDetail", result);
+//
+//    return "request-detail";
+//  }
+
 }

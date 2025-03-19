@@ -1,0 +1,598 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org"
+      xmlns:sec="http://www.thymeleaf.org/extras/spring-security">
+<head>
+    <meta charset="UTF-8">
+    <title>Employee Attendance Management</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        primary: {
+                            50: '#f5f3ff',
+                            100: '#ede9fe',
+                            200: '#ddd6fe',
+                            300: '#c4b5fd',
+                            400: '#a78bfa',
+                            500: '#8b5cf6',
+                            600: '#7c3aed',
+                            700: '#6d28d9',
+                            800: '#5b21b6',
+                            900: '#4c1d95',
+                        },
+                        secondary: {
+                            50: '#eef2ff',
+                            100: '#e0e7ff',
+                            200: '#c7d2fe',
+                            300: '#a5b4fc',
+                            400: '#818cf8',
+                            500: '#6366f1',
+                            600: '#4f46e5',
+                            700: '#4338ca',
+                            800: '#3730a3',
+                            900: '#312e81',
+                        }
+                    }
+                }
+            }
+        }
+    </script>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/daterangepicker/daterangepicker.css">
+    <script src="https://cdn.jsdelivr.net/npm/jquery/dist/jquery.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/moment/moment.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/daterangepicker/daterangepicker.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/echarts@5.4.3/dist/echarts.min.js"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/animate.css/4.1.1/animate.min.css"/>
+</head>
+<body>
+<div th:fragment="main-content" xmlns:sec="http://www.w3.org/1999/xhtml">
+    <main class="flex-1 ml-64 p-6">
+        <div class="max-w-7xl mx-auto space-y-6">
+            <!-- Header Section with gradient background -->
+            <div class="flex flex-col md:flex-row gap-4 items-center justify-between p-4 bg-gradient-to-r from-primary-600 to-secondary-600 rounded-lg text-white shadow-lg animate__animated animate__fadeIn">
+                <div>
+                    <h1 class="text-2xl font-bold">Employee Attendance</h1>
+                    <p class="text-primary-100">Track and manage employee attendance records</p>
+                </div>
+
+                <!-- Action Buttons -->
+                <div class="flex gap-2">
+                    <a th:href="@{/attendance/create/form}"
+                       class="px-4 py-2 bg-white text-primary-600 rounded-md hover:bg-primary-50 transition-colors flex items-center gap-2 shadow">
+                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/>
+                        </svg>
+                        Create
+                    </a>
+                    <a th:href="@{/attendance/summary}"
+                       class="px-4 py-2 bg-secondary-500 text-white rounded-md hover:bg-secondary-600 transition-colors flex items-center gap-2 shadow">
+                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                  d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"/>
+                        </svg>
+                        Summary
+                    </a>
+                        <a th:href="@{/attendance/export/view}">
+                            <button class="px-4 py-2 bg-purple-600 text-white rounded-md hover:bg-purple-700 flex items-center gap-2">
+                                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                          d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"/>
+                                </svg>
+                                Export
+                            </button>
+                        </a>
+                </div>
+
+            </div>
+
+            <!-- Attendance Analytics Section -->
+            <div class="bg-white rounded-lg shadow-lg p-4 animate__animated animate__fadeIn">
+                <h3 class="text-lg font-semibold mb-4 text-gray-800 flex items-center">
+                    <svg class="w-5 h-5 mr-2 text-primary-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                              d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"/>
+                    </svg>
+                    Attendance Analytics
+                </h3>
+
+                <!-- Monthly Analysis -->
+                <div id="monthlyAnalytics" class="analytics-panel">
+                    <div class="h-64" id="monthlyTrendsChart"></div>
+                    <div class="mt-4 grid grid-cols-1 md:grid-cols-2 gap-4 text-center">
+                        <div class="p-3 bg-gray-50 rounded-lg">
+                            <p class="text-sm text-gray-500">Monthly Average</p>
+                            <p class="text-xl font-bold text-primary-600">91.5%</p>
+                            <p class="text-xs text-gray-500">On-time rate</p>
+                        </div>
+                        <div class="p-3 bg-gray-50 rounded-lg">
+                            <p class="text-sm text-gray-500">Best Month</p>
+                            <p class="text-xl font-bold text-green-600">October</p>
+                            <p class="text-xs text-gray-500">95% on-time</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Filter Section -->
+            <div class="bg-white rounded-lg shadow-lg p-4 space-y-4 animate__animated animate__fadeInUp">
+                <div class="flex flex-col md:flex-row justify-between gap-4">
+
+                    <!-- Filters -->
+                    <div class="flex flex-wrap gap-2" th:if="${param.view == null || param.view[0] != 'kanban'}">
+                        <!-- Status Filter -->
+                        <form th:action="@{/attendance/filter}" method="get" class="flex flex-wrap gap-2">
+                            <select name="status" class="px-4 py-2 border rounded-md focus:ring-2 focus:ring-primary-300 transition-colors">
+                                <option value="ALL">All Statuses</option>
+                                <option value="On time">On Time</option>
+                                <option value="Late">Late</option>
+                                <option value="Not yet">Not Checked</option>
+                                <option value="Absent">Absent</option>
+                            </select>
+                            <input type="date" name="startDate" th:value="${startDate}"
+                                   class="px-4 py-2 border rounded-md focus:ring-2 focus:ring-primary-300 transition-colors">
+                            <input type="date" name="endDate" th:value="${endDate}"
+                                   class="px-4 py-2 border rounded-md focus:ring-2 focus:ring-primary-300 transition-colors">
+                            <button type="submit" class="px-4 py-2 bg-primary-600 text-white rounded-md hover:bg-primary-700 transition-colors">
+                                Apply Filter
+                            </button>
+                        </form>
+
+                        <form th:action="@{/attendance/search}" method="get" class="flex">
+                            <input type="text" name="query" placeholder="Search by name..."
+                                   class="px-4 py-2 border rounded-l-md focus:ring-2 focus:ring-primary-300 transition-colors">
+                            <button type="submit" class="px-4 py-2 bg-primary-600 text-white rounded-r-md hover:bg-primary-700 transition-colors">
+                                Search
+                            </button>
+                        </form>
+
+                    </div>
+                </div>
+            </div>
+
+            <!-- Table View -->
+            <div id="tableView"
+                 class="view-content bg-white rounded-lg shadow-lg overflow-hidden animate__animated animate__fadeIn"
+                 th:classappend="${param.view != null && param.view[0] == 'kanban' ? 'hidden' : ''}">
+                <div class="overflow-x-auto">
+                    <table class="w-full min-w-[1024px]">
+                        <thead class="bg-gray-50">
+                        <tr>
+                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">
+                                <input type="checkbox" id="selectAll" class="rounded border-gray-300 text-primary-500 focus:ring-primary-400">
+                            </th>
+                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">
+                                <a th:href="@{/attendance(sortField='employeeFirstName', direction=${sortField == 'employeeFirstName' ? (direction == 'asc' ? 'desc' : 'asc') : 'asc'}, page=${page}, size=${size}, startDate=${startDate}, endDate=${endDate}, status=${status}, query=${query})}"
+                                   class="flex items-center gap-1 hover:text-primary-600 cursor-pointer">
+                                    Employee
+                                    <span class="ml-1">
+          <svg th:if="${sortField == 'employeeFirstName' && direction == 'asc'}" xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" viewBox="0 0 20 20" fill="currentColor">
+            <path fill-rule="evenodd" d="M14.707 12.707a1 1 0 01-1.414 0L10 9.414l-3.293 3.293a1 1 0 01-1.414-1.414l4-4a1 1 0 011.414 0l4 4a1 1 0 010 1.414z" clip-rule="evenodd" />
+          </svg>
+          <svg th:if="${sortField == 'employeeFirstName' && direction == 'desc'}" xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" viewBox="0 0 20 20" fill="currentColor">
+            <path fill-rule="evenodd" d="M5.293 7.293a1 1 0 011.414 0L10 10.586l3.293-3.293a1 1 0 111.414 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414z" clip-rule="evenodd" />
+          </svg>
+        </span>
+                                </a>
+                            </th>
+                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">
+                                <a th:href="@{/attendance(sortField='attendanceDate', direction=${sortField == 'attendanceDate' ? (direction == 'asc' ? 'desc' : 'asc') : 'asc'}, page=${page}, size=${size}, startDate=${startDate}, endDate=${endDate}, status=${status}, query=${query})}"
+                                   class="flex items-center gap-1 hover:text-primary-600 cursor-pointer">
+                                    Date
+                                    <span class="ml-1">
+          <svg th:if="${sortField == 'attendanceDate' && direction == 'asc'}" xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" viewBox="0 0 20 20" fill="currentColor">
+            <path fill-rule="evenodd" d="M14.707 12.707a1 1 0 01-1.414 0L10 9.414l-3.293 3.293a1 1 0 01-1.414-1.414l4-4a1 1 0 011.414 0l4 4a1 1 0 010 1.414z" clip-rule="evenodd" />
+          </svg>
+          <svg th:if="${sortField == 'attendanceDate' && direction == 'desc'}" xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" viewBox="0 0 20 20" fill="currentColor">
+            <path fill-rule="evenodd" d="M5.293 7.293a1 1 0 011.414 0L10 10.586l3.293-3.293a1 1 0 111.414 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414z" clip-rule="evenodd" />
+          </svg>
+        </span>
+                                </a>
+                            </th>
+                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">
+                                <a th:href="@{/attendance(sortField='attendanceCheckIn', direction=${sortField == 'attendanceCheckIn' ? (direction == 'asc' ? 'desc' : 'asc') : 'asc'}, page=${page}, size=${size}, startDate=${startDate}, endDate=${endDate}, status=${status}, query=${query})}"
+                                   class="flex items-center gap-1 hover:text-primary-600 cursor-pointer">
+                                    Clock In
+                                    <span class="ml-1">
+          <svg th:if="${sortField == 'attendanceCheckIn' && direction == 'asc'}" xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" viewBox="0 0 20 20" fill="currentColor">
+            <path fill-rule="evenodd" d="M14.707 12.707a1 1 0 01-1.414 0L10 9.414l-3.293 3.293a1 1 0 01-1.414-1.414l4-4a1 1 0 011.414 0l4 4a1 1 0 010 1.414z" clip-rule="evenodd" />
+          </svg>
+          <svg th:if="${sortField == 'attendanceCheckIn' && direction == 'desc'}" xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" viewBox="0 0 20 20" fill="currentColor">
+            <path fill-rule="evenodd" d="M5.293 7.293a1 1 0 011.414 0L10 10.586l3.293-3.293a1 1 0 111.414 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414z" clip-rule="evenodd" />
+          </svg>
+        </span>
+                                </a>
+                            </th>
+                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">
+                                <a th:href="@{/attendance(sortField='attendanceCheckOut', direction=${sortField == 'attendanceCheckOut' ? (direction == 'asc' ? 'desc' : 'asc') : 'asc'}, page=${page}, size=${size}, startDate=${startDate}, endDate=${endDate}, status=${status}, query=${query})}"
+                                   class="flex items-center gap-1 hover:text-primary-600 cursor-pointer">
+                                    Clock Out
+                                    <span class="ml-1">
+          <svg th:if="${sortField == 'attendanceCheckOut' && direction == 'asc'}" xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" viewBox="0 0 20 20" fill="currentColor">
+            <path fill-rule="evenodd" d="M14.707 12.707a1 1 0 01-1.414 0L10 9.414l-3.293 3.293a1 1 0 01-1.414-1.414l4-4a1 1 0 011.414 0l4 4a1 1 0 010 1.414z" clip-rule="evenodd" />
+          </svg>
+          <svg th:if="${sortField == 'attendanceCheckOut' && direction == 'desc'}" xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" viewBox="0 0 20 20" fill="currentColor">
+            <path fill-rule="evenodd" d="M5.293 7.293a1 1 0 011.414 0L10 10.586l3.293-3.293a1 1 0 111.414 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414z" clip-rule="evenodd" />
+          </svg>
+        </span>
+                                </a>
+                            </th>
+                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">
+                                <a th:href="@{/attendance(sortField='attendanceStatus', direction=${sortField == 'attendanceStatus' ? (direction == 'asc' ? 'desc' : 'asc') : 'asc'}, page=${page}, size=${size}, startDate=${startDate}, endDate=${endDate}, status=${status}, query=${query})}"
+                                   class="flex items-center gap-1 hover:text-primary-600 cursor-pointer">
+                                    Status
+                                    <span class="ml-1">
+          <svg th:if="${sortField == 'attendanceStatus' && direction == 'asc'}" xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" viewBox="0 0 20 20" fill="currentColor">
+            <path fill-rule="evenodd" d="M14.707 12.707a1 1 0 01-1.414 0L10 9.414l-3.293 3.293a1 1 0 01-1.414-1.414l4-4a1 1 0 011.414 0l4 4a1 1 0 010 1.414z" clip-rule="evenodd" />
+          </svg>
+          <svg th:if="${sortField == 'attendanceStatus' && direction == 'desc'}" xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" viewBox="0 0 20 20" fill="currentColor">
+            <path fill-rule="evenodd" d="M5.293 7.293a1 1 0 011.414 0L10 10.586l3.293-3.293a1 1 0 111.414 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414z" clip-rule="evenodd" />
+          </svg>
+        </span>
+                                </a>
+                            </th>
+                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">
+                                <a th:href="@{/attendance(sortField='attendanceOvertimeHours', direction=${sortField == 'attendanceOvertimeHours' ? (direction == 'asc' ? 'desc' : 'asc') : 'asc'}, page=${page}, size=${size}, startDate=${startDate}, endDate=${endDate}, status=${status}, query=${query})}"
+                                   class="flex items-center gap-1 hover:text-primary-600 cursor-pointer">
+                                    Overtime
+                                    <span class="ml-1">
+          <svg th:if="${sortField == 'attendanceOvertimeHours' && direction == 'asc'}" xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" viewBox="0 0 20 20" fill="currentColor">
+            <path fill-rule="evenodd" d="M14.707 12.707a1 1 0 01-1.414 0L10 9.414l-3.293 3.293a1 1 0 01-1.414-1.414l4-4a1 1 0 011.414 0l4 4a1 1 0 010 1.414z" clip-rule="evenodd" />
+          </svg>
+          <svg th:if="${sortField == 'attendanceOvertimeHours' && direction == 'desc'}" xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" viewBox="0 0 20 20" fill="currentColor">
+            <path fill-rule="evenodd" d="M5.293 7.293a1 1 0 011.414 0L10 10.586l3.293-3.293a1 1 0 111.414 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414z" clip-rule="evenodd" />
+          </svg>
+        </span>
+                                </a>
+                            </th>
+                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Actions</th>
+                        </tr>
+                        </thead>
+
+                        <tbody class="divide-y divide-gray-200 min-h-[400px]">
+                        <tr th:each="a : ${attendances.getContent()}" class="hover:bg-gray-50 transition-colors">
+                            <td class="px-6 py-4">
+                                <input type="checkbox"
+                                       class="checkboxes rounded border-gray-300 text-primary-500 focus:ring-primary-400"
+                                       th:value="${a.getEmployeeId()}">
+                            </td>
+                            <td class="px-6 py-4 font-medium">
+                                <div class="flex items-center gap-2">
+                                    <div class="w-8 h-8 bg-primary-100 text-primary-600 rounded-full flex items-center justify-center font-bold">
+                                        <span th:text="${#strings.substring(a.getEmployeeFirstName(), 0, 1)}"></span>
+                                    </div>
+                                    <span th:text="${T(java.lang.String).format('%s %s', a.getEmployeeFirstName(), a.getEmployeeLastName())}"></span>
+                                </div>
+                            </td>
+                            <td class="px-6 py-4 attendanceDates"
+                                th:text="${#temporals.format(a.getAttendanceDate(), 'yyyy-MM-dd')}"></td>
+                            <td class="px-6 py-4 attendanceCheckIns">
+                            <span th:if="${a.getAttendanceCheckIn() != null}"
+                                  th:text="${#temporals.format(a.getAttendanceCheckIn(), 'HH:mm')}"
+                                  class="px-2 py-1 bg-gray-100 rounded text-xs"></span>
+                                <span th:unless="${a.getAttendanceCheckIn() != null}" class="text-gray-400">--</span>
+                            </td>
+                            <td class="px-6 py-4 attendanceCheckOuts">
+                            <span th:if="${a.getAttendanceCheckOut() != null}"
+                                  th:text="${#temporals.format(a.getAttendanceCheckOut(), 'HH:mm')}"
+                                  class="px-2 py-1 bg-gray-100 rounded text-xs"></span>
+                                <span th:unless="${a.getAttendanceCheckOut() != null}" class="text-gray-400">--</span>
+                            </td>
+                            <td class="px-6 py-4">
+                            <span th:if="${#strings.toLowerCase(a.getAttendanceStatus()) == 'on time'}"
+                                  class="px-2 py-1 rounded-full text-xs bg-green-100 text-green-800">
+                                On Time
+                            </span>
+                                <span th:if="${#strings.toLowerCase(a.getAttendanceStatus()) == 'late'}"
+                                      class="px-2 py-1 rounded-full text-xs bg-yellow-100 text-yellow-800">
+                                Late
+                            </span>
+                                <span th:if="${#strings.toLowerCase(a.getAttendanceStatus()) == 'absent'}"
+                                      class="px-2 py-1 rounded-full text-xs bg-red-100 text-red-800">
+                                Absent
+                            </span>
+                                <span th:if="${#strings.toLowerCase(a.getAttendanceStatus()) == 'not yet'}"
+                                      class="px-2 py-1 rounded-full text-xs bg-gray-100 text-gray-800">
+                                Not Checked
+                            </span>
+                            </td>
+                            <td class="px-6 py-4">
+                                <div class="flex gap-2">
+                                    <a href="#"
+                                       class="text-primary-600 hover:text-primary-800 transition-colors">Edit</a>
+                                    <a href="#" class="text-red-600 hover:text-red-800 transition-colors">Delete</a>
+                                </div>
+                            </td>
+                        </tr>
+                        <tr th:if="${attendances.isEmpty()}" class="h-[400px]">
+                            <td colspan="7" class="text-center text-gray-500 py-8">
+                                No attendance records found
+                            </td>
+                        </tr>
+                        </tbody>
+                    </table>
+                </div>
+
+                <!-- Pagination -->
+                <div th:replace="~{fragments/pagination :: pagination(${attendances}, '/attendance', null, null)}"></div>
+            </div>
+        </div>
+    </main>
+</div>
+
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        initializeCharts();
+    });
+
+    function initializeCharts() {
+        showLoadingState('monthlyTrendsChart');
+        initializeMonthlyTrendsChart();
+
+        window.addEventListener('resize', function() {
+            const chart = echarts.getInstanceByDom(document.getElementById('monthlyTrendsChart'));
+            if (chart) chart.resize();
+        });
+    }
+
+    function showLoadingState(chartId) {
+        const chartElement = document.getElementById(chartId);
+        if (chartElement) {
+            chartElement.innerHTML = '<div class="flex h-full items-center justify-center"><div class="animate-spin h-8 w-8 border-4 border-primary-500 border-t-transparent rounded-full"></div></div>';
+        }
+    }
+
+    function showErrorState(chartId, message) {
+        const chartElement = document.getElementById(chartId);
+        if (chartElement) {
+            chartElement.innerHTML = `
+            <div class="flex items-center justify-center h-full">
+                <div class="text-center text-gray-500">
+                    <svg class="w-12 h-12 mx-auto text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"></path>
+                    </svg>
+                    <p class="mt-2">${message}</p>
+                    <button class="mt-3 px-4 py-2 bg-primary-500 text-white rounded-md hover:bg-primary-600 transition-colors"
+                            onclick="initializeMonthlyTrendsChart()">
+                        Retry
+                    </button>
+                </div>
+            </div>
+        `;
+        }
+    }
+
+    async function initializeMonthlyTrendsChart() {
+        try {
+            const year = new Date().getFullYear();
+            const response = await fetch(`/api/attendance/monthly-trends?year=${year}`);
+            if (!response.ok) {
+                throw new Error(`HTTP error! Status: ${response.status}`);
+            }
+
+            const data = await response.json();
+            console.log('Monthly data:', data);
+
+            if (!data || !data.categories || !data.series) {
+                throw new Error('Invalid data format received from API');
+            }
+
+            updateMonthlySummary(data.summary);
+
+            const chartElement = document.getElementById('monthlyTrendsChart');
+            const monthlyTrendsChart = echarts.init(chartElement);
+
+            const normalizedSeries = data.series.map(s => {
+                return {
+                    ...s,
+                    data: s.data.map(value => {
+                        if (value > 100) {
+                            return parseFloat((value / 100).toFixed(1));
+                        }
+                        return value;
+                    })
+                };
+            });
+
+            const monthlyTrendsOption = {
+                tooltip: {
+                    trigger: 'axis',
+                    formatter: function(params) {
+                        let tooltip = params[0].axisValueLabel + '<br/>';
+                        params.forEach(param => {
+                            tooltip += `${param.marker} ${param.seriesName}: ${param.value}%<br/>`;
+                        });
+                        return tooltip;
+                    }
+                },
+                legend: {
+                    data: normalizedSeries.map(s => s.name)
+                },
+                grid: {
+                    left: '3%',
+                    right: '4%',
+                    bottom: '3%',
+                    containLabel: true
+                },
+                xAxis: {
+                    type: 'category',
+                    boundaryGap: false,
+                    data: data.categories,
+                    axisLabel: {
+                        formatter: '{value}'
+                    }
+                },
+                yAxis: {
+                    type: 'value',
+                    axisLabel: {
+                        formatter: '{value}%'
+                    },
+                    min: 0,
+                    max: 100
+                },
+                series: normalizedSeries.map(s => ({
+                    name: s.name,
+                    type: 'line',
+                    stack: 'Total',
+                    smooth: true,
+                    lineStyle: {
+                        width: 2
+                    },
+                    showSymbol: true,
+                    areaStyle: {
+                        opacity: 0.15
+                    },
+                    emphasis: {
+                        focus: 'series'
+                    },
+                    data: s.data
+                }))
+            };
+
+            monthlyTrendsChart.setOption(monthlyTrendsOption);
+        } catch (error) {
+            console.error('Error initializing monthly trends chart:', error);
+            showErrorState('monthlyTrendsChart', 'Failed to load chart data. Please try again.');
+        }
+    }
+
+    function updateMonthlySummary(summary) {
+        if (!summary) return;
+
+        const avgElement = document.querySelector('#monthlyAnalytics .grid div:nth-child(1) p.text-xl');
+        const bestMonthElement = document.querySelector('#monthlyAnalytics .grid div:nth-child(2) p.text-xl');
+        const bestMonthRateElement = document.querySelector('#monthlyAnalytics .grid div:nth-child(2) p.text-xs');
+
+        if (avgElement && summary.average) {
+            avgElement.textContent = `${summary.average}%`;
+        }
+
+        if (bestMonthElement && summary.bestMonth) {
+            if (typeof summary.bestMonth === 'object' && summary.bestMonth !== null) {
+                bestMonthElement.textContent = summary.bestMonth.name || 'October';
+            } else {
+                bestMonthElement.textContent = summary.bestMonth;
+            }
+        }
+
+        if (bestMonthRateElement && summary.bestMonthRate) {
+            bestMonthRateElement.textContent = `${summary.bestMonthRate}% on-time`;
+        }
+    }
+
+    $(function() {
+        $('.date-range-picker').daterangepicker({
+            opens: 'left',
+            autoApply: true,
+            ranges: {
+                'Today': [moment(), moment()],
+                'Yesterday': [moment().subtract(1, 'days'), moment().subtract(1, 'days')],
+                'Last 7 Days': [moment().subtract(6, 'days'), moment()],
+                'This Month': [moment().startOf('month'), moment().endOf('month')],
+                'Last Month': [moment().subtract(1, 'month').startOf('month'), moment().subtract(1, 'month').endOf('month')]
+            },
+            locale: {
+                format: 'YYYY-MM-DD'
+            }
+        });
+
+        $('.date-range-picker').on('apply.daterangepicker', function(ev, picker) {
+            console.log(picker.startDate.format('YYYY-MM-DD'), picker.endDate.format('YYYY-MM-DD'));
+        });
+    });
+
+    document.querySelectorAll('.view-toggle').forEach(button => {
+        button.addEventListener('click', function(e) {
+            if (this.dataset.view === 'table' && !this.classList.contains('active')) {
+                e.preventDefault();
+                window.location.href = window.location.pathname;
+            }
+
+            document.querySelectorAll('.view-toggle').forEach(btn => {
+                btn.classList.remove('active', 'text-primary-600', 'bg-primary-50');
+                btn.classList.add('text-gray-700', 'bg-white');
+            });
+
+            this.classList.add('active', 'text-primary-600', 'bg-primary-50');
+            this.classList.remove('text-gray-700', 'bg-white');
+
+            document.querySelectorAll('.view-content').forEach(content => {
+                content.classList.add('hidden');
+            });
+            document.getElementById(this.dataset.view + 'View').classList.remove('hidden');
+        });
+    });
+
+    document.addEventListener('DOMContentLoaded', function() {
+        const selectAllCheckbox = document.getElementById('selectAll');
+        const rowCheckboxes = document.querySelectorAll('.checkboxes');
+
+        if (selectAllCheckbox) {
+            selectAllCheckbox.addEventListener('change', function() {
+                rowCheckboxes.forEach(checkbox => {
+                    checkbox.checked = this.checked;
+                });
+            });
+        }
+
+        $('.date-range-picker').daterangepicker({
+            opens: 'left',
+            autoUpdateInput: false,
+            locale: {
+                format: 'YYYY-MM-DD',
+                cancelLabel: 'Clear'
+            }
+        });
+
+        $('.date-range-picker').on('apply.daterangepicker', function(ev, picker) {
+            $(this).val(picker.startDate.format('YYYY-MM-DD') + ' - ' + picker.endDate.format('YYYY-MM-DD'));
+
+            const url = new URL(window.location.href);
+            url.searchParams.set('startDate', picker.startDate.format('YYYY-MM-DD'));
+            url.searchParams.set('endDate', picker.endDate.format('YYYY-MM-DD'));
+            window.location.href = url.toString();
+        });
+
+        $('.date-range-picker').on('cancel.daterangepicker', function() {
+            $(this).val('');
+
+            const url = new URL(window.location.href);
+            url.searchParams.delete('startDate');
+            url.searchParams.delete('endDate');
+            window.location.href = url.toString();
+        });
+
+        const kanbanDateFilter = document.getElementById('kanbanDateFilter');
+        const kanbanFilterBtn = document.getElementById('kanbanFilterBtn');
+        const kanbanResetBtn = document.getElementById('kanbanResetBtn');
+
+        if (kanbanFilterBtn) {
+            kanbanFilterBtn.addEventListener('click', function() {
+                if (kanbanDateFilter && kanbanDateFilter.value) {
+                    const url = new URL(window.location.href);
+                    url.searchParams.set('date', kanbanDateFilter.value);
+                    url.searchParams.set('view', 'kanban');
+                    window.location.href = url.toString();
+                }
+            });
+        }
+
+        if (kanbanResetBtn) {
+            kanbanResetBtn.addEventListener('click', function() {
+                const url = new URL(window.location.href);
+                url.searchParams.delete('date');
+                url.searchParams.set('view', 'kanban');
+                window.location.href = url.toString();
+            });
+        }
+
+        if (kanbanDateFilter) {
+            const today = new Date();
+            const formattedDate = today.toISOString().split('T')[0];
+            kanbanDateFilter.value = formattedDate;
+        }
+    });
+</script>
+</body>
+</html>

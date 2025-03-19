@@ -16,5 +16,6 @@ public class DepartmentDTO {
   private String departmentName;
   private String departmentDescription;
   private String departmentCode;
+  private Integer managerId;
   private LocalDateTime departmentCreatedAt;
 }

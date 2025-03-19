@@ -1,115 +1,144 @@
 package com.se1873.js.springboot.project.controller;
 
 import com.se1873.js.springboot.project.dto.EmployeeDTO;
-import com.se1873.js.springboot.project.entity.Department;
-import com.se1873.js.springboot.project.entity.Employee;
-import com.se1873.js.springboot.project.entity.Position;
-import com.se1873.js.springboot.project.repository.DepartmentRepository;
+import com.se1873.js.springboot.project.entity.User;
 import com.se1873.js.springboot.project.repository.EmployeeRepository;
-import com.se1873.js.springboot.project.repository.PositionRepository;
-import com.se1873.js.springboot.project.service.EmployeeService;
-import jakarta.annotation.PostConstruct;
+import com.se1873.js.springboot.project.service.department.DepartmentService;
+import com.se1873.js.springboot.project.service.employee.EmployeeService;
+import com.se1873.js.springboot.project.service.position.PositionService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
+import org.springframework.data.web.PageableDefault;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.validation.BindingResult;
-import org.springframework.web.bind.annotation.ModelAttribute;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.bind.annotation.*;
 import org.springframework.core.io.Resource;
-import org.springframework.core.io.ByteArrayResource;
+import org.springframework.web.multipart.MultipartFile;
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 
+import java.util.Arrays;
 import java.util.List;
 
 @Controller
 @Slf4j
 @RequiredArgsConstructor
 @RequestMapping("/employee")
+@SessionAttributes("employees")
 public class EmployeeController {
 
   private final EmployeeService employeeService;
-  private final DepartmentRepository departmentRepository;
   private final EmployeeRepository employeeRepository;
-  private final PositionRepository positionRepository;
-  private List<Department> departments;
-  private List<Position> positions;
+  private final DepartmentService departmentService;
+  private final PositionService positionService;
+  private final GlobalController globalController;
+  @ModelAttribute("employees")
+  public Page<EmployeeDTO> initDataPage() {
+    return Page.empty();
+  }
+  private final static String EMPLOYEE = "employee";
 
-  private  final static  String EMPLOYEE = "employee";
-
-  @PostConstruct
-  public void init() {
-    positions = positionRepository.findAll();
-    departments = departmentRepository.findAll();
+  @ModelAttribute
+  public void addCommonAttributes(Model model) {
+    model.addAttribute("departments", departmentService.getAllDepartments());
+    model.addAttribute("positions", positionService.getAllPositions());
   }
 
   @RequestMapping
-  public String employee(Model model) {
+  public String employee(
+    @PageableDefault(size = 10, sort = "employeeId", direction = Sort.Direction.ASC) Pageable pageable,
+    Model model,
+    @ModelAttribute("loggedInUser") User loggedInUser) {
+    Page<EmployeeDTO> employees = employeeService.getAll(pageable);
+    var totalEmployees = employees.getTotalElements();
+    var avgSalary = employeeService.getAverageSalary(employees.getContent());
 
-    var employees = employeeService.getAll(PageRequest.of(0, 10));
-    var totalEmployees = employeeRepository.count();
-
-    var avgSalary = employees.getContent().stream().mapToDouble(EmployeeDTO::getContractBaseSalary).average().getAsDouble();
+    addCommonAttributes(model);
     model.addAttribute("totalEmployees", totalEmployees);
     model.addAttribute("avgSalary", avgSalary);
-    model.addAttribute("departments", departments);
-    model.addAttribute("positions", positions);
     model.addAttribute("employees", employees);
-    return EMPLOYEE;
+    model.addAttribute("currentRequestURI", "/employee");
+    model.addAttribute("contentFragment", "fragments/employee-fragments");
+    return "index";
   }
 
   @RequestMapping("/view")
   public String view(Model model,
-                     @RequestParam("employeeId") Integer employeeId) {
+                     @RequestParam("employeeId") Integer employeeId,
+                     @ModelAttribute("loggedInUser") User loggedInUser) {
     var employeeDTO = employeeService.getEmployeeByEmployeeId(employeeId);
-    model.addAttribute("departments", departments);
+
+    log.info(employeeDTO.toString());
+    addCommonAttributes(model);
+    globalController.createAuditLog(loggedInUser, "View details of Employee #" + employeeDTO.getEmployeeId() , "View", "Normal");
     model.addAttribute("employeeDTO", employeeDTO);
-    return "employee-view";
+    model.addAttribute("currentRequestURI", "/employee");
+    model.addAttribute("contentFragment", "fragments/employee-view-fragments");
+    return "index";
   }
 
   @RequestMapping("/create/form")
   public String createForm(Model model) {
 
-    model.addAttribute("departments", departments);
+    addCommonAttributes(model);
     model.addAttribute("employeeDTO", new EmployeeDTO());
-    return "employee-create";
+    model.addAttribute("contentFragment", "fragments/employee-create-fragments");
+    return "index";
   }
-
   @PostMapping("/create/save")
-  public String createEmployee(@Valid @ModelAttribute("employeeDTO") EmployeeDTO employeeDTO,
-                               BindingResult bindingResult,
-                               Model model) {
+  public String saveEmployee(@ModelAttribute EmployeeDTO employeeDTO,
+                             @RequestParam(value = "avatarFile", required = false) MultipartFile avatarFile,
+                             RedirectAttributes redirectAttributes) {
+    try {
+      if (avatarFile != null && !avatarFile.isEmpty()) {
+        employeeDTO.setPicture(avatarFile.getBytes());
+      }
 
-    if (bindingResult.hasErrors()) {
-      model.addAttribute("departments", departments);
-      model.addAttribute("positions", positions);
-      return "employee-create";
+      employeeService.saveEmployee(employeeDTO);
+      redirectAttributes.addFlashAttribute("message", "Employee created successfully");
+      return "redirect:/employee";
+    } catch (Exception e) {
+      redirectAttributes.addFlashAttribute("message", "Error creating employee: " + e.getMessage());
+      return "redirect:/employee/create/form";
     }
-
-    employeeService.saveEmployee(employeeDTO);
-    return "redirect:/employee";
   }
+
+  @GetMapping("/avatar/{id}")
+  public ResponseEntity<byte[]> getAvatar(@PathVariable Integer id) {
+    EmployeeDTO employee = employeeService.getEmployeeByEmployeeId(id);
+    if (employee != null && employee.getPicture() != null) {
+      return ResponseEntity.ok()
+        .contentType(MediaType.IMAGE_PNG)
+        .body(employee.getPicture());
+    }
+    return ResponseEntity.notFound().build();
+  }
+
 
   @PostMapping("/create/update")
   public String updateEmployee(@Valid @ModelAttribute("employeeDTO") EmployeeDTO employeeDTO,
                                BindingResult bindingResult,
-                               Model model) {
+                               Model model,
+                               @ModelAttribute("loggedInUser") User loggedInUser, RedirectAttributes redirectAttributes) {
 
     if (bindingResult.hasErrors()) {
-      model.addAttribute("departments", departments);
-      model.addAttribute("positions", positions);
-      return "employee-view";
+      addCommonAttributes(model);
+      globalController.createAuditLog(loggedInUser, "Update Employee ID #" + employeeDTO.getEmployeeId() , "Error", "Normal");
+      globalController.sendMessage(redirectAttributes, bindingResult.getFieldError().getDefaultMessage(), "Error");
+      return "redirect:/employee";
     }
 
+    globalController.createAuditLog(loggedInUser, "Update Employee ID #" + employeeDTO.getEmployeeId() , "Update", "Normal");
     employeeService.saveEmployee(employeeDTO);
+    globalController.sendMessage(redirectAttributes, "Update employee ID #" + employeeDTO.getEmployeeId() + " successfully", "success");
     return "redirect:/employee";
   }
 
@@ -118,49 +147,63 @@ public class EmployeeController {
                        @RequestParam("field") String field,
                        @RequestParam("value") String value,
                        @RequestParam(value = "page", defaultValue = "0") int page,
-                       @RequestParam(value = "size", defaultValue = "10") int size) {
+                       @RequestParam(value = "size", defaultValue = "10") int size,
+                       @ModelAttribute("loggedInUser") User loggedInUser) {
     Pageable pageable = PageRequest.of(page, size);
-    var employeeDTOS = employeeService.filterByField(field, value, pageable);
-    var totalEmployees = employeeDTOS.getTotalElements();
-    var avgSalary = employeeDTOS.getContent().stream().mapToDouble(EmployeeDTO::getContractBaseSalary).average().orElse(0.0);
+    var employees = employeeService.filterByField(field, value, pageable);
+    if("all".equals(value)) {
+      employees = employeeService.getAll(pageable);
+    }
+    var totalEmployees = employees.getTotalElements();
+    var avgSalary = employees.getContent().stream().mapToDouble(EmployeeDTO::getContractBaseSalary).average().orElse(0.0);
+
+    globalController.createAuditLog(loggedInUser, "Filter list Employee by " + field , "View", "Normal");
+    addCommonAttributes(model);
     model.addAttribute("totalEmployees", totalEmployees);
     model.addAttribute("avgSalary", avgSalary);
-    model.addAttribute("departments", departments);
-    model.addAttribute("positions", positions);
-    model.addAttribute("employees", employeeDTOS);
-    return "employee";
+    model.addAttribute("employees", employees);
+    model.addAttribute("contentFragment", "fragments/employee-fragments");
+    return "index";
   }
 
   @RequestMapping("/search")
   public String search(Model model,
                        @RequestParam("query") String query,
                        @RequestParam(value = "page", defaultValue = "0") int page,
-                       @RequestParam(value = "size", defaultValue = "10") int size) {
+                       @RequestParam(value = "size", defaultValue = "10") int size,
+                       @ModelAttribute("loggedInUser") User loggedInUser) {
     Pageable pageable = PageRequest.of(page, size);
     var employees = employeeService.search(pageable, query);
     var totalEmployees = employees.getTotalElements();
     var avgSalary = employees.getContent().stream().mapToDouble(EmployeeDTO::getContractBaseSalary).average().orElse(0.0);
+
+    globalController.createAuditLog(loggedInUser, "Search Employee by " + query , "View", "Normal");
+    addCommonAttributes(model);
     model.addAttribute("employees", employees);
     model.addAttribute("totalEmployees", totalEmployees);
     model.addAttribute("avgSalary", avgSalary);
-    model.addAttribute("departments", departments);
-    model.addAttribute("positions", positions);
-    return "employee";
+    model.addAttribute("contentFragment", "fragments/employee-fragments");
+    return "index";
   }
-//  @RequestMapping("/sort")
-//  public String sort(Model model,
-//                     @RequestParam("field") String field,
-//                     @RequestParam("direction") String direction,
-//                     @RequestParam(value = "page",defaultValue = "0") int page,
-//                     @RequestParam(value = "size",defaultValue = "10") int size){
-//    Pageable pageable = PageRequest.of(page,size);
-//    var employees = employeeService.sort(pageable,direction);
-//
-//    model.addAttribute("employees",employees);
-//    model.addAttribute("direction",direction);
-//    model.addAttribute("currentSortField", field);
-//    return "employee";
-//  }
+
+  @RequestMapping("/sort")
+  public String sort(Model model,
+                     @RequestParam("field") String field,
+                     @RequestParam("direction") String direction,
+                     @RequestParam(value = "page", defaultValue = "0") int page,
+                     @RequestParam(value = "size", defaultValue = "10") int size,
+                     @ModelAttribute("loggedInUser") User loggedInUser,
+                     @ModelAttribute("employees") Page<EmployeeDTO> filteredEmployeePage) {
+    Pageable pageable = PageRequest.of(page, size);
+    var employees = employeeService.sort(filteredEmployeePage, direction, field);
+
+    globalController.createAuditLog(loggedInUser, "Sort Employee by " + field + " in " + direction + " order", "View", "Normal");
+    model.addAttribute("employees", employees);
+    model.addAttribute("direction", direction);
+    model.addAttribute("currentSortField", field);
+    model.addAttribute("contentFragment", "fragments/employee-fragments");
+    return "index";
+  }
 
   @RequestMapping("/export/view")
   public String exportView(Model model,
@@ -172,32 +215,39 @@ public class EmployeeController {
     var employees = employeeService.exportFilteredEmployees(department, position, pageable);
     var totalEmployees = employees.getTotalElements();
 
+
     model.addAttribute("totalEmployees", totalEmployees);
     model.addAttribute("currentPage", page + 1);
     model.addAttribute("totalPages", employees.getTotalPages());
-    model.addAttribute("departments", departmentRepository.findAll());
-    model.addAttribute("positions", positionRepository.findAll());
     model.addAttribute("employees", employees.getContent());
-
     model.addAttribute("selectedDepartment", department);
     model.addAttribute("selectedPosition", position);
 
-    return "employee-export";
+    addCommonAttributes(model);
+    model.addAttribute("contentFragment", "fragments/employee-export-fragments");
+    return "index";
   }
 
 
-  @RequestMapping("/export")
+  @PostMapping("/export")
   public ResponseEntity<Resource> exportEmployees(
+    @RequestParam(value = "selectedEmployees", required = false) String selectedEmployees,
     @RequestParam(value = "department", required = false, defaultValue = "all") String department,
-    @RequestParam(value = "position", required = false, defaultValue = "all") String position) {
+    @RequestParam(value = "position", required = false, defaultValue = "all") String position,
+    @ModelAttribute("loggedInUser") User loggedInUser) {
 
-    log.info("Exporting employee data to Excel. Department: {}, Position: {}", department, position);
-    Resource file = employeeService.exportToExcel(department, position);
+    List<Integer> employeeIds = (selectedEmployees != null && !selectedEmployees.isEmpty())
+      ? Arrays.stream(selectedEmployees.split(",")).map(Integer::parseInt).toList()
+      : null;
 
+    Resource file = employeeService.exportToExcel(employeeIds, department, position);
+
+    globalController.createAuditLog(loggedInUser, "Exports list Employees" , "Export", "Normal");
     return ResponseEntity.ok()
       .header(HttpHeaders.CONTENT_DISPOSITION, "attachment; filename=employees.xlsx")
       .contentType(MediaType.APPLICATION_OCTET_STREAM)
       .body(file);
   }
+
 
 }
