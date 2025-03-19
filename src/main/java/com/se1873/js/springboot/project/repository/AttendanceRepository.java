@@ -98,4 +98,8 @@ public interface AttendanceRepository extends JpaRepository<Attendance, Long> {
 
   @Query("SELECT a FROM Attendance a WHERE EXTRACT(YEAR FROM a.date) = :year AND EXTRACT(MONTH FROM a.date) = :month")
   List<Attendance> findAllAttendanceByMonthYear(@Param("year") int year, @Param("month") int month);
+
+  List<Attendance> getAttendanceByDateBetweenAndEmployee_EmployeeIdAndEmployee_IsDeleted(LocalDate dateAfter, LocalDate dateBefore, Integer employeeEmployeeId, Boolean employeeIsDeleted);
+
+  Page<Attendance> findAttendancesByStatusAndDateBetween(String status, LocalDate dateAfter, LocalDate dateBefore, Pageable pageable);
 }

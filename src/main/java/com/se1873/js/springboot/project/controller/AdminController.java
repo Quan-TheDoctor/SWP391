@@ -9,7 +9,7 @@ import com.se1873.js.springboot.project.mapper.UserDTOMapper;
 import com.se1873.js.springboot.project.repository.AuditLogRepository;
 import com.se1873.js.springboot.project.repository.UserRepository;
 import com.se1873.js.springboot.project.service.AuditLogService;
-import com.se1873.js.springboot.project.service.UserService;
+import com.se1873.js.springboot.project.service.user.UserService;
 import com.se1873.js.springboot.project.utils.StringUtils;
 import jakarta.persistence.EntityManager;
 import lombok.RequiredArgsConstructor;
@@ -119,7 +119,7 @@ public class AdminController {
                                  @ModelAttribute("loggedInUser") User loggedInUser,
                                  RedirectAttributes redirectAttributes) {
     try {
-      UserDTO user = userService.findById(id);
+      UserDTO user = userService.findByUserId(id);
       if (user == null) {
         redirectAttributes.addFlashAttribute("errorMessage", "User not found");
         return "redirect:/admin/users";
@@ -186,8 +186,7 @@ public class AdminController {
     try {
       entityManager.detach(loggedInUser);
 
-      User userToLock = userRepository.findUserByUserId(userId).orElseThrow(() ->
-        new RuntimeException("User not found with ID: " + userId));
+      User userToLock = userRepository.findUserByUserId(userId);
 
       userToLock.setStatus("locked");
       userRepository.save(userToLock);
@@ -227,8 +226,7 @@ public class AdminController {
     try {
       entityManager.detach(loggedInUser);
 
-      User userToUnlock = userRepository.findUserByUserId(userId).orElseThrow(() ->
-        new RuntimeException("User not found with ID: " + userId));
+      User userToUnlock = userRepository.findUserByUserId(userId);
 
       userToUnlock.setStatus("Active");
       userRepository.save(userToUnlock);
@@ -268,8 +266,7 @@ public class AdminController {
     try {
       entityManager.detach(loggedInUser);
 
-      User userToDelete = userRepository.findUserByUserId(userId).orElseThrow(() ->
-        new RuntimeException("User not found with ID: " + userId));
+      User userToDelete = userRepository.findUserByUserId(userId);
 
       String username = userToDelete.getUsername();
       userRepository.delete(userToDelete);

@@ -1,7 +1,7 @@
 package com.se1873.js.springboot.project.api;
 
 import com.se1873.js.springboot.project.entity.Position;
-import com.se1873.js.springboot.project.service.PositionService;
+import com.se1873.js.springboot.project.service.position.PositionService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.ResponseEntity;

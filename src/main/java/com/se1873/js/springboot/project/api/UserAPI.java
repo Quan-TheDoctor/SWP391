@@ -1,14 +1,11 @@
 package com.se1873.js.springboot.project.api;
 
-import com.se1873.js.springboot.project.dto.UserDTO;
 import com.se1873.js.springboot.project.entity.User;
-import com.se1873.js.springboot.project.service.UserService;
-import jakarta.servlet.http.HttpSession;
+import com.se1873.js.springboot.project.service.user.UserService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.Authentication;
-import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.web.bind.annotation.GetMapping;
