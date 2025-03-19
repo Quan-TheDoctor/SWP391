@@ -8,6 +8,7 @@ import com.se1873.js.springboot.project.service.EmployeeService;
 import lombok.*;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.format.annotation.DateTimeFormat;
+
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
@@ -15,6 +16,7 @@ import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.LocalTime;
 import java.time.Month;
+import java.time.format.DateTimeFormatter;
 import java.time.temporal.ChronoUnit;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -48,8 +50,10 @@ public class AttendanceAPI {
 
   @RequestMapping("/attendancesByDay")
   public ResponseEntity<AttendanceCountDTO> getAttendancesByDay(
-    @RequestParam("date") String date) {
+    @RequestParam("date") LocalDate date) {
+
     AttendanceCountDTO attendanceCountDTO = attendanceService.countAvailableAttendance(date);
+    System.out.println("absent: " +attendanceCountDTO.getAbsentEmployee());
     log.info(attendanceCountDTO.toString());
     return ResponseEntity.ok(attendanceCountDTO);
   }

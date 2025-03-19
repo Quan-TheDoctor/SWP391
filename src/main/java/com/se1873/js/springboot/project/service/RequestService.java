@@ -427,28 +427,28 @@ public class RequestService {
             .stream()
             .toList();
   }
-
-
-  public com.se1873.js.springboot.project.dto.RequestDetailDTO getDetailRequest(Long requestId) {
-    var request = requestRepository.findById(requestId)
-            .orElseThrow(() -> new RuntimeException("No request found"));
-    String fullName = request.getUser().getEmployee().getFirstName() + " " + request.getUser().getEmployee().getLastName();
-
-    return com.se1873.js.springboot.project.dto.RequestDetailDTO.builder()
-            .requestId(requestId)
-            .fullName(fullName)
-            .employeeCode(request.getUser().getEmployee().getEmployeeCode())
-            .positionName(request.getUser().getEmployee().getEmploymentHistories().stream()
-                    .max(Comparator.comparing(EmploymentHistory::getStartDate, Comparator.nullsFirst(Comparator.naturalOrder())))
-                    .map(EmploymentHistory::getPosition)
-                    .map(Position::getPositionName)
-                    .orElse(null))
-            .newsSalary(request.getUser().getEmployee().getSalaryRecords().stream()
-                    .max(Comparator.comparing(SalaryRecord::getBaseSalary, Comparator.nullsFirst(Comparator.naturalOrder())))
-                    .map(SalaryRecord::getBaseSalary)
-                    .orElse(null))
-            .createdDate(request.getCreatedAt().toLocalDate())
-            .build();
-  }
+//
+//
+//  public com.se1873.js.springboot.project.dto.RequestDetailDTO getDetailRequest(Long requestId) {
+//    var request = requestRepository.findById(requestId)
+//            .orElseThrow(() -> new RuntimeException("No request found"));
+//    String fullName = request.getUser().getEmployee().getFirstName() + " " + request.getUser().getEmployee().getLastName();
+//
+//    return com.se1873.js.springboot.project.dto.RequestDetailDTO.builder()
+//            .requestId(requestId)
+//            .fullName(fullName)
+//            .employeeCode(request.getUser().getEmployee().getEmployeeCode())
+//            .positionName(request.getUser().getEmployee().getEmploymentHistories().stream()
+//                    .max(Comparator.comparing(EmploymentHistory::getStartDate, Comparator.nullsFirst(Comparator.naturalOrder())))
+//                    .map(EmploymentHistory::getPosition)
+//                    .map(Position::getPositionName)
+//                    .orElse(null))
+//            .newsSalary(request.getUser().getEmployee().getSalaryRecords().stream()
+//                    .max(Comparator.comparing(SalaryRecord::getBaseSalary, Comparator.nullsFirst(Comparator.naturalOrder())))
+//                    .map(SalaryRecord::getBaseSalary)
+//                    .orElse(null))
+//            .createdDate(request.getCreatedAt().toLocalDate())
+//            .build();
+//  }
 
 }

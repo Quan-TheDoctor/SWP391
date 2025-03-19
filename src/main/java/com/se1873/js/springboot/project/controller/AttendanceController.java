@@ -1,8 +1,13 @@
 package com.se1873.js.springboot.project.controller;
 
 import com.se1873.js.springboot.project.dto.*;
+import com.se1873.js.springboot.project.entity.Department;
+import com.se1873.js.springboot.project.entity.Position;
 import com.se1873.js.springboot.project.entity.User;
+import com.se1873.js.springboot.project.repository.DepartmentRepository;
+import com.se1873.js.springboot.project.repository.UserRepository;
 import com.se1873.js.springboot.project.service.*;
+import jakarta.servlet.http.HttpSession;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -24,21 +29,22 @@ import org.springframework.web.bind.annotation.*;
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 
 import java.time.LocalDate;
+import java.time.YearMonth;
+import java.time.format.DateTimeFormatter;
 import java.util.*;
 import java.util.stream.Collectors;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Map;
 
 @Controller
 @Slf4j
 @RequiredArgsConstructor
 @RequestMapping("/attendance")
-@SessionAttributes({"payrollCalculationForm", "user"})
+@SessionAttributes({"formattedDate", "payrollCalculationForm", "user"})
+
 public class AttendanceController {
   private final AttendanceService attendanceService;
   private final EmployeeService employeeService;
   private final DepartmentService departmentService;
+  private final PositionService positionService;
   private final SalaryRecordService salaryRecordService;
   private AttendanceDTOList attendanceDTOList = new AttendanceDTOList();
 
@@ -155,9 +161,9 @@ public class AttendanceController {
 
     if (form.getSelectedDepartmentId() != null) {
       form.getPayrollCalculations().clear();
-      Page<EmployeeDTO> employees = employeeService.getEmployeesByDepartmentId(form.getSelectedDepartmentId(), PageRequest.of(0, 100));
+      Page<EmployeeDTO> employees = employeeService.getEmployeesByDepartmentId(form.getSelectedDepartmentId(), PageRequest.of(0, 10));
       model.addAttribute("employees", employees.getContent());
-      log.info(employees.getContent().toString());
+
       for (var employee : employees.getContent()) {
         List<AttendanceDTO> attendanceDTOS = attendanceService.getAttendancesByEmployeeIdAndDate(employee.getEmployeeId(), LocalDate.now());
         int workDays = Math.toIntExact(
@@ -287,4 +293,68 @@ public class AttendanceController {
   }
 
 
+
+  @RequestMapping("/status")
+  public String status(@RequestParam(value = "month", required = false) String month,
+                       @RequestParam(value = "year", required = false) String year,
+                       @RequestParam(value = "action" ,required = false) String action,
+                       @RequestParam(value = "query" ,required = false) String query,
+                       Model model, Pageable pageable) {
+
+    String formattedDate = (String) model.getAttribute("formattedDate");
+
+
+    if (formattedDate == null || month != null || year != null) {
+      if (month == null) month = "01";
+      if (year == null) year = "2024";
+      formattedDate = year + "-" + month;
+      model.addAttribute("formattedDate", formattedDate);
+    }
+
+    if (action == null) {
+      action = (String) model.getAttribute("action");
+    }
+    if (query == null) {
+      query = (String) model.getAttribute("query");
+    }
+
+
+    List<Position> positions = positionService.getAllPositions();
+    List<Department> departments = departmentService.getAllDepartments();
+    List<EmployeeAttendanceStatusDTO> employeeAttendanceStatusDTOS = new ArrayList<>();
+    System.out.println("4" + action);
+    if("search".equals(action) && query != null && !query.trim().isEmpty()){
+        employeeAttendanceStatusDTOS = attendanceService.findEmployeeAttendanceStatusbyEmployeeName(query, pageable, formattedDate);
+      System.out.println(2);
+      System.out.println("check date: " + formattedDate);
+      System.out.println(employeeAttendanceStatusDTOS);
+    }else if( "departmentfilter".equals(action) && query != null && !query.trim().isEmpty()){
+      employeeAttendanceStatusDTOS = attendanceService.departmentFilter(query, pageable, formattedDate);
+    }else {
+      employeeAttendanceStatusDTOS = attendanceService.getEmployeeAttendanceStatus(formattedDate, pageable);
+      System.out.println(3);
+    }
+
+    model.addAttribute("employeeAttendanceStatusDTOS", employeeAttendanceStatusDTOS);
+    model.addAttribute("positions", positions);
+    model.addAttribute("departments", departments);
+    return "fragments/employee-attendance-status";
+  }
+
+
+  @GetMapping("/searchstatus")
+  public String searchstatus(@RequestParam("query") String search,
+                              RedirectAttributes redirectAttributes) {
+    redirectAttributes.addFlashAttribute("action", "search");
+    redirectAttributes.addFlashAttribute("query", search);
+    return "redirect:/attendance/status";
+
+  }
+  @GetMapping("/departmentfilter")
+  public String departmentFilter(@RequestParam("value") String filter,
+                                 RedirectAttributes redirectAttributes) {
+    redirectAttributes.addFlashAttribute("action", "departmentfilter");
+    redirectAttributes.addFlashAttribute("query", filter);
+    return "redirect:/attendance/status";
+  }
 }

@@ -429,7 +429,10 @@ VALUES
     ('Trưởng phòng Phát triển Sản phẩm', 15, 'PROD_POS001', 3, 'Quản lý phòng phát triển sản phẩm'),
     ('Chuyên viên Phát triển Sản phẩm', 15, 'PROD_POS002', 2, 'Chuyên viên phát triển sản phẩm');
 
+--Dưới đây là phần còn lại của script tạo dữ liệu mẫu:
 
+```sql
+-- Tiếp tục thêm hợp đồng
 INSERT INTO contracts (employee_id, contract_type, contract_code,
                        start_date, end_date, base_salary,
                        sign_date, is_present)
@@ -675,7 +678,7 @@ VALUES
     (4, 1, 2023, 30000000, 2100000, 30000000, 0, 30000000, 2100000, 30000000, 'Đã thanh toán'),
     (3, 1, 2023, 30000000, 2100000, 30000000, 0, 30000000, 2100000, 30000000, 'Đã thanh toán'),
     (2, 1, 2023, 40000000, 2100000, 40000000, 0, 40000000, 2100000, 40000000, 'Đã thanh toán'),
-    (1, 1, 2023, 50000000, 2100000, 50000000, 0, 50000000, 2100000, 50000000, 'Đã thanh toán'),
+    (1, 1, 2023, 50000000, 2100000, 50000000, 0, 50000000, 2100000, 50000000, 'Đã thanh toán');
 
 ;
 

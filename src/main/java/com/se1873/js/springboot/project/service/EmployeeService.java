@@ -26,10 +26,7 @@ import org.springframework.core.io.Resource;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.time.LocalDate;
-import java.util.ArrayList;
-import java.util.Comparator;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 
@@ -541,17 +538,23 @@ public class EmployeeService {
     return employeeRepository.getEmployeeCount();
   }
 
-  public EmployeeCountDTO getEmployeeDTOIsCurrent() {
+  public EmployeeCountDTO getEmployeeDTOIsCurrent(){
     EmployeeCountDTO employeeCountDTO = EmployeeCountDTO.builder()
-      .totalAvailableEmployees(0).totalUnavailableEmployees(0).build();
-    List<EmployeeDTO> employeeDTO = employeeRepository.findAll().stream().map(employeeDTOMapper::toDTO).collect(Collectors.toList());
+            .totalAvailableEmployees(0).totalUnavailableEmployees(0).build();
+    List<EmployeeDTO> employeeDTO = employeeRepository.findAll()
+            .stream().map(employeeDTOMapper::toDTO)
+            .filter(Objects::nonNull)
+            .collect(Collectors.toList());
     for (EmployeeDTO employeeDTO1 : employeeDTO) {
       System.out.println(employeeDTO1);
-      if (employeeDTO1.getContractIsPresent() && employeeDTO1.getEmploymentHistoryIsCurrent()) {
+      if(Boolean.TRUE.equals(employeeDTO1.getContractIsPresent()) &&
+              Boolean.TRUE.equals(employeeDTO1.getEmploymentHistoryIsCurrent())){
         employeeCountDTO.setTotalAvailableEmployees(employeeCountDTO.getTotalAvailableEmployees() + 1);
-      } else employeeCountDTO.setTotalUnavailableEmployees(employeeCountDTO.getTotalUnavailableEmployees() + 1);
+      } else employeeCountDTO.setTotalUnavailableEmployees(employeeCountDTO.getTotalUnavailableEmployees() + 1) ;
     }
+
     return employeeCountDTO;
   }
+
 
 }

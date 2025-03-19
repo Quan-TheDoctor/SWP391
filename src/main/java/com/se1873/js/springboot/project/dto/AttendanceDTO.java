@@ -35,4 +35,5 @@ public class AttendanceDTO {
   private LocalTime attendanceCheckOut;
   private Double attendanceOvertimeHours;
   private String attendanceStatus;
+
 }

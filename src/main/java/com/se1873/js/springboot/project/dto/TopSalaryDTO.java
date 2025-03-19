@@ -7,12 +7,11 @@ import lombok.NoArgsConstructor;
 
 @Data
 @Builder
-@AllArgsConstructor
 @NoArgsConstructor
-public class AttendanceCountDTO {
-    Integer totalEmployee;
-    Integer workedEmployee;
-    Integer lateEmployee;
-    Integer absentEmployee;
-
+@AllArgsConstructor
+public class TopSalaryDTO {
+    private String firstName;
+    private String lastName;
+    private String position;
+    private double netSalary;
 }
