@@ -2,9 +2,9 @@ package com.se1873.js.springboot.project.api;
 
 import com.se1873.js.springboot.project.dto.AverageSalaryDTO;
 import com.se1873.js.springboot.project.dto.PayrollChartDTO;
+import com.se1873.js.springboot.project.service.salary_record.SalaryRecordService;
 import com.se1873.js.springboot.project.dto.PayrollDTO;
 import com.se1873.js.springboot.project.dto.TopSalaryDTO;
-import com.se1873.js.springboot.project.service.SalaryRecordService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.Page;
@@ -16,7 +16,6 @@ import org.springframework.web.bind.annotation.RestController;
 
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Map;
 
 @RestController
 @Slf4j

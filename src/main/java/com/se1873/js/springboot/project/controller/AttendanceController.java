@@ -7,12 +7,17 @@ import com.se1873.js.springboot.project.entity.User;
 import com.se1873.js.springboot.project.repository.DepartmentRepository;
 import com.se1873.js.springboot.project.repository.UserRepository;
 import com.se1873.js.springboot.project.service.*;
+import com.se1873.js.springboot.project.service.department.DepartmentService;
+import com.se1873.js.springboot.project.service.employee.EmployeeService;
+import com.se1873.js.springboot.project.service.position.PositionService;
+import com.se1873.js.springboot.project.service.salary_record.SalaryRecordService;
 import jakarta.servlet.http.HttpSession;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.core.io.Resource;
 import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.format.annotation.DateTimeFormat;
@@ -55,12 +60,180 @@ public class AttendanceController {
 
   Page<AttendanceDTO> attendances;
 
-  @RequestMapping
+
+  @GetMapping("/search")
+  public String search(@RequestParam("query") String query,
+                       @RequestParam(value = "page", defaultValue = "0") Integer page,
+                       @RequestParam(value = "size", defaultValue = "10") Integer size,
+                       RedirectAttributes redirectAttributes,
+                       @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate startDate,
+                       @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate endDate) {
+    StringBuilder redirectUrl = new StringBuilder("/attendance?");
+    redirectUrl.append("query=").append(query).append("&");
+    redirectUrl.append("page=").append(page).append("&");
+    redirectUrl.append("size=").append(size).append("&");
+    if (startDate != null) {
+      redirectUrl.append("startDate=").append(startDate).append("&");
+    } else {
+      redirectUrl.append("startDate=").append(LocalDate.now()).append("&");
+    }
+
+    if (endDate != null) {
+      redirectUrl.append("endDate=").append(endDate).append("&");
+    } else {
+      redirectUrl.append("endDate=").append(LocalDate.now());
+    }
+
+    return "redirect:" + redirectUrl.toString();
+  }
+
+  @GetMapping("/filter")
+  public String filterStatus(@RequestParam(value = "status", required = false) String status,
+                             @RequestParam(value = "page", defaultValue = "0") Integer page,
+                             @RequestParam(value = "size", defaultValue = "10") Integer size,
+                             @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate startDate,
+                             @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate endDate) {
+
+    StringBuilder redirectUrl = new StringBuilder("/attendance?");
+
+    if (status != null && !status.isEmpty()) {
+      redirectUrl.append("status=").append(status).append("&");
+    }
+
+    if (startDate != null) {
+      redirectUrl.append("startDate=").append(startDate).append("&");
+    } else {
+      redirectUrl.append("startDate=").append(LocalDate.now()).append("&");
+    }
+
+    if (endDate != null) {
+      redirectUrl.append("endDate=").append(endDate).append("&");
+    } else {
+      redirectUrl.append("endDate=").append(LocalDate.now()).append("&");
+    }
+
+    redirectUrl.append("page=").append(page).append("&");
+    redirectUrl.append("size=").append(size);
+
+    return "redirect:" + redirectUrl.toString();
+  }
+
+  @GetMapping("/sort")
+  public String sort(@RequestParam(value = "field", required = true) String field,
+                     @RequestParam(value = "direction", defaultValue = "asc") String direction,
+                     @RequestParam(value = "page", defaultValue = "0") Integer page,
+                     @RequestParam(value = "size", defaultValue = "10") Integer size,
+                     @RequestParam(value = "startDate", required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate startDate,
+                     @RequestParam(value = "endDate", required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate endDate,
+                     @RequestParam(value = "status", required = false) String status,
+                     @RequestParam(value = "query", required = false) String query) {
+
+    StringBuilder redirectUrl = new StringBuilder("/attendance?");
+
+    redirectUrl.append("sortField=").append(field).append("&");
+    redirectUrl.append("direction=").append(direction).append("&");
+
+    if (query != null && !query.isEmpty()) {
+      redirectUrl.append("query=").append(query).append("&");
+    }
+
+    if (status != null && !status.isEmpty()) {
+      redirectUrl.append("status=").append(status).append("&");
+    }
+
+    if (startDate != null) {
+      redirectUrl.append("startDate=").append(startDate).append("&");
+    }
+
+    if (endDate != null) {
+      redirectUrl.append("endDate=").append(endDate).append("&");
+    }
+
+    redirectUrl.append("page=").append(page).append("&");
+    redirectUrl.append("size=").append(size);
+
+    return "redirect:" + redirectUrl.toString();
+  }
+
+
+
+  @GetMapping
+  public String index(Model model,
+                      @RequestParam(value = "query", required = false) String query,
+                      @RequestParam(value = "view", required = false) String view,
+                      @RequestParam(value = "status", required = false) String status,
+                      @RequestParam(value = "startDate", required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate startDate,
+                      @RequestParam(value = "endDate", required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate endDate,
+                      @RequestParam(value = "sortField", required = false) String sortField,
+                      @RequestParam(value = "direction", required = false) String direction,
+                      @RequestParam(value = "page", defaultValue = "0") Integer page,
+                      @RequestParam(value = "size", defaultValue = "10") Integer size) {
+
+    if (startDate == null) {
+      startDate = LocalDate.now();
+    }
+    if (endDate == null) {
+      endDate = LocalDate.now();
+    }
+
+    Pageable pageable = PageRequest.of(page, size);
+
+    if (query != null && !query.isEmpty()) {
+      attendances = attendanceService.searchAttendanceByEmployeeName(startDate, endDate, query, pageable);
+    } else if (status != null && !status.isEmpty() && !status.equals("ALL")) {
+      attendances = attendanceService.filterByStatus(startDate, endDate, pageable, status);
+    } else if(sortField != null) {
+      List<AttendanceDTO> sortedList = attendances.stream()
+        .sorted(getComparator(sortField, direction))
+        .toList();
+
+      attendances = new PageImpl<>(sortedList, pageable, sortedList.size());
+    } else {
+      attendances = attendanceService.getAll(startDate, endDate, pageable);
+    }
+
+    model.addAttribute("query", query);
+    model.addAttribute("view", view);
+    model.addAttribute("status", status);
+    model.addAttribute("startDate", startDate);
+    model.addAttribute("endDate", endDate);
+    model.addAttribute("page", page);
+    model.addAttribute("size", size);
+    model.addAttribute("sortField", sortField != null ? sortField : "");
+    model.addAttribute("direction", direction != null ? direction : "");
+    model.addAttribute("attendances", attendances);
+    model.addAttribute("contentFragment", "fragments/attendance-fragments");
+    model.addAttribute("baseUrl", "/attendance");
+
+    return "index";
+  }
+
+
+  private java.util.Comparator<AttendanceDTO> getComparator(String field, String direction) {
+    return switch (field) {
+      case "employeeFirstName" ->
+        Comparator.comparing(AttendanceDTO::getEmployeeFirstName, direction.equals("desc") ? Comparator.reverseOrder() : Comparator.naturalOrder());
+      case "attendanceDate" ->
+        Comparator.comparing(AttendanceDTO::getAttendanceDate, direction.equals("desc") ? Comparator.reverseOrder() : Comparator.naturalOrder());
+      case "attendanceCheckIn" ->
+        Comparator.comparing(AttendanceDTO::getAttendanceCheckIn, direction.equals("desc") ? Comparator.reverseOrder() : Comparator.naturalOrder());
+      case "attendanceCheckOut" ->
+        Comparator.comparing(AttendanceDTO::getAttendanceCheckOut, direction.equals("desc") ? Comparator.reverseOrder() : Comparator.naturalOrder());
+      case "attendanceStatus" ->
+        Comparator.comparing(AttendanceDTO::getAttendanceStatus, direction.equals("desc") ? Comparator.reverseOrder() : Comparator.naturalOrder());
+      case "attendanceOvertimeHours" ->
+        Comparator.comparing(AttendanceDTO::getAttendanceOvertimeHours, direction.equals("desc") ? Comparator.reverseOrder() : Comparator.naturalOrder());
+      default -> Comparator.comparing(AttendanceDTO::getEmployeeId, Comparator.naturalOrder());
+    };
+  }
+
+  @RequestMapping("/demo")
   public String attendance(Model model,
+                           @RequestParam(value = "query", required = false) String query,
                            @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate startDate,
                            @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate endDate,
                            @RequestParam(value = "page", defaultValue = "0") Integer page,
-                           @RequestParam(value = "size", defaultValue = "5") Integer size,
+                           @RequestParam(value = "size", defaultValue = "10") Integer size,
                            @RequestParam(value = "view", required = false) String view) {
     if("kanban".equals(view)) {
       List<AttendanceDTO> allAttendances = attendanceService.getAllAttendances();
@@ -85,30 +258,30 @@ public class AttendanceController {
     return "index";
   }
 
-  @RequestMapping("/filter")
-  public String filterStatus(Model model,
-                             @RequestParam(value = "status", required = false) String status,
-                             @RequestParam(value = "page", defaultValue = "0") Integer page,
-                             @RequestParam(value = "size", defaultValue = "5") Integer size,
-                             @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate startDate,
-                             @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate endDate){
-    attendances = attendanceService.filterByStatus(PageRequest.of(page,size),status);
-    if (startDate == null || endDate == null) {
-      startDate = LocalDate.now();
-      endDate = LocalDate.now();
-    }
-
-    Map<String,Integer> quantity = attendanceService.getQuantity();
-
-    model.addAttribute("quantity",quantity);
-    model.addAttribute("attendances",attendances);
-    model.addAttribute("startDate", startDate);
-    model.addAttribute("endDate", endDate);
-    model.addAttribute("page", page);
-    model.addAttribute("size", size);
-    model.addAttribute("contentFragment", "fragments/attendance-fragments");
-    return "index";
-  }
+//  @RequestMapping("/filter")
+//  public String filterStatus(Model model,
+//                             @RequestParam(value = "status", required = false) String status,
+//                             @RequestParam(value = "page", defaultValue = "0") Integer page,
+//                             @RequestParam(value = "size", defaultValue = "10") Integer size,
+//                             @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate startDate,
+//                             @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate endDate){
+//    if (startDate == null || endDate == null) {
+//      startDate = LocalDate.now();
+//      endDate = LocalDate.now();
+//    }
+//    attendances = attendanceService.filterByStatus(startDate, endDate, PageRequest.of(page,size), status);
+//
+//    Map<String,Integer> quantity = attendanceService.getQuantity();
+//
+//    model.addAttribute("quantity",quantity);
+//    model.addAttribute("attendances",attendances);
+//    model.addAttribute("startDate", startDate);
+//    model.addAttribute("endDate", endDate);
+//    model.addAttribute("page", page);
+//    model.addAttribute("size", size);
+//    model.addAttribute("contentFragment", "fragments/attendance-fragments");
+//    return "index";
+//  }
 
   @RequestMapping("/create/form")
   public String createForm(Model model,
@@ -145,11 +318,6 @@ public class AttendanceController {
     return "redirect:/attendance";
   }
 
-  @RequestMapping("/search")
-  public String searchAttendance(Model model) {
-    return null;
-  }
-
 
   @RequestMapping("/summary")
   public String showPage(@ModelAttribute PayrollCalculationForm form,
@@ -181,7 +349,11 @@ public class AttendanceController {
             .filter(a -> "Nghỉ".equals(a.getAttendanceStatus()))
             .count()
         );
-        double overtimeHours = attendanceDTOS.stream().mapToDouble(AttendanceDTO::getAttendanceOvertimeHours).sum();
+        double overtimeHours = attendanceDTOS.stream()
+          .filter(a -> a != null)
+          .mapToDouble(a -> a.getAttendanceOvertimeHours() != null ?
+            a.getAttendanceOvertimeHours() : 0.0)
+          .sum();
         PayrollCalculationDTO dto = new PayrollCalculationDTO(
           employee.getEmployeeId(),
           employee.getEmployeeFirstName(),
@@ -230,13 +402,8 @@ public class AttendanceController {
     salaryRecordService.savePayroll(form);
     return "redirect:/request";
   }
-  @GetMapping("/search")
-  public String search(@RequestParam("query") String name, RedirectAttributes redirectAttributes, Pageable pageable) {
-    attendances = attendanceService.searchAttendanceByEmployeeName(name, PageRequest.of(0,5));
-    redirectAttributes.addFlashAttribute("attendances", attendances);
 
-    return "redirect:/attendance";
-  }
+
   @RequestMapping("/export")
   public ResponseEntity<Resource> exportAttendance(
           @RequestParam(value = "selectedEmployees", required = false) String selectedEmployees,

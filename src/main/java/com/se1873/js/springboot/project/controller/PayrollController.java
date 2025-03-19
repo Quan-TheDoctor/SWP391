@@ -3,9 +3,12 @@ package com.se1873.js.springboot.project.controller;
 import com.se1873.js.springboot.project.dto.FinancialPolicyDTOList;
 import com.se1873.js.springboot.project.dto.PayrollDTO;
 import com.se1873.js.springboot.project.service.FinancialPolicyService;
-import com.se1873.js.springboot.project.service.SalaryRecordService;
+import com.se1873.js.springboot.project.service.salary_record.SalaryRecordService;
+import com.se1873.js.springboot.project.service.salary_record.query.SalaryRecordQueryService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageImpl;
 import org.springframework.core.io.Resource;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
@@ -24,6 +27,10 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.stream.Collectors;
 
+import java.time.LocalDate;
+import java.util.ArrayList;
+import java.util.List;
+
 @Controller
 @Slf4j
 @RequiredArgsConstructor
@@ -33,6 +40,7 @@ public class PayrollController {
 
   private final SalaryRecordService salaryRecordService;
   private final FinancialPolicyService financialPolicyService;
+  private final SalaryRecordQueryService salaryRecordQueryService;
 
   @RequestMapping
   public String payroll(Model model,
@@ -60,6 +68,45 @@ public class PayrollController {
     return "index";
   }
 
+  @RequestMapping("/search")
+  public String search(Model model) {
+    Page<PayrollDTO> initialPayrolls = salaryRecordService.getAllPayrolls(PageRequest.of(0, 10));
+
+    return "index";
+  }
+
+  @RequestMapping("/filter")
+  public String filter(Model model,
+                       @RequestParam(value = "field", required = false) String[] field,
+                       @RequestParam(value = "dates", required = false) String[] dates,
+                       @RequestParam(value = "value", required = false) String[] value) {
+    Page<PayrollDTO> initialPayrolls = salaryRecordService.getAllPayrolls(PageRequest.of(0, 10));
+
+    List<PayrollDTO> filteredPayrolls = salaryRecordQueryService.filterPayrolls(
+      initialPayrolls.getContent(), field, dates, value
+    );
+
+    Page<PayrollDTO> resultPage = new PageImpl<>(
+      filteredPayrolls,
+      PageRequest.of(1, 10),
+      initialPayrolls.getTotalElements()
+    );
+
+    double totalNetSalary = salaryRecordQueryService.calculateTotalNetSalary(filteredPayrolls);
+    double unpaidSalary = salaryRecordQueryService.calculateUnpaidSalary(filteredPayrolls);
+
+    updateModel(model, resultPage, totalNetSalary, unpaidSalary);
+
+    return "index";
+  }
+
+  private void updateModel(Model model, Page<PayrollDTO> payrolls, double totalNetSalary, double unpaidSalary) {
+    model.addAttribute("payrolls", payrolls);
+    model.addAttribute("totalNetSalary", totalNetSalary);
+    model.addAttribute("unpaidSalary", unpaidSalary);
+    model.addAttribute("contentFragment", "fragments/payroll-fragments");
+  }
+
   @RequestMapping("/policies/save")
   public String policiesSave(Model model,
                              @RequestParam(value = "service", required = false) String service,
@@ -70,12 +117,14 @@ public class PayrollController {
     }
 
     if (bindingResult.hasErrors()) {
+      model.addAttribute("message", "Setting configs failed.");
+      model.addAttribute("messageType", "error");
       model.addAttribute("contentFragment", "fragments/financial-policies-fragments");
       return "index";
     }
     if ("save".equals(service)) {
       financialPolicyService.saveAll(financialPolicyDTOList.getFinancialPolicies());
-      model.addAttribute("message", "Update successfully");
+      model.addAttribute("message", "Setting configured successfully");
     }
     model.addAttribute("contentFragment", "fragments/financial-policies-fragments");
     return "index";
@@ -102,10 +151,8 @@ public class PayrollController {
                            @RequestParam(value = "size", defaultValue = "5") int size) {
     Pageable pageable = PageRequest.of(page, size);
 
-    // Fetch the payrolls for the current page
     var payrolls = salaryRecordService.getAll(pageable);
 
-    // Calculate total net salary and unpaid salary
     Double totalNetSalary = payrolls.getContent().stream()
             .map(PayrollDTO::getSalaryRecordNetSalary)
             .mapToDouble(Double::doubleValue).sum();
@@ -114,18 +161,16 @@ public class PayrollController {
             .map(PayrollDTO::getSalaryRecordNetSalary)
             .mapToDouble(Double::doubleValue).sum();
 
-    // Pass data to model
     model.addAttribute("payrolls", payrolls);
     model.addAttribute("totalNetSalary", totalNetSalary);
     model.addAttribute("unpaidSalary", unpaidSalary);
     model.addAttribute("contentFragment", "fragments/payroll-export-fragments");
 
-    // Add pagination details
-    model.addAttribute("currentPage", page + 1);  // Convert to 1-based page number
+    model.addAttribute("currentPage", page + 1);
     model.addAttribute("totalPages", payrolls.getTotalPages());
-    model.addAttribute("totalEmployees", payrolls.getTotalElements()); // Total records
+    model.addAttribute("totalEmployees", payrolls.getTotalElements());
 
-    return "index";  // Use the main view template
+    return "index";
   }
 
 
@@ -151,7 +196,6 @@ public class PayrollController {
     }
 
     if (endDateStr != null && !endDateStr.isEmpty()) {
-      // Đặt ngày là ngày cuối cùng của tháng
       YearMonth yearMonth = YearMonth.parse(endDateStr);
       endDate = yearMonth.atEndOfMonth();
     }
@@ -164,4 +208,17 @@ public class PayrollController {
             .body(file);
   }
 
+
+  @GetMapping("/delete")
+  public String deletePayroll(@RequestParam("salaryId") Integer id, Model model) {
+    try {
+      salaryRecordService.deleteSalaryRecord(id);
+      model.addAttribute("message", "Delete successfully");
+    } catch (Exception e) {
+      log.error(e.getMessage());
+      model.addAttribute("message", "Delete failed");
+      model.addAttribute("messageType", "error");
+    }
+    return "redirect:/payroll";
+  }
 }

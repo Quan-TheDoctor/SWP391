@@ -1,12 +1,16 @@
-package com.se1873.js.springboot.project.service;
+package com.se1873.js.springboot.project.service.user;
 
 import com.se1873.js.springboot.project.dto.AuditLogDTO;
 import com.se1873.js.springboot.project.dto.RoleDTO;
 import com.se1873.js.springboot.project.dto.UserDTO;
+import com.se1873.js.springboot.project.entity.Employee;
 import com.se1873.js.springboot.project.entity.User;
 import com.se1873.js.springboot.project.mapper.AuditLogDTOMapper;
 import com.se1873.js.springboot.project.mapper.UserDTOMapper;
 import com.se1873.js.springboot.project.repository.UserRepository;
+import com.se1873.js.springboot.project.service.AuditLogService;
+import com.se1873.js.springboot.project.service.user.command.UserCommandService;
+import com.se1873.js.springboot.project.service.user.query.UserQueryService;
 import jakarta.servlet.http.HttpServletResponse;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -36,7 +40,15 @@ public class UserService {
   private final UserDTOMapper userDTOMapper;
   private final AuditLogService auditLogService;
   private final BCryptPasswordEncoder bCryptPasswordEncoder;
+  private final UserCommandService userCommandService;
+  private final UserQueryService userQueryService;
 
+  public void createUserAccount(Employee employee) {
+    userCommandService.createUserAccount(employee);
+  }
+  public User findUserByUserId(Integer userId) {
+    return userQueryService.findUserByUserId(userId);
+  }
   public Set<RoleDTO> getAllRoles() {
     List<User> users = userRepository.findAll();
     Set<RoleDTO> sets = new HashSet<>();
@@ -48,15 +60,14 @@ public class UserService {
     }
     return sets;
   }
-
   @Transactional
   public void handleSuccessfulLogin(String username, HttpServletResponse response) throws IOException {
     com.se1873.js.springboot.project.entity.User userEntity =
-      userRepository.findUserByUsername(username)
+      userQueryService.findUserByUsername(username)
         .orElseThrow(() -> new UsernameNotFoundException("User not found: " + username));
 
     userEntity.setLastLogin(LocalDateTime.now());
-    userRepository.save(userEntity);
+    userCommandService.saveUser(userEntity);
 
     AuditLogDTO auditLogDTO = new AuditLogDTO();
     auditLogDTO.setUsername(username);
@@ -73,75 +84,38 @@ public class UserService {
       response.sendRedirect("/user/detail");
     }
   }
-
   public Page<UserDTO> getAll(Pageable pageable) {
-    return userRepository.findAll(pageable).map(userDTOMapper::toDTO);
+    return userQueryService.getAll(pageable).map(userDTOMapper::toDTO);
   }
-
   public Optional<User> findUserByUsername(String username) {
-    return userRepository.findUserByUsername(username);
+    return userQueryService.findUserByUsername(username);
   }
-
-  public UserDTO findById(Integer id) {
-    User user = userRepository.findByUserId(id)
-      .orElseThrow(() -> new RuntimeException("User not found with ID: " + id));
-    return userDTOMapper.toDTO(user);
+  public UserDTO findByUserId(Integer id) {
+    return userDTOMapper.toDTO(userQueryService.findUserByUserId(id));
   }
-
-
   public Page<UserDTO> searchUsers(String query, Pageable pageable) {
-    return userRepository.findByUsernameContainingIgnoreCase(query, pageable).map(userDTOMapper::toDTO);
+    return userQueryService.search(query, pageable).map(userDTOMapper::toDTO);
   }
-
   public Page<UserDTO> findByRole(String role, Pageable pageable) {
-    return userRepository.findByRole(role, pageable).map(userDTOMapper::toDTO);
+    return userQueryService.findByRole(role, pageable).map(userDTOMapper::toDTO);
   }
-
   public Page<UserDTO> findByStatus(String status, Pageable pageable) {
-    return userRepository.findByStatus(status, pageable).map(userDTOMapper::toDTO);
+    return userQueryService.findByStatus(status, pageable).map(userDTOMapper::toDTO);
   }
-  @Transactional
-  public User lockUser(Integer userId, String reason) {
-    User user = userRepository.findByUserId(userId)
-      .orElseThrow(() -> new RuntimeException("User not found with ID: " + userId));
-
-    user.setStatus("locked");
-    return userRepository.save(user);
-  }
-
-  @Transactional(propagation = Propagation.REQUIRES_NEW)
-  public void lockUserById(Integer userId) {
-    userRepository.updateUserStatus(userId, "locked");
-  }
-  public void unlockUser(Integer userId) {
-    User user = userRepository.findByUserId(userId)
-        .orElseThrow(() -> new RuntimeException("User not found with ID: " + userId));
-
-    user.setStatus("Active");
-
-    userRepository.save(user);
-  }
-
   public void updateUser(UserDTO userDTO) {
-    User user = userRepository.findUserByUserId(userDTO.getUserId())
-      .orElseThrow(() -> new RuntimeException("User not found"));
-
+    User user = userQueryService.findUserByUserId(userDTO.getUserId());
     user.setUsername(userDTO.getUsername());
     user.setRole(userDTO.getRole());
 
-    userRepository.save(user);
+    userCommandService.saveUser(user);
   }
 
-  public void deleteUser(Integer userId) {
-    userRepository.deleteByUserId(userId);
+  public Integer countAllUsers() {
+    return userQueryService.countAllUsers();
   }
 
-  public int countAllUsers() {
-    return (int) userRepository.count();
-  }
-
-  public int countByStatus(String status) {
-    return userRepository.countByStatus(status);
+  public Integer countByStatus(String status) {
+    return userQueryService.countByStatus(status);
   }
 
 }

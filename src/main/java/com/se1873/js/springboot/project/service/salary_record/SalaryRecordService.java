@@ -1,10 +1,16 @@
-package com.se1873.js.springboot.project.service;
+package com.se1873.js.springboot.project.service.salary_record;
 
 import com.se1873.js.springboot.project.dto.*;
 import com.se1873.js.springboot.project.entity.Employee;
 import com.se1873.js.springboot.project.entity.SalaryRecord;
 import com.se1873.js.springboot.project.entity.User;
+import com.se1873.js.springboot.project.mapper.DepartmentDTOMapper;
 import com.se1873.js.springboot.project.repository.*;
+import com.se1873.js.springboot.project.service.RequestService;
+import com.se1873.js.springboot.project.service.employee.EmployeeService;
+import com.se1873.js.springboot.project.service.salary_record.command.SalaryRecordCommandService;
+import com.se1873.js.springboot.project.service.salary_record.query.SalaryRecordQueryService;
+import com.se1873.js.springboot.project.service.user.UserService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.poi.ss.usermodel.*;
@@ -29,6 +35,7 @@ import java.util.stream.Collectors;
 @Transactional
 @RequiredArgsConstructor
 public class SalaryRecordService {
+  private final DepartmentDTOMapper departmentDTOMapper;
 
   private final SalaryRecordRepository salaryRecordRepository;
   private final EmployeeRepository employeeRepository;
@@ -37,14 +44,35 @@ public class SalaryRecordService {
   private final EmployeeService employeeService;
   private final RequestService requestService;
   private final UserRepository userRepository;
+  private final DepartmentRepository departmentRepository;
+  private final UserService userService;
+  private final SalaryRecordQueryService salaryRecordQueryService;
+  private final SalaryRecordCommandService salaryRecordCommandService;
 
+  public void deleteSalaryRecord(Integer salaryId) {
+    SalaryRecord sr = salaryRecordQueryService.findSalaryRecordBySalaryId(salaryId);
+
+    salaryRecordCommandService.removeSalaryRecord(sr);
+
+  }
+
+  public Page<PayrollDTO> getAllPayrolls(Pageable pageable) {
+    var srs = salaryRecordQueryService.getAll(pageable);
+    List<PayrollDTO> payrolls = new ArrayList<>();
+    for (var salaryRecord : srs) {
+      PayrollDTO payroll = payrollDTO(salaryRecord.getSalaryId());
+      payrolls.add(payroll);
+    }
+
+    return new PageImpl<>(payrolls, pageable, srs.getTotalElements());
+  }
   public SalaryRecord findSalaryRecordBySalaryId(Integer salaryId) {
-    return salaryRecordRepository.findSalaryRecordBySalaryId(salaryId);
+    return salaryRecordQueryService.findSalaryRecordBySalaryId(salaryId);
   }
 
   //region getAll()
   public Page<PayrollDTO> getAll(Pageable pageable) {
-    var salaryRecords = salaryRecordRepository.findAll(pageable);
+    var salaryRecords = salaryRecordQueryService.getAll(pageable);
     List<PayrollDTO> payrolls = new ArrayList<>();
 
     for (var salaryRecord : salaryRecords) {
@@ -61,13 +89,19 @@ public class SalaryRecordService {
   }
 
   public Page<PayrollDTO> getPayrollByEmployeeId(Pageable pageable, Integer employeeId){
-    Page<SalaryRecord> salaryRecords = salaryRecordRepository.getSalaryRecordsByEmployee_EmployeeId(employeeId,pageable);
+    Page<SalaryRecord> salaryRecords = salaryRecordRepository.getSalaryRecordsByEmployee_EmployeeIdAndIsDeleted(employeeId, false,pageable);
     return salaryRecords.map(salaryRecord -> payrollDTO(salaryRecord.getSalaryId()));
   }
+  public List<TopSalaryDTO> getTop3HighestNetSalary(int month, int year){
+    return salaryRecordRepository.findTop3Salaries(month, year);
+  }
+  public List<AverageSalaryDTO> getAverageSalaryByYear(int year) {
 
+    return salaryRecordRepository.getAverageSalaryByMonthAndDepartment(year);
+  }
   //endregion
   public Map<Integer, Double> getMonthlySalary(int year) {
-    List<Object[]> results = salaryRecordRepository.getAverageSalaryByMonth(year);
+    List<Object[]> results = salaryRecordRepository.getTotalSalaryByMonth(year);
     Map<Integer, Double> payrollMap = new HashMap<>();
 
     for (int i = 1; i <= 12; i++) {
@@ -83,57 +117,46 @@ public class SalaryRecordService {
   }
   //region payrollDTO()
   public double calculateInsuranceOrFee(int salaryId, int financialPolicyId) {
-    SalaryRecord salaryRecord = salaryRecordRepository.findSalaryRecordBySalaryId(salaryId);
+    SalaryRecord salaryRecord = salaryRecordRepository.findSalaryRecordBySalaryIdAndIsDeleted(salaryId, false);
     double policyRate = financialPolicyRepository.getFinancialPolicyAmount(financialPolicyId);
 
     return salaryRecord.getBaseSalary() * policyRate / 100;
   }
-
   public double calculatedEmployeeSocialInsurance(int salaryId) {
     return calculateInsuranceOrFee(salaryId, 3);
   }
-
   public double calculatedEmployeeUnionFee(int salaryId) {
     return calculateInsuranceOrFee(salaryId, 5);
   }
-
   public double calculatedEmployeeHealthInsurance(int salaryId) {
     return calculateInsuranceOrFee(salaryId, 1);
   }
-
   public double calculatedEmployeeUnemploymentInsurance(int salaryId) {
     return calculateInsuranceOrFee(salaryId, 7);
   }
-
   public double calculatedEmployerHealthInsurance(int salaryId) {
     return calculateInsuranceOrFee(salaryId, 2);
   }
-
   public double calculatedEmployerSocialInsurance(int salaryId) {
     return calculateInsuranceOrFee(salaryId, 4);
   }
-
   public double calculatedEmployerUnionFee(int salaryId) {
     return calculateInsuranceOrFee(salaryId, 6);
   }
-
   public double calculatedEmployerUnemploymentInsurance(int salaryId) {
     return calculateInsuranceOrFee(salaryId, 8);
   }
-
   public double calculatedPersonalInsuranceDeduction(int salaryId) {
     return calculateInsuranceOrFee(salaryId, 1)
       + calculateInsuranceOrFee(salaryId, 3)
       + calculateInsuranceOrFee(salaryId, 5)
       + calculateInsuranceOrFee(salaryId, 7);
   }
-
   public double calculatedPersonalDependentDeduction(int salaryId) {
     int numberOfDependents = dependentRepository.getNumberOfDependentsBySalaryID(salaryId);
     double policyRate = financialPolicyRepository.getFinancialPolicyAmount(11);
     return numberOfDependents * policyRate;
   }
-
   public double insuranceDeduction(int salaryId) {
     return calculateInsuranceOrFee(salaryId, 1)
       + calculateInsuranceOrFee(salaryId, 2)
@@ -144,12 +167,10 @@ public class SalaryRecordService {
       + calculateInsuranceOrFee(salaryId, 7)
       + calculateInsuranceOrFee(salaryId, 8);
   }
-
   public double totalDeductions(int salaryId) {
     double personalDeduction = financialPolicyRepository.getFinancialPolicyAmount(10);
     return personalDeduction + calculatedPersonalDependentDeduction(salaryId);
   }
-
   public double taxAmount(double totalEarning, double totalDeduction) {
     double salaryAfterDeductions = totalEarning - totalDeduction;
 
@@ -167,9 +188,8 @@ public class SalaryRecordService {
       return salaryAfterDeductions * 0.05 + 5000000 * 0.1 + 10000000 * 0.15 + 10000000 * 0.2 + (salaryAfterDeductions - 10000000) * 0.25;
     }
   }
-
   public PayrollDTO payrollDTO(int salaryId) {
-    SalaryRecord salaryRecords = salaryRecordRepository.findSalaryRecordBySalaryId(salaryId);
+    SalaryRecord salaryRecords = salaryRecordRepository.findSalaryRecordBySalaryIdAndIsDeleted(salaryId, false);
     Employee employee = employeeRepository.findEmployeeByEmployeeId(salaryRecords.getEmployee().getEmployeeId());
     double calculatedEmployeeHealthInsuranceAmount = financialPolicyRepository.getFinancialPolicyAmount(1);
     double calculatedEmployeeSocialInsuranceAmount = financialPolicyRepository.getFinancialPolicyAmount(3);
@@ -241,7 +261,6 @@ public class SalaryRecordService {
       .build();
   }
   //endregion
-
   //region SavePayroll()
   public void savePayroll(PayrollCalculationForm form) {
     List<Integer> payrollIds = new ArrayList<>();
@@ -270,8 +289,10 @@ public class SalaryRecordService {
   }
 
   private void createRequest(PayrollCalculationForm form, List<Integer> payrollIds) {
-    Optional<User> user = userRepository.findUserByUserId(form.getRequesterId());
-    Optional<User> approval = userRepository.findUserByUsername("annguyen");
+    DepartmentDTO departmentDTO = departmentDTOMapper.toDTO(departmentRepository.findDepartmentByDepartmentId(form.getSelectedDepartmentId()));
+    User user = userService.findUserByUserId(form.getRequesterId());
+    EmployeeDTO managerDTO = employeeService.getEmployeeByEmployeeId(departmentDTO.getManagerId());
+    Optional<User> approval = userRepository.findUserByEmployee_EmployeeId(managerDTO.getEmployeeId());
 
     RequestDTO requestDTO = RequestDTO.builder()
       .requesterId(form.getRequesterId())
@@ -282,7 +303,7 @@ public class SalaryRecordService {
       .approvalName(approval.get().getUsername())
       .build();
 
-    requestService.saveRequest(requestDTO, user.get(), approval.get());
+    requestService.saveRequest(requestDTO, user, approval.get());
   }
 
   private SalaryCalculationResult calculateSalaryComponents(
@@ -356,66 +377,6 @@ public class SalaryRecordService {
   ) {
   }
   //endregion
-
-  /**
-   * @param salaryId: Input salary ID for manipulating the desired salary
-   * @return PayrollDTO
-   * @deprecated
-   */
-  @Deprecated(since = "2025/02/22", forRemoval = true)
-  public PayrollDTO getInsurance(int salaryId) {
-    SalaryRecord salaryRecords = salaryRecordRepository.findSalaryRecordBySalaryId(salaryId);
-    double netsalary = salaryRecords.getNetSalary();
-    double calculatedEmployeeHealthInsuranceAmount = financialPolicyRepository.getFinancialPolicyAmount(1);
-    double calculatedEmployeeSocialInsuranceAmount = financialPolicyRepository.getFinancialPolicyAmount(3);
-    double calculatedEmployeeUnionFeeAmount = financialPolicyRepository.getFinancialPolicyAmount(5);
-    double calculatedEmployeeUnemploymentInsuranceAmount = financialPolicyRepository.getFinancialPolicyAmount(7);
-    double calculatedEmployerHealthInsuranceAmount = financialPolicyRepository.getFinancialPolicyAmount(2);
-    double calculatedEmployerSocialInsuranceAmount = financialPolicyRepository.getFinancialPolicyAmount(4);
-    double calculatedEmployerUnionFeeAmount = financialPolicyRepository.getFinancialPolicyAmount(6);
-    double calculatedEmployerUnemploymentInsuranceAmount = financialPolicyRepository.getFinancialPolicyAmount(8);
-
-
-
-
-    double calculatedEmployeeHealthInsurance = calculatedEmployeeHealthInsurance(salaryId);
-    double calculatedEmployeeSocialInsurance = calculatedEmployeeSocialInsurance(salaryId);
-    double calculatedEmployeeUnionFee = calculatedEmployeeUnionFee(salaryId);
-    double calculatedEmployeeUnemploymentInsurance = calculatedEmployeeUnemploymentInsurance(salaryId);
-
-    double calculatedEmployerHealthInsurance = calculatedEmployerHealthInsurance(salaryId);
-    double calculatedEmployerSocialInsurance = calculatedEmployerSocialInsurance(salaryId);
-    double calculatedEmployerUnionFee = calculatedEmployerUnionFee(salaryId);
-    double calculatedEmployerUnemploymentInsurance = calculatedEmployerUnemploymentInsurance(salaryId);
-
-    double calculatedPersonalInsuranceDeduction = calculatedPersonalInsuranceDeduction(salaryId);
-    double calculatedPersonalDeduction = financialPolicyRepository.getFinancialPolicyAmount(10);
-    double calculatedPersonalDependentDeduction = calculatedPersonalDependentDeduction(salaryId);
-
-    return PayrollDTO.builder()
-      .calculatedEmployeeHealthInsurance(calculatedEmployeeHealthInsurance)
-      .calculatedEmployeeHealthInsuranceAmount(calculatedEmployeeHealthInsuranceAmount)
-      .calculatedEmployeeSocialInsurance(calculatedEmployeeSocialInsurance)
-      .calculatedEmployeeSocialInsuranceAmount(calculatedEmployeeSocialInsuranceAmount)
-      .calculatedEmployeeUnionFee(calculatedEmployeeUnionFee)
-      .calculatedEmployeeUnionFeeAmount(calculatedEmployeeUnionFeeAmount)
-      .calculatedEmployeeUnemploymentInsurance(calculatedEmployeeUnemploymentInsurance)
-      .calculatedEmployeeUnemploymentInsuranceAmount(calculatedEmployeeUnemploymentInsuranceAmount)
-      .calculatedEmployerHealthInsurance(calculatedEmployerHealthInsurance)
-      .calculatedEmployerHealthInsuranceAmount(calculatedEmployerHealthInsuranceAmount)
-      .calculatedEmployerSocialInsurance(calculatedEmployerSocialInsurance)
-      .calculatedEmployerSocialInsuranceAmount(calculatedEmployerSocialInsuranceAmount)
-      .calculatedEmployerUnionFee(calculatedEmployerUnionFee)
-      .calculatedEmployerUnionFeeAmount(calculatedEmployerUnionFeeAmount)
-      .calculatedEmployerUnemploymentInsurance(calculatedEmployerUnemploymentInsurance)
-      .calculatedEmployerUnemploymentInsuranceAmount(calculatedEmployerUnemploymentInsuranceAmount)
-      .calculatedPersonalInsuranceDeduction(calculatedPersonalInsuranceDeduction)
-      .calculatedPersonalDeduction(calculatedPersonalDeduction)
-      .calculatedPersonalDependentDeduction(calculatedPersonalDependentDeduction)
-      .totalNetSalary(netsalary)
-
-      .build();
-  }
   public Resource exportToExcel(List<Integer> payrollIds, LocalDate startDate, LocalDate endDate) {
     List<SalaryRecord> salaryRecords = new ArrayList<>();
 
@@ -443,17 +404,17 @@ public class SalaryRecordService {
         List<SalaryRecord> allRecords = salaryRecordRepository.findAll();
 
         salaryRecords = allRecords.stream()
-                .filter(record -> {
-                  int recordYear = record.getYear();
-                  int recordMonth = record.getMonth();
+          .filter(record -> {
+            int recordYear = record.getYear();
+            int recordMonth = record.getMonth();
 
-                  int startTotalMonths = startYear * 12 + startMonth;
-                  int endTotalMonths = endYear * 12 + endMonth;
-                  int recordTotalMonths = recordYear * 12 + recordMonth;
+            int startTotalMonths = startYear * 12 + startMonth;
+            int endTotalMonths = endYear * 12 + endMonth;
+            int recordTotalMonths = recordYear * 12 + recordMonth;
 
-                  return recordTotalMonths >= startTotalMonths && recordTotalMonths <= endTotalMonths;
-                })
-                .collect(Collectors.toList());
+            return recordTotalMonths >= startTotalMonths && recordTotalMonths <= endTotalMonths;
+          })
+          .collect(Collectors.toList());
 
         log.info("Found {} records in date range", salaryRecords.size());
       } else {
@@ -491,10 +452,10 @@ public class SalaryRecordService {
     try (Workbook workbook = new XSSFWorkbook(); ByteArrayOutputStream out = new ByteArrayOutputStream()) {
       Sheet sheet = workbook.createSheet("Payroll");
 
-      // Create title and header rows
+
       createTitleAndHeaderRows(workbook, sheet);
 
-      // Create currency format
+
       DataFormat format = workbook.createDataFormat();
       CellStyle currencyStyle = workbook.createCellStyle();
       currencyStyle.setDataFormat(format.getFormat("#,##0.00"));
@@ -581,16 +542,5 @@ public class SalaryRecordService {
       cell.setCellValue(columns[i]);
       cell.setCellStyle(headerStyle);
     }
-  }
-
-
-
-  public List<AverageSalaryDTO> getAverageSalaryByYear(int year) {
-
-    return salaryRecordRepository.getAverageSalaryByMonthAndDepartment(year);
-  }
-
-  public List<TopSalaryDTO> getTop3HighestNetSalary(int month, int year){
-    return salaryRecordRepository.findTop3Salaries(month, year);
   }
 }

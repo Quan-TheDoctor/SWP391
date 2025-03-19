@@ -17,28 +17,22 @@ import java.util.Optional;
 @Repository
 public interface UserRepository extends JpaRepository<User, Long> {
   Optional<User> findByUserId(Integer userId);
-
   Optional<User> findUserByUsername(String userName);
-  Optional<User> findUserByUserId(Integer userId);
-
+  User findUserByUserId(Integer userId);
   List<User> findUsersByUsername(String username);
-
   @Modifying
   @Query("UPDATE User u SET u.status = :status WHERE u.userId = :userId")
   @Transactional
   void updateUserStatus(@Param("userId") Integer userId, @Param("status") String status);
-
   void deleteAllByUsername(String username);
-
   Page<User> findByUsernameContainingIgnoreCase(String username, Pageable pageable);
-
   Page<User> findByRole(String role, Pageable pageable);
-
   Page<User> findByStatus(String status, Pageable pageable);
-
   int countByStatus(String status);
 
   void deleteByUserId(Integer userId);
 
   User findUserByRole(String role);
+
+  Optional<User> findUserByEmployee_EmployeeId(Integer employeeEmployeeId);
 }

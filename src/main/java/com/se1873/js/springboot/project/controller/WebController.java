@@ -5,8 +5,8 @@ import com.se1873.js.springboot.project.dto.AttendanceDTO;
 import com.se1873.js.springboot.project.dto.EmployeeCountDTO;
 import com.se1873.js.springboot.project.dto.TopSalaryDTO;
 import com.se1873.js.springboot.project.service.AttendanceService;
-import com.se1873.js.springboot.project.service.EmployeeService;
-import com.se1873.js.springboot.project.service.SalaryRecordService;
+import com.se1873.js.springboot.project.service.employee.EmployeeService;
+import com.se1873.js.springboot.project.service.salary_record.SalaryRecordService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
@@ -69,8 +69,8 @@ public class WebController {
             year = today.getYear();
             month = today.getMonthValue();
         }
-        EmployeeCountDTO employeeCountDTO = employeeService.getEmployeeDTOIsCurrent();
-        AttendanceCountDTO attendanceCountDTO = attendanceService.countAvailableAttendance(dateChoosed);
+        EmployeeCountDTO employeeCountDTO = employeeService.getAvailableAndUnavailableEmployeeCount();
+        AttendanceCountDTO attendanceCountDTO = attendanceService.countAvailableAttendance(String.valueOf(dateChoosed));
         double avalableEmployeePercent = (employeeCountDTO.getTotalAvailableEmployees() *100) / totalemployee;
         double unavalableEmployeePercent = 100 - avalableEmployeePercent;
 

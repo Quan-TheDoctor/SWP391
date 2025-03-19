@@ -646,7 +646,7 @@ SELECT e.employee_id,
            END AS check_out,
        CASE
            WHEN random() < 0.9 THEN 'Đúng giờ'
-           ELSE 'Đi muộn ' || (5 + (random() * 25)::integer)::text || 'p'
+           ELSE 'Đi muộn' || (5 + (random() * 25)::integer)::text || 'p'
            END AS status,
        CASE
            WHEN random() < 0.3 THEN round((random() * 2)::numeric, 1)

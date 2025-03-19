@@ -41,12 +41,6 @@ public class Leave {
   @Column(name = "reason")
   private String reason;
 
-  @Column(name = "leave_allowed_day")
-  private Integer leaveAllowedDay;
-
-  @Column(name = "leave_policy_id")
-  private Integer leavePolicyId;
-
   @ToString.Exclude
   @ManyToOne(cascade = CascadeType.ALL, fetch = FetchType.LAZY)
   @JoinColumn(name = "approved_by")

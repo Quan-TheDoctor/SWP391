@@ -1,11 +1,10 @@
 package com.se1873.js.springboot.project.controller;
 
 import com.se1873.js.springboot.project.dto.MessageDTO;
-import com.se1873.js.springboot.project.entity.Message;
 import com.se1873.js.springboot.project.entity.User;
 import com.se1873.js.springboot.project.repository.UserRepository;
-import com.se1873.js.springboot.project.service.ChannelService;
-import com.se1873.js.springboot.project.service.UserService;
+import com.se1873.js.springboot.project.service.message.MessageService;
+import com.se1873.js.springboot.project.service.user.UserService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.messaging.handler.annotation.DestinationVariable;
@@ -30,10 +29,10 @@ import java.time.LocalDateTime;
 @RequestMapping("/chat")
 @Slf4j
 public class ChatRoomController {
-  private final ChannelService channelService;
   private final SimpMessagingTemplate simpMessagingTemplate;
   private final UserService userService;
   private final UserRepository userRepository;
+  private final MessageService messageService;
 
   @MessageMapping("/test.checkSession")
   @SendTo("/topic/test")
@@ -57,7 +56,7 @@ public class ChatRoomController {
       messageDTO.setUserId(adminUser.getUserId());
       messageDTO.setUsername("System Notification");
 
-      MessageDTO message = channelService.saveMessage(messageDTO);
+      MessageDTO message = messageService.saveMessage(messageDTO);
 
       return MessageDTO.builder()
         .messageId(message.getMessageId())
@@ -76,7 +75,7 @@ public class ChatRoomController {
       messageDTO.setChannelId(channelId);
       messageDTO.setMessageCreatedAt(LocalDateTime.now());
 
-      channelService.saveMessage(messageDTO);
+      messageService.saveMessage(messageDTO);
 
       return messageDTO;
     }

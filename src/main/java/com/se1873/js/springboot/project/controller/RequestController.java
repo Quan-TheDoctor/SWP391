@@ -8,8 +8,10 @@ import com.se1873.js.springboot.project.entity.User;
 import com.se1873.js.springboot.project.repository.EmployeeRepository;
 import com.se1873.js.springboot.project.repository.SalaryRecordRepository;
 import com.se1873.js.springboot.project.repository.UserRepository;
-import com.se1873.js.springboot.project.service.DepartmentService;
+import com.se1873.js.springboot.project.service.ChatNotificationService;
 import com.se1873.js.springboot.project.service.RequestService;
+import com.se1873.js.springboot.project.service.department.DepartmentService;
+import com.se1873.js.springboot.project.service.employee.EmployeeService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.core.io.Resource;
@@ -27,12 +29,10 @@ import org.springframework.ui.Model;
 import org.springframework.validation.BindingResult;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.server.ResponseStatusException;
+import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 
 import java.util.*;
 
-/**
- * Controller xử lý requests được gửi từ view bao gồm: view, filter, search, export, update request status,...
- */
 @Controller
 @Slf4j
 @RequiredArgsConstructor
@@ -40,13 +40,13 @@ import java.util.*;
 public class RequestController {
   private static final Integer DEFAULT_PAGE_SIZE = 5;
   private static final String REQUEST_STATUS_PENDING = "pending";
-  private static final String REQUEST_TYPE_LEAVE = "Đơn xin nghỉ";
 
   private final RequestService requestService;
   private final DepartmentService departmentService;
   private final UserRepository userRepository;
   private final EmployeeRepository employeeRepository;
   private final SalaryRecordRepository salaryRecordRepository;
+  private final EmployeeService employeeService;
 
   private Integer totalRequests = 0;
   private Integer totalPendingRequests = 0;
@@ -73,29 +73,7 @@ public class RequestController {
     model.addAttribute("totalPendingRequests", totalPending);
     model.addAttribute("totalFinishedRequests", requests.getTotalElements() - totalPending);
   }
-  private User getAuthenticatedUser() {
-    Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
-    return userRepository.findUserByUsername(authentication.getName())
-            .orElseThrow(() -> new ResponseStatusException(HttpStatus.UNAUTHORIZED, "User not found"));
-  }
 
-  private Employee getEmployeeForUser(User user) {
-    return employeeRepository.getEmployeeByEmployeeId(user.getEmployee().getEmployeeId());
-  }
-
-  private void enrichWithSalaryRecords(RequestDTO requestDTO) {
-    List<SalaryRecord> records = requestDTO.getPayrollIds().stream()
-            .map(salaryRecordRepository::findSalaryRecordBySalaryId)
-            .toList();
-    requestDTO.setSalaryRecords(records);
-  }
-  /**
-   * Hiển thị trang view requests với statistics và pagination
-   * @param model: Model chứa thuộc tính
-   * @param page số Trang hiện tại
-   * @param size item mỗi trang
-   * @return request-fragments.html
-   */
   @RequestMapping
   public String request(Model model,
                         @RequestParam(value = "page", defaultValue = "0") int page,
@@ -103,15 +81,6 @@ public class RequestController {
     return populateRequestModel(model, requestService.getRequests(getPageable(page, size)), "request");
   }
 
-  /**
-   * Hiển thị trang view requests đã được filter theo lựa chọn
-   * @param model Model chứa thuộc tính
-   * @param field: trường filtẻ
-   * @param value: giá trị
-   * @param page số Trang hiện tại
-   * @param size item mỗi trang
-   * @return request-fragments.html
-   */
   @RequestMapping("/filter")
   public String filter(Model model,
                        @RequestParam("field") String field,
@@ -121,14 +90,6 @@ public class RequestController {
     return populateRequestModel(model, requestService.filter(field, value, getPageable(page, size)), "request");
   }
 
-  /**
-   * Tìm kiếm request theo text
-   * @param model Model chứa thuộc tính
-   * @param query giá trị tìm kiếm
-   * @param page số Trang hiện tại
-   * @param size item mỗi trang
-   * @return request-fragments.html
-   */
   @RequestMapping("/search")
   public String search(Model model,
                        @RequestParam("query") String query,
@@ -143,15 +104,6 @@ public class RequestController {
     return "index";
   }
 
-  /**
-   * Hiển thị trang export requests
-   * @param model Model chứa thuộc tính
-   * @param status Filter theo status
-   * @param type Filter theo type
-   * @param page số Trang hiện tại
-   * @param size item mỗi trang
-   * @return request-export.html
-   */
   @RequestMapping("/export/view")
   public String exportView(Model model,
                            @RequestParam(value = "status", required = false, defaultValue = "all") String status,
@@ -169,12 +121,6 @@ public class RequestController {
     return "index";
   }
 
-  /**
-   * Export ra file excels
-   * @param status Filter theo status
-   * @param type Filter theo type
-   * @return JSON ResponseEntity.ok()
-   */
   @RequestMapping("/export")
   public ResponseEntity<Resource> exportRequests(
           @RequestParam(value = "status", required = false, defaultValue = "all") String status,
@@ -188,12 +134,6 @@ public class RequestController {
             .body(file);
   }
 
-  /**
-   * Lưu request được gửi bởi người dùng
-   * @param requestDTO RequestDTO
-   * @param result BindingResult, Validation (?)
-   * @return redirect:/user/detail
-   */
   @RequestMapping("/save")
   public String save(@ModelAttribute("requestDTO") RequestDTO requestDTO,
                      BindingResult result) {
@@ -216,7 +156,7 @@ public class RequestController {
     RequestDTO requestDTO = requestService.findRequestByRequestId(requestId);
     List<SalaryRecord> salaryRecords = new ArrayList<>();
     for (var r : requestDTO.getPayrollIds()) {
-      SalaryRecord sr = salaryRecordRepository.findSalaryRecordBySalaryId(r);
+      SalaryRecord sr = salaryRecordRepository.findSalaryRecordBySalaryIdAndIsDeleted(r, false);
       salaryRecords.add(sr);
     }
     requestDTO.setSalaryRecords(salaryRecords);
@@ -230,25 +170,32 @@ public class RequestController {
   public String approveRequest(Model model,
                                @RequestParam("requestId") Integer requestId,
                                @RequestParam("field") String field,
-                               @RequestParam("type") String type) {
+                               @RequestParam("type") String type, RedirectAttributes redirectAttributes) {
     RequestDTO requestDTO = requestService.findRequestByRequestId(requestId);
     Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
     String name = authentication.getName();
     User user = userRepository.findUserByUsername(name)
-            .orElseThrow(() -> new RuntimeException("Không tìm thấy người dùng"));
+      .orElseThrow(() -> new RuntimeException("Không tìm thấy người dùng"));
+    log.info(requestDTO.toString());
+    if(!requestDTO.getApprovalName().equals(user.getUsername())) {
+
+      redirectAttributes.addFlashAttribute("message", "You're not authorized to approve this request");
+      redirectAttributes.addFlashAttribute("messageType", "error");
+      return "redirect:/request";
+    }
 
     if ("Hạch toán lương".equals(type)) {
       switch (field) {
         case "approve":
           if ("pending".equals(requestDTO.getRequestStatus())) {
-            requestDTO.setRequestStatus("approve");
+            requestDTO.setRequestStatus("Approved");
             requestDTO.setApprovalName(user.getUsername());
             requestService.updateStatus(requestDTO, type);
           }
           break;
         case "deny":
           if ("pending".equals(requestDTO.getRequestStatus())) {
-            requestDTO.setRequestStatus("deny");
+            requestDTO.setRequestStatus("Denied");
             requestService.updateStatus(requestDTO, type);
           }
           break;

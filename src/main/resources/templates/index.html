@@ -114,8 +114,12 @@
     }
     const socket = new SockJS("/ws")
     const stompClient = Stomp.over(socket);
+    let reconnectCount = 0;
+    const maxReconnect = 5;
+    const reconnectDelay = 2000;
 
     stompClient.connect({}, function (frame) {
+        reconnectCount = 0;
         stompClient.subscribe("/topic/attendance", (message) => {
             const notification = JSON.parse(message.body);
 
@@ -123,7 +127,18 @@
         });
     }, function(error) {
         console.error('WebSocket connection error:', error);
-        alert('Không thể kết nối đến hệ thống thông báo. Vui lòng làm mới trang.');
+        if (reconnectCount < maxReconnects) {
+            reconnectCount++;
+            console.log(`Attempting to reconnect (${reconnectCount}/${maxReconnects})...`);
+
+            setTimeout(function() {
+                connectWebSocket();
+            }, reconnectDelay);
+        } else {
+            console.error('Max reconnection attempts reached');
+            alert('Không thể kết nối đến hệ thống thông báo. Vui lòng làm mới trang.');
+
+        }
     });
 
     document.addEventListener('DOMContentLoaded', function () {

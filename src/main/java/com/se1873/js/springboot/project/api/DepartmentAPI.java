@@ -2,7 +2,7 @@ package com.se1873.js.springboot.project.api;
 
 import com.se1873.js.springboot.project.dto.DepartmentDTO;
 import com.se1873.js.springboot.project.mapper.DepartmentDTOMapper;
-import com.se1873.js.springboot.project.service.DepartmentService;
+import com.se1873.js.springboot.project.service.department.DepartmentService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.ResponseEntity;
