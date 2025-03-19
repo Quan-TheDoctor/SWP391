@@ -20,7 +20,7 @@
                     </div>
                     <div class="text-center sm:text-left">
                         <p class="text-xs sm:text-sm text-gray-500">Tổng nhân viên</p>
-                        <h2 class="text-lg sm:text-xl font-bold">45</h2>
+                        <h2 class="text-lg sm:text-xl font-bold"><span th:text="${totalemployee}"></span></h2>
                     </div>
                 </div>
 
@@ -31,7 +31,8 @@
                     </div>
                     <div class="text-center sm:text-left">
                         <p class="text-xs sm:text-sm text-gray-500">Chấm công hôm nay</p>
-                        <h2 class="text-lg sm:text-xl font-bold">38/45</h2>
+                        <h2 class="text-lg sm:text-xl font-bold"><span th:text="${countAttendance != null ? countAttendance : 0} + ' / ' + ${totalemployee != null ? totalemployee : 0}"></span>
+                        </h2>
                     </div>
                 </div>
 
@@ -64,11 +65,6 @@
                 <div class="bg-white rounded-lg shadow p-3 flex flex-col h-full">
                     <div class="flex justify-between items-center flex-wrap gap-2 mb-3">
                         <h3 class="text-xs sm:text-sm font-semibold">Phân bổ nhân viên</h3>
-                        <select class="departmentPicker text-xs border rounded px-2 py-1">
-                            <option>Tất cả</option>
-                            <option>Phòng IT</option>
-                            <option>Phòng Nhân sự</option>
-                        </select>
                     </div>
 
                     <div class="flex-1 flex flex-col">
@@ -85,7 +81,7 @@
                                         <span class="inline-block w-3 h-3 rounded-full bg-blue-500 mr-2"></span>
                                         <span class="text-xs sm:text-sm text-gray-600">Đang làm việc</span>
                                     </div>
-                                    <span class="text-xs sm:text-sm font-medium" id="available-percent">100%</span>
+                                    <span class="text-xs sm:text-sm font-medium" id="available-percent">0%</span>
                                 </div>
                                 <div class="flex items-center justify-between">
                                     <div class="flex items-center">
@@ -96,32 +92,6 @@
                                 </div>
                             </div>
                         </div>
-
-                        <!-- Department List -->
-                        <div class="mt-3 pt-2 border-t border-gray-100">
-                            <div class="flex justify-between items-center">
-                                <h4 class="text-xs sm:text-sm font-medium">Phòng ban</h4>
-                                <span class="text-xs text-gray-500">Nhân viên</span>
-                            </div>
-                            <div class="space-y-1 mt-2">
-                                <div class="flex items-center justify-between">
-                                    <span class="text-xs sm:text-sm text-gray-600">Phòng IT</span>
-                                    <span class="text-xs sm:text-sm font-medium">15</span>
-                                </div>
-                                <div class="flex items-center justify-between">
-                                    <span class="text-xs sm:text-sm text-gray-600">Phòng Nhân sự</span>
-                                    <span class="text-xs sm:text-sm font-medium">12</span>
-                                </div>
-                                <div class="flex items-center justify-between">
-                                    <span class="text-xs sm:text-sm text-gray-600">Phòng Marketing</span>
-                                    <span class="text-xs sm:text-sm font-medium">10</span>
-                                </div>
-                                <div class="flex items-center justify-between">
-                                    <span class="text-xs sm:text-sm text-gray-600">Phòng Kế toán</span>
-                                    <span class="text-xs sm:text-sm font-medium">8</span>
-                                </div>
-                            </div>
-                        </div>
                     </div>
                 </div>
 
@@ -129,9 +99,10 @@
                 <div class="bg-white rounded-lg shadow p-3 flex flex-col h-full">
                     <div class="flex justify-between items-center flex-wrap gap-2 mb-3">
                         <h3 class="text-xs sm:text-sm font-semibold">Attendance Overview</h3>
-                        <button class="text-xs border rounded px-2 py-1 flex items-center gap-1">
+                        <button id="openDatePicker" class="text-xs border rounded px-2 py-1 flex items-center gap-1">
                             <i class="fas fa-calendar-day"></i> Today
                         </button>
+                        <input type="date" id="datePicker" class="hidden border rounded p-1">
                     </div>
 
                     <div class="flex-1 flex flex-col">
@@ -145,47 +116,31 @@
                             <div class="space-y-1">
                                 <div class="flex items-center justify-between">
                                     <div class="flex items-center">
-                                        <span class="inline-block w-3 h-3 rounded-full bg-green-500 mr-2"></span>
+                                        <span class="inline-block w-3 h-3 rounded-full bg-green-600 mr-2"></span>
                                         <span class="text-xs sm:text-sm text-gray-600">Present</span>
                                     </div>
-                                    <span class="text-xs sm:text-sm font-medium" id="present-percent">59%</span>
+                                    <span class="text-xs sm:text-sm font-medium" id="present-percent">0</span>
                                 </div>
                                 <div class="flex items-center justify-between">
                                     <div class="flex items-center">
-                                        <span class="inline-block w-3 h-3 rounded-full bg-teal-800 mr-2"></span>
+                                        <span class="inline-block w-3 h-3 rounded-full bg-orange-500 mr-2"></span>
                                         <span class="text-xs sm:text-sm text-gray-600">Late</span>
                                     </div>
-                                    <span class="text-xs sm:text-sm font-medium" id="late-percent">21%</span>
+                                    <span class="text-xs sm:text-sm font-medium" id="late-percent">0</span>
                                 </div>
                                 <div class="flex items-center justify-between">
                                     <div class="flex items-center">
-                                        <span class="inline-block w-3 h-3 rounded-full bg-yellow-400 mr-2"></span>
-                                        <span class="text-xs sm:text-sm text-gray-600">Permission</span>
-                                    </div>
-                                    <span class="text-xs sm:text-sm font-medium" id="permission-percent">2%</span>
-                                </div>
-                                <div class="flex items-center justify-between">
-                                    <div class="flex items-center">
-                                        <span class="inline-block w-3 h-3 rounded-full bg-red-600 mr-2"></span>
+                                        <span class="inline-block w-3 h-3 rounded-full bg-red-700 mr-2"></span>
                                         <span class="text-xs sm:text-sm text-gray-600">Absent</span>
                                     </div>
-                                    <span class="text-xs sm:text-sm font-medium" id="absent-percent">15%</span>
+                                    <span class="text-xs sm:text-sm font-medium" id="absent-percent">0</span>
                                 </div>
                             </div>
                         </div>
 
                         <!-- Footer Action -->
                         <div class="mt-auto pt-3 border-t border-gray-100 flex flex-col sm:flex-row justify-between items-center gap-2">
-                            <div class="flex items-center">
-                                <span class="text-xs sm:text-sm text-gray-600 mr-2">Total Absenties</span>
-                                <div class="flex -space-x-2">
-                                    <div class="w-6 h-6 rounded-full bg-blue-400 border-2 border-white flex items-center justify-center text-xs text-white">1</div>
-                                    <div class="w-6 h-6 rounded-full bg-green-400 border-2 border-white flex items-center justify-center text-xs text-white">2</div>
-                                    <div class="w-6 h-6 rounded-full bg-orange-400 border-2 border-white flex items-center justify-center text-xs text-white">3</div>
-                                    <div class="w-6 h-6 rounded-full bg-gray-300 border-2 border-white flex items-center justify-center text-xs text-gray-600">+1</div>
-                                </div>
-                            </div>
-                            <a href="#" class="text-xs sm:text-sm text-orange-500 hover:underline">View Details</a>
+                            <a href="/attendance/status" class="text-xs sm:text-sm text-orange-500 hover:underline">View Details</a>
                         </div>
                     </div>
                 </div>
@@ -194,51 +149,19 @@
                 <div class="bg-white rounded-lg shadow p-3 flex flex-col h-full">
                     <div class="flex justify-between items-center flex-wrap gap-2 mb-3">
                         <h3 class="text-xs sm:text-sm font-semibold">Thống kê lương 2025</h3>
-                        <select class="yearPicker text-xs border rounded px-2 py-1" data-chart="payrollChart1">
-                            <option>2025</option>
-                            <option>2022</option>
-                        </select>
+                        <input type="month" id="monthPicker" class="border rounded p-1">
                     </div>
 
                     <div class="flex-1 flex flex-col">
                         <div class="relative h-40 sm:h-44 md:h-36 lg:h-44">
-                            <div id="payrollChart1" class="absolute inset-0"></div>
+                            <div id="payrollChart" class="absolute inset-0"></div>
                         </div>
 
                         <!-- Employee List -->
                         <div class="mt-3">
-                            <h4 class="text-xs sm:text-sm font-medium mb-2">Top lương cao nhất</h4>
-                            <div class="space-y-3">
-                                <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-1">
-                                    <div class="flex items-center">
-                                        <div class="w-8 h-8 rounded-full bg-gray-200 flex items-center justify-center text-xs font-semibold text-gray-700 mr-2">NT</div>
-                                        <div>
-                                            <p class="text-xs sm:text-sm font-medium">Nguyễn Thành</p>
-                                            <p class="text-xs text-gray-500">Giám đốc</p>
-                                        </div>
-                                    </div>
-                                    <span class="text-xs sm:text-sm font-medium">45.000.000 đ</span>
-                                </div>
-                                <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-1">
-                                    <div class="flex items-center">
-                                        <div class="w-8 h-8 rounded-full bg-gray-200 flex items-center justify-center text-xs font-semibold text-gray-700 mr-2">LH</div>
-                                        <div>
-                                            <p class="text-xs sm:text-sm font-medium">Lê Hương</p>
-                                            <p class="text-xs text-gray-500">Trưởng phòng IT</p>
-                                        </div>
-                                    </div>
-                                    <span class="text-xs sm:text-sm font-medium">38.000.000 đ</span>
-                                </div>
-                                <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-1">
-                                    <div class="flex items-center">
-                                        <div class="w-8 h-8 rounded-full bg-gray-200 flex items-center justify-center text-xs font-semibold text-gray-700 mr-2">TM</div>
-                                        <div>
-                                            <p class="text-xs sm:text-sm font-medium">Trần Minh</p>
-                                            <p class="text-xs text-gray-500">Trưởng phòng NS</p>
-                                        </div>
-                                    </div>
-                                    <span class="text-xs sm:text-sm font-medium">35.000.000 đ</span>
-                                </div>
+                            <h4 class="text-xs sm:text-sm font-medium mb-2">Top lương cao nhất tháng</h4>
+                            <div class="space-y-3" id="top-highest-salary">
+                                <!-- Top salary employees will be inserted here -->
                             </div>
                         </div>
 
@@ -250,303 +173,518 @@
                 </div>
             </div>
         </div>
-        <script>
-            document.addEventListener("DOMContentLoaded", () => {
-                const employeeChart = echarts.init(document.getElementById('employeeChart'));
-                const attendanceChart = echarts.init(document.getElementById('attendanceChart'));
-                const payrollChart1 = echarts.init(document.getElementById('payrollChart1'));
+    </main>
 
-                // Handle resize for responsive charts
-                const resizeCharts = () => {
-                    employeeChart.resize();
-                    attendanceChart.resize();
-                    payrollChart1.resize();
-                };
+    <script>
+        document.addEventListener("DOMContentLoaded", function() {
+            // Initialize all charts
+            initDashboard();
+        });
 
-                window.addEventListener('resize', resizeCharts);
+        function initDashboard() {
+            try {
+                // Get current date in YYYY-MM format for monthPicker
+                const today = new Date();
+                const monthInput = document.getElementById("monthPicker");
+                if (monthInput) {
+                    monthInput.value = `${today.getFullYear()}-${String(today.getMonth() + 1).padStart(2, '0')}`;
+                }
 
-                // Initial load with a small delay to ensure proper rendering
-                setTimeout(resizeCharts, 100);
+                // Initialize all charts
+                const charts = initializeCharts();
 
-                fetchEmployeeData(employeeChart);
-                fetchAttendanceData(attendanceChart);
-                fetchPayrollData(payrollChart1);
+                // Set up event listeners
+                setupEventListeners(charts);
 
-                document.querySelectorAll('.yearPicker').forEach(picker => {
-                    picker.addEventListener('change', (e) => {
-                        const chartId = e.target.getAttribute('data-chart');
-                        const chart = echarts.getInstanceByDom(document.getElementById(chartId));
-                        fetchPayrollData(chart, e.target.value);
-                    });
+                // Load initial data
+                loadDashboardData(charts);
+
+                // Handle window resize for charts
+                window.addEventListener('resize', function() {
+                    resizeCharts(charts);
                 });
 
-                document.querySelector('.departmentPicker').addEventListener('change', (e) => {
-                    fetchEmployeeData(employeeChart, e.target.value);
-                });
+                // Resize once to ensure proper display
+                setTimeout(() => resizeCharts(charts), 100);
+            } catch (error) {
+                console.error("Dashboard initialization error:", error);
+            }
+        }
+
+        function initializeCharts() {
+            // Initialize all chart instances
+            const charts = {};
+
+            const employeeChartEl = document.getElementById('employeeChart');
+            const attendanceChartEl = document.getElementById('attendanceChart');
+            const payrollChartEl = document.getElementById('payrollChart');
+
+            if (employeeChartEl) {
+                charts.employee = echarts.init(employeeChartEl);
+            }
+
+            if (attendanceChartEl) {
+                charts.attendance = echarts.init(attendanceChartEl);
+            }
+
+            if (payrollChartEl) {
+                charts.payroll = echarts.init(payrollChartEl);
+            }
+
+            return charts;
+        }
+
+        function resizeCharts(charts) {
+            // Resize all charts for responsive layout
+            Object.values(charts).forEach(chart => {
+                if (chart) chart.resize();
+            });
+        }
+
+        function setupEventListeners(charts) {
+            // Set up date picker for attendance chart
+            setupDatePicker(charts);
+
+            // Set up month picker for payroll data
+            setupMonthPicker(charts);
+        }
+
+        function setupDatePicker(charts) {
+            const openDatePicker = document.getElementById("openDatePicker");
+            const datePicker = document.getElementById("datePicker");
+
+            if (!openDatePicker || !datePicker) return;
+
+            // Set initial date picker value to today
+            const today = new Date();
+            datePicker.value = today.toISOString().split('T')[0];
+
+            // Open date picker when button is clicked
+            openDatePicker.addEventListener("click", function(event) {
+                event.preventDefault();
+                datePicker.showPicker();
             });
 
-            async function fetchEmployeeData(chart, department = 'Tất cả') {
+            // Update attendance chart when date changes
+            datePicker.addEventListener("change", function() {
+                const selectedDate = datePicker.value;
+
+                if (selectedDate) {
+                    // Update button text
+                    const date = new Date(selectedDate);
+                    const formattedDisplayDate = date.toLocaleDateString('en-US', {
+                        month: 'short',
+                        day: 'numeric'
+                    });
+                    openDatePicker.innerHTML = `<i class="fas fa-calendar-day"></i> ${formattedDisplayDate}`;
+
+                    // Fetch attendance data for selected date
+                    fetchAttendanceData(charts.attendance, selectedDate);
+                }
+            });
+        }
+
+        function setupMonthPicker(charts) {
+            const monthPicker = document.getElementById("monthPicker");
+
+            if (!monthPicker) return;
+
+            monthPicker.addEventListener("change", async function() {
+                const selectedMonth = this.value.split("-")[1];
+                const selectedYear = this.value.split("-")[0];
+
+                // Update payroll chart with new year data
+                fetchPayrollData(charts.payroll, selectedYear);
+
+                // Fetch top salary employees for selected month
+                fetchTopSalaryEmployees(selectedYear, selectedMonth);
+            });
+        }
+
+        function loadDashboardData(charts) {
+            // Get current date
+            const today = new Date();
+            const formattedToday = today.toISOString().split('T')[0];
+            const currentYear = today.getFullYear().toString();
+
+            // Load all dashboard data
+            fetchEmployeeData(charts.employee);
+            fetchAttendanceData(charts.attendance, formattedToday);
+            fetchPayrollData(charts.payroll, currentYear);
+        }
+
+        async function fetchEmployeeData(chart) {
+            if (!chart) return;
+
+            try {
+                // Fallback data in case API fails
+                const fallbackData = {
+                    totalAvailableEmployees: 85,
+                    totalUnavailableEmployees: 15
+                };
+
+                let employeeData;
+
                 try {
                     const response = await fetch("/api/employee/employeeAvailable");
-                    let data;
 
-                    try {
-                        data = await response.json();
-                    } catch (e) {
-                        data = null;
+                    if (!response.ok) {
+                        throw new Error(`API Error: ${response.status}`);
                     }
 
-                    const employeeData = data || {
-                        totalAvailableEmployees: 45,
-                        totalUnavailableEmployees: 0
-                    };
+                    employeeData = await response.json();
+                } catch (error) {
+                    console.warn("Failed to fetch employee data, using fallback:", error);
+                    employeeData = fallbackData;
+                }
 
-                    const availablePercent = Math.round((employeeData.totalAvailableEmployees /
-                        (employeeData.totalAvailableEmployees + employeeData.totalUnavailableEmployees || 1)) * 100);
-                    const unavailablePercent = 100 - availablePercent;
+                // Calculate percentages
+                const totalEmployees = (employeeData.totalAvailableEmployees + employeeData.totalUnavailableEmployees) || 100;
+                const availablePercent = Math.round((employeeData.totalAvailableEmployees / totalEmployees) * 100);
+                const unavailablePercent = 100 - availablePercent;
 
-                    document.getElementById('available-percent').textContent = availablePercent + '%';
-                    document.getElementById('unavailable-percent').textContent = unavailablePercent + '%';
+                // Update UI
+                updateEmployeeStats(availablePercent, unavailablePercent);
 
-                    const option = {
-                        tooltip: {
-                            trigger: 'item',
-                            formatter: '{b}: {c} ({d}%)'
+                // Create chart
+                const option = createEmployeeChartOption(employeeData);
+                chart.setOption(option);
+
+            } catch (error) {
+                console.error("Error in employee data processing:", error);
+            }
+        }
+
+        function updateEmployeeStats(availablePercent, unavailablePercent) {
+            const availablePercentEl = document.getElementById('available-percent');
+            const unavailablePercentEl = document.getElementById('unavailable-percent');
+
+            if (availablePercentEl) availablePercentEl.textContent = availablePercent + '%';
+            if (unavailablePercentEl) unavailablePercentEl.textContent = unavailablePercent + '%';
+        }
+
+        function createEmployeeChartOption(employeeData) {
+            return {
+                tooltip: {
+                    trigger: 'item',
+                    formatter: '{b}: {c} ({d}%)'
+                },
+                series: [{
+                    type: 'pie',
+                    radius: ['50%', '70%'],
+                    center: ['50%', '50%'],
+                    avoidLabelOverlap: false,
+                    itemStyle: {
+                        borderRadius: 5,
+                        borderColor: '#fff',
+                        borderWidth: 1
+                    },
+                    label: { show: false },
+                    emphasis: { label: { show: false } },
+                    data: [
+                        {
+                            value: employeeData.totalAvailableEmployees,
+                            name: 'Đang làm việc',
+                            itemStyle: { color: '#36A2EB' }
                         },
-                        series: [{
-                            type: 'pie',
-                            radius: ['50%', '70%'],
-                            center: ['50%', '50%'],
-                            avoidLabelOverlap: false,
-                            itemStyle: {
-                                borderRadius: 5,
-                                borderColor: '#fff',
-                                borderWidth: 1
-                            },
-                            label: { show: false },
-                            emphasis: { label: { show: false } },
-                            data: [
-                                {
-                                    value: employeeData.totalAvailableEmployees,
-                                    name: 'Đang làm việc',
-                                    itemStyle: { color: '#36A2EB' }
-                                },
-                                {
-                                    value: employeeData.totalUnavailableEmployees,
-                                    name: 'Không khả dụng',
-                                    itemStyle: { color: '#FF6384' }
-                                }
-                            ]
-                        }]
-                    };
+                        {
+                            value: employeeData.totalUnavailableEmployees,
+                            name: 'Không khả dụng',
+                            itemStyle: { color: '#FF6384' }
+                        }
+                    ]
+                }]
+            };
+        }
 
-                    chart.setOption(option);
-                } catch (error) {
-                    console.error("Lỗi khi lấy dữ liệu nhân viên:", error);
-                }
-            }
+        async function fetchAttendanceData(chart, date) {
+            if (!chart || !date) return;
 
-            async function fetchAttendanceData(chart) {
+            try {
+                // Fallback data in case API fails
+                const fallbackData = {
+                    workedEmployee: 59,
+                    lateEmployee: 21,
+                    absentEmployee: 10,
+                    totalEmployee: 90
+                };
+
+                let attendanceData;
+
                 try {
-                    const response = await fetch("/api/attendance/attendancesByDay?date=2025-03-03");
-                    let data;
+                    const response = await fetch(`/api/attendance/attendancesByDay?date=${date}`);
 
-                    try {
-                        data = await response.json();
-                    } catch (e) {
-                        data = null;
+                    if (!response.ok) {
+                        throw new Error(`API Error: ${response.status}`);
                     }
 
-                    const attendanceData = {
-                        present: data?.present || 59,
-                        late: data?.late || 21,
-                        permission: data?.permission || 2,
-                        absent: data?.absent || 15,
-                        total: data?.total || 120
-                    };
-
-                    Object.keys(attendanceData).forEach(key => {
-                        if (isNaN(attendanceData[key])) {
-                            switch (key) {
-                                case 'present': attendanceData[key] = 59; break;
-                                case 'late': attendanceData[key] = 21; break;
-                                case 'permission': attendanceData[key] = 2; break;
-                                case 'absent': attendanceData[key] = 15; break;
-                                case 'total': attendanceData[key] = 120; break;
-                            }
-                        }
-                    });
-
-                    document.getElementById('present-percent').textContent = attendanceData.present + '%';
-                    document.getElementById('late-percent').textContent = attendanceData.late + '%';
-                    document.getElementById('permission-percent').textContent = attendanceData.permission + '%';
-                    document.getElementById('absent-percent').textContent = attendanceData.absent + '%';
-
-                    const option = {
-                        series: [{
-                            type: 'gauge',
-                            startAngle: 180,
-                            endAngle: 0,
-                            center: ['50%', '60%'],
-                            radius: '100%',
-                            min: 0,
-                            max: 100,
-                            splitNumber: 4,
-                            axisLine: {
-                                lineStyle: {
-                                    width: 30,
-                                    color: [
-                                        [attendanceData.absent/100, '#e53e3e'],
-                                        [(attendanceData.absent + attendanceData.permission)/100, '#ecc94b'],
-                                        [(attendanceData.absent + attendanceData.permission + attendanceData.late)/100, '#154e4c'],
-                                        [1, '#10b981']
-                                    ]
-                                }
-                            },
-                            pointer: { show: false },
-                            axisTick: { show: false },
-                            splitLine: { show: false },
-                            axisLabel: { show: false },
-                            detail: {
-                                valueAnimation: true,
-                                formatter: function(value) {
-                                    return parseInt(value);
-                                },
-                                offsetCenter: [0, '0%'],
-                                fontSize: 30,
-                                fontWeight: 'bold',
-                                color: '#333'
-                            },
-                            title: {
-                                offsetCenter: [0, '30%'],
-                                fontSize: 14,
-                                color: '#999',
-                                fontWeight: 'normal'
-                            },
-                            data: [{
-                                value: parseInt(attendanceData.total),
-                                name: 'Total Attendance',
-                                title: {
-                                    offsetCenter: ['0%', '-40%'],
-                                    fontSize: 10,
-                                    color: '#666'
-                                },
-                                detail: {
-                                    offsetCenter: ['0%', '-15%'],
-                                    fontSize: 28,
-                                    color: '#333',
-                                    fontWeight: 'bold'
-                                }
-                            }]
-                        }]
-                    };
-
-                    chart.setOption(option);
+                    attendanceData = await response.json();
                 } catch (error) {
-                    console.error("Lỗi khi lấy dữ liệu chấm công:", error);
+                    console.warn("Failed to fetch attendance data, using fallback:", error);
+                    attendanceData = fallbackData;
                 }
-            }
 
-            async function fetchPayrollData(chart, year = '2025') {
+                // Update UI
+                updateAttendanceStats(attendanceData);
+
+                // Create chart
+                const option = createAttendanceChartOption(attendanceData);
+                chart.setOption(option);
+
+            } catch (error) {
+                console.error("Error in attendance data processing:", error);
+            }
+        }
+
+        function updateAttendanceStats(data) {
+            const presentEl = document.getElementById('present-percent');
+            const lateEl = document.getElementById('late-percent');
+            const absentEl = document.getElementById('absent-percent');
+
+            if (presentEl) presentEl.textContent = data.workedEmployee;
+            if (lateEl) lateEl.textContent = data.lateEmployee;
+            if (absentEl) absentEl.textContent = data.absentEmployee;
+        }
+
+        function createAttendanceChartOption(data) {
+            const totalEmployees = data.totalEmployee || 100;
+
+            return {
+                series: [{
+                    type: 'gauge',
+                    startAngle: 180,
+                    endAngle: 0,
+                    center: ['50%', '60%'],
+                    radius: '100%',
+                    min: 0,
+                    max: 100,
+                    splitNumber: 4,
+                    axisLine: {
+                        lineStyle: {
+                            width: 30,
+                            color: [
+                                [data.workedEmployee / totalEmployees, '#10b981'],
+                                [(data.workedEmployee + data.lateEmployee) / totalEmployees, '#fa5900'],
+                                [1, '#ef0101']
+                            ]
+                        }
+                    },
+                    pointer: { show: false },
+                    axisTick: { show: false },
+                    splitLine: { show: false },
+                    axisLabel: { show: false },
+                    detail: {
+                        valueAnimation: true,
+                        formatter: value => parseInt(value),
+                        offsetCenter: [0, '0%'],
+                        fontSize: 30,
+                        fontWeight: 'bold',
+                        color: '#333'
+                    },
+                    title: {
+                        offsetCenter: [0, '30%'],
+                        fontSize: 14,
+                        color: '#999',
+                        fontWeight: 'normal'
+                    },
+                    data: [{
+                        value: parseInt(data.workedEmployee),
+                        name: 'Present',
+                        title: {
+                            offsetCenter: ['0%', '-40%'],
+                            fontSize: 10,
+                            color: '#666'
+                        },
+                        detail: {
+                            offsetCenter: ['0%', '-15%'],
+                            fontSize: 28,
+                            color: '#333',
+                            fontWeight: 'bold'
+                        }
+                    }]
+                }]
+            };
+        }
+
+        async function fetchPayrollData(chart, year) {
+            if (!chart || !year) return;
+
+            try {
+                // Fallback data in case API fails
+                const fallbackData = [
+                    { month: 'Jan', total: 120000000 },
+                    { month: 'Feb', total: 132000000 },
+                    { month: 'Mar', total: 125000000 },
+                    { month: 'Apr', total: 130000000 },
+                    { month: 'May', total: 135000000 },
+                    { month: 'Jun', total: 140000000 },
+                    { month: 'Jul', total: 138000000 },
+                    { month: 'Aug', total: 142000000 },
+                    { month: 'Sep', total: 145000000 },
+                    { month: 'Oct', total: 150000000 },
+                    { month: 'Nov', total: 155000000 },
+                    { month: 'Dec', total: 160000000 }
+                ];
+
+                let payrollData;
+
                 try {
                     const response = await fetch(`/api/payroll/totalpayrollByYear?year=${year}`);
-                    let data;
 
-                    try {
-                        data = await response.json();
-                    } catch (e) {
-                        data = null;
+                    if (!response.ok) {
+                        throw new Error(`API Error: ${response.status}`);
                     }
 
-                    const payrollData = data || [
-                        { month: 'Jan', total: 120000000 },
-                        { month: 'Feb', total: 132000000 },
-                        { month: 'Mar', total: 125000000 },
-                        { month: 'Apr', total: 130000000 },
-                        { month: 'May', total: 135000000 },
-                        { month: 'Jun', total: 140000000 },
-                        { month: 'Jul', total: 138000000 },
-                        { month: 'Aug', total: 142000000 },
-                        { month: 'Sep', total: 145000000 },
-                        { month: 'Oct', total: 150000000 },
-                        { month: 'Nov', total: 155000000 },
-                        { month: 'Dec', total: 160000000 }
-                    ];
+                    payrollData = await response.json();
 
-                    let months = [];
-                    let totals = [];
-
-                    if (Array.isArray(data) && data.length > 0) {
-                        data.forEach((d) => {
-                            months.push(d.month);
-                            totals.push(d.total);
-                        });
-                    } else {
-                        payrollData.forEach((d) => {
-                            months.push(d.month);
-                            totals.push(d.total);
-                        });
+                    if (!Array.isArray(payrollData) || payrollData.length === 0) {
+                        throw new Error("Invalid data format");
                     }
-
-                    const option = {
-                        tooltip: {
-                            trigger: 'axis',
-                            formatter: function(params) {
-                                return params[0].name + ': ' +
-                                    (params[0].value / 1000000).toFixed(1) + ' triệu';
-                            }
-                        },
-                        grid: {
-                            top: '15%',
-                            left: '3%',
-                            right: '4%',
-                            bottom: '3%',
-                            containLabel: true
-                        },
-                        xAxis: {
-                            type: 'category',
-                            data: months,
-                            axisLine: { lineStyle: { color: '#999' } },
-                            axisLabel: { fontSize: 9, interval: 1, rotate: 30 }
-                        },
-                        yAxis: {
-                            type: 'value',
-                            axisLine: { show: false },
-                            axisLabel: {
-                                fontSize: 9,
-                                formatter: function(value) {
-                                    return (value / 1000000) + 'M';
-                                }
-                            },
-                            splitLine: { lineStyle: { type: 'dashed', color: '#eee' } }
-                        },
-                        series: [{
-                            data: totals,
-                            type: 'line',
-                            smooth: true,
-                            symbol: 'circle',
-                            symbolSize: 4,
-                            lineStyle: { width: 2, color: '#36A2EB' },
-                            itemStyle: { color: '#36A2EB' },
-                            areaStyle: {
-                                color: {
-                                    type: 'linear',
-                                    x: 0, y: 0, x2: 0, y2: 1,
-                                    colorStops: [
-                                        { offset: 0, color: 'rgba(54, 162, 235, 0.3)' },
-                                        { offset: 1, color: 'rgba(54, 162, 235, 0.05)' }
-                                    ]
-                                }
-                            }
-                        }]
-                    };
-
-                    chart.setOption(option);
                 } catch (error) {
-                    console.error("Lỗi khi lấy dữ liệu lương:", error);
+                    console.warn("Failed to fetch payroll data, using fallback:", error);
+                    payrollData = fallbackData;
                 }
+
+                // Create chart
+                const option = createPayrollChartOption(payrollData);
+                chart.setOption(option);
+
+            } catch (error) {
+                console.error("Error in payroll data processing:", error);
             }
-        </script>
-    </main>
+        }
+
+        function createPayrollChartOption(data) {
+            const months = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+            const totals = [];
+
+            // Extract totals from data
+            if (Array.isArray(data)) {
+                data.forEach(item => {
+                    totals.push(item.total);
+                });
+            }
+
+            return {
+                tooltip: {
+                    trigger: 'axis',
+                    formatter: function(params) {
+                        return params[0].name + ': ' +
+                            (params[0].value / 1000000).toFixed(1) + ' triệu';
+                    }
+                },
+                grid: {
+                    top: '15%',
+                    left: '3%',
+                    right: '4%',
+                    bottom: '3%',
+                    containLabel: true
+                },
+                xAxis: {
+                    type: 'category',
+                    data: months,
+                    axisLine: { lineStyle: { color: '#999' } },
+                    axisLabel: { fontSize: 9, interval: 1, rotate: 30 }
+                },
+                yAxis: {
+                    type: 'value',
+                    axisLine: { show: false },
+                    axisLabel: {
+                        fontSize: 9,
+                        formatter: function(value) {
+                            return (value / 1000000) + 'M';
+                        }
+                    },
+                    splitLine: { lineStyle: { type: 'dashed', color: '#eee' } }
+                },
+                series: [{
+                    data: totals,
+                    type: 'line',
+                    smooth: true,
+                    symbol: 'circle',
+                    symbolSize: 4,
+                    lineStyle: { width: 2, color: '#36A2EB' },
+                    itemStyle: { color: '#36A2EB' },
+                    areaStyle: {
+                        color: {
+                            type: 'linear',
+                            x: 0, y: 0, x2: 0, y2: 1,
+                            colorStops: [
+                                { offset: 0, color: 'rgba(54, 162, 235, 0.3)' },
+                                { offset: 1, color: 'rgba(54, 162, 235, 0.05)' }
+                            ]
+                        }
+                    }
+                }]
+            };
+        }
+
+        async function fetchTopSalaryEmployees(year, month) {
+            if (!year || !month) return;
+
+            try {
+                const salaryContainer = document.getElementById("top-highest-salary");
+                if (!salaryContainer) return;
+
+                // Clear current content
+                salaryContainer.innerHTML = "";
+
+                // Fallback data
+                const fallbackData = [
+                    { firstName: "John", lastName: "Doe", position: "Director", netSalary: 35000000 },
+                    { firstName: "Jane", lastName: "Smith", position: "Manager", netSalary: 28000000 },
+                    { firstName: "David", lastName: "Johnson", position: "Team Lead", netSalary: 22000000 }
+                ];
+
+                let employeeData;
+
+                try {
+                    const response = await fetch(`/api/payroll/test?year=${year}&month=${month}`);
+
+                    if (!response.ok) {
+                        throw new Error(`API Error: ${response.status}`);
+                    }
+
+                    employeeData = await response.json();
+
+                    if (!Array.isArray(employeeData) || employeeData.length === 0) {
+                        throw new Error("Invalid data format");
+                    }
+                } catch (error) {
+                    console.warn("Failed to fetch top salary data, using fallback:", error);
+                    employeeData = fallbackData;
+                }
+
+                // Render employee cards
+                employeeData.forEach(emp => {
+                    // Get initials for the employee avatar
+                    const initials = (emp.firstName ? emp.firstName.charAt(0) : '') +
+                        (emp.lastName ? emp.lastName.charAt(0) : '');
+
+                    // Create employee card HTML
+                    const employeeCard = `
+                        <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-1">
+                            <div class="flex items-center">
+                                <div class="w-8 h-8 rounded-full bg-gray-200 flex items-center justify-center text-xs font-semibold text-gray-700 mr-2">
+                                    ${initials}
+                                </div>
+                                <div>
+                                    <p class="text-xs sm:text-sm font-medium">${emp.firstName} ${emp.lastName}</p>
+                                    <p class="text-xs text-gray-500">${emp.position}</p>
+                                </div>
+                            </div>
+                            <span class="text-xs sm:text-sm font-medium">${emp.netSalary.toLocaleString()} VND</span>
+                        </div>
+                    `;
+
+                    // Add to container
+                    salaryContainer.innerHTML += employeeCard;
+                });
+
+            } catch (error) {
+                console.error("Error in top salary data processing:", error);
+            }
+        }
+    </script>
 </div>
 </html>

@@ -67,7 +67,7 @@ public class SalaryRecordService {
 
   //endregion
   public Map<Integer, Double> getMonthlySalary(int year) {
-    List<Object[]> results = salaryRecordRepository.getTotalSalaryByMonth(year);
+    List<Object[]> results = salaryRecordRepository.getAverageSalaryByMonth(year);
     Map<Integer, Double> payrollMap = new HashMap<>();
 
     for (int i = 1; i <= 12; i++) {
@@ -581,5 +581,16 @@ public class SalaryRecordService {
       cell.setCellValue(columns[i]);
       cell.setCellStyle(headerStyle);
     }
+  }
+
+
+
+  public List<AverageSalaryDTO> getAverageSalaryByYear(int year) {
+
+    return salaryRecordRepository.getAverageSalaryByMonthAndDepartment(year);
+  }
+
+  public List<TopSalaryDTO> getTop3HighestNetSalary(int month, int year){
+    return salaryRecordRepository.findTop3Salaries(month, year);
   }
 }

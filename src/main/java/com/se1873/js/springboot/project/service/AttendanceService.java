@@ -114,6 +114,7 @@ public class AttendanceService {
             : attendanceRepository.findAttendancesByEmployeeIdAndStatus(pageable,employeeId,status);
     return attendances.map(attendanceDTOMapper::toDTO);
   }
+
   public Page<AttendanceDTO> filterByStatus(Pageable pageable, String status) {
     Page<Attendance> attendances = "".equals(status)
             ? attendanceRepository.findAll(pageable)
@@ -156,7 +157,7 @@ public class AttendanceService {
         countOntime++;
       }else if("Đi muộn".equals(attendance.getStatus())){
         countLate++;
-      }else if("Nghỉ".equals(attendance.getStatus())){
+      } else if ("Nghỉ".equals(attendance.getStatus())) {
         countAbsent++;
       }
     }
@@ -167,6 +168,7 @@ public class AttendanceService {
 
     return result;
   }
+
   public AttendanceDTO getAttendanceByEmployeeIdAndDate(Integer employeeId, LocalDate date) {
     Employee employee = Optional.ofNullable(employeeRepository.getEmployeeByEmployeeId(employeeId))
       .orElseThrow(() -> new RuntimeException("Employee not found with id: " + employeeId));
@@ -246,12 +248,12 @@ public class AttendanceService {
       .attendanceOvertimeHours(0.0)
       .build();
   }
-  public AttendanceCountDTO countAvailableAttendance(String date) {
+  public AttendanceCountDTO countAvailableAttendance(LocalDate date) {
     int totalEmployee = employeeService.countEmployees();
     AttendanceCountDTO attendancecountDTO = AttendanceCountDTO
-            .builder().totalEmployee(totalEmployee).lateEmployee(0).workedEmployee(0).absenceEmployee(0).build();
-    LocalDate dates = LocalDate.parse(date);
-    List<AttendanceDTO> attendanceCountDTOList = attendanceRepository.findAttendancesByDate(dates).stream().
+            .builder().totalEmployee(totalEmployee).lateEmployee(0).workedEmployee(0).absentEmployee(0).build();
+
+    List<AttendanceDTO> attendanceCountDTOList = attendanceRepository.findAttendancesByDate(date).stream().
             map(attendanceDTOMapper::toDTO).collect(Collectors.toList());
     for (AttendanceDTO dto : attendanceCountDTOList) {
       if(dto.getAttendanceStatus().equals("Đi muộn")) {
@@ -260,7 +262,7 @@ public class AttendanceService {
         attendancecountDTO.setWorkedEmployee(attendancecountDTO.getWorkedEmployee() + 1);
       }
     }
-    attendancecountDTO.setAbsenceEmployee(attendancecountDTO.getTotalEmployee() -
+    attendancecountDTO.setAbsentEmployee(attendancecountDTO.getTotalEmployee() -
             attendancecountDTO.getWorkedEmployee() -
             attendancecountDTO.getLateEmployee());
     return attendancecountDTO;
@@ -326,6 +328,7 @@ public class AttendanceService {
 
     long workingDays = 0;
     for (LocalDate date = start; !date.isAfter(end); date = date.plusDays(1)) {
+      // Skip weekends (adjust if your working days are different)
       if (date.getDayOfWeek() != DayOfWeek.SATURDAY && date.getDayOfWeek() != DayOfWeek.SUNDAY) {
         workingDays++;
       }
@@ -618,6 +621,7 @@ public class AttendanceService {
       .map(departmentDTOMapper::toDTO)
       .collect(Collectors.toList());
 
+    // Calculate working days in the period
     int workingDays = 0;
     for (LocalDate currentDate = start; !currentDate.isAfter(end); currentDate = currentDate.plusDays(1)) {
       if (currentDate.getDayOfWeek() != DayOfWeek.SATURDAY && currentDate.getDayOfWeek() != DayOfWeek.SUNDAY) {
@@ -950,4 +954,133 @@ public class AttendanceService {
     log.info("Fetched {} attendance records", attendances.getTotalElements());
     return attendances.map(attendanceDTOMapper::toDTO);
   }
+  public int countDailyAttendance(LocalDate date) {
+    return attendanceRepository.countCheckedInEmployees(date);
+  }
+
+
+  public List<EmployeeAttendanceStatusDTO> getEmployeeAttendanceStatus(String date, Pageable pageable) {
+    YearMonth yearMonth = YearMonth.parse(date, DateTimeFormatter.ofPattern("yyyy-MM"));
+    int year = yearMonth.getYear();
+    int month = yearMonth.getMonthValue();
+    int daysInMonth = yearMonth.lengthOfMonth();
+
+    List<Attendance> attendanceList = attendanceRepository.findAllAttendanceByMonthYear(year, month);
+
+
+    Map<Integer, EmployeeAttendanceStatusDTO> employeeStatusMap = new HashMap<>();
+
+    for (Attendance attendance : attendanceList) {
+      Employee employee = attendance.getEmployee();
+      int employeeId = employee.getEmployeeId();
+
+
+      EmployeeAttendanceStatusDTO employeeAttendanceStatusDTO = employeeStatusMap.getOrDefault(
+              employeeId,
+              EmployeeAttendanceStatusDTO.builder()
+                      .employee(employeeService.getEmployeeByEmployeeId(employeeId))
+                      .countLateDays(0)
+                      .countAbsentDays(0)
+                      .monthYear(yearMonth)
+                      .build()
+      );
+
+      if (attendance.getStatus().startsWith("Đi muộn")) {
+        employeeAttendanceStatusDTO.setCountLateDays(employeeAttendanceStatusDTO.getCountLateDays() + 1);
+      } else if (attendance.getStatus().equals("Đúng giờ")) {
+        employeeAttendanceStatusDTO.setCountAbsentDays(employeeAttendanceStatusDTO.getCountAbsentDays() + 1);
+      }
+
+
+      employeeStatusMap.put(employeeId, employeeAttendanceStatusDTO);
+    }
+    for (EmployeeAttendanceStatusDTO dto : employeeStatusMap.values()) {
+      dto.setMonthYear(dto.getMonthYear());
+      int totalDaysPresent = dto.getCountAbsentDays() + dto.getCountLateDays();
+      dto.setCountAbsentDays(daysInMonth - countWeekendDays(year, month) - totalDaysPresent);
+    }
+
+    List<EmployeeAttendanceStatusDTO> employeeAttendanceStatusDTOS = new ArrayList<>(employeeStatusMap.values());
+
+    return employeeAttendanceStatusDTOS;
+  }
+
+  public List<EmployeeAttendanceStatusDTO> findEmployeeAttendanceStatusbyEmployeeName(String search, Pageable pageable, String date) {
+    String[] searchTerms = search.trim().split("\\s+");
+    String firstName = searchTerms[0].toLowerCase();
+    String lastName = searchTerms.length > 1
+            ? Arrays.stream(searchTerms, 1, searchTerms.length).collect(Collectors.joining(" ")).toLowerCase()
+            : null;
+    Page<Employee> employees = employeeRepository.searchEmployeebyEmployeeName(firstName, lastName,pageable);
+    System.out.println("date: " + date);
+    System.out.println("check: " + employees.getContent());
+    List<Long> employeeIds = employees.getContent().stream()
+            .map(emp -> emp.getEmployeeId().longValue())
+            .collect(Collectors.toList());
+
+    System.out.println("check Employeeid: " + employeeIds.toString());
+
+
+    if (employeeIds.isEmpty()) {
+      return Collections.emptyList();
+    }
+    List<EmployeeAttendanceStatusDTO> employeeAttendanceStatusDTOList = getEmployeeAttendanceStatus(date, pageable);
+//    for (EmployeeAttendanceStatusDTO dto : employeeAttendanceStatusDTOList) {
+//      System.out.println("DTO Employee ID Type: " + dto.getEmployee().getEmployeeId().getClass().getName());
+//    }
+//    System.out.println("Set Employee ID Type: " + employeeIds.get(0).getClass().getName());
+
+    System.out.println( employeeAttendanceStatusDTOList);
+    Set<Long> employeeIdSet = employeeIds.stream()
+            .map(Long::valueOf)
+            .collect(Collectors.toSet());
+
+    return employeeAttendanceStatusDTOList.stream()
+            .filter(dto -> employeeIdSet.contains(dto.getEmployee().getEmployeeId().longValue())) // Ép kiểu về Long trước khi so sánh
+            .collect(Collectors.toList());
+  }
+  public int countWeekendDays(int year, int month) {
+    Calendar calendar = Calendar.getInstance();
+
+    calendar.set(year, month - 1, 1);
+    int daysInMonth = calendar.getActualMaximum(Calendar.DAY_OF_MONTH);
+
+    int count = 0;
+    for (int day = 1; day <= daysInMonth; day++) {
+      calendar.set(year, month - 1, day);
+      int dayOfWeek = calendar.get(Calendar.DAY_OF_WEEK);
+      if (dayOfWeek == Calendar.SUNDAY || dayOfWeek == Calendar.SATURDAY) {
+        count++;
+
+      }
+    }
+    return count;
+  }
+
+  public List<EmployeeAttendanceStatusDTO> departmentFilter(String departmentName, Pageable pageable, String date) {
+    System.out.println(departmentName);
+    Page<Employee> employees = employeeRepository.findEmployeesByDepartmentName(departmentName, pageable);
+    System.out.println(employees.getContent());
+    List<Long> employeeIds = employees.getContent().stream()
+            .map(emp -> emp.getEmployeeId().longValue())
+            .collect(Collectors.toList());
+
+    System.out.println("check Employeeid: " + employeeIds.toString());
+
+
+    if (employeeIds.isEmpty()) {
+      return Collections.emptyList();
+    }
+    List<EmployeeAttendanceStatusDTO> employeeAttendanceStatusDTOList = getEmployeeAttendanceStatus(date, pageable);
+
+    Set<Long> employeeIdSet = employeeIds.stream()
+            .map(Long::valueOf)
+            .collect(Collectors.toSet());
+
+    return employeeAttendanceStatusDTOList.stream()
+            .filter(dto -> employeeIdSet.contains(dto.getEmployee().getEmployeeId().longValue()))
+            .collect(Collectors.toList());
+  }
+
+
 }

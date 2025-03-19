@@ -42,7 +42,8 @@ public class Contract {
   private LocalDate signDate;
 
   @Column(name = "is_present")
-  private boolean isPresent;
+  private boolean isPresent = false;
+
 
   @Column(name = "created_at")
   private LocalDateTime createdAt;

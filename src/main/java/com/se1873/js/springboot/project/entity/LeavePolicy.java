@@ -7,20 +7,20 @@ import lombok.Data;
 import lombok.NoArgsConstructor;
 
 @Entity
+@Table(name = "leave_policies")
 @Data
+@Builder
 @AllArgsConstructor
 @NoArgsConstructor
-@Builder
-@Table(name = "leave_policies")
 public class LeavePolicy {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    @Column(name = "leave_policy_id")
-    private Integer leavePolicyId;
+    @Column(name = "leave_policies_id")
+    private int leavePolicyId;
 
-    @Column(name = "leave_policy_name")
+    @Column(name="leave_policies_name")
     private String leavePolicyName;
 
-    @Column(name = "leave_policy_amount")
+    @Column(name = "leave_policies_amount")
     private Integer leavePolicyAmount;
 }

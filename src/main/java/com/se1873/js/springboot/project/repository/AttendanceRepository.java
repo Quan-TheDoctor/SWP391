@@ -17,9 +17,9 @@ import java.util.Optional;
 @Repository
 public interface AttendanceRepository extends JpaRepository<Attendance, Long> {
   List<Attendance> getAttendanceByDateBetweenAndEmployee_EmployeeId(LocalDate dateAfter, LocalDate dateBefore, Integer employeeEmployeeId);
+
   Optional<Attendance> findByDateAndEmployee_EmployeeId(LocalDate date, Integer employeeId);
-
-
+  Page<Attendance> getAttendanceByEmployee_EmployeeId(Integer employeeId, Pageable pageable);
 
   @Query("SELECT a FROM Attendance a WHERE a.date = :date")
   List<Attendance> findAttendancesByDate(@Param("date") LocalDate date);
@@ -41,19 +41,7 @@ public interface AttendanceRepository extends JpaRepository<Attendance, Long> {
 
   Page<Attendance> findAttendancesByStatus(Pageable pageable, String status);
 
-  @Query("select a from Attendance a " +
-          "where a.employee.employeeId = :employeeId and " +
-          "extract(year from a.date) = :year and " +
-          "extract(month from a.date) = :month ")
-  List<Attendance> findAllByEmployee_EmployeeIdAndDate(@RequestParam("year") Integer year,
-                                                       @RequestParam("month") Integer month,
-                                                       Integer employeeId);
-
-  @Query("select a from Attendance a " +
-          "where extract(year from a.date) = :year ")
-  Page<Attendance> findAttendancesByEmployee_EmployeeIdAndDate(@RequestParam("year") Integer year,
-                                                               Integer employeeId,
-                                                               Pageable pageable);
+  List<Attendance> findAllByEmployee_EmployeeId(Integer employeeId);
 
   @Query(value = """
         SELECT a.*, CONCAT(e.first_name, ' ', e.last_name) AS full_name
@@ -88,4 +76,26 @@ public interface AttendanceRepository extends JpaRepository<Attendance, Long> {
   Page<Attendance> findAttendancesByDateRange(@Param("startDate") LocalDate startDate,
                                               @Param("endDate") LocalDate endDate,
                                               Pageable pageable);
+
+
+  @Query("select a from Attendance a " +
+          "where extract(year from a.date) = :year ")
+  Page<Attendance> findAttendancesByEmployee_EmployeeIdAndDate(@RequestParam("year") Integer year,
+                                                               Integer employeeId,
+                                                               Pageable pageable);
+
+  @Query("select a from Attendance a " +
+          "where a.employee.employeeId = :employeeId and " +
+          "extract(year from a.date) = :year and " +
+          "extract(month from a.date) = :month ")
+  List<Attendance> findAllByEmployee_EmployeeIdAndDate(@RequestParam("year") Integer year,
+                                                       @RequestParam("month") Integer month,
+                                                       Integer employeeId);
+
+  @Query("SELECT COUNT(DISTINCT a.employee.employeeId) FROM Attendance a WHERE a.checkIn IS NOT NULL AND a.date = :date")
+  int countCheckedInEmployees(@Param("date") LocalDate date);
+
+
+  @Query("SELECT a FROM Attendance a WHERE EXTRACT(YEAR FROM a.date) = :year AND EXTRACT(MONTH FROM a.date) = :month")
+  List<Attendance> findAllAttendanceByMonthYear(@Param("year") int year, @Param("month") int month);
 }

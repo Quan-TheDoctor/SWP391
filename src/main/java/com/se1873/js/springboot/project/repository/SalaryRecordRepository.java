@@ -14,7 +14,7 @@ import java.util.List;
 public interface SalaryRecordRepository extends JpaRepository<SalaryRecord, Long> {
 
     SalaryRecord findSalaryRecordBySalaryId(Integer salaryId);
-
+    Page<SalaryRecord> getSalaryRecordsByEmployee_EmployeeId(Integer employeeId, Pageable pageable);
 
     @Query("SELECT s FROM SalaryRecord s WHERE s.employee.employeeId = :employeeId " +
             "AND s.month = :month " +
@@ -25,6 +25,10 @@ public interface SalaryRecordRepository extends JpaRepository<SalaryRecord, Long
                                                                   @Param("year") Integer year);
 
 
+    @Query("SELECT s.month, avg(s.baseSalary) FROM SalaryRecord s " +
+            "WHERE s.year = :year GROUP BY s.month ORDER BY s.month")
+    List<Object[]> getAverageSalaryByMonth(@Param("year") int year);
+
     @Query("SELECT s.month, SUM(s.netSalary) FROM SalaryRecord s " +
             "WHERE s.year = :year GROUP BY s.month ORDER BY s.month")
     List<Object[]> getTotalSalaryByMonth(@Param("year") int year);
@@ -33,6 +37,28 @@ public interface SalaryRecordRepository extends JpaRepository<SalaryRecord, Long
 
 
     Page<SalaryRecord> getSalaryRecordsByEmployee_EmployeeIdAndYear(Integer employeeId,Integer year, Pageable pageable);
+    Page<SalaryRecord> findSalaryRecordsByMonthAndYear(Pageable pageable,Integer month,Integer year);
+
+
+
+    @Query("SELECT new com.se1873.js.springboot.project.dto.AverageSalaryDTO(s.year, s.month, d.departmentName, AVG(s.netSalary)) " +
+            "FROM SalaryRecord s " +
+            "JOIN EmploymentHistory eh ON s.employee.employeeId = eh.employee.employeeId " +
+            "JOIN Department d ON eh.department.departmentId = d.departmentId " +
+            "WHERE s.year = :year " +
+            "GROUP BY s.year, s.month, d.departmentName " +
+            "ORDER BY s.year, s.month")
+    List<AverageSalaryDTO> getAverageSalaryByMonthAndDepartment(@Param("year") int year);
+
+    @Query("SELECT new com.se1873.js.springboot.project.dto.TopSalaryDTO(e.firstName, e.lastName, p.positionName, sr.netSalary) " +
+            "FROM SalaryRecord sr " +
+            "JOIN sr.employee e " +
+            "JOIN EmploymentHistory eh ON e.employeeId = eh.employee.employeeId " +
+            "JOIN Position p ON eh.position.positionId = p.positionId " +
+            "WHERE sr.month = :month AND sr.year = :year " +
+            "AND eh.isCurrent = true " +
+            "ORDER BY sr.netSalary DESC LIMIT 3")
+    List<TopSalaryDTO> findTop3Salaries(@Param("month") int month, @Param("year") int year);
     @Query("SELECT s FROM SalaryRecord s WHERE s.month = :month AND s.year = :year")
     Page<SalaryRecord> findSalaryRecordsByMonthAndYear(Pageable pageable, @Param("month") Integer month, @Param("year") Integer year);
     // Nếu bạn sử dụng kiểu Integer trong payrollIds, thay vì Long
