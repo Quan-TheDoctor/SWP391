@@ -150,6 +150,7 @@ public class UserController {
             attendanceDTO = attendanceService.filterByMonth(PageRequest.of(0, 5), getEmployeeId(), months, year);
         } else if (status != null) {
             attendanceDTO = attendanceService.filterByStatusAndEmployeeId(PageRequest.of(0, 5), status ,getEmployeeId());
+            log.info(String.valueOf(getEmployeeId()));
         }
 
         Map<String,Integer> quantity = attendanceService.getQuantityEmployeeDetail(getEmployeeId());

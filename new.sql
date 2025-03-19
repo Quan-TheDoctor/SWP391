@@ -109,7 +109,16 @@ Create TABLE attendance
 );
 
 -- Bảng nghỉ phép
-Create TABLE leaves
+
+CREATE TABLE leave_policies
+(
+    leave_policy_id   SERIAL PRIMARY KEY,
+    leave_policy_name text,
+    leave_policy_amount INTEGER
+);
+
+-- Bảng nghỉ phép
+CREATE TABLE leaves
 (
     leave_id    SERIAL PRIMARY KEY,
     employee_id INTEGER REFERENCES employees (employee_id),
@@ -119,9 +128,13 @@ Create TABLE leaves
     total_days  INTEGER     NOT NULL,
     status      VARCHAR(20) NOT NULL,
     reason      TEXT,
+    leave_allowed_day INTEGER NOT NULL,
+    leave_policy_id INTEGER REFERENCES leave_policies(leave_policy_id),
     approved_by INTEGER REFERENCES employees (employee_id),
-    Created_at  TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+    created_at  TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
+
+
 
 -- Bảng lương tháng
 Create TABLE salary_records
@@ -429,9 +442,9 @@ VALUES
     ('Trưởng phòng Phát triển Sản phẩm', 15, 'PROD_POS001', 3, 'Quản lý phòng phát triển sản phẩm'),
     ('Chuyên viên Phát triển Sản phẩm', 15, 'PROD_POS002', 2, 'Chuyên viên phát triển sản phẩm');
 
-Dưới đây là phần còn lại của script tạo dữ liệu mẫu:
 
-```sql
+
+
 -- Tiếp tục thêm hợp đồng
 INSERT INTO contracts (employee_id, contract_type, contract_code,
                        start_date, end_date, base_salary,
@@ -600,30 +613,6 @@ VALUES
     (15, 'Phụ cấp ăn trưa', 800000, '2022-07-01', NULL, 'Phụ cấp ăn trưa hàng tháng'),
     (15, 'Phụ cấp chuyên môn', 1300000, '2022-07-01', NULL, 'Phụ cấp cho kỹ năng bảo mật');
 
--- Thêm nghỉ phép
-INSERT INTO leaves (employee_id, leave_type, start_date, end_date, total_days, status, reason, approved_by)
-VALUES (1, 'Nghỉ phép năm', '2023-07-10', '2023-07-14', 5, 'Đã duyệt', 'Nghỉ mát cùng gia đình', 2),
-
-       (3, 'Nghỉ phép năm', '2023-05-15', '2023-05-19', 5, 'Đã duyệt', 'Nghỉ du lịch', 1),
-       (3, 'Nghỉ ốm', '2023-08-10', '2023-08-11', 2, 'Đã duyệt', 'Bị cảm cúm', 1),
-
-       (5, 'Nghỉ phép năm', '2023-07-03', '2023-07-07', 5, 'Đã duyệt', 'Nghỉ mát cùng gia đình', 1),
-
-       (6, 'Nghỉ không lương', '2023-09-18', '2023-09-22', 5, 'Đã duyệt', 'Việc gia đình', 1),
-
-       (7, 'Nghỉ phép năm', '2023-04-24', '2023-04-28', 5, 'Đã duyệt', 'Nghỉ du lịch', 1),
-
-       (8, 'Nghỉ phép năm', '2023-06-19', '2023-06-23', 5, 'Đã duyệt', 'Nghỉ du lịch', 3),
-
-       (10, 'Nghỉ ốm', '2023-10-05', '2023-10-06', 2, 'Đã duyệt', 'Bị sốt', 7),
-
-       (11, 'Nghỉ phép năm', '2023-08-21', '2023-08-25', 5, 'Đã duyệt', 'Nghỉ du lịch', 3),
-
-       (13, 'Nghỉ không lương', '2023-11-13', '2023-11-17', 5, 'Đã duyệt', 'Việc gia đình', 2),
-
-       (14, 'Nghỉ ốm', '2023-09-07', '2023-09-08', 2, 'Đã duyệt', 'Bị cảm cúm', 4),
-
-       (15, 'Nghỉ phép năm', '2023-10-16', '2023-10-20', 5, 'Đã duyệt', 'Nghỉ du lịch', 5);
 -- Generate attendance records for all employees (20 days each)
 WITH date_range AS (SELECT generate_series(
                                    (date_trunc('month',
@@ -646,7 +635,7 @@ SELECT e.employee_id,
            END AS check_out,
        CASE
            WHEN random() < 0.9 THEN 'Đúng giờ'
-           ELSE 'Đi muộn ' || (5 + (random() * 25)::integer)::text || 'p'
+           ELSE 'Đi muộn'
            END AS status,
        CASE
            WHEN random() < 0.3 THEN round((random() * 2)::numeric, 1)
@@ -737,3 +726,11 @@ create table messages
     message_content TEXT,
     created_at      TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
+
+INSERT INTO leave_policies(leave_policy_id, leave_policy_name,leave_policy_amount)
+VALUES (1,'annual leave',12),
+       (2,'sick leave',10),
+       (3,'maternity leave',180),
+       (4,'wedding leave',3),
+       (5,'funeral leave',4),
+       (6,'no pay leave',1000);

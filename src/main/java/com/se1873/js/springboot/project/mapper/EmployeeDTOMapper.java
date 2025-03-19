@@ -80,7 +80,7 @@ public abstract class EmployeeDTOMapper {
     employeeDTO.setEmployeePhone(employee.getPhoneNumber());
     employeeDTO.setEmployeeMaritalStatus(employee.getMaritalStatus());
     employeeDTO.setPicture(employee.getPicture());
-    employeeDTO.setIsDeleted(employee.getIsDeleted());
+    employeeDTO.setIsDeleted(employee.getIsDeleted() != null ? employee.getIsDeleted():false);
 
     EmploymentHistory currentEmploymentHistory = getCurrentEmploymentHistory(employee);
     if (currentEmploymentHistory != null) {

@@ -228,14 +228,6 @@ CREATE TABLE leaves
     created_at  TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
 
-INSERT INTO leave_policies(leave_policy_id, leave_policy_name,leave_policy_amount)
-VALUES (1,'annual leave',12),
-       (2,'sick leave',10),
-       (3,'maternity leave',180),
-       (4,'wedding leave',3),
-       (5,'funeral leave',4),
-       (6,'no pay leave',1000);
-
 
 
 create table financial_policies

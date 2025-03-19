@@ -35,8 +35,8 @@ public interface EmployeeRepository extends JpaRepository<Employee, Long> {
   Page<Employee> findAll(Pageable pageable);
 
   @Query("select e from Employee e " +
-          "where lower(e.firstName) like concat('%',:firstName,'%') or " +
-          "lower(e.lastName) like concat('%',:lastName,'%')")
+          "where (lower(e.firstName) like concat('%',:firstName,'%') or " +
+          "lower(e.lastName) like concat('%',:lastName,'%')) and e.isDeleted = false ")
   Page<Employee> searchEmployee(@Param("firstName") String firstName,@Param("lastName") String lastName,Pageable pageable);
 
   @Query("select count(e.employeeId) from Employee e")
