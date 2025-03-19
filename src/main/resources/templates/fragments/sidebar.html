@@ -1,29 +1,31 @@
 <div th:fragment="sidebar" xmlns:sec="http://www.w3.org/1999/xhtml">
     <aside class="w-64 bg-white shadow-lg fixed h-full flex flex-col z-50">
         <!-- Logo Section -->
-        <div class="p-4 border-b">
+        <div class="p-4 border-b flex items-center justify-center md:justify-start">
             <img src="/logo-normal.png" class="h-8 hidden md:block" alt="Logo">
             <img src="/logo-small.png" class="h-8 md:hidden" alt="Small Logo">
         </div>
 
         <!-- User Profile -->
         <div class="p-4 border-b">
-            <div class="flex items-center gap-3 flex-col md:flex-row">
-                <div class="text-center md:text-left">
-                    <p class="font-semibold"
-                    th:text="${loggedInUser.username}"></p>
+            <div class="flex items-center gap-3">
+                <div class="w-10 h-10 rounded-full bg-primary-100 flex items-center justify-center text-primary-600 font-bold">
+                    <span th:text="${#strings.substring(loggedInUser.username, 0, 1).toUpperCase()}">U</span>
+                </div>
+                <div>
+                    <p class="font-semibold text-gray-800" th:text="${loggedInUser.username}"></p>
                 </div>
             </div>
         </div>
 
         <!-- Main Menu -->
-        <nav class="flex-1 overflow-y-auto">
+        <nav class="flex-1 overflow-y-auto py-2">
             <ul class="space-y-1 p-2">
                 <!-- Dashboard -->
                 <li>
                     <a href="/homepage"
-                       th:classappend="${servletPath == '/homepage'} ? 'bg-blue-50 text-blue-600' : ''"
-                       class="flex items-center gap-2 p-2 hover:bg-gray-100 rounded">
+                       th:classappend="${servletPath == '/homepage'} ? 'bg-primary-50 text-primary-600' : 'text-gray-700'"
+                       class="flex items-center gap-3 p-2 hover:bg-gray-100 rounded-md transition-colors">
                         <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
                                   d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6"></path>
@@ -34,54 +36,63 @@
 
                 <!-- HRM Section -->
                 <li class="relative group">
-                    <button class="w-full flex items-center gap-2 p-2 hover:bg-gray-100 rounded menu-toggle"
-                            data-menu-id="hr-management">
+                    <button class="w-full flex items-center gap-3 p-2 hover:bg-gray-100 rounded-md text-gray-700 transition-colors menu-toggle"
+                            data-menu-id="hr-management"
+                            th:classappend="${servletPath.startsWith('/employee') || servletPath.startsWith('/attendance') || servletPath.startsWith('/payroll') || servletPath.startsWith('/request') || servletPath.startsWith('/face-recognition') || servletPath.startsWith('/chat')} ? 'bg-primary-50 text-primary-600' : ''">
                         <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
                                   d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z"></path>
                         </svg>
                         <span>HR Management</span>
-                        <svg class="w-4 h-4 ml-auto transform transition-transform" fill="none"
-                             stroke="currentColor" viewBox="0 0 24 24">
+                        <svg class="w-4 h-4 ml-auto transform transition-transform duration-200" fill="none"
+                             stroke="currentColor" viewBox="0 0 24 24"
+                             th:classappend="${servletPath.startsWith('/employee') || servletPath.startsWith('/attendance') || servletPath.startsWith('/payroll') || servletPath.startsWith('/request') || servletPath.startsWith('/face-recognition') || servletPath.startsWith('/chat')} ? 'rotate-180' : ''">
                             <path stroke-linecap="round" stroke-linejoin="round"
                                   stroke-width="2" d="M19 9l-7 7-7-7"></path>
                         </svg>
                     </button>
 
                     <!-- HR Management Submenu -->
-                    <ul class="submenu pl-4 space-y-1" id="hr-management-submenu">
+                    <ul class="submenu pl-4 space-y-1 mt-1 overflow-hidden transition-all duration-300 max-h-0" id="hr-management-submenu"
+                        th:classappend="${servletPath.startsWith('/employee') || servletPath.startsWith('/attendance') || servletPath.startsWith('/payroll') || servletPath.startsWith('/request') || servletPath.startsWith('/face-recognition') || servletPath.startsWith('/chat')} ? 'max-h-[1000px]' : ''">
+
+                        <!-- Employee Submenu -->
                         <li class="relative">
-                            <button class="w-full flex items-center gap-2 p-2 hover:bg-gray-100 rounded menu-toggle"
-                                    data-menu-id="employee">
-                                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <button class="w-full flex items-center gap-3 p-2 hover:bg-gray-100 rounded-md text-gray-700 transition-colors menu-toggle text-sm"
+                                    data-menu-id="employee"
+                                    th:classappend="${servletPath.startsWith('/employee')} ? 'bg-primary-50 text-primary-600' : ''">
+                                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                                          d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z"></path>
+                                          d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"></path>
                                 </svg>
-                                <span class="text-sm">Employee</span>
-                                <svg class="w-4 h-4 ml-auto transform" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <span>Employee</span>
+                                <svg class="w-4 h-4 ml-auto transform transition-transform duration-200" fill="none"
+                                     stroke="currentColor" viewBox="0 0 24 24"
+                                     th:classappend="${servletPath.startsWith('/employee')} ? 'rotate-180' : ''">
                                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path>
                                 </svg>
                             </button>
-                            <ul class="submenu pl-4 space-y-1" id="employee-submenu">
+                            <ul class="submenu pl-4 space-y-1 mt-1 overflow-hidden transition-all duration-300 max-h-0" id="employee-submenu"
+                                th:classappend="${servletPath.startsWith('/employee')} ? 'max-h-[1000px]' : ''">
                                 <li>
                                     <a href="/employee"
-                                       th:classappend="${servletPath.startsWith('/employee') and !servletPath.startsWith('/employee/')} ? 'bg-blue-50 text-blue-600' : ''"
-                                       class="flex items-center gap-2 p-2 hover:bg-gray-100 rounded">
-                                        <span class="text-sm">List Employees</span>
+                                       th:classappend="${servletPath == '/employee'} ? 'bg-primary-50 text-primary-600' : 'text-gray-600'"
+                                       class="flex items-center gap-2 p-2 pl-4 hover:bg-gray-100 rounded-md text-sm transition-colors">
+                                        <span>List Employees</span>
                                     </a>
                                 </li>
                                 <li>
                                     <a href="/employee/create/form"
-                                       th:classappend="${servletPath.startsWith('/employee/create')} ? 'bg-blue-50 text-blue-600' : ''"
-                                       class="flex items-center gap-2 p-2 hover:bg-gray-100 rounded">
-                                        <span class="text-sm">Create Employee</span>
+                                       th:classappend="${servletPath.startsWith('/employee/create')} ? 'bg-primary-50 text-primary-600' : 'text-gray-600'"
+                                       class="flex items-center gap-2 p-2 pl-4 hover:bg-gray-100 rounded-md text-sm transition-colors">
+                                        <span>Create Employee</span>
                                     </a>
                                 </li>
                                 <li>
                                     <a href="/employee/export/view"
-                                       th:classappend="${servletPath.startsWith('/employee/export')} ? 'bg-blue-50 text-blue-600' : ''"
-                                       class="flex items-center gap-2 p-2 hover:bg-gray-100 rounded">
-                                        <span class="text-sm">Export Data</span>
+                                       th:classappend="${servletPath.startsWith('/employee/export')} ? 'bg-primary-50 text-primary-600' : 'text-gray-600'"
+                                       class="flex items-center gap-2 p-2 pl-4 hover:bg-gray-100 rounded-md text-sm transition-colors">
+                                        <span>Export Data</span>
                                     </a>
                                 </li>
                             </ul>
@@ -89,37 +100,41 @@
 
                         <!-- Attendance Submenu -->
                         <li class="relative">
-                            <button class="w-full flex items-center gap-2 p-2 hover:bg-gray-100 rounded menu-toggle"
-                                    data-menu-id="attendance">
-                                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <button class="w-full flex items-center gap-3 p-2 hover:bg-gray-100 rounded-md text-gray-700 transition-colors menu-toggle text-sm"
+                                    data-menu-id="attendance"
+                                    th:classappend="${servletPath.startsWith('/attendance')} ? 'bg-primary-50 text-primary-600' : ''">
+                                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
                                           d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"></path>
                                 </svg>
-                                <span class="text-sm">Attendance</span>
-                                <svg class="w-4 h-4 ml-auto transform" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <span>Attendance</span>
+                                <svg class="w-4 h-4 ml-auto transform transition-transform duration-200" fill="none"
+                                     stroke="currentColor" viewBox="0 0 24 24"
+                                     th:classappend="${servletPath.startsWith('/attendance')} ? 'rotate-180' : ''">
                                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path>
                                 </svg>
                             </button>
-                            <ul class="submenu pl-4 space-y-1" id="attendance-submenu">
+                            <ul class="submenu pl-4 space-y-1 mt-1 overflow-hidden transition-all duration-300 max-h-0" id="attendance-submenu"
+                                th:classappend="${servletPath.startsWith('/attendance')} ? 'max-h-[1000px]' : ''">
                                 <li>
                                     <a href="/attendance"
-                                       th:classappend="${servletPath.startsWith('/attendance') and !servletPath.startsWith('/attendance/')} ? 'bg-blue-50 text-blue-600' : ''"
-                                       class="flex items-center gap-2 p-2 hover:bg-gray-100 rounded">
-                                        <span class="text-sm">List Attendance</span>
+                                       th:classappend="${servletPath == '/attendance'} ? 'bg-primary-50 text-primary-600' : 'text-gray-600'"
+                                       class="flex items-center gap-2 p-2 pl-4 hover:bg-gray-100 rounded-md text-sm transition-colors">
+                                        <span>List Attendance</span>
                                     </a>
                                 </li>
                                 <li>
                                     <a href="/attendance/create/form"
-                                       th:classappend="${servletPath.startsWith('/attendance/create')} ? 'bg-blue-50 text-blue-600' : ''"
-                                       class="flex items-center gap-2 p-2 hover:bg-gray-100 rounded">
-                                        <span class="text-sm">Create Attendance</span>
+                                       th:classappend="${servletPath.startsWith('/attendance/create')} ? 'bg-primary-50 text-primary-600' : 'text-gray-600'"
+                                       class="flex items-center gap-2 p-2 pl-4 hover:bg-gray-100 rounded-md text-sm transition-colors">
+                                        <span>Create Attendance</span>
                                     </a>
                                 </li>
                                 <li>
                                     <a href="/attendance/summary"
-                                       th:classappend="${servletPath.startsWith('/attendance/summary')} ? 'bg-blue-50 text-blue-600' : ''"
-                                       class="flex items-center gap-2 p-2 hover:bg-gray-100 rounded">
-                                        <span class="text-sm">Summary Attendance</span>
+                                       th:classappend="${servletPath.startsWith('/attendance/summary')} ? 'bg-primary-50 text-primary-600' : 'text-gray-600'"
+                                       class="flex items-center gap-2 p-2 pl-4 hover:bg-gray-100 rounded-md text-sm transition-colors">
+                                        <span>Summary Attendance</span>
                                     </a>
                                 </li>
                             </ul>
@@ -127,96 +142,111 @@
 
                         <!-- Payroll Submenu -->
                         <li class="relative">
-                            <button class="w-full flex items-center gap-2 p-2 hover:bg-gray-100 rounded menu-toggle"
-                                    data-menu-id="payroll">
-                                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <button class="w-full flex items-center gap-3 p-2 hover:bg-gray-100 rounded-md text-gray-700 transition-colors menu-toggle text-sm"
+                                    data-menu-id="payroll"
+                                    th:classappend="${servletPath.startsWith('/payroll')} ? 'bg-primary-50 text-primary-600' : ''">
+                                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
                                           d="M17 9V7a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2m2 4h10a2 2 0 002-2v-6a2 2 0 00-2-2H9a2 2 0 00-2 2v6a2 2 0 002 2zm7-5a2 2 0 11-4 0 2 2 0 014 0z"></path>
                                 </svg>
-                                <span class="text-sm">Payroll</span>
-                                <svg class="w-4 h-4 ml-auto transform" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <span>Payroll</span>
+                                <svg class="w-4 h-4 ml-auto transform transition-transform duration-200" fill="none"
+                                     stroke="currentColor" viewBox="0 0 24 24"
+                                     th:classappend="${servletPath.startsWith('/payroll')} ? 'rotate-180' : ''">
                                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path>
                                 </svg>
                             </button>
-                            <ul class="submenu pl-4 space-y-1" id="payroll-submenu">
+                            <ul class="submenu pl-4 space-y-1 mt-1 overflow-hidden transition-all duration-300 max-h-0" id="payroll-submenu"
+                                th:classappend="${servletPath.startsWith('/payroll')} ? 'max-h-[1000px]' : ''">
                                 <li>
                                     <a href="/payroll"
-                                       th:classappend="${servletPath.startsWith('/payroll') and !servletPath.startsWith('/payroll/')} ? 'bg-blue-50 text-blue-600' : ''"
-                                       class="flex items-center gap-2 p-2 hover:bg-gray-100 rounded">
-                                        <span class="text-sm">List Payrolls</span>
+                                       th:classappend="${servletPath == '/payroll'} ? 'bg-primary-50 text-primary-600' : 'text-gray-600'"
+                                       class="flex items-center gap-2 p-2 pl-4 hover:bg-gray-100 rounded-md text-sm transition-colors">
+                                        <span>List Payrolls</span>
                                     </a>
                                 </li>
                                 <li>
                                     <a href="/payroll/detail"
-                                       th:classappend="${servletPath.startsWith('/payroll/detail')} ? 'bg-blue-50 text-blue-600' : ''"
-                                       class="flex items-center gap-2 p-2 hover:bg-gray-100 rounded">
-                                        <span class="text-sm">View Details</span>
-                                    </a>
-                                </li>
-                            </ul>
-                        </li>
-                        <li class="relative">
-                            <button class="w-full flex items-center gap-2 p-2 hover:bg-gray-100 rounded menu-toggle"
-                                    data-menu-id="request">
-                                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                                          d="M17 9V7a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2m2 4h10a2 2 0 002-2v-6a2 2 0 00-2-2H9a2 2 0 00-2 2v6a2 2 0 002 2zm7-5a2 2 0 11-4 0 2 2 0 014 0z"></path>
-                                </svg>
-                                <span class="text-sm">Request</span>
-                                <svg class="w-4 h-4 ml-auto transform" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path>
-                                </svg>
-                            </button>
-                            <ul class="submenu pl-4 space-y-1" id="request-submenu">
-                                <li>
-                                    <a href="/request"
-                                       th:classappend="${servletPath.startsWith('/request') and !servletPath.startsWith('/request/')} ? 'bg-blue-50 text-blue-600' : ''"
-                                       class="flex items-center gap-2 p-2 hover:bg-gray-100 rounded">
-                                        <span class="text-sm">List Requests</span>
-                                    </a>
-                                </li>
-                                <li>
-                                    <a href="/request/view"
-                                       th:classappend="${servletPath.startsWith('/request/view')} ? 'bg-blue-50 text-blue-600' : ''"
-                                       class="flex items-center gap-2 p-2 hover:bg-gray-100 rounded">
-                                        <span class="text-sm">View Details</span>
-                                    </a>
-                                </li>
-                                <li>
-                                    <a href="/request/export/view"
-                                       th:classappend="${servletPath.startsWith('/request/export')} ? 'bg-blue-50 text-blue-600' : ''"
-                                       class="flex items-center gap-2 p-2 hover:bg-gray-100 rounded">
-                                        <span class="text-sm">Export</span>
+                                       th:classappend="${servletPath.startsWith('/payroll/detail')} ? 'bg-primary-50 text-primary-600' : 'text-gray-600'"
+                                       class="flex items-center gap-2 p-2 pl-4 hover:bg-gray-100 rounded-md text-sm transition-colors">
+                                        <span>View Details</span>
                                     </a>
                                 </li>
                             </ul>
                         </li>
 
+                        <!-- Request Submenu -->
                         <li class="relative">
-                            <button class="w-full flex items-center gap-2 p-2 hover:bg-gray-100 rounded menu-toggle"
-                                    data-menu-id="payroll">
-                                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <button class="w-full flex items-center gap-3 p-2 hover:bg-gray-100 rounded-md text-gray-700 transition-colors menu-toggle text-sm"
+                                    data-menu-id="request"
+                                    th:classappend="${servletPath.startsWith('/request')} ? 'bg-primary-50 text-primary-600' : ''">
+                                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                                          d="M17 9V7a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2m2 4h10a2 2 0 002-2v-6a2 2 0 00-2-2H9a2 2 0 00-2 2v6a2 2 0 002 2zm7-5a2 2 0 11-4 0 2 2 0 014 0z"></path>
+                                          d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-3 7h3m-3 4h3m-6-4h.01M9 16h.01"></path>
                                 </svg>
-                                <span class="text-sm">Company</span>
-                                <svg class="w-4 h-4 ml-auto transform" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <span>Request</span>
+                                <svg class="w-4 h-4 ml-auto transform transition-transform duration-200" fill="none"
+                                     stroke="currentColor" viewBox="0 0 24 24"
+                                     th:classappend="${servletPath.startsWith('/request')} ? 'rotate-180' : ''">
                                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path>
                                 </svg>
                             </button>
-                            <ul class="submenu pl-4 space-y-1" id="utils-submenu">
+                            <ul class="submenu pl-4 space-y-1 mt-1 overflow-hidden transition-all duration-300 max-h-0" id="request-submenu"
+                                th:classappend="${servletPath.startsWith('/request')} ? 'max-h-[1000px]' : ''">
+                                <li>
+                                    <a href="/request"
+                                       th:classappend="${servletPath == '/request'} ? 'bg-primary-50 text-primary-600' : 'text-gray-600'"
+                                       class="flex items-center gap-2 p-2 pl-4 hover:bg-gray-100 rounded-md text-sm transition-colors">
+                                        <span>List Requests</span>
+                                    </a>
+                                </li>
+                                <li>
+                                    <a href="/request/view"
+                                       th:classappend="${servletPath.startsWith('/request/view')} ? 'bg-primary-50 text-primary-600' : 'text-gray-600'"
+                                       class="flex items-center gap-2 p-2 pl-4 hover:bg-gray-100 rounded-md text-sm transition-colors">
+                                        <span>View Details</span>
+                                    </a>
+                                </li>
+                                <li>
+                                    <a href="/request/export/view"
+                                       th:classappend="${servletPath.startsWith('/request/export')} ? 'bg-primary-50 text-primary-600' : 'text-gray-600'"
+                                       class="flex items-center gap-2 p-2 pl-4 hover:bg-gray-100 rounded-md text-sm transition-colors">
+                                        <span>Export</span>
+                                    </a>
+                                </li>
+                            </ul>
+                        </li>
+
+                        <!-- Company Utilities -->
+                        <li class="relative">
+                            <button class="w-full flex items-center gap-3 p-2 hover:bg-gray-100 rounded-md text-gray-700 transition-colors menu-toggle text-sm"
+                                    data-menu-id="company"
+                                    th:classappend="${servletPath.startsWith('/face-recognition') || servletPath.startsWith('/chat')} ? 'bg-primary-50 text-primary-600' : ''">
+                                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                          d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4"></path>
+                                </svg>
+                                <span>Company</span>
+                                <svg class="w-4 h-4 ml-auto transform transition-transform duration-200" fill="none"
+                                     stroke="currentColor" viewBox="0 0 24 24"
+                                     th:classappend="${servletPath.startsWith('/face-recognition') || servletPath.startsWith('/chat')} ? 'rotate-180' : ''">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path>
+                                </svg>
+                            </button>
+                            <ul class="submenu pl-4 space-y-1 mt-1 overflow-hidden transition-all duration-300 max-h-0" id="company-submenu"
+                                th:classappend="${servletPath.startsWith('/face-recognition') || servletPath.startsWith('/chat')} ? 'max-h-[1000px]' : ''">
                                 <li>
                                     <a href="/face-recognition"
-                                       th:classappend="${servletPath.startsWith('/face-recognition') and !servletPath.startsWith('/face-recognition/')} ? 'bg-blue-50 text-blue-600' : ''"
-                                       class="flex items-center gap-2 p-2 hover:bg-gray-100 rounded">
-                                        <span class="text-sm">Check Attendance by Face Recognition</span>
+                                       th:classappend="${servletPath.startsWith('/face-recognition')} ? 'bg-primary-50 text-primary-600' : 'text-gray-600'"
+                                       class="flex items-center gap-2 p-2 pl-4 hover:bg-gray-100 rounded-md text-sm transition-colors">
+                                        <span>Face Recognition</span>
                                     </a>
                                 </li>
                                 <li>
                                     <a href="/chat"
-                                       th:classappend="${servletPath.startsWith('/chat/')} ? 'bg-blue-50 text-blue-600' : ''"
-                                       class="flex items-center gap-2 p-2 hover:bg-gray-100 rounded">
-                                        <span class="text-sm">Chat</span>
+                                       th:classappend="${servletPath.startsWith('/chat')} ? 'bg-primary-50 text-primary-600' : 'text-gray-600'"
+                                       class="flex items-center gap-2 p-2 pl-4 hover:bg-gray-100 rounded-md text-sm transition-colors">
+                                        <span>Chat</span>
                                     </a>
                                 </li>
                             </ul>
@@ -226,8 +256,9 @@
 
                 <!-- Administration Section -->
                 <li class="relative">
-                    <button class="w-full flex items-center gap-2 p-2 hover:bg-gray-100 rounded menu-toggle"
-                            data-menu-id="administration">
+                    <button class="w-full flex items-center gap-3 p-2 hover:bg-gray-100 rounded-md text-gray-700 transition-colors menu-toggle"
+                            data-menu-id="administration"
+                            th:classappend="${servletPath.startsWith('/admin')} ? 'bg-primary-50 text-primary-600' : ''">
                         <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
                                   d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z"></path>
@@ -235,49 +266,125 @@
                                   d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"></path>
                         </svg>
                         <span>Administration</span>
-                        <svg class="w-4 h-4 ml-auto transform transition-transform" fill="none" stroke="currentColor"
-                             viewBox="0 0 24 24">
+                        <svg class="w-4 h-4 ml-auto transform transition-transform duration-200" fill="none"
+                             stroke="currentColor" viewBox="0 0 24 24"
+                             th:classappend="${servletPath.startsWith('/admin')} ? 'rotate-180' : ''">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
                                   d="M19 9l-7 7-7-7"></path>
                         </svg>
                     </button>
-                    <ul class="submenu pl-4 space-y-1" id="administration-submenu">
+                    <ul class="submenu pl-4 space-y-1 mt-1 overflow-hidden transition-all duration-300 max-h-0" id="administration-submenu"
+                        th:classappend="${servletPath.startsWith('/admin')} ? 'max-h-[1000px]' : ''">
                         <li>
                             <a href="/admin"
-                               th:classappend="${servletPath.startsWith('/admin')} ? 'bg-blue-50 text-blue-600' : ''"
-                               class="flex items-center gap-2 p-2 hover:bg-gray-100 rounded">
+                               th:classappend="${servletPath == '/admin'} ? 'bg-primary-50 text-primary-600' : 'text-gray-600'"
+                               class="flex items-center gap-2 p-2 hover:bg-gray-100 rounded-md text-sm transition-colors">
                                 <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
                                           d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z"></path>
                                 </svg>
-                                <span class="text-sm">System Settings</span>
+                                <span>System Settings</span>
                             </a>
                         </li>
                         <li>
                             <a href="/admin/users"
-                               th:classappend="${servletPath.startsWith('/admin/users')} ? 'bg-blue-50 text-blue-600' : ''"
-                               class="flex items-center gap-2 p-2 hover:bg-gray-100 rounded">
+                               th:classappend="${servletPath.startsWith('/admin/users')} ? 'bg-primary-50 text-primary-600' : 'text-gray-600'"
+                               class="flex items-center gap-2 p-2 hover:bg-gray-100 rounded-md text-sm transition-colors">
                                 <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                                          d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z"></path>
+                                          d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M13 7a4 4 0 11-8 0 4 4 0 018 0z"></path>
                                 </svg>
-                                <span class="text-sm">User Dashboard</span>
+                                <span>User Dashboard</span>
                             </a>
                         </li>
                         <li>
                             <a href="/admin/logs"
-                               th:classappend="${servletPath.startsWith('/admin/logs')} ? 'bg-blue-50 text-blue-600' : ''"
-                               class="flex items-center gap-2 p-2 hover:bg-gray-100 rounded">
+                               th:classappend="${servletPath.startsWith('/admin/logs')} ? 'bg-primary-50 text-primary-600' : 'text-gray-600'"
+                               class="flex items-center gap-2 p-2 hover:bg-gray-100 rounded-md text-sm transition-colors">
                                 <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
                                           d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path>
                                 </svg>
-                                <span class="text-sm">System Logs</span>
+                                <span>System Logs</span>
                             </a>
                         </li>
                     </ul>
                 </li>
+
+                <!-- User Settings -->
+                <li>
+                    <a href="/user/detail"
+                       th:classappend="${servletPath == '/profile'} ? 'bg-primary-50 text-primary-600' : 'text-gray-700'"
+                       class="flex items-center gap-3 p-2 hover:bg-gray-100 rounded-md transition-colors">
+                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                  d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"></path>
+                        </svg>
+                        <span>My Profile</span>
+                    </a>
+                </li>
+
+                <!-- Logout -->
+                <li>
+                    <form th:action="@{/logout}" method="get" class="w-full">
+                        <button type="submit"
+                                class="w-full flex items-center gap-3 p-2 hover:bg-red-50 text-red-600 rounded-md transition-colors">
+                            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                      d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1"></path>
+                            </svg>
+                            <span>Logout</span>
+                        </button>
+                    </form>
+                </li>
             </ul>
         </nav>
+
+        <!-- Footer -->
+        <div class="p-4 border-t text-xs text-gray-500 text-center">
+            <p>HR Management System v1.0</p>
+            <p>© 2025 Your Company</p>
+        </div>
     </aside>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            document.querySelectorAll('.menu-toggle').forEach(button => {
+                button.addEventListener('click', function() {
+                    const menuId = this.getAttribute('data-menu-id');
+                    const submenu = document.getElementById(`${menuId}-submenu`);
+
+                    if (submenu) {
+                        if (submenu.classList.contains('max-h-0')) {
+                            submenu.classList.remove('max-h-0');
+                            submenu.classList.add('max-h-[1000px]');
+                            this.querySelector('svg:last-child').classList.add('rotate-180');
+                        } else {
+                            submenu.classList.add('max-h-0');
+                            submenu.classList.remove('max-h-[1000px]');
+                            this.querySelector('svg:last-child').classList.remove('rotate-180');
+                        }
+                    }
+                });
+            });
+
+            const mobileMenuToggle = document.getElementById('mobile-menu-toggle');
+            const sidebar = document.querySelector('aside');
+
+            if (mobileMenuToggle && sidebar) {
+                mobileMenuToggle.addEventListener('click', function() {
+                    sidebar.classList.toggle('-translate-x-full');
+                });
+            }
+
+            document.addEventListener('click', function(event) {
+                const isMobile = window.innerWidth < 768;
+                const isOutsideSidebar = !event.target.closest('aside') && !event.target.closest('#mobile-menu-toggle');
+
+                if (isMobile && isOutsideSidebar && sidebar && !sidebar.classList.contains('-translate-x-full')) {
+                    sidebar.classList.add('-translate-x-full');
+                }
+            });
+        });
+    </script>
 </div>

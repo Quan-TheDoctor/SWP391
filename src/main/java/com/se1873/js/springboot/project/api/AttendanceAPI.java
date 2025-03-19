@@ -1,23 +1,20 @@
 package com.se1873.js.springboot.project.api;
 
 import com.se1873.js.springboot.project.dto.*;
-import com.se1873.js.springboot.project.entity.Attendance;
-import com.se1873.js.springboot.project.entity.Employee;
 import com.se1873.js.springboot.project.service.AttendanceService;
-import com.se1873.js.springboot.project.service.EmployeeService;
+import com.se1873.js.springboot.project.service.employee.EmployeeService;
 import lombok.*;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.format.annotation.DateTimeFormat;
+
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import java.time.LocalDate;
-import java.time.LocalDateTime;
 import java.time.LocalTime;
 import java.time.Month;
+import java.time.format.DateTimeFormatter;
 import java.time.temporal.ChronoUnit;
-import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
 
@@ -48,8 +45,10 @@ public class AttendanceAPI {
 
   @RequestMapping("/attendancesByDay")
   public ResponseEntity<AttendanceCountDTO> getAttendancesByDay(
-    @RequestParam("date") String date) {
-    AttendanceCountDTO attendanceCountDTO = attendanceService.countAvailableAttendance(date);
+    @RequestParam("date") LocalDate date) {
+
+    AttendanceCountDTO attendanceCountDTO = attendanceService.countAvailableAttendance(String.valueOf(date));
+    System.out.println("absent: " +attendanceCountDTO.getAbsenceEmployee());
     log.info(attendanceCountDTO.toString());
     return ResponseEntity.ok(attendanceCountDTO);
   }

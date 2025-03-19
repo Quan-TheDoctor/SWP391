@@ -23,6 +23,7 @@ public class PayrollDTO {
   private Double salaryRecordTaxAmount;
   private Double salaryRecordNetSalary;
   private String salaryRecordPaymentStatus;
+  private boolean salaryRecordIsDeleted;
 
   private Double calculatedEmployeeHealthInsurance;
   private Double calculatedEmployeeHealthInsuranceAmount;

@@ -1,0 +1,120 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+  <meta charset="UTF-8">
+  <title>Export Payroll Data</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+</head>
+<body>
+<div th:fragment="main-content" xmlns:sec="http://www.w3.org/1999/xhtml">
+  <div class="max-w-7xl mx-auto space-y-6">
+
+    <div class="flex justify-between items-center">
+      <h2 class="text-2xl font-bold">Export Employee Data</h2>
+      <a th:href="@{/payroll}" class="px-4 py-2 bg-gray-600 text-white rounded-md hover:bg-gray-700">
+        Back to Payroll
+      </a>
+    </div>
+
+    <!-- Payroll Export Fragment -->
+    <div class="container mx-auto p-4">
+      <h2 class="text-xl font-semibold mb-4">Payroll Export</h2>
+
+      <!-- Export Form -->
+      <form id="exportForm" th:action="@{/payroll/export}" method="post">
+        <input type="hidden" name="selectedPayrolls" id="selectedPayrolls">
+
+        <!-- Chọn tháng/năm -->
+        <label>Start Date (Month/Year):</label>
+        <input type="month" name="startDate" required>
+
+        <label>End Date (Month/Year):</label>
+        <input type="month" name="endDate" required>
+
+        <!-- Export Button -->
+        <button type="button" onclick="submitExport()" class="w-full px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700">
+          Export Selected Payrolls
+        </button>
+      </form>
+
+    </div>
+
+    <!-- Payroll Table -->
+    <table class="table-auto w-full border-collapse border border-gray-300">
+      <thead>
+      <tr>
+        <th class="border px-4 py-2"><input type="checkbox" id="selectAll" onclick="toggleSelectAll()"></th>
+        <th class="border px-4 py-2">Employee</th>
+        <th class="border px-4 py-2">Month</th>
+        <th class="border px-4 py-2">Year</th>
+        <th class="border px-4 py-2">Base Salary</th>
+        <th class="border px-4 py-2">Overtime Pay</th>
+        <th class="border px-4 py-2">Deductions</th>
+        <th class="border px-4 py-2">Net Salary</th>
+        <th class="border px-4 py-2">Status</th>
+      </tr>
+      </thead>
+      <tbody>
+      <tr th:each="payroll : ${payrolls}">
+        <td class="border px-4 py-2"><input type="checkbox" name="payrollCheck" th:value="${payroll.salaryRecordId}"></td>
+        <td class="border px-4 py-2" th:text="${payroll.employeeFirstName} + ' ' + ${payroll.employeeLastName}"></td>
+        <td class="border px-4 py-2" th:text="${payroll.salaryRecordMonth}"></td>
+        <td class="border px-4 py-2" th:text="${payroll.salaryRecordYear}"></td>
+
+        <td class="border px-4 py-2" th:text=" ${T(java.lang.String).format('%,.0f', payroll.salaryRecordBaseSalary) + ' VND'}"></td>
+        <td class="border px-4 py-2" th:text="${payroll.salaryRecordOvertimePay}"></td>
+        <td class="border px-4 py-2" th:text="${T(java.lang.String).format('%,.0f', (payroll.calculatedPersonalDeduction + payroll.calculatedPersonalDependentDeduction))}"></td>
+        <td class="border px-4 py-2" th:text="${T(java.lang.String).format('%,.0f', payroll.getSalaryRecordNetSalary())}"></td>
+        <td class="border px-4 py-2" th:text="${payroll.salaryRecordPaymentStatus}"></td>
+      </tr>
+      </tbody>
+    </table>
+
+  <!-- Pagination -->
+  <div class="flex justify-between items-center mt-4 p-2 bg-gray-50 rounded-md">
+    <span th:text="'Total: ' + ${totalEmployees} + ' records'"></span>
+
+    <div>
+      <!-- Previous Button -->
+      <a th:href="@{/payroll/export/view(page=${currentPage - 2},size=${size})}"
+         th:if="${currentPage > 1}"
+         class="px-3 py-1 bg-gray-300 text-gray-700 rounded hover:bg-gray-400">
+        Previous
+      </a>
+
+      <!-- Page Display -->
+      <span th:text="'Page ' + ${currentPage} + ' of ' + ${totalPages}"></span>
+
+      <!-- Next Button -->
+      <a th:href="@{/payroll/export/view(page=${currentPage},size=${size})}"
+         th:if="${currentPage < totalPages}"
+         class="px-3 py-1 bg-gray-300 text-gray-700 rounded hover:bg-gray-400">
+        Next
+      </a>
+    </div>
+  </div>
+</div>
+</div>
+</body>
+</html>
+<script>
+  // Function to toggle select all checkboxes
+  function toggleSelectAll() {
+    const isChecked = document.getElementById("selectAll").checked;
+    document.querySelectorAll('input[name="payrollCheck"]').forEach(cb => {
+      cb.checked = isChecked;
+    });
+  }
+
+  // Function to submit the export form with selected payrolls
+  function submitExport() {
+    let selected = [];
+    document.querySelectorAll('input[name="payrollCheck"]:checked').forEach(cb => {
+      selected.push(cb.value);
+    });
+
+    // If no payrolls are selected, export all
+    document.getElementById('selectedPayrolls').value = selected.length > 0 ? selected.join(',') : "";
+    document.getElementById('exportForm').submit();
+  }
+</script>

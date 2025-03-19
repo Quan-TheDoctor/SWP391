@@ -1,7 +1,6 @@
 package com.se1873.js.springboot.project.configuration;
 
-import com.se1873.js.springboot.project.entity.User;
-import com.se1873.js.springboot.project.service.UserService;
+import com.se1873.js.springboot.project.service.user.UserService;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.http.server.ServerHttpRequest;
 import org.springframework.http.server.ServerHttpResponse;

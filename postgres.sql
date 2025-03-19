@@ -238,6 +238,33 @@ create table financial_policies
     financial_policy_amount DECIMAL
 );
 
+create table leave_policies
+(
+    leave_policies_id serial primary key,
+    leave_policies_name text,
+    leave_policies_amount INTEGER
+);
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 insert into financial_policies(financial_policy_name, financial_policy_type, financial_policy_amount)
 VALUES ('BHYT cá nhân trả', 'RATE', 1.5),
        ('BHYT doanh nghiệp trả', 'RATE', 1.5),
@@ -400,6 +427,17 @@ VALUES (1, 6, 2020, 25000000, 4500000, 1500000, 500000, 2250000, 2800000, 254500
 
 insert into requests(user_id, request_type, request_id_list, approval_id, status)
 VALUES (1, 'Kết toán lương', '1'::json, 2, 'pending');
+
+insert into leave_policies(leave_policies_id, leave_policies_name, leave_policies_amount)
+VALUES  (1,'Nghỉ phép năm',12),
+        (2,'Nghỉ thai sản nữ', 180),
+        (3,'Nghỉ thai sản nam', 14),
+        (4,'Nghỉ ốm', 30),
+        (5,'Nghỉ cưới hỏi', 3),
+        (6,'Nghỉ tang', 3),
+        (7,'Nghỉ không lương', null);
+
+
 
 select de
 from employment_history de

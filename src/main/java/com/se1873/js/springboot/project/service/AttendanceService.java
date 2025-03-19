@@ -8,6 +8,10 @@ import com.se1873.js.springboot.project.mapper.AttendanceDTOMapper;
 import com.se1873.js.springboot.project.mapper.ChannelDTOMapper;
 import com.se1873.js.springboot.project.mapper.DepartmentDTOMapper;
 import com.se1873.js.springboot.project.repository.*;
+import com.se1873.js.springboot.project.service.channel.ChannelService;
+import com.se1873.js.springboot.project.service.department.DepartmentService;
+import com.se1873.js.springboot.project.service.employee.EmployeeService;
+import com.se1873.js.springboot.project.service.message.MessageService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.poi.ss.usermodel.*;
@@ -27,10 +31,8 @@ import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.time.*;
 import java.time.format.DateTimeFormatter;
-import java.time.format.TextStyle;
 import java.time.temporal.ChronoUnit;
 import java.time.temporal.TemporalAdjusters;
-import java.time.temporal.WeekFields;
 import java.util.*;
 import java.util.function.Function;
 import java.util.stream.Collectors;
@@ -49,81 +51,65 @@ public class AttendanceService {
   private final AttendanceDTOMapper attendanceDTOMapper;
   private final DepartmentService departmentService;
   private final SimpMessagingTemplate simpMessagingTemplate;
-  private final ChannelService channelService;
-  private final ChannelRepository channelRepository;
   private final UserRepository userRepository;
+  private final MessageService messageService;
+  private final ChannelService channelService;
 
   public Page<AttendanceDTO> getAll(LocalDate startDate, LocalDate endDate, Pageable pageable) {
-    var employees = employeeRepository.findAll();
-    List<EmployeeDTO> employeeDTOS = new ArrayList<>();
-
-    for(Employee employee : employees) {
-      EmployeeDTO employeeDTO = employeeService.getEmployeeByEmployeeId(employee.getEmployeeId());
-      employeeDTOS.add(employeeDTO);
-    }
-
+    var employees = employeeService.getAll(PageRequest.of(0, 1000));
+    List<EmployeeDTO> employeeDTOS = employees.getContent();
+    log.info(employeeDTOS.toString());
     List<AttendanceDTO> attendanceDTOS = new ArrayList<>();
 
     for (EmployeeDTO employee : employeeDTOS) {
-      List<Attendance> attendances = attendanceRepository.getAttendanceByDateBetweenAndEmployee_EmployeeId(
-        startDate, endDate, employee.getEmployeeId()
-      );
+      List<Attendance> attendances = attendanceRepository.getAttendanceByDateBetweenAndEmployee_EmployeeIdAndEmployee_IsDeleted(startDate, endDate, employee.getEmployeeId(), false);
 
-      Map<LocalDate, List<Attendance>> attendanceMap = attendances.stream()
-              .collect(Collectors.groupingBy(Attendance::getDate));
-
+      Map<LocalDate, Attendance> attendanceMap = attendances.stream().collect(Collectors.toMap(Attendance::getDate, Function.identity()));
 
       List<LocalDate> datesInRange = startDate.datesUntil(endDate.plusDays(1)).toList();
 
       for (LocalDate date : datesInRange) {
-        List<Attendance> attendancesOnDate = attendanceMap.get(date);
-        if (attendancesOnDate != null) {
-          for (Attendance attendance : attendancesOnDate) {
-            attendanceDTOS.add(attendanceDTOMapper.toDTO(attendance));
-          }
+        Attendance attendance = attendanceMap.get(date);
+        if (attendance != null) {
+          attendanceDTOS.add(attendanceDTOMapper.toDTO(attendance));
         } else {
           attendanceDTOS.add(createDefaultAttendanceDTO(employee, date));
         }
       }
     }
-    attendanceDTOS.sort(
-      Comparator.comparing(AttendanceDTO::getAttendanceDate)
-        .thenComparing(AttendanceDTO::getAttendanceStatus)
-    );
+    attendanceDTOS.sort(Comparator.comparing(AttendanceDTO::getAttendanceDate).thenComparing(AttendanceDTO::getAttendanceStatus));
     int total = attendanceDTOS.size();
     int start = (int) pageable.getOffset();
     int end = Math.min((start + pageable.getPageSize()), total);
 
-    return new PageImpl<>(
-      attendanceDTOS.subList(start, end),
-      pageable,
-      total
-    );
+    return new PageImpl<>(attendanceDTOS.subList(start, end), pageable, total);
   }
-  public Page<AttendanceDTO> getAttendanceByEmployeeId(Integer employeeId,Pageable pageale){
-    Page<Attendance> attendances = attendanceRepository.findAttendancesByEmployee_EmployeeIdAndDate(LocalDate.now().getYear(),employeeId,pageale);
+
+  public Page<AttendanceDTO> getAttendanceByEmployeeId(Integer employeeId, Pageable pageale) {
+    Page<Attendance> attendances = attendanceRepository.getAttendanceByEmployee_EmployeeId(employeeId, pageale);
     return attendances.map(attendanceDTOMapper::toDTO);
   }
-  public Page<AttendanceDTO> filterByMonth(Pageable pageable,Integer month,Integer year,Integer employeeId){
-    Page<Attendance> attendances = attendanceRepository.findAttendancesByEmployeeAndMonthAndYear(pageable,month,year,employeeId);
-    return  attendances.map(attendanceDTOMapper::toDTO);
-  }
-  public Page<AttendanceDTO> filterByStatusAndEmployeeId(Pageable pageable, String status,Integer employeeId) {
-    Page<Attendance> attendances = "".equals(status)
-            ? attendanceRepository.findAll(pageable)
-            : attendanceRepository.findAttendancesByEmployeeIdAndStatus(pageable,employeeId,status);
+
+  public Page<AttendanceDTO> filterByMonth(Pageable pageable, Integer month, Integer year, Integer employeeId) {
+    Page<Attendance> attendances = attendanceRepository.findAttendancesByEmployeeAndMonthAndYear(pageable, month, year, employeeId);
     return attendances.map(attendanceDTOMapper::toDTO);
   }
-  public Page<AttendanceDTO> filterByStatus(Pageable pageable, String status) {
-    Page<Attendance> attendances = "".equals(status)
-            ? attendanceRepository.findAll(pageable)
-            : attendanceRepository.findAttendancesByStatus(pageable,status);
+
+  public Page<AttendanceDTO> filterByStatusAndEmployeeId(Pageable pageable, String status, Integer employeeId) {
+    Page<Attendance> attendances = "".equals(status) ? attendanceRepository.findAll(pageable) : attendanceRepository.findAttendancesByEmployeeIdAndStatus(pageable, employeeId, status);
     return attendances.map(attendanceDTOMapper::toDTO);
   }
+
+  public Page<AttendanceDTO> filterByStatus(LocalDate startDate, LocalDate endDate, Pageable pageable, String status) {
+    Page<Attendance> attendances = "".equals(status) ? attendanceRepository.findAll(pageable) : attendanceRepository.findAttendancesByStatusAndDateBetween(status, startDate, endDate, pageable);
+    return attendances.map(attendanceDTOMapper::toDTO);
+  }
+
   public List<AttendanceDTO> getAllAttendances() {
     return attendanceRepository.findAll().stream().map(attendanceDTOMapper::toDTO).toList();
   }
-  public Map<String,Integer> getQuantity() {
+
+  public Map<String, Integer> getQuantity() {
     int countOntime = 0;
     int countLate = 0;
     int countAbsent = 0;
@@ -131,61 +117,60 @@ public class AttendanceService {
     for (Attendance attendance : getAll) {
       if ("Đúng giờ".equals(attendance.getStatus())) {
         countOntime++;
-      }else if("Đi muộn".equals(attendance.getStatus())){
+      } else if ("Đi muộn".equals(attendance.getStatus())) {
         countLate++;
-      }else if("Nghỉ".equals(attendance.getStatus())){
+      } else if ("Vắng mặt".equals(attendance.getStatus())) {
         countAbsent++;
       }
     }
-    Map<String,Integer> result = new HashMap<>();
-    result.put("Đúng giờ",countOntime);
-    result.put("Đi muộn",countLate);
-    result.put("Vắng mặt",countAbsent);
+    Map<String, Integer> result = new HashMap<>();
+    result.put("Đúng giờ", countOntime);
+    result.put("Đi muộn", countLate);
+    result.put("Vắng mặt", countAbsent);
 
     return result;
   }
-  public Map<String,Integer> getQuantityEmployeeDetail(Integer employeeId) {
+
+  public Map<String, Integer> getQuantityEmployeeDetail(Integer employeeId) {
     int countOntime = 0;
     int countLate = 0;
     int countAbsent = 0;
-    int year = LocalDate.now().getYear();
-    int month = LocalDate.now().getMonthValue();
-    List<Attendance> getAll = attendanceRepository.findAllByEmployee_EmployeeIdAndDate(year,month,employeeId);
+    List<Attendance> getAll = attendanceRepository.findAllByEmployee_EmployeeId(employeeId);
     for (Attendance attendance : getAll) {
       if ("Đúng giờ".equals(attendance.getStatus())) {
         countOntime++;
-      }else if("Đi muộn".equals(attendance.getStatus())){
+      } else if ("Đi muộn".equals(attendance.getStatus())) {
         countLate++;
-      }else if("Nghỉ".equals(attendance.getStatus())){
+      } else if ("Vắng mặt".equals(attendance.getStatus())) {
         countAbsent++;
       }
     }
-    Map<String,Integer> result = new HashMap<>();
-    result.put("Đúng giờ",countOntime);
-    result.put("Đi muộn",countLate);
-    result.put("Vắng mặt",countAbsent);
+    Map<String, Integer> result = new HashMap<>();
+    result.put("Đúng giờ", countOntime);
+    result.put("Đi muộn", countLate);
+    result.put("Vắng mặt", countAbsent);
 
     return result;
   }
+
   public AttendanceDTO getAttendanceByEmployeeIdAndDate(Integer employeeId, LocalDate date) {
-    Employee employee = Optional.ofNullable(employeeRepository.getEmployeeByEmployeeId(employeeId))
-      .orElseThrow(() -> new RuntimeException("Employee not found with id: " + employeeId));
+    Employee employee = Optional.ofNullable(employeeRepository.getEmployeeByEmployeeId(employeeId)).orElseThrow(() -> new RuntimeException("Employee not found with id: " + employeeId));
     EmployeeDTO employeeDTO = employeeService.getEmployeeByEmployeeId(employee.getEmployeeId());
     Optional<Attendance> attendanceOpt = attendanceRepository.findByDateAndEmployee_EmployeeId(date, employeeId);
 
-    return attendanceOpt
-      .map(attendanceDTOMapper::toDTO)
-      .orElseGet(() -> createDefaultAttendanceDTO(employeeDTO, date));
+    return attendanceOpt.map(attendanceDTOMapper::toDTO).orElseGet(() -> createDefaultAttendanceDTO(employeeDTO, date));
   }
+
   public List<AttendanceDTO> getAttendancesByEmployeeIdAndDate(Integer employeeId, LocalDate date) {
-    var attendances = attendanceRepository.getAttendanceByDateBetweenAndEmployee_EmployeeId(date.withDayOfMonth(1), date.withDayOfMonth(28), employeeId);
+    var attendances = attendanceRepository.getAttendanceByDateBetweenAndEmployee_EmployeeIdAndEmployee_IsDeleted(date.withDayOfMonth(1), date.withDayOfMonth(28), employeeId, false);
     List<AttendanceDTO> attendanceDTOS = new ArrayList<>();
 
-    for(Attendance attendance : attendances) {
+    for (Attendance attendance : attendances) {
       attendanceDTOS.add(attendanceDTOMapper.toDTO(attendance));
     }
     return attendanceDTOS;
   }
+
   public void updateAttendanceRecord(AttendanceDTO dto) {
     LocalTime checkIn = parseTime(String.valueOf(dto.getAttendanceCheckIn()));
     LocalTime checkOut = parseTime(String.valueOf(dto.getAttendanceCheckOut()));
@@ -204,6 +189,7 @@ public class AttendanceService {
 
     attendanceRepository.save(attendance);
   }
+
   public void saveAttendance(AttendanceDTOList attendanceDTOList) {
     for (AttendanceDTO dto : attendanceDTOList.getAttendances()) {
       LocalTime checkIn = parseTime(String.valueOf(dto.getAttendanceCheckIn()));
@@ -215,9 +201,7 @@ public class AttendanceService {
 
       Employee employee = employeeRepository.findEmployeeByEmployeeId(dto.getEmployeeId());
 
-      Attendance attendance = attendanceRepository
-        .findByDateAndEmployee_EmployeeId(dto.getAttendanceDate(), employee.getEmployeeId())
-        .orElse(new Attendance());
+      Attendance attendance = attendanceRepository.findByDateAndEmployee_EmployeeId(dto.getAttendanceDate(), employee.getEmployeeId()).orElse(new Attendance());
 
       attendance.setEmployee(employee);
       attendance.setDate(dto.getAttendanceDate());
@@ -229,54 +213,63 @@ public class AttendanceService {
       attendanceRepository.save(attendance);
     }
   }
+
   private LocalTime parseTime(String time) {
     if (time == null || time.isEmpty()) return null;
     return LocalTime.parse(time);
   }
+
   private AttendanceDTO createDefaultAttendanceDTO(EmployeeDTO employee, LocalDate date) {
-    return AttendanceDTO.builder()
-      .employeeId(employee.getEmployeeId())
-      .employeeFirstName(employee.getEmployeeFirstName())
-      .employeeLastName(employee.getEmployeeLastName())
-      .employeeCode(employee.getEmployeeCode())
-      .attendanceDate(date)
-      .attendanceStatus("CHƯA CHẤM CÔNG")
-      .attendanceCheckIn(null)
-      .attendanceCheckOut(null)
-      .attendanceOvertimeHours(0.0)
-      .build();
+    return AttendanceDTO.builder().employeeId(employee.getEmployeeId()).employeeFirstName(employee.getEmployeeFirstName()).employeeLastName(employee.getEmployeeLastName()).employeeCode(employee.getEmployeeCode()).attendanceDate(date).attendanceStatus("CHƯA CHẤM CÔNG").attendanceCheckIn(null).attendanceCheckOut(null).attendanceOvertimeHours(0.0).build();
   }
+
   public AttendanceCountDTO countAvailableAttendance(String date) {
     int totalEmployee = employeeService.countEmployees();
-    AttendanceCountDTO attendancecountDTO = AttendanceCountDTO
-            .builder().totalEmployee(totalEmployee).lateEmployee(0).workedEmployee(0).absenceEmployee(0).build();
+    AttendanceCountDTO attendancecountDTO = AttendanceCountDTO.builder().totalEmployee(totalEmployee).lateEmployee(0).workedEmployee(0).absenceEmployee(0).build();
     LocalDate dates = LocalDate.parse(date);
-    List<AttendanceDTO> attendanceCountDTOList = attendanceRepository.findAttendancesByDate(dates).stream().
-            map(attendanceDTOMapper::toDTO).collect(Collectors.toList());
+    List<AttendanceDTO> attendanceCountDTOList = attendanceRepository.findAttendancesByDate(dates).stream().map(attendanceDTOMapper::toDTO).collect(Collectors.toList());
     for (AttendanceDTO dto : attendanceCountDTOList) {
-      if(dto.getAttendanceStatus().equals("Đi muộn")) {
+      if (dto.getAttendanceStatus().equals("Đi muộn")) {
         attendancecountDTO.setLateEmployee(attendancecountDTO.getLateEmployee() + 1);
       } else {
         attendancecountDTO.setWorkedEmployee(attendancecountDTO.getWorkedEmployee() + 1);
       }
     }
-    attendancecountDTO.setAbsenceEmployee(attendancecountDTO.getTotalEmployee() -
-            attendancecountDTO.getWorkedEmployee() -
-            attendancecountDTO.getLateEmployee());
+    attendancecountDTO.setAbsenceEmployee(attendancecountDTO.getTotalEmployee() - attendancecountDTO.getWorkedEmployee() - attendancecountDTO.getLateEmployee());
     return attendancecountDTO;
   }
-  public Page<AttendanceDTO> searchAttendanceByEmployeeName(String employeeName, Pageable pageable) {
 
-    Page<Attendance> attendances = attendanceRepository.searchAttendanceByEmployeeName("An", pageable);
-    System.out.println("1");
-    for (Attendance att : attendances.getContent()) {
-      System.out.println(att);
+  public Page<AttendanceDTO> searchAttendanceByEmployeeName(LocalDate startDate, LocalDate endDate, String employeeName, Pageable pageable) {
+    if (employeeName == null || employeeName.trim().isEmpty()) {
+      return Page.empty(pageable);
     }
-    return attendances.map(attendanceDTOMapper::toDTO);
+    String normalizedSearchText = employeeName.trim();
+
+    Page<AttendanceDTO> attendancesPage = attendanceRepository.searchAttendanceByEmployeeName(normalizedSearchText, pageable).map(attendanceDTOMapper::toDTO);
+    log.info(attendancesPage.getContent().toString());
+    if (startDate != null && endDate != null) {
+      List<AttendanceDTO> filteredContent = attendancesPage.getContent().stream().filter(a -> {
+        return a.getAttendanceDate().isAfter(startDate);
+      }).collect(Collectors.toList());
+
+      log.info(filteredContent.toString());
+
+      Page<AttendanceDTO> filteredPage = new PageImpl<>(filteredContent, attendancesPage.getPageable(), filteredContent.size());
+
+      log.info("Found {} attendance records matching search text: '{}' in date range {} to {}", filteredContent.size(), normalizedSearchText, startDate, endDate);
+
+      return filteredPage;
+    }
+
+    log.info("Found {} attendance records matching search text: '{}'", attendancesPage.getTotalElements(), normalizedSearchText);
+
+    return attendancesPage;
   }
+
   private List<AttendanceDTO> getAllAttendancesBetweenDates(LocalDate start, LocalDate end) {
     return attendanceRepository.findAllByDateBetween(start, end).stream().map(attendanceDTOMapper::toDTO).collect(Collectors.toList());
   }
+
   public AttendanceAnalyticDTO.WeeklyTrendsDTO getWeeklyTrends(Integer year, Integer month, LocalDate startDate, LocalDate endDate) {
     LocalDate start, end;
 
@@ -362,23 +355,7 @@ public class AttendanceService {
       }
     }
 
-    List<AttendanceAnalyticDTO.SeriesDTO> series = List.of(
-      AttendanceAnalyticDTO.SeriesDTO.builder()
-        .name("On Time %")
-        .color("#10B981")
-        .data(onTimePercentages)
-        .build(),
-      AttendanceAnalyticDTO.SeriesDTO.builder()
-        .name("Late %")
-        .color("#F59E0B")
-        .data(latePercentages)
-        .build(),
-      AttendanceAnalyticDTO.SeriesDTO.builder()
-        .name("Absent %")
-        .color("#EF4444")
-        .data(absentPercentages)
-        .build()
-    );
+    List<AttendanceAnalyticDTO.SeriesDTO> series = List.of(AttendanceAnalyticDTO.SeriesDTO.builder().name("On Time %").color("#10B981").data(onTimePercentages).build(), AttendanceAnalyticDTO.SeriesDTO.builder().name("Late %").color("#F59E0B").data(latePercentages).build(), AttendanceAnalyticDTO.SeriesDTO.builder().name("Absent %").color("#EF4444").data(absentPercentages).build());
 
     double weeklyAverage = 0;
     int workingDayCount = 0;
@@ -397,39 +374,24 @@ public class AttendanceService {
       }
     }
 
-    AttendanceAnalyticDTO.BestDayDTO bestDay = AttendanceAnalyticDTO.BestDayDTO.builder()
-      .name(dayLabels.get(bestDayIndex))
-      .rate(bestRate)
-      .build();
+    AttendanceAnalyticDTO.BestDayDTO bestDay = AttendanceAnalyticDTO.BestDayDTO.builder().name(dayLabels.get(bestDayIndex)).rate(bestRate).build();
 
     LocalDate previousWeekStart = start.minusWeeks(1);
     LocalDate previousWeekEnd = end.minusWeeks(1);
 
     List<AttendanceDTO> previousWeekAttendances = getAllAttendancesBetweenDates(previousWeekStart, previousWeekEnd);
 
-    long previousWeekOnTimeCount = previousWeekAttendances.stream()
-      .filter(att -> "Đúng giờ".equals(att.getAttendanceStatus()) || "On Time".equalsIgnoreCase(att.getAttendanceStatus()))
-      .count();
+    long previousWeekOnTimeCount = previousWeekAttendances.stream().filter(att -> "Đúng giờ".equals(att.getAttendanceStatus()) || "On Time".equalsIgnoreCase(att.getAttendanceStatus())).count();
 
-    long currentWeekOnTimeCount = attendances.stream()
-      .filter(att -> "Đúng giờ".equals(att.getAttendanceStatus()) || "On Time".equalsIgnoreCase(att.getAttendanceStatus()))
-      .count();
+    long currentWeekOnTimeCount = attendances.stream().filter(att -> "Đúng giờ".equals(att.getAttendanceStatus()) || "On Time".equalsIgnoreCase(att.getAttendanceStatus())).count();
 
     double previousWeekOnTimePercentage = totalEmployees > 0 ? previousWeekOnTimeCount * 100.0 / (totalEmployees * workingDays) : 0;
     double currentWeekOnTimePercentage = totalEmployees > 0 ? currentWeekOnTimeCount * 100.0 / (totalEmployees * workingDays) : 0;
     double improvement = currentWeekOnTimePercentage - previousWeekOnTimePercentage;
 
-    AttendanceAnalyticDTO.SummaryDTO summary = AttendanceAnalyticDTO.SummaryDTO.builder()
-      .weeklyAverage(Math.round(weeklyAverage * 10) / 10.0)
-      .bestDay(bestDay)
-      .improvement(Math.round(improvement * 10) / 10.0)
-      .build();
+    AttendanceAnalyticDTO.SummaryDTO summary = AttendanceAnalyticDTO.SummaryDTO.builder().weeklyAverage(Math.round(weeklyAverage * 10) / 10.0).bestDay(bestDay).improvement(Math.round(improvement * 10) / 10.0).build();
 
-    return AttendanceAnalyticDTO.WeeklyTrendsDTO.builder()
-      .categories(dayLabels)
-      .series(series)
-      .summary(summary)
-      .build();
+    return AttendanceAnalyticDTO.WeeklyTrendsDTO.builder().categories(dayLabels).series(series).summary(summary).build();
   }
 
   public AttendanceAnalyticDTO.MonthlyTrendsDTO getMonthlyTrends(Integer year, LocalDate startDate, LocalDate endDate) {
@@ -448,8 +410,7 @@ public class AttendanceService {
 
     List<AttendanceDTO> attendances = getAllAttendancesBetweenDates(start, end);
 
-    List<String> months = Arrays.asList("Jan", "Feb", "Mar", "Apr", "May", "Jun",
-      "Jul", "Aug", "Sep", "Oct", "Nov", "Dec");
+    List<String> months = Arrays.asList("Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec");
 
     long totalEmployees = employeeRepository.count();
 
@@ -524,28 +485,9 @@ public class AttendanceService {
       }
     }
 
-    List<AttendanceAnalyticDTO.SeriesDTO> series = List.of(
-      AttendanceAnalyticDTO.SeriesDTO.builder()
-        .name("On Time %")
-        .color("#10B981")
-        .data(onTimePercentages)
-        .build(),
-      AttendanceAnalyticDTO.SeriesDTO.builder()
-        .name("Late %")
-        .color("#F59E0B")
-        .data(latePercentages)
-        .build(),
-      AttendanceAnalyticDTO.SeriesDTO.builder()
-        .name("Absent %")
-        .color("#EF4444")
-        .data(absentPercentages)
-        .build()
-    );
+    List<AttendanceAnalyticDTO.SeriesDTO> series = List.of(AttendanceAnalyticDTO.SeriesDTO.builder().name("On Time %").color("#10B981").data(onTimePercentages).build(), AttendanceAnalyticDTO.SeriesDTO.builder().name("Late %").color("#F59E0B").data(latePercentages).build(), AttendanceAnalyticDTO.SeriesDTO.builder().name("Absent %").color("#EF4444").data(absentPercentages).build());
 
-    double monthlyAverage = onTimePercentages.stream()
-      .mapToDouble(Double::doubleValue)
-      .average()
-      .orElse(0);
+    double monthlyAverage = onTimePercentages.stream().mapToDouble(Double::doubleValue).average().orElse(0);
 
     int bestMonthIndex = 0;
     double bestRate = 0;
@@ -556,10 +498,7 @@ public class AttendanceService {
       }
     }
 
-    AttendanceAnalyticDTO.BestMonthDTO bestMonth = AttendanceAnalyticDTO.BestMonthDTO.builder()
-      .name(months.get(bestMonthIndex))
-      .rate(bestRate)
-      .build();
+    AttendanceAnalyticDTO.BestMonthDTO bestMonth = AttendanceAnalyticDTO.BestMonthDTO.builder().name(months.get(bestMonthIndex)).rate(bestRate).build();
 
     int previousYear = targetYear - 1;
     LocalDate previousYearStart = LocalDate.of(previousYear, 1, 1);
@@ -567,34 +506,20 @@ public class AttendanceService {
 
     List<AttendanceDTO> previousYearAttendances = getAllAttendancesBetweenDates(previousYearStart, previousYearEnd);
 
-    long previousYearOnTimeCount = previousYearAttendances.stream()
-      .filter(att -> "Đúng giờ".equals(att.getAttendanceStatus()) || "On Time".equalsIgnoreCase(att.getAttendanceStatus()))
-      .count();
+    long previousYearOnTimeCount = previousYearAttendances.stream().filter(att -> "Đúng giờ".equals(att.getAttendanceStatus()) || "On Time".equalsIgnoreCase(att.getAttendanceStatus())).count();
 
-    long currentYearOnTimeCount = attendances.stream()
-      .filter(att -> "Đúng giờ".equals(att.getAttendanceStatus()) || "On Time".equalsIgnoreCase(att.getAttendanceStatus()))
-      .count();
+    long currentYearOnTimeCount = attendances.stream().filter(att -> "Đúng giờ".equals(att.getAttendanceStatus()) || "On Time".equalsIgnoreCase(att.getAttendanceStatus())).count();
 
     int previousYearWorkingDays = workingDaysPerMonth.values().stream().mapToInt(Integer::intValue).sum();
     int currentYearWorkingDays = workingDaysPerMonth.values().stream().mapToInt(Integer::intValue).sum();
 
-    double previousYearOnTimePercentage = previousYearWorkingDays > 0 ?
-      previousYearOnTimeCount * 100.0 / (totalEmployees * previousYearWorkingDays) : 0;
-    double currentYearOnTimePercentage = currentYearWorkingDays > 0 ?
-      currentYearOnTimeCount * 100.0 / (totalEmployees * currentYearWorkingDays) : 0;
+    double previousYearOnTimePercentage = previousYearWorkingDays > 0 ? previousYearOnTimeCount * 100.0 / (totalEmployees * previousYearWorkingDays) : 0;
+    double currentYearOnTimePercentage = currentYearWorkingDays > 0 ? currentYearOnTimeCount * 100.0 / (totalEmployees * currentYearWorkingDays) : 0;
     double yearOverYearChange = currentYearOnTimePercentage - previousYearOnTimePercentage;
 
-    AttendanceAnalyticDTO.SummaryDTO summary = AttendanceAnalyticDTO.SummaryDTO.builder()
-      .monthlyAverage(Math.round(monthlyAverage * 10) / 10.0)
-      .bestMonth(bestMonth)
-      .yearOverYearChange(Math.round(yearOverYearChange * 10) / 10.0)
-      .build();
+    AttendanceAnalyticDTO.SummaryDTO summary = AttendanceAnalyticDTO.SummaryDTO.builder().monthlyAverage(Math.round(monthlyAverage * 10) / 10.0).bestMonth(bestMonth).yearOverYearChange(Math.round(yearOverYearChange * 10) / 10.0).build();
 
-    return AttendanceAnalyticDTO.MonthlyTrendsDTO.builder()
-      .categories(months)
-      .series(series)
-      .summary(summary)
-      .build();
+    return AttendanceAnalyticDTO.MonthlyTrendsDTO.builder().categories(months).series(series).summary(summary).build();
   }
 
   public AttendanceAnalyticDTO.DepartmentComparisonDTO getDepartmentComparison(Integer year, Integer month, LocalDate date) {
@@ -614,9 +539,7 @@ public class AttendanceService {
     }
 
     List<AttendanceDTO> attendances = getAllAttendancesBetweenDates(start, end);
-    List<DepartmentDTO> departments = departmentService.getAllDepartments().stream()
-      .map(departmentDTOMapper::toDTO)
-      .collect(Collectors.toList());
+    List<DepartmentDTO> departments = departmentService.getAllDepartments().stream().map(departmentDTOMapper::toDTO).collect(Collectors.toList());
 
     int workingDays = 0;
     for (LocalDate currentDate = start; !currentDate.isAfter(end); currentDate = currentDate.plusDays(1)) {
@@ -626,26 +549,14 @@ public class AttendanceService {
     }
 
     List<AttendanceAnalyticDTO.DepartmentDataDTO> departmentData = new ArrayList<>();
-    Map<Integer, String> departmentColors = Map.of(
-      1, "#8B5CF6",
-      2, "#EC4899",
-      3, "#10B981",
-      4, "#3B82F6",
-      5, "#F59E0B",
-      6, "#EF4444",
-      7, "#6366F1",
-      8, "#14B8A6",
-      9, "#F97316",
-      10, "#8B5CF6"
-    );
+    Map<Integer, String> departmentColors = Map.of(1, "#8B5CF6", 2, "#EC4899", 3, "#10B981", 4, "#3B82F6", 5, "#F59E0B", 6, "#EF4444", 7, "#6366F1", 8, "#14B8A6", 9, "#F97316", 10, "#8B5CF6");
 
     Map<Integer, Double> departmentImprovement = new HashMap<>();
 
     for (DepartmentDTO department : departments) {
       int departmentId = department.getDepartmentId();
 
-      long departmentEmployeeCount = employeeService.getEmployeesByDepartmentId(departmentId, PageRequest.of(0, 1000))
-        .getContent().size();
+      long departmentEmployeeCount = employeeService.getEmployeesByDepartmentId(departmentId, PageRequest.of(0, 1000)).getContent().size();
 
       if (departmentEmployeeCount == 0) {
         continue;
@@ -653,13 +564,9 @@ public class AttendanceService {
 
       long expectedAttendances = departmentEmployeeCount * workingDays;
 
-      List<AttendanceDTO> departmentAttendances = attendances.stream()
-        .filter(att -> att.getDepartmentId() != null && att.getDepartmentId() == departmentId)
-        .collect(Collectors.toList());
+      List<AttendanceDTO> departmentAttendances = attendances.stream().filter(att -> att.getDepartmentId() != null && att.getDepartmentId() == departmentId).collect(Collectors.toList());
 
-      long onTimeCount = departmentAttendances.stream()
-        .filter(att -> "Đúng giờ".equals(att.getAttendanceStatus()) || "On Time".equalsIgnoreCase(att.getAttendanceStatus()))
-        .count();
+      long onTimeCount = departmentAttendances.stream().filter(att -> "Đúng giờ".equals(att.getAttendanceStatus()) || "On Time".equalsIgnoreCase(att.getAttendanceStatus())).count();
 
       double onTimePercentage = expectedAttendances > 0 ? onTimeCount * 100.0 / expectedAttendances : 0;
 
@@ -673,30 +580,20 @@ public class AttendanceService {
         }
       }
 
-      List<AttendanceDTO> previousPeriodAttendances = getAllAttendancesBetweenDates(previousPeriodStart, previousPeriodEnd)
-        .stream()
-        .filter(att -> att.getDepartmentId() != null && att.getDepartmentId() == departmentId)
-        .collect(Collectors.toList());
+      List<AttendanceDTO> previousPeriodAttendances = getAllAttendancesBetweenDates(previousPeriodStart, previousPeriodEnd).stream().filter(att -> att.getDepartmentId() != null && att.getDepartmentId() == departmentId).collect(Collectors.toList());
 
-      long previousOnTimeCount = previousPeriodAttendances.stream()
-        .filter(att -> "Đúng giờ".equals(att.getAttendanceStatus()) || "On Time".equalsIgnoreCase(att.getAttendanceStatus()))
-        .count();
+      long previousOnTimeCount = previousPeriodAttendances.stream().filter(att -> "Đúng giờ".equals(att.getAttendanceStatus()) || "On Time".equalsIgnoreCase(att.getAttendanceStatus())).count();
 
       long previousExpectedAttendances = departmentEmployeeCount * previousWorkingDays;
 
-      double previousOnTimePercentage = previousExpectedAttendances > 0 ?
-        previousOnTimeCount * 100.0 / previousExpectedAttendances : 0;
+      double previousOnTimePercentage = previousExpectedAttendances > 0 ? previousOnTimeCount * 100.0 / previousExpectedAttendances : 0;
 
       double improvement = onTimePercentage - previousOnTimePercentage;
       departmentImprovement.put(departmentId, improvement);
 
       String color = departmentColors.getOrDefault(departmentId, "#8B5CF6");
 
-      departmentData.add(AttendanceAnalyticDTO.DepartmentDataDTO.builder()
-        .name(department.getDepartmentName())
-        .value(Math.round(onTimePercentage * 10) / 10.0)
-        .color(color)
-        .build());
+      departmentData.add(AttendanceAnalyticDTO.DepartmentDataDTO.builder().name(department.getDepartmentName()).value(Math.round(onTimePercentage * 10) / 10.0).color(color).build());
     }
 
     departmentData.sort((d1, d2) -> Double.compare(d2.getValue(), d1.getValue()));
@@ -704,92 +601,55 @@ public class AttendanceService {
     AttendanceAnalyticDTO.DepartmentInfoDTO topDepartment = null;
     if (!departmentData.isEmpty()) {
       AttendanceAnalyticDTO.DepartmentDataDTO top = departmentData.get(0);
-      topDepartment = AttendanceAnalyticDTO.DepartmentInfoDTO.builder()
-        .name(top.getName())
-        .rate(top.getValue())
-        .build();
+      topDepartment = AttendanceAnalyticDTO.DepartmentInfoDTO.builder().name(top.getName()).rate(top.getValue()).build();
     }
 
     AttendanceAnalyticDTO.ImprovedDepartmentDTO mostImproved = null;
     if (!departmentImprovement.isEmpty()) {
-      Map.Entry<Integer, Double> mostImprovedEntry = departmentImprovement.entrySet().stream()
-        .max(Map.Entry.comparingByValue())
-        .orElse(null);
+      Map.Entry<Integer, Double> mostImprovedEntry = departmentImprovement.entrySet().stream().max(Map.Entry.comparingByValue()).orElse(null);
 
       if (mostImprovedEntry != null) {
         int departmentId = mostImprovedEntry.getKey();
-        String departmentName = departments.stream()
-          .filter(d -> d.getDepartmentId() == departmentId)
-          .findFirst()
-          .map(DepartmentDTO::getDepartmentName)
-          .orElse("Unknown");
+        String departmentName = departments.stream().filter(d -> d.getDepartmentId() == departmentId).findFirst().map(DepartmentDTO::getDepartmentName).orElse("Unknown");
 
-        mostImproved = AttendanceAnalyticDTO.ImprovedDepartmentDTO.builder()
-          .name(departmentName)
-          .improvement(Math.round(mostImprovedEntry.getValue() * 10) / 10.0)
-          .build();
+        mostImproved = AttendanceAnalyticDTO.ImprovedDepartmentDTO.builder().name(departmentName).improvement(Math.round(mostImprovedEntry.getValue() * 10) / 10.0).build();
       }
     }
 
     AttendanceAnalyticDTO.DepartmentInfoDTO needsAttention = null;
     if (departmentData.size() > 1) {
       AttendanceAnalyticDTO.DepartmentDataDTO worst = departmentData.get(departmentData.size() - 1);
-      needsAttention = AttendanceAnalyticDTO.DepartmentInfoDTO.builder()
-        .name(worst.getName())
-        .rate(worst.getValue())
-        .build();
+      needsAttention = AttendanceAnalyticDTO.DepartmentInfoDTO.builder().name(worst.getName()).rate(worst.getValue()).build();
     }
 
-    AttendanceAnalyticDTO.DepartmentSummaryDTO summary = AttendanceAnalyticDTO.DepartmentSummaryDTO.builder()
-      .topDepartment(topDepartment)
-      .mostImproved(mostImproved)
-      .needsAttention(needsAttention)
-      .build();
+    AttendanceAnalyticDTO.DepartmentSummaryDTO summary = AttendanceAnalyticDTO.DepartmentSummaryDTO.builder().topDepartment(topDepartment).mostImproved(mostImproved).needsAttention(needsAttention).build();
 
-    return AttendanceAnalyticDTO.DepartmentComparisonDTO.builder()
-      .departments(departmentData)
-      .summary(summary)
-      .build();
+    return AttendanceAnalyticDTO.DepartmentComparisonDTO.builder().departments(departmentData).summary(summary).build();
   }
 
   public String checkAttendance(Integer employeeId, String type) {
-    if("clockin".equals(type)) {
+    if ("clockin".equals(type)) {
       AttendanceDTO attendanceDTO = getAttendanceByEmployeeIdAndDate(employeeId, LocalDate.now());
       Employee employee = employeeRepository.findEmployeeByEmployeeId(employeeId);
-      if(attendanceDTO.getAttendanceCheckIn() != null) return "Already Clock In";
-      Attendance attendance = Attendance.builder()
-        .checkIn(LocalTime.now())
-        .checkOut(null)
-        .date(LocalDate.now())
-        .status("Đúng giờ")
-        .employee(employee)
-        .build();
+      if (attendanceDTO.getAttendanceCheckIn() != null) return "Already Clock In";
+      Attendance attendance = Attendance.builder().checkIn(LocalTime.now()).checkOut(null).date(LocalDate.now()).status("Đúng giờ").employee(employee).build();
 
       saveAttendance(attendance);
       String notificationText = "Employee ID #" + employee.getEmployeeId() + " clock-in";
-      ChannelDTO systemChannel = channelDTOMapper.toDTO(channelRepository.getChannelByChannelName("System"));
+      ChannelDTO systemChannel = channelDTOMapper.toDTO(channelService.getChannelByChannelName("System"));
 
       User adminUser = userRepository.findUserByRole("SYSTEM");
-      MessageDTO messageDTO = MessageDTO.builder()
-        .channelId(systemChannel.getChannelId())
-        .userId(adminUser.getUserId())
-        .username("System Notification")
-        .messageContent(notificationText)
-        .messageCreatedAt(LocalDateTime.now())
-        .build();
+      MessageDTO messageDTO = MessageDTO.builder().channelId(systemChannel.getChannelId()).userId(adminUser.getUserId()).username("System Notification").messageContent(notificationText).messageCreatedAt(LocalDateTime.now()).build();
 
-      MessageDTO savedMessage = channelService.saveMessage(messageDTO);
+      MessageDTO savedMessage = messageService.saveMessage(messageDTO);
 
-      simpMessagingTemplate.convertAndSend(
-        "/topic/chat/" + systemChannel.getChannelId(),
-        savedMessage
-      );
+      simpMessagingTemplate.convertAndSend("/topic/chat/" + systemChannel.getChannelId(), savedMessage);
       return "Clock In";
-    } else if("clockout".equals(type)) {
+    } else if ("clockout".equals(type)) {
       AttendanceDTO attendance = getAttendanceByEmployeeIdAndDate(employeeId, LocalDate.now());
       log.info(attendance.toString());
-      if(attendance.getAttendanceCheckIn() == null) return "Not yet Clock In";
-      if(attendance.getAttendanceCheckOut() != null) return "Already Clock Out";
+      if (attendance.getAttendanceCheckIn() == null) return "Not yet Clock In";
+      if (attendance.getAttendanceCheckOut() != null) return "Already Clock Out";
       attendance.setAttendanceCheckOut(LocalTime.now());
       attendance.setAttendanceOvertimeHours(calculateOvertimeHours(attendance.getAttendanceCheckIn(), attendance.getAttendanceCheckOut()));
 
@@ -799,27 +659,19 @@ public class AttendanceService {
 
       saveAttendance(existedAttendance);
       String notificationText = "Employee ID #" + attendance.getEmployeeId() + " clock-out";
-      ChannelDTO systemChannel = channelDTOMapper.toDTO(channelRepository.getChannelByChannelName("System"));
+      ChannelDTO systemChannel = channelDTOMapper.toDTO(channelService.getChannelByChannelName("System"));
 
       User adminUser = userRepository.findUserByRole("SYSTEM");
-      MessageDTO messageDTO = MessageDTO.builder()
-        .channelId(systemChannel.getChannelId())
-        .userId(adminUser.getUserId())
-        .username("System Notification")
-        .messageContent(notificationText)
-        .messageCreatedAt(LocalDateTime.now())
-        .build();
+      MessageDTO messageDTO = MessageDTO.builder().channelId(systemChannel.getChannelId()).userId(adminUser.getUserId()).username("System Notification").messageContent(notificationText).messageCreatedAt(LocalDateTime.now()).build();
 
-      MessageDTO savedMessage = channelService.saveMessage(messageDTO);
+      MessageDTO savedMessage = messageService.saveMessage(messageDTO);
 
-      simpMessagingTemplate.convertAndSend(
-        "/topic/chat/" + systemChannel.getChannelId(),
-        savedMessage
-      );
+      simpMessagingTemplate.convertAndSend("/topic/chat/" + systemChannel.getChannelId(), savedMessage);
       return "Clock Out";
     }
     return null;
   }
+
   private Double calculateOvertimeHours(LocalTime checkIn, LocalTime checkOut) {
     if (checkIn == null || checkOut == null) {
       return 0.0;
@@ -841,6 +693,7 @@ public class AttendanceService {
       return 0.0;
     }
   }
+
   public void saveAttendance(Attendance attendance) {
     try {
       log.info("Saving attendance: {}", attendance);
@@ -851,6 +704,7 @@ public class AttendanceService {
       throw e;
     }
   }
+
   public Resource exportAttendanceToExcel(List<Integer> employeeIds, LocalDate startDate, LocalDate endDate) {
     Pageable pageable = PageRequest.of(0, 1000);
     List<Attendance> attendances;
@@ -937,6 +791,7 @@ public class AttendanceService {
       throw new RuntimeException("Error exporting attendance data to Excel", e);
     }
   }
+
   public Page<AttendanceDTO> getAll(LocalDate startDate, LocalDate endDate, String status, Pageable pageable) {
     log.info("Fetching attendance records from {} to {} with status: {}", startDate, endDate, status);
 
@@ -950,4 +805,114 @@ public class AttendanceService {
     log.info("Fetched {} attendance records", attendances.getTotalElements());
     return attendances.map(attendanceDTOMapper::toDTO);
   }
+
+  public int countDailyAttendance(LocalDate date) {
+    return attendanceRepository.countCheckedInEmployees(date);
+  }
+
+
+  public List<EmployeeAttendanceStatusDTO> getEmployeeAttendanceStatus(String date, Pageable pageable) {
+    YearMonth yearMonth = YearMonth.parse(date, DateTimeFormatter.ofPattern("yyyy-MM"));
+    int year = yearMonth.getYear();
+    int month = yearMonth.getMonthValue();
+    int daysInMonth = yearMonth.lengthOfMonth();
+
+    List<Attendance> attendanceList = attendanceRepository.findAllAttendanceByMonthYear(year, month);
+
+
+    Map<Integer, EmployeeAttendanceStatusDTO> employeeStatusMap = new HashMap<>();
+
+    for (Attendance attendance : attendanceList) {
+      Employee employee = attendance.getEmployee();
+      int employeeId = employee.getEmployeeId();
+
+
+      EmployeeAttendanceStatusDTO employeeAttendanceStatusDTO = employeeStatusMap.getOrDefault(employeeId, EmployeeAttendanceStatusDTO.builder().employee(employeeService.getEmployeeByEmployeeId(employeeId)).countLateDays(0).countAbsentDays(0).monthYear(yearMonth).build());
+
+      if (attendance.getStatus().startsWith("Đi muộn")) {
+        employeeAttendanceStatusDTO.setCountLateDays(employeeAttendanceStatusDTO.getCountLateDays() + 1);
+      } else if (attendance.getStatus().equals("Đúng giờ")) {
+        employeeAttendanceStatusDTO.setCountAbsentDays(employeeAttendanceStatusDTO.getCountAbsentDays() + 1);
+      }
+
+
+      employeeStatusMap.put(employeeId, employeeAttendanceStatusDTO);
+    }
+    for (EmployeeAttendanceStatusDTO dto : employeeStatusMap.values()) {
+      dto.setMonthYear(dto.getMonthYear());
+      int totalDaysPresent = dto.getCountAbsentDays() + dto.getCountLateDays();
+      dto.setCountAbsentDays(daysInMonth - countWeekendDays(year, month) - totalDaysPresent);
+    }
+
+    List<EmployeeAttendanceStatusDTO> employeeAttendanceStatusDTOS = new ArrayList<>(employeeStatusMap.values());
+
+    return employeeAttendanceStatusDTOS;
+  }
+
+  public List<EmployeeAttendanceStatusDTO> findEmployeeAttendanceStatusbyEmployeeName(String search, Pageable pageable, String date) {
+    String[] searchTerms = search.trim().split("\\s+");
+    String firstName = searchTerms[0].toLowerCase();
+    String lastName = searchTerms.length > 1 ? Arrays.stream(searchTerms, 1, searchTerms.length).collect(Collectors.joining(" ")).toLowerCase() : null;
+    Page<Employee> employees = employeeRepository.searchEmployeebyEmployeeName(firstName, lastName, pageable);
+    System.out.println("date: " + date);
+    System.out.println("check: " + employees.getContent());
+    List<Long> employeeIds = employees.getContent().stream().map(emp -> emp.getEmployeeId().longValue()).collect(Collectors.toList());
+
+    System.out.println("check Employeeid: " + employeeIds.toString());
+
+
+    if (employeeIds.isEmpty()) {
+      return Collections.emptyList();
+    }
+    List<EmployeeAttendanceStatusDTO> employeeAttendanceStatusDTOList = getEmployeeAttendanceStatus(date, pageable);
+//    for (EmployeeAttendanceStatusDTO dto : employeeAttendanceStatusDTOList) {
+//      System.out.println("DTO Employee ID Type: " + dto.getEmployee().getEmployeeId().getClass().getName());
+//    }
+//    System.out.println("Set Employee ID Type: " + employeeIds.get(0).getClass().getName());
+
+    System.out.println(employeeAttendanceStatusDTOList);
+    Set<Long> employeeIdSet = employeeIds.stream().map(Long::valueOf).collect(Collectors.toSet());
+
+    return employeeAttendanceStatusDTOList.stream().filter(dto -> employeeIdSet.contains(dto.getEmployee().getEmployeeId().longValue())) // Ép kiểu về Long trước khi so sánh
+      .collect(Collectors.toList());
+  }
+
+  public int countWeekendDays(int year, int month) {
+    Calendar calendar = Calendar.getInstance();
+
+    calendar.set(year, month - 1, 1);
+    int daysInMonth = calendar.getActualMaximum(Calendar.DAY_OF_MONTH);
+
+    int count = 0;
+    for (int day = 1; day <= daysInMonth; day++) {
+      calendar.set(year, month - 1, day);
+      int dayOfWeek = calendar.get(Calendar.DAY_OF_WEEK);
+      if (dayOfWeek == Calendar.SUNDAY || dayOfWeek == Calendar.SATURDAY) {
+        count++;
+
+      }
+    }
+    return count;
+  }
+
+  public List<EmployeeAttendanceStatusDTO> departmentFilter(String departmentName, Pageable pageable, String date) {
+    System.out.println(departmentName);
+    Page<Employee> employees = employeeRepository.findEmployeesByDepartmentName(departmentName, pageable);
+    System.out.println(employees.getContent());
+    List<Long> employeeIds = employees.getContent().stream().map(emp -> emp.getEmployeeId().longValue()).collect(Collectors.toList());
+
+    System.out.println("check Employeeid: " + employeeIds.toString());
+
+
+    if (employeeIds.isEmpty()) {
+      return Collections.emptyList();
+    }
+    List<EmployeeAttendanceStatusDTO> employeeAttendanceStatusDTOList = getEmployeeAttendanceStatus(date, pageable);
+
+    Set<Long> employeeIdSet = employeeIds.stream().map(Long::valueOf).collect(Collectors.toSet());
+
+    return employeeAttendanceStatusDTOList.stream().filter(dto -> employeeIdSet.contains(dto.getEmployee().getEmployeeId().longValue())).collect(Collectors.toList());
+  }
+
+
 }

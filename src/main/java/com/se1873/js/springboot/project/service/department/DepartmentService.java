@@ -1,8 +1,9 @@
-package com.se1873.js.springboot.project.service;
+package com.se1873.js.springboot.project.service.department;
 
-import com.se1873.js.springboot.project.dto.DepartmentDTO;
 import com.se1873.js.springboot.project.entity.Department;
+import com.se1873.js.springboot.project.mapper.DepartmentDTOMapper;
 import com.se1873.js.springboot.project.repository.DepartmentRepository;
+import com.se1873.js.springboot.project.service.department.query.DepartmentQueryService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.cache.annotation.CacheEvict;
@@ -17,13 +18,15 @@ import java.util.List;
 @Transactional
 @RequiredArgsConstructor
 public class DepartmentService {
+  private final DepartmentDTOMapper departmentDTOMapper;
 
   private final DepartmentRepository departmentRepository;
+  private final DepartmentQueryService departmentQueryService;
 
   @Cacheable(value = "departments", key = "'allDepartments'")
   public List<Department> getAllDepartments() {
     log.info("Loading departments from DB...");
-    return departmentRepository.findAll();
+    return departmentQueryService.getAllDepartments();
   }
 
   @CacheEvict(value = "departments", allEntries = true)
@@ -31,11 +34,7 @@ public class DepartmentService {
     log.info("Clearing departments cache...");
   }
 
-  private DepartmentDTO convertDepartmentToDepartmentDTO(Department department) {
-    return DepartmentDTO
-      .builder()
-      .departmentId(department.getDepartmentId())
-      .departmentName(department.getDepartmentName())
-      .build();
+  public Department findDepartmentByDepartmentId(Integer departmentId) {
+    return departmentQueryService.findDepartmentByDepartmentId(departmentId);
   }
 }

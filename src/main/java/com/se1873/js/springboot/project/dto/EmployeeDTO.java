@@ -46,6 +46,7 @@ public class EmployeeDTO {
   private String departmentName;
   private String departmentDescription;
   private String departmentCode;
+  private Integer managerId;
   private LocalDateTime departmentCreatedAt;
 
   private Integer positionId;

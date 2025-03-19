@@ -28,6 +28,9 @@ public class Department {
   @Column(name = "description")
   private String description;
 
+  @Column(name = "manager_id")
+  private Integer managerId;
+
   @Column(name = "created_at")
   private LocalDateTime createdAt;
   @ToString.Exclude

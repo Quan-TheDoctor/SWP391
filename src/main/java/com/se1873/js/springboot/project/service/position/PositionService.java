@@ -1,8 +1,8 @@
-package com.se1873.js.springboot.project.service;
+package com.se1873.js.springboot.project.service.position;
 
-import com.se1873.js.springboot.project.entity.Department;
 import com.se1873.js.springboot.project.entity.Position;
 import com.se1873.js.springboot.project.repository.PositionRepository;
+import com.se1873.js.springboot.project.service.position.query.PositionQueryService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.cache.annotation.CacheEvict;
@@ -18,6 +18,7 @@ import java.util.List;
 @RequiredArgsConstructor
 public class PositionService {
   private final PositionRepository positionRepository;
+  private final PositionQueryService positionQueryService;
 
   @Cacheable(value = "positions", key = "'allPositions'")
   public List<Position> getAllPositions() {
@@ -29,6 +30,11 @@ public class PositionService {
   public void refreshPositionsCache() {
     log.info("Clearing positions cache...");
   }
+
+  public Position findPositionByPositionId(Integer positionId) {
+    return positionQueryService.findPositionByPositionId(positionId);
+  }
+
   public List<Position> getPositionsByDepartmentId(Integer departmentId) {
     return positionRepository.getPositionsByDepartment_DepartmentId(departmentId);
   }

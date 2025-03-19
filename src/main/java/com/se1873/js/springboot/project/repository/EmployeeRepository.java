@@ -2,6 +2,7 @@ package com.se1873.js.springboot.project.repository;
 
 import com.se1873.js.springboot.project.dto.EmployeeDTO;
 import com.se1873.js.springboot.project.entity.Employee;
+import com.se1873.js.springboot.project.entity.User;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
@@ -39,10 +40,23 @@ public interface EmployeeRepository extends JpaRepository<Employee, Long> {
           "lower(e.lastName) like concat('%',:lastName,'%')) and e.isDeleted = false ")
   Page<Employee> searchEmployee(@Param("firstName") String firstName,@Param("lastName") String lastName,Pageable pageable);
 
+  @Query("SELECT e FROM Employee e " +
+          "WHERE (:firstName IS NULL OR lower(e.firstName) LIKE concat('%', :firstName, '%')) " +
+          "AND (:lastName IS NULL OR lower(e.lastName) LIKE concat('%', :lastName, '%')) " +
+          "AND e.isDeleted = false")
+  Page<Employee> searchEmployeebyEmployeeName(@Param("firstName") String firstName,
+                                @Param("lastName") String lastName,
+                                Pageable pageable);
+
   @Query("select count(e.employeeId) from Employee e")
   Integer getEmployeeCount();
 
 
   List<Employee> findAllByEmployeeIdIn(List<Integer> employeeIds);
 
+  Employee getEmployeeByEmployeeIdAndIsDeleted(Integer employeeId, Boolean isDeleted);
+
+  Employee getEmployeeByUser(User user);
+
+  Employee getEmployeeByUser_UserId(Integer userUserId);
 }

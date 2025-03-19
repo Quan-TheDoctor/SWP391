@@ -29,6 +29,7 @@ public abstract class EmployeeDTOMapper {
   @Mapping(target = "departmentDescription", ignore = true)
   @Mapping(target = "departmentCode", ignore = true)
   @Mapping(target = "departmentCreatedAt", ignore = true)
+  @Mapping(target = "managerId", ignore = true)
 
   @Mapping(target = "positionId", ignore = true)
   @Mapping(target = "positionName", ignore = true)
@@ -118,6 +119,7 @@ public abstract class EmployeeDTOMapper {
       dto.setDepartmentDescription(department.getDescription());
       dto.setDepartmentCode(department.getDepartmentCode());
       dto.setDepartmentCreatedAt(department.getCreatedAt());
+      dto.setManagerId(department.getManagerId());
     }
 
     if (history.getPosition() != null) {

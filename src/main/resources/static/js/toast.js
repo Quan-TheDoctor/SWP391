@@ -1,5 +1,6 @@
 const ToastManager = {
     toastNotify: (message, type = 'success') => {
+        if(message == null) return;
         const toast = document.createElement('div');
         const bgColor = type === 'success' ? 'bg-green-100 border-green-500 text-green-700' : type === 'error' ? 'bg-red-100 border-red-500 text-red-700' : 'bg-grey-100 border-red-500 text-black';
         toast.className = `fixed top-4 right-4 ${bgColor} border-l-4 p-4 rounded shadow-md z-[9999] transition-opacity duration-500`;

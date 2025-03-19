@@ -2,7 +2,7 @@ package com.se1873.js.springboot.project.api;
 
 import com.se1873.js.springboot.project.dto.EmployeeDTO;
 import com.se1873.js.springboot.project.dto.EmployeeCountDTO;
-import com.se1873.js.springboot.project.service.EmployeeService;
+import com.se1873.js.springboot.project.service.employee.EmployeeService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.Page;
@@ -25,7 +25,7 @@ public class EmployeeAPI {
 
   @RequestMapping("/employeeAvailable")
     public ResponseEntity<EmployeeCountDTO> employeeAvailable() {
-        EmployeeCountDTO employeeDTO = employeeService.getEmployeeDTOIsCurrent();
+        EmployeeCountDTO employeeDTO = employeeService.getAvailableAndUnavailableEmployeeCount();
         return ResponseEntity.ok(employeeDTO);
     }
   @GetMapping("/getAllByDepartmentId")

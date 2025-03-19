@@ -3,9 +3,9 @@ package com.se1873.js.springboot.project.controller;
 import com.se1873.js.springboot.project.dto.EmployeeDTO;
 import com.se1873.js.springboot.project.entity.User;
 import com.se1873.js.springboot.project.repository.EmployeeRepository;
-import com.se1873.js.springboot.project.service.DepartmentService;
-import com.se1873.js.springboot.project.service.EmployeeService;
-import com.se1873.js.springboot.project.service.PositionService;
+import com.se1873.js.springboot.project.service.department.DepartmentService;
+import com.se1873.js.springboot.project.service.employee.EmployeeService;
+import com.se1873.js.springboot.project.service.position.PositionService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -32,6 +32,7 @@ import java.util.List;
 @Slf4j
 @RequiredArgsConstructor
 @RequestMapping("/employee")
+@SessionAttributes("employees")
 public class EmployeeController {
 
   private final EmployeeService employeeService;
@@ -39,7 +40,10 @@ public class EmployeeController {
   private final DepartmentService departmentService;
   private final PositionService positionService;
   private final GlobalController globalController;
-  private Page<EmployeeDTO> employeeDTOPage;
+  @ModelAttribute("employees")
+  public Page<EmployeeDTO> initDataPage() {
+    return Page.empty();
+  }
   private final static String EMPLOYEE = "employee";
 
   @ModelAttribute
@@ -54,13 +58,8 @@ public class EmployeeController {
     Model model,
     @ModelAttribute("loggedInUser") User loggedInUser) {
     Page<EmployeeDTO> employees = employeeService.getAll(pageable);
-    var totalEmployees = employeeRepository.count();
-    var avgSalary = employees.getContent().stream()
-      .mapToDouble(EmployeeDTO::getContractBaseSalary)
-      .average()
-      .orElse(0.0);
-
-    employeeDTOPage = employees;
+    var totalEmployees = employees.getTotalElements();
+    var avgSalary = employeeService.getAverageSalary(employees.getContent());
 
     addCommonAttributes(model);
     model.addAttribute("totalEmployees", totalEmployees);
@@ -152,10 +151,11 @@ public class EmployeeController {
                        @ModelAttribute("loggedInUser") User loggedInUser) {
     Pageable pageable = PageRequest.of(page, size);
     var employees = employeeService.filterByField(field, value, pageable);
+    if("all".equals(value)) {
+      employees = employeeService.getAll(pageable);
+    }
     var totalEmployees = employees.getTotalElements();
     var avgSalary = employees.getContent().stream().mapToDouble(EmployeeDTO::getContractBaseSalary).average().orElse(0.0);
-
-    employeeDTOPage = employees;
 
     globalController.createAuditLog(loggedInUser, "Filter list Employee by " + field , "View", "Normal");
     addCommonAttributes(model);
@@ -177,8 +177,6 @@ public class EmployeeController {
     var totalEmployees = employees.getTotalElements();
     var avgSalary = employees.getContent().stream().mapToDouble(EmployeeDTO::getContractBaseSalary).average().orElse(0.0);
 
-    employeeDTOPage = employees;
-
     globalController.createAuditLog(loggedInUser, "Search Employee by " + query , "View", "Normal");
     addCommonAttributes(model);
     model.addAttribute("employees", employees);
@@ -194,9 +192,10 @@ public class EmployeeController {
                      @RequestParam("direction") String direction,
                      @RequestParam(value = "page", defaultValue = "0") int page,
                      @RequestParam(value = "size", defaultValue = "10") int size,
-                     @ModelAttribute("loggedInUser") User loggedInUser) {
+                     @ModelAttribute("loggedInUser") User loggedInUser,
+                     @ModelAttribute("employees") Page<EmployeeDTO> filteredEmployeePage) {
     Pageable pageable = PageRequest.of(page, size);
-    var employees = employeeService.sort(employeeDTOPage, direction, field);
+    var employees = employeeService.sort(filteredEmployeePage, direction, field);
 
     globalController.createAuditLog(loggedInUser, "Sort Employee by " + field + " in " + direction + " order", "View", "Normal");
     model.addAttribute("employees", employees);

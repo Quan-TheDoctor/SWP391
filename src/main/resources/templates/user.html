@@ -27,26 +27,11 @@
         <div class="bg-indigo-50 px-8 py-6 border-b flex justify-between items-center">
             <h1 class="text-2xl font-bold text-gray-800">Employee Profile</h1>
             <!-- Action Buttons -->
-            <div class="flex gap-2 h-12 w-fit">
-                <a th:href="@{/user/attendance}" class="px-2 py-1 bg-blue-500 text-white text-sm rounded-lg hover:bg-blue-600 transition-colors flex items-center justify-center">Attendance</a>
-                <a th:href="@{/user/payroll}" class="px-2 py-1 bg-green-500 text-white text-sm rounded-lg hover:bg-green-600 transition-colors flex items-center justify-center">Payroll</a>
-                <a th:href="@{/user/request/create}" class="px-2 py-1 bg-purple-500 text-white text-sm rounded-lg hover:bg-purple-600 transition-colors flex items-center justify-center">Request</a>
-                <div class="relative flex gap-2 h-12 w-fit">
-                    <a th:href="@{/user/notification}" class="relative p-1.5 rounded-full bg-gray-200 hover:bg-gray-300 transition-colors flex items-center justify-center">
-                        <!-- Bell Icon -->
-                        <svg class="w-5 h-5 text-gray-700" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                                  d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6 6 0 10-12 0v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0a3 3 0 11-6 0m6 0H9"/>
-                        </svg>
-                        <!-- Notification Badge -->
-                        <span th:if="${unreadCount > 0}"
-                              th:text="${unreadCount}"
-                              class="absolute -top-1 -right-1 bg-red-500 text-white text-xs font-bold px-1.5 py-0.5 rounded-full">
-                        </span>
-                    </a>
-                </div>
+            <div class="flex gap-4">
+                <a th:href="@{/user/attendance}" class="px-4 py-2 bg-blue-500 text-white rounded-lg hover:bg-blue-600 transition-colors">Attendance</a>
+                <a th:href="@{/user/payroll}" class="px-4 py-2 bg-green-500 text-white rounded-lg hover:bg-green-600 transition-colors">Payroll</a>
+                <a th:href="@{/user/request/create}" class="px-4 py-2 bg-purple-500 text-white rounded-lg hover:bg-purple-600 transition-colors">Request</a>
             </div>
-
         </div>
 
         <!-- Content Grid -->

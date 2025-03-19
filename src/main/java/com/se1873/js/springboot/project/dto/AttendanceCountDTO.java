@@ -14,4 +14,5 @@ public class AttendanceCountDTO {
     Integer workedEmployee;
     Integer lateEmployee;
     Integer absenceEmployee;
+
 }

@@ -28,7 +28,23 @@ target/
 build/
 !**/src/main/**/build/
 !**/src/test/**/build/
+# Node modules
+node_modules/
+*/node_modules/
+*/*/node_modules/
+
+# Build files
+target/
+build/
+dist/
+
+# Face recognition data if not needed in repository
+src/main/face_recog/**
 
 ### VS Code ###
 .vscode/
-
+/src/main/face_recog/Classifiers/
+/src/main/frontend/node_modules/
+/New folder/
+/dev-backup/
+/datasets/

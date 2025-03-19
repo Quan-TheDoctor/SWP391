@@ -1,0 +1,75 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Leave Management</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+</head>
+<body class="bg-gray-100 min-h-screen p-6">
+
+<div class="max-w-7xl mx-auto space-y-6">
+    <!-- Header Section -->
+    <div class="flex flex-col md:flex-row gap-4 items-center justify-end">
+        <div class="flex gap-2">
+            <a th:href="@{/homepage}" class="px-4 py-2 bg-blue-300 text-white rounded-md hover:bg-blue-700 flex items-center gap-2">Homepage</a>
+        </div>
+        <div class="flex gap-2">
+            <a th:href="@{/employee}" class="px-4 py-2 bg-blue-300 text-white rounded-md hover:bg-blue-700 flex items-center gap-2">Employee</a>
+        </div>
+        <div class="flex gap-2">
+            <a th:href="@{/attendance}" class="px-4 py-2 bg-blue-300 text-white rounded-md hover:bg-blue-700 flex items-center gap-2">Attendance</a>
+        </div>
+        <div class="flex gap-2">
+            <a th:href="@{/payroll}" class="px-4 py-2 bg-blue-300 text-white rounded-md hover:bg-blue-700 flex items-center gap-2">Payroll</a>
+        </div>
+        <div class="flex gap-2">
+            <a th:href="@{/request}" class="px-4 py-2 bg-blue-300 text-white rounded-md hover:bg-blue-700 flex items-center gap-2">Request</a>
+        </div>
+        <div class="flex gap-2">
+            <a th:href="@{/leave}" class="px-4 py-2 bg-blue-300 text-white rounded-md hover:bg-blue-700 flex items-center gap-2">Leave</a>
+        </div>
+    </div>
+    <div class="max-w-4xl mx-auto bg-white p-6 rounded-lg shadow-md">
+        <h2 class="text-2xl font-bold text-center mb-4">Leave Management</h2>
+        <div class="flex justify-between mb-4">
+            <input type="text" id="search" placeholder="Search employee..." class="w-1/2 p-2 border border-gray-300 rounded-md">
+            <select id="leaveTypeFilter" class="w-1/2 p-2 border border-gray-300 rounded-md">
+                <option value="all">All Leave Types</option>
+                <option value="annual">Annual Leave</option>
+                <option value="sick">Sick Leave</option>
+                <option value="maternity">Maternity Leave</option>
+                <option value="other">Other</option>
+            </select>
+        </div>
+        <table class="w-full border-collapse border border-gray-300">
+            <thead>
+            <tr class="bg-blue-500 text-white">
+                <th class="p-2 border border-gray-300">Name</th>
+                <th class="p-2 border border-gray-300">Leave Type</th>
+                <th class="p-2 border border-gray-300">Start Date</th>
+                <th class="p-2 border border-gray-300">End Date</th>
+                <th class="p-2 border border-gray-300">Days</th>
+            </tr>
+            </thead>
+            <tbody>
+            <tr class="bg-gray-100">
+                <td class="p-2 border border-gray-300">Nguyễn Văn An</td>
+                <td class="p-2 border border-gray-300">Annual Leave</td>
+                <td class="p-2 border border-gray-300">01/03/2024</td>
+                <td class="p-2 border border-gray-300">05/03/2024</td>
+                <td class="p-2 border border-gray-300">5</td>
+            </tr>
+            <tr class="bg-white">
+                <td class="p-2 border border-gray-300">Trần Bảo Hùng</td>
+                <td class="p-2 border border-gray-300">Sick Leave</td>
+                <td class="p-2 border border-gray-300">10/02/2024</td>
+                <td class="p-2 border border-gray-300">12/02/2024</td>
+                <td class="p-2 border border-gray-300">3</td>
+            </tr>
+            </tbody>
+        </table>
+    </div>
+</div>
+</body>
+</html>
