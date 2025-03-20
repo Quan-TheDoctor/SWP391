@@ -59,4 +59,10 @@ public interface EmployeeRepository extends JpaRepository<Employee, Long> {
   Employee getEmployeeByUser(User user);
 
   Employee getEmployeeByUser_UserId(Integer userUserId);
+  @Query("SELECT e FROM Employee e " +
+          "JOIN e.employmentHistories eh " +
+          "JOIN eh.department d " +
+          "JOIN eh.position p " +
+          "WHERE d.departmentName = :departmentName AND p.positionName = :positionName AND eh.isCurrent = true")
+  Page<Employee> findEmployeesByDepartmentNameAndPosition(@Param("departmentName") String department, @Param("positionName") String position, Pageable pageable);
 }

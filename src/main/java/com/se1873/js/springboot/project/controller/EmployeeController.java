@@ -215,7 +215,6 @@ public class EmployeeController {
     var employees = employeeService.exportFilteredEmployees(department, position, pageable);
     var totalEmployees = employees.getTotalElements();
 
-
     model.addAttribute("totalEmployees", totalEmployees);
     model.addAttribute("currentPage", page + 1);
     model.addAttribute("totalPages", employees.getTotalPages());
@@ -227,26 +226,26 @@ public class EmployeeController {
     model.addAttribute("contentFragment", "fragments/employee-export-fragments");
     return "index";
   }
-
-
   @PostMapping("/export")
   public ResponseEntity<Resource> exportEmployees(
-    @RequestParam(value = "selectedEmployees", required = false) String selectedEmployees,
-    @RequestParam(value = "department", required = false, defaultValue = "all") String department,
-    @RequestParam(value = "position", required = false, defaultValue = "all") String position,
-    @ModelAttribute("loggedInUser") User loggedInUser) {
+          @RequestParam(value = "selectedEmployees", required = false) String selectedEmployees,
+          @RequestParam(value = "department", required = false, defaultValue = "all") String department,
+          @RequestParam(value = "position", required = false, defaultValue = "all") String position) {
+
+    log.info("Exporting employee data. Selected IDs: {}, Department: {}, Position: {}", selectedEmployees, department, position);
 
     List<Integer> employeeIds = (selectedEmployees != null && !selectedEmployees.isEmpty())
-      ? Arrays.stream(selectedEmployees.split(",")).map(Integer::parseInt).toList()
-      : null;
+            ? Arrays.stream(selectedEmployees.split(",")).map(Integer::parseInt).toList()
+            : null;
+
+    Page<EmployeeDTO> employees = employeeService.exportFilteredEmployees(department, position, PageRequest.of(0, 1000));
 
     Resource file = employeeService.exportToExcel(employeeIds, department, position);
 
-    globalController.createAuditLog(loggedInUser, "Exports list Employees" , "Export", "Normal");
     return ResponseEntity.ok()
-      .header(HttpHeaders.CONTENT_DISPOSITION, "attachment; filename=employees.xlsx")
-      .contentType(MediaType.APPLICATION_OCTET_STREAM)
-      .body(file);
+            .header(HttpHeaders.CONTENT_DISPOSITION, "attachment; filename=employees.xlsx")
+            .contentType(MediaType.APPLICATION_OCTET_STREAM)
+            .body(file);
   }
 
 

@@ -29,6 +29,8 @@ import org.springframework.core.io.Resource;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.util.List;
+import java.util.Map;
+import java.util.stream.Collectors;
 
 @Service
 @Transactional
@@ -88,21 +90,19 @@ public class EmployeeService {
     if (employeeIds != null && !employeeIds.isEmpty()) {
       employees = employeeRepository.findAllByEmployeeIdIn(employeeIds);
     } else if (!"all".equals(departmentFilter) && !"all".equals(positionFilter)) {
-      employees = employeeRepository.findEmployeesByDepartmentName(departmentFilter, pageable).toList()
-        .stream()
-        .filter(emp -> employeeRepository.findEmployeesByPositionName(positionFilter, pageable)
-          .toList().stream().anyMatch(e -> e.getEmployeeId().equals(emp.getEmployeeId())))
-        .toList();
+      List<Employee> departmentEmployees = employeeRepository.findEmployeesByDepartmentName(departmentFilter, pageable).getContent();
+      Map<Integer, Employee> employeeMap = departmentEmployees.stream().collect(Collectors.toMap(Employee::getEmployeeId, e -> e));
+
+      List<Employee> positionEmployees = employeeRepository.findEmployeesByPositionName(positionFilter, pageable).getContent();
+      employees = positionEmployees.stream()
+              .filter(e -> employeeMap.containsKey(e.getEmployeeId()))
+              .collect(Collectors.toList());
     } else if (!"all".equals(departmentFilter)) {
-      employees = employeeRepository.findEmployeesByDepartmentName(departmentFilter, pageable).toList();
+      employees = employeeRepository.findEmployeesByDepartmentName(departmentFilter, pageable).getContent();
     } else if (!"all".equals(positionFilter)) {
-      employees = employeeRepository.findEmployeesByPositionName(positionFilter, pageable).toList();
+      employees = employeeRepository.findEmployeesByPositionName(positionFilter, pageable).getContent();
     } else {
       employees = employeeRepository.findAll(pageable).getContent();
-    }
-
-    if (employees.isEmpty()) {
-      log.warn("Không có nhân viên nào để export.");
     }
 
     try (Workbook workbook = new XSSFWorkbook(); ByteArrayOutputStream out = new ByteArrayOutputStream()) {
@@ -124,13 +124,11 @@ public class EmployeeService {
 
       sheet.addMergedRegion(new CellRangeAddress(0, 0, 0, 4));
 
-      // Tạo font cho tiêu đề cột
       Font headerFont = workbook.createFont();
       headerFont.setBold(true);
       headerFont.setFontHeightInPoints((short) 12);
       headerFont.setColor(IndexedColors.WHITE.getIndex());
 
-      // Tạo style cho tiêu đề cột
       CellStyle headerStyle = workbook.createCellStyle();
       headerStyle.setFillForegroundColor(IndexedColors.BLUE_GREY.getIndex());
       headerStyle.setFillPattern(FillPatternType.SOLID_FOREGROUND);
@@ -142,19 +140,16 @@ public class EmployeeService {
       headerStyle.setBorderRight(BorderStyle.THIN);
       headerStyle.setBorderLeft(BorderStyle.THIN);
 
-      // Style cho dữ liệu
       CellStyle dataStyle = workbook.createCellStyle();
       dataStyle.setBorderBottom(BorderStyle.THIN);
       dataStyle.setBorderTop(BorderStyle.THIN);
       dataStyle.setBorderRight(BorderStyle.THIN);
       dataStyle.setBorderLeft(BorderStyle.THIN);
 
-      // Style cho cột lương
       CellStyle salaryStyle = workbook.createCellStyle();
       salaryStyle.cloneStyleFrom(dataStyle);
       salaryStyle.setDataFormat(workbook.createDataFormat().getFormat("#,##0"));
 
-      // Tạo hàng tiêu đề cột
       Row headerRow = sheet.createRow(2);
       String[] columns = {"ID", "Name", "Department", "Position", "Salary"};
       for (int i = 0; i < columns.length; i++) {
@@ -163,31 +158,32 @@ public class EmployeeService {
         cell.setCellStyle(headerStyle);
       }
 
-      // Ghi dữ liệu vào file Excel
       int rowIdx = 3;
       for (Employee emp : employees) {
-        EmploymentHistory employmentHistory = employmentHistoryRepository.findEmploymentHistoryByEmployee_EmployeeIdAndIsCurrent(emp.getEmployeeId(), true);
-        Department department = employmentHistory.getDepartment();
-        Position position = employmentHistory.getPosition();
-        Contract contract = contractRepository.findContractByEmployee_EmployeeIdAndPresent(emp.getEmployeeId(), true);
+        List<EmploymentHistory> currentHistories = employmentHistoryRepository.findCurrentEmploymentHistories(emp.getEmployeeId());
+        if (!currentHistories.isEmpty()) {
+          EmploymentHistory currentHistory = currentHistories.get(0);
 
-        Row row = sheet.createRow(rowIdx++);
-        row.createCell(0).setCellValue(emp.getEmployeeId());
-        row.createCell(1).setCellValue(emp.getFirstName() + " " + emp.getLastName());
-        row.createCell(2).setCellValue(department.getDepartmentName());
-        row.createCell(3).setCellValue(position.getPositionName());
+          Department department = currentHistory.getDepartment();
+          Position position = currentHistory.getPosition();
+          Contract contract = contractRepository.findContractByEmployee_EmployeeIdAndPresent(emp.getEmployeeId(), true);
 
-        Cell salaryCell = row.createCell(4);
-        salaryCell.setCellValue(contract.getBaseSalary());
-        salaryCell.setCellStyle(salaryStyle);
+          Row row = sheet.createRow(rowIdx++);
+          row.createCell(0).setCellValue(emp.getEmployeeId());
+          row.createCell(1).setCellValue(emp.getFirstName() + " " + emp.getLastName());
+          row.createCell(2).setCellValue(department.getDepartmentName());
+          row.createCell(3).setCellValue(position.getPositionName());
 
-        // Áp dụng style cho các ô dữ liệu
-        for (int i = 0; i < 4; i++) {
-          row.getCell(i).setCellStyle(dataStyle);
+          Cell salaryCell = row.createCell(4);
+          salaryCell.setCellValue(contract.getBaseSalary());
+          salaryCell.setCellStyle(salaryStyle);
+
+          for (int i = 0; i < 4; i++) {
+            row.getCell(i).setCellStyle(dataStyle);
+          }
         }
       }
 
-      // Tự động điều chỉnh độ rộng cột
       for (int i = 0; i < columns.length; i++) {
         sheet.autoSizeColumn(i);
       }
@@ -204,13 +200,7 @@ public class EmployeeService {
     Page<Employee> employees;
 
     if (!"all".equals(departmentFilter) && !"all".equals(positionFilter)) {
-      List<Employee> departmentEmployees = employeeRepository.findEmployeesByDepartmentName(departmentFilter, pageable).toList();
-      List<Employee> positionEmployees = employeeRepository.findEmployeesByPositionName(positionFilter, pageable).toList();
-
-      List<Employee> filteredEmployees = departmentEmployees.stream()
-        .filter(positionEmployees::contains)
-        .toList();
-      employees = new PageImpl<>(filteredEmployees, pageable, filteredEmployees.size());
+      employees = employeeRepository.findEmployeesByDepartmentNameAndPosition(departmentFilter, positionFilter, pageable);
     } else if (!"all".equals(departmentFilter)) {
       employees = employeeRepository.findEmployeesByDepartmentName(departmentFilter, pageable);
     } else if (!"all".equals(positionFilter)) {
@@ -221,7 +211,6 @@ public class EmployeeService {
 
     return employees.map(employeeDTOMapper::toDTO);
   }
-
   public void saveEmployee(EmployeeDTO employeeDTO) {
     Department department = departmentService.findDepartmentByDepartmentId(employeeDTO.getDepartmentId());
     Position position = positionService.findPositionByPositionId(employeeDTO.getPositionId());
@@ -239,5 +228,6 @@ public class EmployeeService {
   public Double getAverageSalary(List<EmployeeDTO> employees) {
     return employeeQueryService.getAverageSalary(employees);
   }
+
 
 }

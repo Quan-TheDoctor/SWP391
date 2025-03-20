@@ -16,10 +16,8 @@
             </a>
         </div>
 
-        <!-- Filters Section -->
         <div class="bg-white rounded-lg shadow-sm p-4 space-y-4">
             <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
-                <!-- Department Filter -->
                 <div class="space-y-2">
                     <form th:action="@{/employee/export/view}" method="get">
                         <input type="hidden" name="position" th:value="${param.position}">
@@ -56,6 +54,8 @@
 
             <form id="exportForm" th:action="@{/employee/export}" method="post">
                 <input type="hidden" name="selectedEmployees" id="selectedEmployees">
+                <input type="hidden" name="department" th:value="${param.department}">
+                <input type="hidden" name="position" th:value="${param.position}">
                 <button type="button" onclick="submitExport()"
                         class="w-full px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700">
                     Export Selected
@@ -83,7 +83,6 @@
 
         </div>
 
-        <!-- Employee Table -->
         <div class="bg-white rounded-lg shadow-sm overflow-hidden">
             <div class="overflow-x-auto">
                 <table class="w-full min-w-[1024px]">
