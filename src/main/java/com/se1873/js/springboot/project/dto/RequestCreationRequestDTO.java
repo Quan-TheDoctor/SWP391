@@ -10,7 +10,7 @@ import lombok.Setter;
 @AllArgsConstructor
 @NoArgsConstructor
 public class RequestCreationRequestDTO {
-    private Integer departmentId;
+    private Long departmentId;
     private String requestType;
     private String employeeName;
     private Double salaryIncreasePercentage;

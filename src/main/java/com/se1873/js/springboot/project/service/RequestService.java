@@ -50,6 +50,8 @@ public class RequestService {
   private final EmployeeService employeeService;
   private final DepartmentService departmentService;
   private final EmploymentHistoryService employmentHistoryService;
+  private final DepartmentRepository departmentRepository;
+  private final EmploymentHistoryRepository employmentHistoryRepository;
 
   /**
    * Lấy danh sách requests đi kèm pagination
@@ -278,68 +280,25 @@ public class RequestService {
       throw new RuntimeException("Error exporting to Excel", e);
     }
   }
-  public List<RequestCreationResponseDTO> getAllRequests() {
-    List<Request> requests = requestRepository.findAll();
-
-    return requests.stream()
-      .map(request -> {
-        Employee employee = request.getUser().getEmployee();
-
-        if (employee == null || employee.getEmploymentHistories() == null || employee.getEmploymentHistories().isEmpty()) {
-          return null;
-        }
-
-        Position position = employee.getEmploymentHistories().stream()
-          .max(Comparator.comparing(EmploymentHistory::getStartDate, Comparator.nullsLast(Comparator.naturalOrder())))
-          .map(EmploymentHistory::getPosition)
-          .orElse(null);
-
-        List<SalaryRecord> salaryRecords = employee.getSalaryRecords().stream()
-          .sorted(Comparator.comparing(SalaryRecord::getCreatedAt, Comparator.nullsLast(Comparator.reverseOrder())))
-          .toList();
-
-        log.info("..... {}", salaryRecords);
-        Double newBaseSalary = salaryRecords.isEmpty() ? 0.0 : salaryRecords.get(0).getBaseSalary();
-
-        Double oldBaseSalary = salaryRecords.size() > 1 ? salaryRecords.get(1).getBaseSalary() : 0.0;
-
-        return RequestCreationResponseDTO.builder()
-          .requestId(request.getRequestId())
-          .fullName(employee.getFirstName() + " " + employee.getLastName())
-          .employeeCode(employee.getEmployeeCode())
-          .positionName(position != null ? position.getPositionName() : "Chưa có vị trí")
-          .oldBaseSalary(oldBaseSalary)
-          .newBaseSalary(newBaseSalary)
-          .startedAt(request.getCreatedAt().toLocalDate())
-          .build();
-      })
-      .filter(Objects::nonNull)
-      .collect(Collectors.toMap(
-        RequestCreationResponseDTO::getEmployeeCode,
-        request -> request,
-        (existing, replacement) -> replacement))
-      .values()
-      .stream()
-      .toList();
-  }
   public RequestCreationResponseDTO createRequest(RequestCreationRequestDTO creationRequest) {
     String name = SecurityContextHolder.getContext().getAuthentication().getName();
 
-    Department department = departmentService.findDepartmentByDepartmentId(creationRequest.getDepartmentId());
+    Department department = departmentRepository.findById(creationRequest.getDepartmentId())
+            .orElseThrow(() -> new RuntimeException("Department not found"));
 
     User userCreate = userRepository.findUserByUsername(name)
-      .orElseThrow(() -> new RuntimeException("User not found"));
+            .orElseThrow(() -> new RuntimeException("User not found"));
 
     User user = userRepository.findUserByUsername(creationRequest.getEmployeeName())
-      .orElseThrow(() -> new RuntimeException("Employee not found"));
+            .orElseThrow(() -> new RuntimeException("Employee not found"));
 
     Employee employee = user.getEmployee();
 
     Double currentSalary = employee.getSalaryRecords().stream()
-      .filter(Objects::nonNull)
-      .max(Comparator.comparing(SalaryRecord::getCreatedAt, Comparator.nullsFirst(Comparator.naturalOrder())))
-      .map(SalaryRecord::getBaseSalary)
-      .orElse(0.0);
+            .filter(Objects::nonNull)
+            .max(Comparator.comparing(SalaryRecord::getCreatedAt, Comparator.nullsFirst(Comparator.naturalOrder())))  // So sánh các giá trị không null
+            .map(SalaryRecord::getBaseSalary)
+            .orElse(0.0);
 
     Double newSalary = 0.0;
     if ("Tăng lương".equals(creationRequest.getRequestType())) {
@@ -351,98 +310,144 @@ public class RequestService {
       newSalary = currentSalary + (currentSalary * increasePercentage / 100);
 
       SalaryRecord newSalaryRecord = SalaryRecord.builder()
-        .employee(employee)
-        .baseSalary(newSalary)
-        .month(LocalDate.now().getMonthValue())
-        .year(LocalDate.now().getYear())
-        .totalAllowance(0.0)
-        .overtimePay(0.0)
-        .deductions(0.0)
-        .insuranceDeduction(0.0)
-        .taxAmount(0.0)
-        .netSalary(newSalary)
-        .paymentStatus("PENDING")
-        .createdAt(LocalDateTime.now())
-        .build();
+              .employee(employee)
+              .baseSalary(newSalary)
+              .month(LocalDate.now().getMonthValue())
+              .year(LocalDate.now().getYear())
+              .totalAllowance(0.0)
+              .overtimePay(0.0)
+              .deductions(0.0)
+              .insuranceDeduction(0.0)
+              .taxAmount(0.0)
+              .netSalary(newSalary)
+              .paymentStatus("PENDING")
+              .createdAt(LocalDateTime.now())
+              .build();
 
       salaryRecordRepository.save(newSalaryRecord);
 
       EmploymentHistory history = EmploymentHistory.builder()
-        .employee(employee)
-        .department(department)
-        .position(employee.getEmploymentHistories().stream()
-          .max(Comparator.comparing(EmploymentHistory::getStartDate))
-          .map(EmploymentHistory::getPosition)
-          .orElseThrow(() -> new RuntimeException("No position found")))
-        .startDate(LocalDate.now())
-        .isCurrent(true)
-        .transferReason("Salary increase")
-        .createdAt(LocalDateTime.now())
-        .build();
-      employmentHistoryService.save(history);
+              .employee(employee)
+              .department(department)
+              .position(employee.getEmploymentHistories().stream()
+                      .max(Comparator.comparing(EmploymentHistory::getStartDate))
+                      .map(EmploymentHistory::getPosition)
+                      .orElseThrow(() -> new RuntimeException("No position found")))
+              .startDate(LocalDate.now())
+              .isCurrent(true)
+              .transferReason("Salary increase")
+              .createdAt(LocalDateTime.now())
+              .build();
+      employmentHistoryRepository.save(history);
 
     } else if ("Thăng chức".equals(creationRequest.getRequestType())) {
       Position newPosition = department.getPositions().stream()
-        .filter(position -> position.getDepartment().equals(department))
-        .findFirst()
-        .orElseThrow(() -> new RuntimeException("No position found"));
+              .filter(position -> position.getDepartment().equals(department))
+              .findFirst()
+              .orElseThrow(() -> new RuntimeException("No position found"));
 
       EmploymentHistory history = EmploymentHistory.builder()
-        .employee(employee)
-        .department(department)
-        .position(newPosition)
-        .startDate(LocalDate.now())
-        .isCurrent(true)
-        .transferReason("Promotion")
-        .createdAt(LocalDateTime.now())
-        .startDate(LocalDate.now())
-        .build();
-      employmentHistoryService.save(history);
+              .employee(employee)
+              .department(department)
+              .position(newPosition)
+              .startDate(LocalDate.now())
+              .isCurrent(true)
+              .transferReason("Promotion")
+              .createdAt(LocalDateTime.now())
+              .startDate(LocalDate.now())
+              .build();
+      employmentHistoryRepository.save(history);
     }
 
     Request request = Request.builder()
-      .requesterId(userCreate.getUserId())
-      .requestType(creationRequest.getRequestType())
-      .user(user)
-      .status("PENDING")
-      .createdAt(LocalDateTime.now())
-      .build();
+            .requesterId(userCreate.getUserId())
+            .requestType(creationRequest.getRequestType())
+            .user(user)
+            .status("PENDING")
+            .createdAt(LocalDateTime.now())
+            .build();
     requestRepository.save(request);
 
     return RequestCreationResponseDTO.builder()
-      .requestId(request.getRequestId())
-      .fullName(employee.getFirstName() + " " + employee.getLastName())
-      .employeeCode(employee.getEmployeeCode())
-      .positionName(department.getPositions().stream()
-        .filter(position -> position.getDepartment().equals(department))
-        .findFirst()
-        .map(Position::getPositionName)
-        .orElse("No position assigned"))
-      .oldBaseSalary(currentSalary)
-      .newBaseSalary(newSalary)
-      .startedAt(employee.getCreatedAt().toLocalDate())
-      .build();
+            .requestId(request.getRequestId())
+            .fullName(employee.getFirstName() + " " + employee.getLastName())
+            .employeeCode(employee.getEmployeeCode())
+            .positionName(department.getPositions().stream()
+                    .filter(position -> position.getDepartment().equals(department))
+                    .findFirst()
+                    .map(Position::getPositionName)
+                    .orElse("No position assigned"))
+            .oldBaseSalary(currentSalary)
+            .newBaseSalary(newSalary)
+            .startedAt(employee.getCreatedAt().toLocalDate())
+            .build();
   }
+
+  public List<RequestCreationResponseDTO> getAllRequests() {
+    List<Request> requests = requestRepository.findAll();
+
+    return requests.stream()
+            .map(request -> {
+              Employee employee = request.getUser().getEmployee();
+
+              if (employee == null || employee.getEmploymentHistories() == null || employee.getEmploymentHistories().isEmpty()) {
+                return null;
+              }
+
+              Position position = employee.getEmploymentHistories().stream()
+                      .max(Comparator.comparing(EmploymentHistory::getStartDate, Comparator.nullsLast(Comparator.naturalOrder())))
+                      .map(EmploymentHistory::getPosition)
+                      .orElse(null);
+
+              List<SalaryRecord> salaryRecords = employee.getSalaryRecords().stream()
+                      .sorted(Comparator.comparing(SalaryRecord::getCreatedAt, Comparator.nullsLast(Comparator.reverseOrder())))
+                      .toList();
+
+              log.info("..... {}", salaryRecords);
+              Double newBaseSalary = salaryRecords.isEmpty() ? 0.0 : salaryRecords.get(0).getBaseSalary();
+
+              Double oldBaseSalary = salaryRecords.size() > 1 ? salaryRecords.get(1).getBaseSalary() : 0.0;
+
+              return RequestCreationResponseDTO.builder()
+                      .requestId(request.getRequestId())
+                      .fullName(employee.getFirstName() + " " + employee.getLastName())
+                      .employeeCode(employee.getEmployeeCode())
+                      .positionName(position != null ? position.getPositionName() : "Chưa có vị trí")
+                      .oldBaseSalary(oldBaseSalary)
+                      .newBaseSalary(newBaseSalary)
+                      .startedAt(request.getCreatedAt().toLocalDate())
+                      .build();
+            })
+            .filter(Objects::nonNull)
+            .collect(Collectors.toMap(
+                    RequestCreationResponseDTO::getEmployeeCode,
+                    request -> request,
+                    (existing, replacement) -> replacement)) // Nếu có bản ghi trùng employeeCode, giữ lại bản ghi mới nhất
+            .values()
+            .stream()
+            .toList();
+  }
+
 
   public com.se1873.js.springboot.project.dto.RequestDetailDTO getDetailRequest(Long requestId) {
     var request = requestRepository.findById(requestId)
-      .orElseThrow(() -> new RuntimeException("No request found"));
+            .orElseThrow(() -> new RuntimeException("No request found"));
     String fullName = request.getUser().getEmployee().getFirstName() + " " + request.getUser().getEmployee().getLastName();
 
     return com.se1873.js.springboot.project.dto.RequestDetailDTO.builder()
-      .requestId(requestId)
-      .fullName(fullName)
-      .employeeCode(request.getUser().getEmployee().getEmployeeCode())
-      .positionName(request.getUser().getEmployee().getEmploymentHistories().stream()
-        .max(Comparator.comparing(EmploymentHistory::getStartDate, Comparator.nullsFirst(Comparator.naturalOrder())))
-        .map(EmploymentHistory::getPosition)
-        .map(Position::getPositionName)
-        .orElse(null))
-      .newsSalary(request.getUser().getEmployee().getSalaryRecords().stream()
-        .max(Comparator.comparing(SalaryRecord::getBaseSalary, Comparator.nullsFirst(Comparator.naturalOrder())))
-        .map(SalaryRecord::getBaseSalary)
-        .orElse(null))
-      .createdDate(request.getCreatedAt().toLocalDate())
-      .build();
+            .requestId(requestId)
+            .fullName(fullName)
+            .employeeCode(request.getUser().getEmployee().getEmployeeCode())
+            .positionName(request.getUser().getEmployee().getEmploymentHistories().stream()
+                    .max(Comparator.comparing(EmploymentHistory::getStartDate, Comparator.nullsFirst(Comparator.naturalOrder())))
+                    .map(EmploymentHistory::getPosition)
+                    .map(Position::getPositionName)
+                    .orElse(null))
+            .newsSalary(request.getUser().getEmployee().getSalaryRecords().stream()
+                    .max(Comparator.comparing(SalaryRecord::getBaseSalary, Comparator.nullsFirst(Comparator.naturalOrder())))
+                    .map(SalaryRecord::getBaseSalary)
+                    .orElse(null))
+            .createdDate(request.getCreatedAt().toLocalDate())
+            .build();
   }
 }
