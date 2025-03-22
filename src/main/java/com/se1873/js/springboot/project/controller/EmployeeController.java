@@ -9,10 +9,7 @@ import com.se1873.js.springboot.project.service.position.PositionService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.data.domain.Page;
-import org.springframework.data.domain.PageRequest;
-import org.springframework.data.domain.Pageable;
-import org.springframework.data.domain.Sort;
+import org.springframework.data.domain.*;
 import org.springframework.data.web.PageableDefault;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.MediaType;
@@ -27,6 +24,7 @@ import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 
 import java.util.Arrays;
 import java.util.List;
+import java.util.stream.Collectors;
 
 @Controller
 @Slf4j
@@ -178,9 +176,15 @@ public class EmployeeController {
                        @RequestParam(value = "size", defaultValue = "10") int size,
                        @ModelAttribute("loggedInUser") User loggedInUser) {
     Pageable pageable = PageRequest.of(page, size);
-    var employees = employeeService.search(pageable, query);
+    var employees = employeeService.getAll(pageable);
+    List<EmployeeDTO> searchEmployees = employees.getContent().stream()
+      .filter(e -> (e.getEmployeeFirstName() + " " + e.getEmployeeLastName()).toLowerCase().contains(query))
+      .collect(Collectors.toList());
+
     var totalEmployees = employees.getTotalElements();
     var avgSalary = employees.getContent().stream().mapToDouble(EmployeeDTO::getContractBaseSalary).average().orElse(0.0);
+
+    employees = new PageImpl<>(searchEmployees, pageable, totalEmployees);
 
     globalController.createAuditLog(loggedInUser, "Search Employee by " + query , "View", "Normal");
     addCommonAttributes(model);

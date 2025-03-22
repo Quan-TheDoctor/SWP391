@@ -21,5 +21,8 @@ public class LeaveDTO {
     private String status;
     private String reason;
     private LocalDateTime createdAt;
+    private Integer leaveAllowedDay;
+    private Integer leavePolicyId;
+
 
 }

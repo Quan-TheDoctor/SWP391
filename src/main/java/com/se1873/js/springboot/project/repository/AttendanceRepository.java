@@ -106,6 +106,15 @@ public interface AttendanceRepository extends JpaRepository<Attendance, Long> {
     @Param("month") Integer month,
     @Param("year") Integer year);
 
+  @Query("SELECT a FROM Attendance a " +
+    "WHERE a.employee.employeeId = :employeeId " +
+    "AND EXTRACT(YEAR FROM a.date) = :year " +
+    "ORDER BY a.date ASC")
+  List<Attendance> getEmployeeAttendancesByYear(
+    @Param("employeeId") Integer employeeId,
+    @Param("year") Integer year);
+
+
   @Query("SELECT a FROM Attendance a WHERE EXTRACT(YEAR FROM a.date) = :year AND EXTRACT(MONTH FROM a.date) = :month")
   List<Attendance> findAllAttendanceByMonthYear(@Param("year") int year, @Param("month") int month);
 
