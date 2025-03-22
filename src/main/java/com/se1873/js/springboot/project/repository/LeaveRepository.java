@@ -10,8 +10,7 @@ public interface LeaveRepository extends JpaRepository<Leave,Long> {
   Leave findTopByEmployee_EmployeeIdAndReasonOrderByLeaveIdDesc(Integer employeeEmployeeId, String reason);
 
   List<Leave> findAllByEmployee_EmployeeId(Integer employeeEmployeeId);
-
-
+  
   boolean existsByEmployee_EmployeeIdAndLeavePolicyIdAndStartDateOrEndDate(Integer employeeEmployeeId, Integer leavePolicyId, LocalDate startDate, LocalDate endDate);
 
   List<Leave> findLeaveByEmployee_EmployeeIdAndStartDateAndEndDate(Integer employeeEmployeeId, LocalDate startDate, LocalDate endDate);
