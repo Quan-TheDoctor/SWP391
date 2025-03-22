@@ -38,6 +38,7 @@ import java.time.YearMonth;
 import java.time.format.DateTimeFormatter;
 import java.util.*;
 import java.util.stream.Collectors;
+import java.util.stream.IntStream;
 
 @Controller
 @Slf4j
@@ -404,63 +405,152 @@ public class AttendanceController {
   }
 
 
-  @RequestMapping("/export")
-  public ResponseEntity<Resource> exportAttendance(
-          @RequestParam(value = "selectedEmployees", required = false) String selectedEmployees,
-          @RequestParam(value = "startDate", required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate startDate,
-          @RequestParam(value = "endDate", required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate endDate) {
-
-    List<Integer> employeeIds = (selectedEmployees != null && !selectedEmployees.isEmpty())
-            ? Arrays.stream(selectedEmployees.split(",")).map(Integer::parseInt).collect(Collectors.toList())
-            : null;
-
-    if (startDate == null) {
-      startDate = LocalDate.of(2020, 1, 1);
+  @GetMapping("/export")
+  public ResponseEntity<Resource> exportAttendanceToExcel(
+          @RequestParam(value = "year", required = false, defaultValue = "all") String year,
+          @RequestParam(value = "month", required = false, defaultValue = "all") String month,
+          @RequestParam(value = "week", required = false, defaultValue = "all") String week,
+          @RequestParam(value = "status", required = false, defaultValue = "all") String status,
+          @RequestParam(value = "selectedAttendances", required = false) String selectedAttendanceIds
+  ) {
+    // Convert selectedAttendances to list
+    List<Integer> attendanceIds = new ArrayList<>();
+    if (selectedAttendanceIds != null && !selectedAttendanceIds.isEmpty()) {
+      attendanceIds = Arrays.stream(selectedAttendanceIds.split(","))
+              .map(Integer::parseInt)
+              .collect(Collectors.toList());
     }
-    if (endDate == null) {
-      endDate = LocalDate.now();
+
+    // Default date range (start with wide date range)
+    LocalDate startDate = LocalDate.of(2020, 1, 1);
+    LocalDate endDate = LocalDate.now();
+
+    // Apply date filters if provided - USE EXACTLY THE SAME LOGIC AS IN viewExportAttendance
+    if (year != null && !year.equals("all")) {
+      int yearValue = Integer.parseInt(year);
+      startDate = LocalDate.of(yearValue, 1, 1);
+      endDate = LocalDate.of(yearValue, 12, 31);
+
+      if (month != null && !month.equals("all")) {
+        int monthValue = Integer.parseInt(month);
+        YearMonth yearMonth = YearMonth.of(yearValue, monthValue);
+        startDate = yearMonth.atDay(1);
+        endDate = yearMonth.atEndOfMonth();
+
+        if (week != null && !week.equals("all")) {
+          int weekValue = Integer.parseInt(week);
+          // Fixed week calculation
+          int daysInMonth = yearMonth.lengthOfMonth();
+          int totalWeeks = (int) Math.ceil(daysInMonth / 7.0);
+
+          if (weekValue <= totalWeeks) {
+            // First day of the week (1-based week of month)
+            int firstDayOfWeek = (weekValue - 1) * 7 + 1;
+            startDate = yearMonth.atDay(Math.min(firstDayOfWeek, daysInMonth));
+
+            // Last day of the week
+            int lastDayOfWeek = firstDayOfWeek + 6;
+            endDate = yearMonth.atDay(Math.min(lastDayOfWeek, daysInMonth));
+          }
+        }
+      }
     }
 
-    Resource file = attendanceService.exportAttendanceToExcel(employeeIds, startDate, endDate);
+    log.info("Exporting attendance with date range: {} to {}, status: {}", startDate, endDate, status);
+
+    // Xử lý recordedOnly và status đúng cách
+    boolean recordedOnly = status == null || status.equalsIgnoreCase("all");
+
+    // Nếu status là "all", đặt nó thành null để service xử lý đúng
+    String effectiveStatus = status != null && status.equalsIgnoreCase("all") ? null : status;
+
+    Resource file = attendanceService.exportAttendanceToExcel(attendanceIds, startDate, endDate, effectiveStatus, recordedOnly);
 
     return ResponseEntity.ok()
             .header(HttpHeaders.CONTENT_DISPOSITION, "attachment; filename=attendance.xlsx")
             .contentType(MediaType.APPLICATION_OCTET_STREAM)
             .body(file);
   }
-
   @RequestMapping("/export/view")
   public String viewExportAttendance(
-          @RequestParam(value = "startDate", required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate startDate,
-          @RequestParam(value = "endDate", required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate endDate,
-          @RequestParam(value = "status", required = false) String status,
+          @RequestParam(value = "year", required = false, defaultValue = "all") String year,
+          @RequestParam(value = "month", required = false, defaultValue = "all") String month,
+          @RequestParam(value = "week", required = false, defaultValue = "all") String week,
+          @RequestParam(value = "status", required = false, defaultValue = "all") String status,
           @RequestParam(value = "page", defaultValue = "0") Integer page,
           @RequestParam(value = "size", defaultValue = "10") Integer size,
           Model model) {
 
-    if (startDate == null || endDate == null) {
-      startDate = LocalDate.of(2020, 1, 1);
-      endDate = LocalDate.now();
+    LocalDate startDate = LocalDate.of(2020, 1, 1);
+    LocalDate endDate = LocalDate.now();
+
+    // Get years, months, and weeks for filter dropdowns
+    List<Integer> years = attendanceService.getAllYears();
+    List<Integer> months = IntStream.rangeClosed(1, 12).boxed().collect(Collectors.toList());
+
+    // Calculate weeks dynamically based on selected month
+    int weekCount = 4; // Default
+    if (!month.equals("all") && !year.equals("all")) {
+      int yearValue = Integer.parseInt(year);
+      int monthValue = Integer.parseInt(month);
+      YearMonth yearMonth = YearMonth.of(yearValue, monthValue);
+      weekCount = (int) Math.ceil(yearMonth.lengthOfMonth() / 7.0);
+    }
+    List<Integer> weeks = IntStream.rangeClosed(1, weekCount).boxed().collect(Collectors.toList());
+
+    // Apply date filters if provided
+    if (year != null && !year.equals("all")) {
+      int yearValue = Integer.parseInt(year);
+      startDate = LocalDate.of(yearValue, 1, 1);
+      endDate = LocalDate.of(yearValue, 12, 31);
+
+      if (month != null && !month.equals("all")) {
+        int monthValue = Integer.parseInt(month);
+        YearMonth yearMonth = YearMonth.of(yearValue, monthValue);
+        startDate = yearMonth.atDay(1);
+        endDate = yearMonth.atEndOfMonth();
+
+        if (week != null && !week.equals("all")) {
+          int weekValue = Integer.parseInt(week);
+          // Fixed week calculation
+          int daysInMonth = yearMonth.lengthOfMonth();
+          int totalWeeks = (int) Math.ceil(daysInMonth / 7.0);
+
+          if (weekValue <= totalWeeks) {
+            // First day of the week (1-based week of month)
+            int firstDayOfWeek = (weekValue - 1) * 7 + 1;
+            startDate = yearMonth.atDay(Math.min(firstDayOfWeek, daysInMonth));
+
+            // Last day of the week
+            int lastDayOfWeek = firstDayOfWeek + 6;
+            endDate = yearMonth.atDay(Math.min(lastDayOfWeek, daysInMonth));
+          }
+        }
+      }
     }
 
-    Page<AttendanceDTO> attendances = attendanceService.getAll(startDate, endDate, status, PageRequest.of(page, size));
+    Page<AttendanceDTO> attendances;
+    // Only show attendance records that have been recorded
+    if (status != null && !status.equals("all")) {
+      attendances = attendanceService.getAll(startDate, endDate, status, PageRequest.of(page, size));
+    } else {
+      // Modified to only show recorded attendance (not empty records)
+      attendances = attendanceService.getAllRecorded(startDate, endDate, PageRequest.of(page, size));
+    }
 
     model.addAttribute("attendances", attendances);
-    model.addAttribute("startDate", startDate);
-    model.addAttribute("endDate", endDate);
+    model.addAttribute("years", years);
+    model.addAttribute("months", months);
+    model.addAttribute("weeks", weeks);
+    model.addAttribute("selectedYear", year);
+    model.addAttribute("selectedMonth", month);
+    model.addAttribute("selectedWeek", week);
     model.addAttribute("status", status);
     model.addAttribute("page", page);
     model.addAttribute("size", size);
-    model.addAttribute("totalAttendances", attendances.getTotalElements());
-    model.addAttribute("totalPages", attendances.getTotalPages());
-    model.addAttribute("currentPage", page + 1);
     model.addAttribute("contentFragment", "fragments/attendance-export-fragments");
-
     return "index";
   }
-
-
-
   @RequestMapping("/status")
   public String status(@RequestParam(value = "month", required = false) String month,
                        @RequestParam(value = "year", required = false) String year,

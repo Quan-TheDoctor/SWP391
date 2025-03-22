@@ -36,6 +36,7 @@ import java.time.temporal.TemporalAdjusters;
 import java.util.*;
 import java.util.function.Function;
 import java.util.stream.Collectors;
+import java.util.stream.IntStream;
 
 @Service
 @Transactional
@@ -705,20 +706,40 @@ public class AttendanceService {
     }
   }
 
-  public Resource exportAttendanceToExcel(List<Integer> employeeIds, LocalDate startDate, LocalDate endDate) {
-    Pageable pageable = PageRequest.of(0, 1000);
+  public Resource exportAttendanceToExcel(List<Integer> attendanceIds, LocalDate startDate, LocalDate endDate,
+                                          String status, boolean recordedOnly) {
     List<Attendance> attendances;
 
-    if (employeeIds != null && !employeeIds.isEmpty()) {
-      attendances = attendanceRepository.findAllByEmployee_EmployeeIdIn(employeeIds);
-    } else {
-      attendances = attendanceRepository.findAttendancesByDateRange(startDate, endDate);
+    // First priority: Check if specific IDs are selected
+    if (attendanceIds != null && !attendanceIds.isEmpty()) {
+      List<Long> longIds = attendanceIds.stream().map(Long::valueOf).collect(Collectors.toList());
+      attendances = attendanceRepository.findAllById(longIds);
+      log.info("Filtered by specific IDs: found {} records", attendances.size());
     }
-
+    // Second priority: Filter by status and date range if specified
+    else if (status != null) {
+      // Đã chỉ định status cụ thể (không phải "all")
+      attendances = attendanceRepository.findAttendancesByStatusAndDateRange(startDate, endDate, status);
+      log.info("Filtered by status '{}' AND date range from {} to {}: found {} records",
+              status, startDate, endDate, attendances.size());
+    }
+    // Third priority: Only recorded attendance if specified
+    else if (recordedOnly) {
+      attendances = attendanceRepository.findRecordedAttendancesByDateRange(startDate, endDate);
+      log.info("Filtered by date range (recorded only) from {} to {}: found {} records",
+              startDate, endDate, attendances.size());
+    }
+    // Last priority: All attendance in date range
+    else {
+      attendances = attendanceRepository.findAttendancesByDateRange(startDate, endDate);
+      log.info("Filtered by date range (all) from {} to {}: found {} records",
+              startDate, endDate, attendances.size());
+    }
 
     try (Workbook workbook = new XSSFWorkbook(); ByteArrayOutputStream out = new ByteArrayOutputStream()) {
       Sheet sheet = workbook.createSheet("Attendance");
 
+      // Title style
       Font titleFont = workbook.createFont();
       titleFont.setBold(true);
       titleFont.setFontHeightInPoints((short) 16);
@@ -728,13 +749,14 @@ public class AttendanceService {
       titleStyle.setAlignment(HorizontalAlignment.CENTER);
       titleStyle.setVerticalAlignment(VerticalAlignment.CENTER);
 
+      // Create title
       Row titleRow = sheet.createRow(0);
       Cell titleCell = titleRow.createCell(0);
       titleCell.setCellValue("Attendance Data Export");
       titleCell.setCellStyle(titleStyle);
+      sheet.addMergedRegion(new CellRangeAddress(0, 0, 0, 5));
 
-      sheet.addMergedRegion(new CellRangeAddress(0, 0, 0, 5));  // Merge columns for title
-
+      // Header style
       Font headerFont = workbook.createFont();
       headerFont.setBold(true);
       headerFont.setFontHeightInPoints((short) 12);
@@ -751,12 +773,14 @@ public class AttendanceService {
       headerStyle.setBorderRight(BorderStyle.THIN);
       headerStyle.setBorderLeft(BorderStyle.THIN);
 
+      // Data style
       CellStyle dataStyle = workbook.createCellStyle();
       dataStyle.setBorderBottom(BorderStyle.THIN);
       dataStyle.setBorderTop(BorderStyle.THIN);
       dataStyle.setBorderRight(BorderStyle.THIN);
       dataStyle.setBorderLeft(BorderStyle.THIN);
 
+      // Create header row
       Row headerRow = sheet.createRow(1);
       String[] columns = {"Employee ID", "Name", "Date", "Check In", "Check Out", "Status"};
       for (int i = 0; i < columns.length; i++) {
@@ -764,6 +788,9 @@ public class AttendanceService {
         cell.setCellValue(columns[i]);
         cell.setCellStyle(headerStyle);
       }
+
+      Row filterInfoRow = sheet.createRow(2);
+      Cell filterInfoCell = filterInfoRow.createCell(0);
 
       int rowIdx = 2;
       for (Attendance attendance : attendances) {
@@ -780,6 +807,7 @@ public class AttendanceService {
         }
       }
 
+      // Resize columns to fit content
       for (int i = 0; i < columns.length; i++) {
         sheet.autoSizeColumn(i);
       }
@@ -790,6 +818,18 @@ public class AttendanceService {
       log.error("Error exporting attendance data to Excel", e);
       throw new RuntimeException("Error exporting attendance data to Excel", e);
     }
+  }
+  // Add this method to get only recorded attendance
+  public Page<AttendanceDTO> getAllRecorded(LocalDate startDate, LocalDate endDate, Pageable pageable) {
+    log.info("Fetching recorded attendance records from {} to {}", startDate, endDate);
+
+    Page<Attendance> attendances = attendanceRepository.findRecordedAttendancesByDateRange(startDate, endDate, pageable);
+
+    log.info("Fetched {} attendance records", attendances.getTotalElements());
+    return attendances.map(attendanceDTOMapper::toDTO);
+  }
+  public List<Integer> getAllYears() {
+    return attendanceRepository.findDistinctYears();
   }
 
   public Page<AttendanceDTO> getAll(LocalDate startDate, LocalDate endDate, String status, Pageable pageable) {
@@ -848,6 +888,8 @@ public class AttendanceService {
 
     return employeeAttendanceStatusDTOS;
   }
+
+
 
   public List<EmployeeAttendanceStatusDTO> findEmployeeAttendanceStatusbyEmployeeName(String search, Pageable pageable, String date) {
     String[] searchTerms = search.trim().split("\\s+");

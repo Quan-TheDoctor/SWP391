@@ -18,60 +18,57 @@
 
     <!-- Filters Section -->
     <div class="bg-white rounded-lg shadow-sm p-4 space-y-4">
-        <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
-            <!-- Year/Month/Week Filter -->
-            <div class="space-y-2">
-                <form th:action="@{/attendance/export/view}" method="get">
+        <form th:action="@{/attendance/export/view}" method="get" id="filterForm">
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+                <!-- Year/Month/Week Filter -->
+                <div class="space-y-2">
                     <label class="block text-sm font-medium text-gray-700">Year/Month/Week</label>
                     <div class="flex gap-4">
-                        <select name="year" class="w-full p-2 border rounded-md focus:ring-2 focus:ring-blue-500">
+                        <select name="year" id="yearSelect" class="w-full p-2 border rounded-md focus:ring-2 focus:ring-blue-500">
                             <option value="all">All Years</option>
-                            <option th:each="year : ${years}" th:value="${year}" th:text="${year}"></option>
+                            <option th:each="year : ${years}" th:value="${year}" th:text="${year}" th:selected="${year == selectedYear}"></option>
                         </select>
-                        <select name="month" class="w-full p-2 border rounded-md focus:ring-2 focus:ring-blue-500">
+                        <select name="month" id="monthSelect" class="w-full p-2 border rounded-md focus:ring-2 focus:ring-blue-500">
                             <option value="all">All Months</option>
-                            <option th:each="month : ${months}" th:value="${month}" th:text="${month}"></option>
+                            <option th:each="month : ${months}" th:value="${month}" th:text="${month}" th:selected="${month == selectedMonth}"></option>
                         </select>
-                        <select name="week" class="w-full p-2 border rounded-md focus:ring-2 focus:ring-blue-500">
+                        <select name="week" id="weekSelect" class="w-full p-2 border rounded-md focus:ring-2 focus:ring-blue-500">
                             <option value="all">All Weeks</option>
-                            <option th:each="week : ${weeks}" th:value="${week}" th:text="${week}"></option>
+                            <option th:each="week : ${weeks}" th:value="${week}" th:text="${week}" th:selected="${week == selectedWeek}"></option>
                         </select>
                     </div>
-                </form>
-            </div>
+                </div>
 
-            <!-- Attendance Status Filter -->
-            <div class="space-y-2">
-                <form th:action="@{/attendance/export}" method="get">
+                <!-- Attendance Status Filter -->
+                <div class="space-y-2">
                     <label class="block text-sm font-medium text-gray-700">Attendance Status</label>
-                    <select name="status" class="w-full p-2 border rounded-md focus:ring-2 focus:ring-blue-500">
+                    <select name="status" id="statusSelect" class="w-full p-2 border rounded-md focus:ring-2 focus:ring-blue-500">
                         <option value="all">All Statuses</option>
-                        <option value="Đúng giờ">Đúng giờ</option>
-                        <option value="Đi muộn">Đi muộn</option>
-                        <option value="Vắng mặt">Vắng mặt</option>
+                        <option value="Đúng giờ" th:selected="${status == 'Đúng giờ'}">Đúng giờ</option>
+                        <option value="Đi muộn" th:selected="${status == 'Đi muộn'}">Đi muộn</option>
+                        <option value="Vắng mặt" th:selected="${status == 'Vắng mặt'}">Vắng mặt</option>
                     </select>
-                </form>
-            </div>
-        </div>
+                </div>
 
-        <form id="exportForm" th:action="@{/attendance/export}" method="post">
+                <div class="flex items-end">
+                    <button type="submit" class="px-4 py-2 bg-gray-600 text-white rounded-md hover:bg-gray-700">
+                        Apply Filters
+                    </button>
+                </div>
+            </div>
+        </form>
+
+        <form id="exportForm" th:action="@{/attendance/export}" method="get">
+            <input type="hidden" name="year" id="exportYear">
+            <input type="hidden" name="month" id="exportMonth">
+            <input type="hidden" name="week" id="exportWeek">
+            <input type="hidden" name="status" id="exportStatus">
             <input type="hidden" name="selectedAttendances" id="selectedAttendances">
+
             <button type="button" onclick="submitExport()" class="w-full px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700">
                 Export Selected Attendance
             </button>
         </form>
-
-        <script>
-            function submitExport() {
-                let selected = [];
-                document.querySelectorAll('input[name="attendanceCheck"]:checked').forEach(cb => {
-                    selected.push(cb.value);
-                });
-
-                document.getElementById('selectedAttendances').value = selected.length === 0 ? "" : selected.join(',');
-                document.getElementById('exportForm').submit();
-            }
-        </script>
     </div>
 
     <!-- Attendance Table -->
@@ -81,7 +78,7 @@
                 <thead class="bg-gray-50">
                 <tr>
                     <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase w-8">
-                        <input type="checkbox" class="rounded border-gray-300">
+                        <input type="checkbox" id="selectAll" class="rounded border-gray-300">
                     </th>
                     <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Name</th>
                     <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Date</th>
@@ -93,7 +90,7 @@
                 <tbody class="divide-y divide-gray-200 min-h-[400px]">
                 <tr th:each="attendance : ${attendances}" class="hover:bg-gray-50 transition-colors">
                     <td class="px-6 py-4">
-                        <input type="checkbox" name="attendanceCheck" th:value="${attendance.attendanceId}" class="rounded border-gray-300">
+                        <input type="checkbox" name="attendanceCheck" th:value="${attendance.attendanceId}" class="rounded border-gray-300 attendance-checkbox">
                     </td>
                     <td class="px-6 py-4" th:text="${attendance.employeeFirstName + ' ' + attendance.employeeLastName}"></td>
                     <td class="px-6 py-4" th:text="${attendance.attendanceDate}"></td>
@@ -131,7 +128,7 @@
                 <div>
                     <nav class="relative z-0 inline-flex rounded-md shadow-sm -space-x-px" aria-label="Pagination">
                         <!-- Previous Button -->
-                        <a th:href="@{/attendance/export/view(page=${attendances.number - 1}, size=${size}, startDate=${startDate}, endDate=${endDate})}"
+                        <a th:href="@{/attendance/export/view(page=${attendances.number - 1}, size=${size}, year=${selectedYear}, month=${selectedMonth}, week=${selectedWeek}, status=${status})}"
                            class="relative inline-flex items-center px-2 py-2 rounded-l-md border bg-white text-sm font-medium text-gray-500 hover:bg-gray-50"
                            th:classappend="${attendances.first} ? 'cursor-not-allowed bg-gray-50'">
                             <span class="sr-only">Previous</span>
@@ -144,7 +141,7 @@
 
                         <!-- Page Numbers -->
                         <th:block th:each="i : ${#numbers.sequence(0, attendances.totalPages - 1)}">
-                            <a th:href="@{/attendance/export/view(page=${i}, size=${size}, startDate=${startDate}, endDate=${endDate})}"
+                            <a th:href="@{/attendance/export/view(page=${i}, size=${size}, year=${selectedYear}, month=${selectedMonth}, week=${selectedWeek}, status=${status})}"
                                th:class="${i == attendances.number}
                ? 'z-10 bg-blue-50 border-blue-500 text-blue-600 relative inline-flex items-center px-4 py-2 border text-sm font-medium'
                : 'bg-white border-gray-300 text-gray-500 hover:bg-gray-50 relative inline-flex items-center px-4 py-2 border text-sm font-medium'"
@@ -152,7 +149,7 @@
                         </th:block>
 
                         <!-- Next Button -->
-                        <a th:href="@{/attendance/export/view(page=${attendances.number + 1}, size=${size}, startDate=${startDate}, endDate=${endDate})}"
+                        <a th:href="@{/attendance/export/view(page=${attendances.number + 1}, size=${size}, year=${selectedYear}, month=${selectedMonth}, week=${selectedWeek}, status=${status})}"
                            class="relative inline-flex items-center px-2 py-2 rounded-r-md border bg-white text-sm font-medium text-gray-500 hover:bg-gray-50"
                            th:classappend="${attendances.last} ? 'cursor-not-allowed bg-gray-50'">
                             <span class="sr-only">Next</span>
@@ -169,5 +166,38 @@
     </div>
 
 </div>
+
+<script>
+    function submitExport() {
+        // Get selected checkboxes
+        let selected = [];
+        document.querySelectorAll('input[name="attendanceCheck"]:checked').forEach(cb => {
+            selected.push(cb.value);
+        });
+
+        document.getElementById('selectedAttendances').value = selected.length === 0 ? "" : selected.join(',');
+
+        // Get current filter values from the filter form
+        const exportForm = document.getElementById('exportForm');
+        const yearSelect = document.querySelector('#yearSelect');
+        const monthSelect = document.querySelector('#monthSelect');
+        const weekSelect = document.querySelector('#weekSelect');
+        const statusSelect = document.querySelector('#statusSelect');
+
+        // Set the hidden input values to match the current filter selections
+        exportForm.querySelector('input[name="year"]').value = yearSelect.value;
+        exportForm.querySelector('input[name="month"]').value = monthSelect.value;
+        exportForm.querySelector('input[name="week"]').value = weekSelect.value;
+        exportForm.querySelector('input[name="status"]').value = statusSelect.value;
+
+        console.log("Exporting with filters - Year: " + yearSelect.value +
+            ", Month: " + monthSelect.value +
+            ", Week: " + weekSelect.value +
+            ", Status: " + statusSelect.value);
+
+        // Submit the form
+        exportForm.submit();
+    }
+</script>
 </body>
 </html>
