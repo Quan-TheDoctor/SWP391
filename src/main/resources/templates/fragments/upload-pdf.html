@@ -1,0 +1,698 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Resume Parser</title>
+    <!-- Tailwind CSS via CDN -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        .fade-in {
+            animation: fadeIn 0.5s;
+        }
+        @keyframes fadeIn {
+            0% { opacity: 0; }
+            100% { opacity: 1; }
+        }
+        .form-input {
+            @apply w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500;
+        }
+        .form-label {
+            @apply block text-sm font-medium text-gray-700 mb-1;
+        }
+        .form-group {
+            @apply mb-4;
+        }
+    </style>
+</head>
+<main th:fragment="main-content" class="bg-gray-100 min-h-screen">
+    <div class="container mx-auto px-4 py-8">
+        <h1 class="text-3xl font-bold text-center text-gray-800 mb-8">Resume Parser & Candidate Profile</h1>
+
+        <div class="flex flex-col lg:flex-row gap-6">
+            <!-- Left Side: Upload and Parsed Data -->
+            <div class="w-full lg:w-1/2 space-y-6">
+                <!-- Upload Form -->
+                <div class="bg-white rounded-lg shadow-md p-6">
+                    <h2 class="text-xl font-semibold mb-4">Upload Resume</h2>
+
+                    <form id="uploadForm" class="space-y-4">
+                        <div class="border-2 border-dashed border-gray-300 rounded-lg p-6 text-center" id="dropZone">
+                            <input type="file" id="resumeFile" class="hidden" accept=".pdf,.docx">
+                            <label for="resumeFile" class="cursor-pointer">
+                                <svg xmlns="http://www.w3.org/2000/svg" class="h-12 w-12 mx-auto text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12" />
+                                </svg>
+                                <p class="mt-2 text-sm text-gray-600">Drag and drop your resume here or <span class="text-blue-500">browse</span></p>
+                                <p class="text-xs text-gray-500 mt-1">Supported formats: PDF, DOCX</p>
+                            </label>
+                            <div id="fileInfo" class="mt-3 hidden">
+                                <p class="text-sm font-medium text-gray-900" id="fileName"></p>
+                                <p class="text-xs text-gray-500" id="fileSize"></p>
+                            </div>
+                        </div>
+
+                        <div class="flex justify-end">
+                            <button type="submit" class="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2">
+                                Parse Resume
+                            </button>
+                        </div>
+                    </form>
+                </div>
+
+                <!-- Loading Indicator -->
+                <div id="loadingIndicator" class="hidden bg-white rounded-lg shadow-md p-6 text-center">
+                    <div class="inline-block animate-spin rounded-full h-8 w-8 border-4 border-blue-500 border-t-transparent"></div>
+                    <p class="mt-2 text-gray-700">Parsing resume...</p>
+                </div>
+
+                <!-- Results -->
+                <div id="resultsContainer" class="hidden bg-white rounded-lg shadow-md p-6 fade-in">
+                    <h2 class="text-xl font-semibold mb-4">Parsed Information</h2>
+
+                    <div class="space-y-4">
+                        <!-- Contact Information -->
+                        <div>
+                            <h3 class="text-lg font-medium text-gray-900 mb-2">Contact Information</h3>
+                            <div class="bg-gray-50 p-4 rounded-md">
+                                <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                    <div>
+                                        <p class="text-sm text-gray-500">Name</p>
+                                        <p id="parsed-name" class="font-medium">-</p>
+                                    </div>
+                                    <div>
+                                        <p class="text-sm text-gray-500">Email</p>
+                                        <p id="parsed-email" class="font-medium">-</p>
+                                    </div>
+                                    <div>
+                                        <p class="text-sm text-gray-500">Phone</p>
+                                        <p id="parsed-phone" class="font-medium">-</p>
+                                    </div>
+                                    <div>
+                                        <p class="text-sm text-gray-500">LinkedIn</p>
+                                        <p id="parsed-linkedin" class="font-medium">-</p>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Education -->
+                        <div>
+                            <h3 class="text-lg font-medium text-gray-900 mb-2">Education</h3>
+                            <div class="bg-gray-50 p-4 rounded-md">
+                                <div id="parsed-education" class="space-y-3">
+                                    <!-- Education items will be added here -->
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Experience -->
+                        <div>
+                            <h3 class="text-lg font-medium text-gray-900 mb-2">Experience</h3>
+                            <div class="bg-gray-50 p-4 rounded-md">
+                                <div id="parsed-experience" class="space-y-3">
+                                    <!-- Experience items will be added here -->
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Skills -->
+                        <div>
+                            <h3 class="text-lg font-medium text-gray-900 mb-2">Skills</h3>
+                            <div class="bg-gray-50 p-4 rounded-md">
+                                <div id="parsed-skills" class="flex flex-wrap gap-2">
+                                    <!-- Skills will be added here -->
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Languages -->
+                        <div>
+                            <h3 class="text-lg font-medium text-gray-900 mb-2">Languages</h3>
+                            <div class="bg-gray-50 p-4 rounded-md">
+                                <div id="parsed-languages" class="flex flex-wrap gap-2">
+                                    <!-- Languages will be added here -->
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Raw JSON -->
+                        <div>
+                            <div class="flex justify-between items-center mb-2">
+                                <h3 class="text-lg font-medium text-gray-900">Raw Data</h3>
+                                <button id="toggleRawData" class="text-sm text-blue-600 hover:text-blue-800">Show</button>
+                            </div>
+                            <div id="rawDataContainer" class="hidden">
+                                <pre id="rawData" class="bg-gray-50 p-4 rounded-md text-xs overflow-auto max-h-96"></pre>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Error Message -->
+                <div id="errorMessage" class="hidden bg-red-50 border-l-4 border-red-500 p-4 fade-in">
+                    <div class="flex">
+                        <div class="flex-shrink-0">
+                            <svg class="h-5 w-5 text-red-400" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor">
+                                <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z" clip-rule="evenodd" />
+                            </svg>
+                        </div>
+                        <div class="ml-3">
+                            <p class="text-sm text-red-700" id="errorText"></p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Right Side: Candidate Profile Form -->
+            <div class="w-full lg:w-1/2">
+                <div class="bg-white rounded-lg shadow-md p-6">
+                    <div class="flex justify-between items-center mb-6">
+                        <h2 class="text-xl font-semibold">Candidate Profile</h2>
+                        <button id="populateFormBtn" class="px-3 py-1 bg-green-600 text-white text-sm rounded-md hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-green-500 focus:ring-offset-2 hidden">
+                            Auto-fill from Resume
+                        </button>
+                    </div>
+
+                    <form id="candidateForm" class="space-y-6">
+                        <!-- Personal Information -->
+                        <div>
+                            <h3 class="text-lg font-medium text-gray-900 mb-3">Personal Information</h3>
+                            <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                <div class="form-group">
+                                    <label for="name" class="form-label">Full Name</label>
+                                    <input type="text" id="name" name="name" class="form-input" placeholder="John Doe">
+                                </div>
+                                <div class="form-group">
+                                    <label for="email" class="form-label">Email Address</label>
+                                    <input type="email" id="email" name="email" class="form-input" placeholder="john@example.com">
+                                </div>
+                                <div class="form-group">
+                                    <label for="phone" class="form-label">Phone Number</label>
+                                    <input type="tel" id="phone" name="phone" class="form-input" placeholder="+1 (555) 123-4567">
+                                </div>
+                                <div class="form-group">
+                                    <label for="linkedin" class="form-label">LinkedIn</label>
+                                    <input type="url" id="linkedin" name="linkedin" class="form-input" placeholder="https://linkedin.com/in/johndoe">
+                                </div>
+                                <div class="form-group">
+                                    <label for="location" class="form-label">Location</label>
+                                    <input type="text" id="location" name="location" class="form-input" placeholder="City, Country">
+                                </div>
+                                <div class="form-group">
+                                    <label for="nationality" class="form-label">Nationality</label>
+                                    <input type="text" id="nationality" name="nationality" class="form-input" placeholder="Nationality">
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Education -->
+                        <div>
+                            <h3 class="text-lg font-medium text-gray-900 mb-3">Education</h3>
+                            <div id="educationContainer">
+                                <div class="education-entry border border-gray-200 rounded-md p-4 mb-3">
+                                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                        <div class="form-group">
+                                            <label class="form-label">Degree</label>
+                                            <input type="text" name="degree[]" class="form-input" placeholder="Bachelor of Science">
+                                        </div>
+                                        <div class="form-group">
+                                            <label class="form-label">Institution</label>
+                                            <input type="text" name="institution[]" class="form-input" placeholder="University Name">
+                                        </div>
+                                        <div class="form-group">
+                                            <label class="form-label">Years</label>
+                                            <input type="text" name="education_years[]" class="form-input" placeholder="2018 - 2022">
+                                        </div>
+                                        <div class="form-group">
+                                            <label class="form-label">GPA</label>
+                                            <input type="text" name="gpa[]" class="form-input" placeholder="3.8/4.0">
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                            <button type="button" id="addEducation" class="mt-2 text-sm text-blue-600 hover:text-blue-800">
+                                + Add another education
+                            </button>
+                        </div>
+
+                        <!-- Experience -->
+                        <div>
+                            <h3 class="text-lg font-medium text-gray-900 mb-3">Experience</h3>
+                            <div id="experienceContainer">
+                                <div class="experience-entry border border-gray-200 rounded-md p-4 mb-3">
+                                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                        <div class="form-group">
+                                            <label class="form-label">Company</label>
+                                            <input type="text" name="company[]" class="form-input" placeholder="Company Name">
+                                        </div>
+                                        <div class="form-group">
+                                            <label class="form-label">Job Title</label>
+                                            <input type="text" name="job_title[]" class="form-input" placeholder="Software Engineer">
+                                        </div>
+                                        <div class="form-group">
+                                            <label class="form-label">Duration</label>
+                                            <input type="text" name="duration[]" class="form-input" placeholder="Jan 2020 - Present">
+                                        </div>
+                                    </div>
+                                    <div class="form-group mt-2">
+                                        <label class="form-label">Description</label>
+                                        <textarea name="job_description[]" rows="3" class="form-input" placeholder="Describe your responsibilities and achievements"></textarea>
+                                    </div>
+                                </div>
+                            </div>
+                            <button type="button" id="addExperience" class="mt-2 text-sm text-blue-600 hover:text-blue-800">
+                                + Add another experience
+                            </button>
+                        </div>
+
+                        <!-- Skills -->
+                        <div>
+                            <h3 class="text-lg font-medium text-gray-900 mb-3">Skills</h3>
+                            <div class="form-group">
+                                <label for="skills" class="form-label">Skills (comma separated)</label>
+                                <input type="text" id="skills" name="skills" class="form-input" placeholder="Java, Python, SQL, React">
+                            </div>
+                        </div>
+
+                        <!-- Languages -->
+                        <div>
+                            <h3 class="text-lg font-medium text-gray-900 mb-3">Languages</h3>
+                            <div class="form-group">
+                                <label for="languages" class="form-label">Languages (comma separated)</label>
+                                <input type="text" id="languages" name="languages" class="form-input" placeholder="English, Spanish, French">
+                            </div>
+                        </div>
+
+                        <!-- Submit Button -->
+                        <div class="flex justify-end">
+                            <button type="submit" class="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2">
+                                Save Candidate Profile
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            const form = document.getElementById('uploadForm');
+            const fileInput = document.getElementById('resumeFile');
+            const dropZone = document.getElementById('dropZone');
+            const fileInfo = document.getElementById('fileInfo');
+            const fileName = document.getElementById('fileName');
+            const fileSize = document.getElementById('fileSize');
+            const loadingIndicator = document.getElementById('loadingIndicator');
+            const resultsContainer = document.getElementById('resultsContainer');
+            const errorMessage = document.getElementById('errorMessage');
+            const errorText = document.getElementById('errorText');
+            const toggleRawData = document.getElementById('toggleRawData');
+            const rawDataContainer = document.getElementById('rawDataContainer');
+            const rawData = document.getElementById('rawData');
+            const populateFormBtn = document.getElementById('populateFormBtn');
+            const addEducationBtn = document.getElementById('addEducation');
+            const addExperienceBtn = document.getElementById('addExperience');
+            const educationContainer = document.getElementById('educationContainer');
+            const experienceContainer = document.getElementById('experienceContainer');
+
+            let parsedData = null;
+
+            // Handle file selection
+            fileInput.addEventListener('change', function(e) {
+                if (fileInput.files.length > 0) {
+                    const file = fileInput.files[0];
+                    fileName.textContent = file.name;
+                    fileSize.textContent = formatFileSize(file.size);
+                    fileInfo.classList.remove('hidden');
+                    dropZone.classList.add('border-blue-500');
+                    dropZone.classList.remove('border-gray-300');
+                } else {
+                    fileInfo.classList.add('hidden');
+                    dropZone.classList.remove('border-blue-500');
+                    dropZone.classList.add('border-gray-300');
+                }
+            });
+
+            // Handle drag and drop
+            ['dragenter', 'dragover', 'dragleave', 'drop'].forEach(eventName => {
+                dropZone.addEventListener(eventName, preventDefaults, false);
+            });
+
+            function preventDefaults(e) {
+                e.preventDefault();
+                e.stopPropagation();
+            }
+
+            ['dragenter', 'dragover'].forEach(eventName => {
+                dropZone.addEventListener(eventName, highlight, false);
+            });
+
+            ['dragleave', 'drop'].forEach(eventName => {
+                dropZone.addEventListener(eventName, unhighlight, false);
+            });
+
+            function highlight() {
+                dropZone.classList.add('border-blue-500');
+                dropZone.classList.remove('border-gray-300');
+            }
+
+            function unhighlight() {
+                dropZone.classList.remove('border-blue-500');
+                dropZone.classList.add('border-gray-300');
+            }
+
+            dropZone.addEventListener('drop', handleDrop, false);
+
+            function handleDrop(e) {
+                const dt = e.dataTransfer;
+                const files = dt.files;
+
+                if (files.length > 0) {
+                    fileInput.files = files;
+                    const file = files[0];
+                    fileName.textContent = file.name;
+                    fileSize.textContent = formatFileSize(file.size);
+                    fileInfo.classList.remove('hidden');
+                }
+            }
+
+            // Handle form submission
+            form.addEventListener('submit', async function(e) {
+                e.preventDefault();
+
+                if (!fileInput.files.length) {
+                    showError('Please select a resume file to parse.');
+                    return;
+                }
+
+                const file = fileInput.files[0];
+                const formData = new FormData();
+                formData.append('file', file);
+
+                // Hide previous results and errors
+                resultsContainer.classList.add('hidden');
+                errorMessage.classList.add('hidden');
+                populateFormBtn.classList.add('hidden');
+
+                // Show loading indicator
+                loadingIndicator.classList.remove('hidden');
+
+                try {
+                    const response = await fetch('resume/parse_resume', {
+                        method: 'POST',
+                        body: formData
+                    });
+
+                    const result = await response.json();
+                    parsedData = result;
+
+                    // Hide loading indicator
+                    loadingIndicator.classList.add('hidden');
+
+                    if (response.ok) {
+                        displayResults(result);
+                        populateFormBtn.classList.remove('hidden');
+                    } else {
+                        showError(result.error || 'Failed to parse resume.');
+                    }
+                } catch (error) {
+                    loadingIndicator.classList.add('hidden');
+                    showError('An error occurred while parsing the resume.');
+                    console.error(error);
+                }
+            });
+
+            // Toggle raw data visibility
+            toggleRawData.addEventListener('click', function() {
+                if (rawDataContainer.classList.contains('hidden')) {
+                    rawDataContainer.classList.remove('hidden');
+                    toggleRawData.textContent = 'Hide';
+                } else {
+                    rawDataContainer.classList.add('hidden');
+                    toggleRawData.textContent = 'Show';
+                }
+            });
+
+            // Add education entry
+            addEducationBtn.addEventListener('click', function() {
+                const educationEntry = document.createElement('div');
+                educationEntry.className = 'education-entry border border-gray-200 rounded-md p-4 mb-3';
+                educationEntry.innerHTML = `
+                <div class="flex justify-end mb-2">
+                    <button type="button" class="remove-entry text-red-500 hover:text-red-700 text-sm">Remove</button>
+                </div>
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div class="form-group">
+                        <label class="form-label">Degree</label>
+                        <input type="text" name="degree[]" class="form-input" placeholder="Bachelor of Science">
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">Institution</label>
+                        <input type="text" name="institution[]" class="form-input" placeholder="University Name">
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">Years</label>
+                        <input type="text" name="education_years[]" class="form-input" placeholder="2018 - 2022">
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">GPA</label>
+                        <input type="text" name="gpa[]" class="form-input" placeholder="3.8/4.0">
+                    </div>
+                </div>
+            `;
+                educationContainer.appendChild(educationEntry);
+
+                // Add remove functionality
+                educationEntry.querySelector('.remove-entry').addEventListener('click', function() {
+                    educationContainer.removeChild(educationEntry);
+                });
+            });
+
+            // Add experience entry
+            addExperienceBtn.addEventListener('click', function() {
+                const experienceEntry = document.createElement('div');
+                experienceEntry.className = 'experience-entry border border-gray-200 rounded-md p-4 mb-3';
+                experienceEntry.innerHTML = `
+                <div class="flex justify-end mb-2">
+                    <button type="button" class="remove-entry text-red-500 hover:text-red-700 text-sm">Remove</button>
+                </div>
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div class="form-group">
+                        <label class="form-label">Company</label>
+                        <input type="text" name="company[]" class="form-input" placeholder="Company Name">
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">Job Title</label>
+                        <input type="text" name="job_title[]" class="form-input" placeholder="Software Engineer">
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">Duration</label>
+                        <input type="text" name="duration[]" class="form-input" placeholder="Jan 2020 - Present">
+                    </div>
+                </div>
+                <div class="form-group mt-2">
+                    <label class="form-label">Description</label>
+                    <textarea name="job_description[]" rows="3" class="form-input" placeholder="Describe your responsibilities and achievements"></textarea>
+                </div>
+            `;
+                experienceContainer.appendChild(experienceEntry);
+
+                // Add remove functionality
+                experienceEntry.querySelector('.remove-entry').addEventListener('click', function() {
+                    experienceContainer.removeChild(experienceEntry);
+                });
+            });
+
+            // Populate form with parsed data
+            populateFormBtn.addEventListener('click', function() {
+                if (!parsedData) return;
+
+                // Populate personal information
+                document.getElementById('name').value = parsedData.personal_info?.name || '';
+                document.getElementById('email').value = parsedData.contact_information?.email || '';
+                document.getElementById('phone').value = parsedData.contact_information?.phone || '';
+                document.getElementById('linkedin').value = parsedData.contact_information?.linkedin || '';
+                document.getElementById('location').value = parsedData.personal_info?.address || '';
+                document.getElementById('nationality').value = parsedData.personal_info?.nationality || '';
+
+                // Clear existing education entries except the first one
+                const educationEntries = educationContainer.querySelectorAll('.education-entry');
+                for (let i = 1; i < educationEntries.length; i++) {
+                    educationContainer.removeChild(educationEntries[i]);
+                }
+
+                // Populate education
+                if (parsedData.education && parsedData.education.degrees && parsedData.education.degrees.length > 0) {
+                    // First entry already exists
+                    const firstEducationInputs = educationEntries[0].querySelectorAll('input');
+                    firstEducationInputs[0].value = parsedData.education.degrees[0] || '';
+                    firstEducationInputs[1].value = parsedData.education.institutions[0] || '';
+                    firstEducationInputs[2].value = parsedData.education.years[0] || '';
+                    firstEducationInputs[3].value = parsedData.education.gpa || '';
+
+                    // Add additional education entries
+                    for (let i = 1; i < parsedData.education.degrees.length; i++) {
+                        addEducationBtn.click(); // Create a new entry
+                        const newEntry = educationContainer.lastElementChild;
+                        const inputs = newEntry.querySelectorAll('input');
+
+                        inputs[0].value = parsedData.education.degrees[i] || '';
+                        inputs[1].value = parsedData.education.institutions[i] || '';
+                        inputs[2].value = parsedData.education.years[i] || '';
+                    }
+                }
+
+                // Clear existing experience entries except the first one
+                const experienceEntries = experienceContainer.querySelectorAll('.experience-entry');
+                for (let i = 1; i < experienceEntries.length; i++) {
+                    experienceContainer.removeChild(experienceEntries[i]);
+                }
+
+                // Populate experience
+                if (parsedData.experience && parsedData.experience.companies && parsedData.experience.companies.length > 0) {
+                    // First entry already exists
+                    const firstExperienceInputs = experienceEntries[0].querySelectorAll('input, textarea');
+                    firstExperienceInputs[0].value = parsedData.experience.companies[0] || '';
+                    firstExperienceInputs[1].value = parsedData.experience.job_titles[0] || '';
+                    firstExperienceInputs[2].value = parsedData.experience.dates[0] || '';
+
+                    if (parsedData.experience.descriptions && parsedData.experience.descriptions[0]) {
+                        firstExperienceInputs[3].value = parsedData.experience.descriptions[0];
+                    }
+
+                    // Add additional experience entries
+                    for (let i = 1; i < parsedData.experience.companies.length; i++) {
+                        addExperienceBtn.click(); // Create a new entry
+                        const newEntry = experienceContainer.lastElementChild;
+                        const inputs = newEntry.querySelectorAll('input, textarea');
+
+                        inputs[0].value = parsedData.experience.companies[i] || '';
+                        inputs[1].value = parsedData.experience.job_titles[i] || '';
+                        inputs[2].value = parsedData.experience.dates[i] || '';
+
+                        if (parsedData.experience.descriptions && parsedData.experience.descriptions[i]) {
+                            inputs[3].value = parsedData.experience.descriptions[i];
+                        }
+                    }
+                }
+
+                // Populate skills and languages
+                document.getElementById('skills').value = parsedData.skills ? parsedData.skills.join(', ') : '';
+                document.getElementById('languages').value = parsedData.languages ? parsedData.languages.join(', ') : '';
+            });
+
+            // Handle candidate form submission
+            document.getElementById('candidateForm').addEventListener('submit', function(e) {
+                e.preventDefault();
+                // Here you would typically send the form data to your backend
+                alert('Candidate profile saved successfully!');
+            });
+
+            // Helper functions
+            function formatFileSize(bytes) {
+                if (bytes < 1024) return bytes + ' bytes';
+                else if (bytes < 1048576) return (bytes / 1024).toFixed(1) + ' KB';
+                else return (bytes / 1048576).toFixed(1) + ' MB';
+            }
+
+            function showError(message) {
+                errorText.textContent = message;
+                errorMessage.classList.remove('hidden');
+            }
+
+            function displayResults(data) {
+                // Display raw data
+                rawData.textContent = JSON.stringify(data, null, 2);
+
+                // Display personal information
+                document.getElementById('parsed-name').textContent = data.personal_info?.name || '-';
+                document.getElementById('parsed-email').textContent = data.contact_information?.email || '-';
+                document.getElementById('parsed-phone').textContent = data.contact_information?.phone || '-';
+                document.getElementById('parsed-linkedin').textContent = data.contact_information?.linkedin || '-';
+
+                // Display education
+                const educationList = document.getElementById('parsed-education');
+                educationList.innerHTML = '';
+
+                if (data.education && data.education.degrees && data.education.degrees.length > 0) {
+                    data.education.degrees.forEach((degree, index) => {
+                        const institution = data.education.institutions[index] || '';
+                        const year = data.education.years[index] || '';
+
+                        const educationItem = document.createElement('div');
+                        educationItem.innerHTML = `
+                        <p class="font-medium">${degree}</p>
+                        <p class="text-sm text-gray-600">${institution}</p>
+                        <p class="text-xs text-gray-500">${year}</p>
+                    `;
+                        educationList.appendChild(educationItem);
+                    });
+                } else {
+                    educationList.innerHTML = '<p class="text-gray-500">No education information found</p>';
+                }
+
+                // Display experience
+                const experienceList = document.getElementById('parsed-experience');
+                experienceList.innerHTML = '';
+
+                if (data.experience && data.experience.companies && data.experience.companies.length > 0) {
+                    data.experience.companies.forEach((company, index) => {
+                        const jobTitle = data.experience.job_titles[index] || '';
+                        const date = data.experience.dates[index] || '';
+                        const description = data.experience.descriptions && data.experience.descriptions[index] ?
+                            data.experience.descriptions[index] : '';
+
+                        const experienceItem = document.createElement('div');
+                        experienceItem.innerHTML = `
+                        <div class="flex justify-between">
+                            <p class="font-medium">${company}</p>
+                            <p class="text-sm text-gray-500">${date}</p>
+                        </div>
+                        <p class="text-sm text-gray-600">${jobTitle}</p>
+                        ${description ? `<p class="text-xs text-gray-500 mt-1">${description}</p>` : ''}
+                    `;
+                        experienceList.appendChild(experienceItem);
+                    });
+                } else {
+                    experienceList.innerHTML = '<p class="text-gray-500">No experience information found</p>';
+                }
+
+                // Display skills
+                const skillsList = document.getElementById('parsed-skills');
+                skillsList.innerHTML = '';
+
+                if (data.skills && data.skills.length > 0) {
+                    data.skills.forEach(skill => {
+                        const skillBadge = document.createElement('span');
+                        skillBadge.className = 'bg-blue-100 text-blue-800 text-xs font-medium px-2.5 py-0.5 rounded';
+                        skillBadge.textContent = skill;
+                        skillsList.appendChild(skillBadge);
+                    });
+                } else {
+                    skillsList.innerHTML = '<p class="text-gray-500">No skills found</p>';
+                }
+
+                // Display languages
+                const languagesList = document.getElementById('parsed-languages');
+                languagesList.innerHTML = '';
+
+                if (data.languages && data.languages.length > 0) {
+                    data.languages.forEach(language => {
+                        const languageBadge = document.createElement('span');
+                        languageBadge.className = 'bg-green-100 text-green-800 text-xs font-medium px-2.5 py-0.5 rounded';
+                        languageBadge.textContent = language;
+                        languagesList.appendChild(languageBadge);
+                    });
+                } else {
+                    languagesList.innerHTML = '<p class="text-gray-500">No languages found</p>';
+                }
+
+                // Show results container
+                resultsContainer.classList.remove('hidden');
+            }
+        });
+    </script>
+</main>
+</html>
