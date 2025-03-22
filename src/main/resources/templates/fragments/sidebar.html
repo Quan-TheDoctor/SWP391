@@ -239,6 +239,7 @@
                                     <a href="/face-recognition"
                                        th:classappend="${servletPath.startsWith('/face-recognition')} ? 'bg-primary-50 text-primary-600' : 'text-gray-600'"
                                        class="flex items-center gap-2 p-2 pl-4 hover:bg-gray-100 rounded-md text-sm transition-colors">
+                                        <i class="fas fa-fingerprint text-lg sm:text-xl"></i>
                                         <span>Face Recognition</span>
                                     </a>
                                 </li>
@@ -256,23 +257,6 @@
 
                 <!-- Administration Section -->
                 <li class="relative">
-                    <button class="w-full flex items-center gap-3 p-2 hover:bg-gray-100 rounded-md text-gray-700 transition-colors menu-toggle"
-                            data-menu-id="administration"
-                            th:classappend="${servletPath.startsWith('/admin')} ? 'bg-primary-50 text-primary-600' : ''">
-                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                                  d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z"></path>
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                                  d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"></path>
-                        </svg>
-                        <span>Administration</span>
-                        <svg class="w-4 h-4 ml-auto transform transition-transform duration-200" fill="none"
-                             stroke="currentColor" viewBox="0 0 24 24"
-                             th:classappend="${servletPath.startsWith('/admin')} ? 'rotate-180' : ''">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                                  d="M19 9l-7 7-7-7"></path>
-                        </svg>
-                    </button>
                     <ul class="submenu pl-4 space-y-1 mt-1 overflow-hidden transition-all duration-300 max-h-0" id="administration-submenu"
                         th:classappend="${servletPath.startsWith('/admin')} ? 'max-h-[1000px]' : ''">
                         <li>

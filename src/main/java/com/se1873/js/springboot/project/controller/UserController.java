@@ -7,9 +7,10 @@ import com.se1873.js.springboot.project.dto.RequestDTO;
 import com.se1873.js.springboot.project.entity.User;
 import com.se1873.js.springboot.project.service.AttendanceService;
 import com.se1873.js.springboot.project.service.employee.EmployeeService;
-import com.se1873.js.springboot.project.repository.UserRepository;
 import com.se1873.js.springboot.project.service.salary_record.SalaryRecordService;
-import org.springframework.beans.factory.annotation.Autowired;
+import com.se1873.js.springboot.project.service.user.UserService;
+import jakarta.validation.Valid;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.security.core.Authentication;
@@ -17,33 +18,35 @@ import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.validation.BindingResult;
+import org.springframework.web.bind.annotation.*;
+import org.springframework.web.multipart.MultipartFile;
 
+import java.io.IOException;
 import java.time.YearMonth;
 import java.util.Map;
 import java.util.Optional;
 
+@Slf4j
 @Controller
 @RequestMapping("/user")
 public class UserController {
+    private final UserService userService;
+    private final EmployeeService employeeService;
+    private final AttendanceService attendanceService;
+    private final SalaryRecordService salaryRecordService;
 
-    @Autowired
-    private EmployeeService employeeService;
-
-    @Autowired
-    private UserRepository userRepository;
-    @Autowired
-    private AttendanceService attendanceService;
-    @Autowired
-    private SalaryRecordService salaryRecordService;
+    public UserController(UserService userService, EmployeeService employeeService, AttendanceService attendanceService, SalaryRecordService salaryRecordService) {
+        this.userService = userService;
+        this.employeeService = employeeService;
+        this.attendanceService = attendanceService;
+        this.salaryRecordService = salaryRecordService;
+    }
 
     public Integer getEmployeeId(){
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
         String username = authentication.getName();
-        Optional<User> user = userRepository.findUserByUsername(username);
+        Optional<User> user = userService.findUserByUsername(username);
         if(user.isPresent()) {
             return user.get().getEmployee().getEmployeeId();
         }else{
@@ -56,52 +59,100 @@ public class UserController {
         EmployeeDTO employee = employeeService.getEmployeeByEmployeeId(getEmployeeId());
 
         model.addAttribute("employeeDTO", employee);
-        return "user";
+        model.addAttribute("contentFragment", "fragments/user-fragments");
+        return "index";
+    }
+
+    @RequestMapping("/save")
+    public String saveUserProfile(
+      @Valid @ModelAttribute("employeeDTO") EmployeeDTO employeeDTO,
+      @RequestParam(value = "avatarFile", required = false) MultipartFile avatarFile,
+      BindingResult result,
+      Model model) throws IOException {
+        if (avatarFile != null && !avatarFile.isEmpty()) {
+            log.info("test");
+            employeeDTO.setPicture(avatarFile.getBytes());
+        }
+
+        if(result.hasErrors()) {
+
+            model.addAttribute("message", result.getAllErrors().get(0).getDefaultMessage());
+            model.addAttribute("messageType", "error");
+            model.addAttribute("contentFragment", "fragments/user-fragments");
+            return "index";
+        }
+
+        try {
+            log.info(employeeDTO.toString());
+            employeeService.saveEmployee(employeeDTO);
+        } catch (Exception e) {
+            model.addAttribute("message", e.getMessage());
+            model.addAttribute("messageType", "error");
+            model.addAttribute("contentFragment", "fragments/user-fragments");
+            return "index";
+        }
+
+        EmployeeDTO employee = employeeService.getEmployeeByEmployeeId(getEmployeeId());
+
+        model.addAttribute("message", "Updated profile successfully");
+        model.addAttribute("employeeDTO", employee);
+        model.addAttribute("contentFragment", "fragments/user-fragments");
+        return "index";
     }
 
     @RequestMapping("/request/create")
     public String requestCreateForm(Model model) {
 
         model.addAttribute("requestDTO", new RequestDTO());
-        return "user-request-create";
+        model.addAttribute("contentFragment", "fragments/user-request-create-fragments");
+        return "index";
     }
     @RequestMapping("/attendance")
-    public String attendance(Model model){
+    public String attendance(Model model,
+                             @RequestParam(value = "page", defaultValue = "0") int page,
+                             @RequestParam(value = "size", defaultValue = "5") int size){
         Page<AttendanceDTO> attendanceDTO = attendanceService.getAttendanceByEmployeeId(getEmployeeId(),
-                                                                                        PageRequest.of(0,5));
+                                                                                        PageRequest.of(page, size));
         Map<String,Integer> quantity = attendanceService.getQuantityEmployeeDetail(getEmployeeId());
 
         model.addAttribute("quantity",quantity);
         model.addAttribute("attendanceDTO",attendanceDTO);
-        return "user-attendance";
+        model.addAttribute("contentFragment", "fragments/user-attendance-fragments");
+        return "index";
     }
 
     @RequestMapping("/payroll")
-    public String payroll(Model model){
-        Page<PayrollDTO> payrollDTO = salaryRecordService.getPayrollByEmployeeId(PageRequest.of(0,5),getEmployeeId());
+    public String payroll(Model model,
+                          @RequestParam(value = "page", defaultValue = "0") int page,
+                          @RequestParam(value = "size", defaultValue = "5") int size){
+        Page<PayrollDTO> payrollDTO = salaryRecordService.getPayrollByEmployeeId(PageRequest.of(page, size),getEmployeeId());
         model.addAttribute("payrollDTO",payrollDTO);
-        return "user-payroll";
+        model.addAttribute("contentFragment", "fragments/user-payroll-fragments");
+        return "index";
     }
 
     @RequestMapping("/back")
     public String back(Model model){
         EmployeeDTO employee = employeeService.getEmployeeByEmployeeId(getEmployeeId());
         model.addAttribute("employeeDTO", employee);
-        return "user";
+        model.addAttribute("contentFragment", "fragments/user-fragments");
+        return "index";
     }
 
     @RequestMapping("/filterAttendance")
     public String filterAttendance(Model model,
                                    @RequestParam(value = "status", required = false) String status,
-                                   @RequestParam(value = "month", required = false) YearMonth month) {
+                                   @RequestParam(value = "month", required = false) YearMonth month,
+                                   @RequestParam(value = "page", defaultValue = "0") int page,
+                                   @RequestParam(value = "size", defaultValue = "5") int size) {
         Page<AttendanceDTO> attendanceDTO = null;
 
         if (month != null) {
             Integer months = month.getMonthValue();
             Integer year = month.getYear();
-            attendanceDTO = attendanceService.filterByMonth(PageRequest.of(0, 5), getEmployeeId(), months, year);
+            attendanceDTO = attendanceService.filterByMonth(PageRequest.of(page, size), getEmployeeId(), months, year);
         } else if (status != null) {
-            attendanceDTO = attendanceService.filterByStatusAndEmployeeId(PageRequest.of(0, 5), status ,getEmployeeId());
+            attendanceDTO = attendanceService.filterByStatusAndEmployeeId(PageRequest.of(page, size), status ,getEmployeeId());
             log.info(String.valueOf(getEmployeeId()));
         }
 
@@ -110,25 +161,29 @@ public class UserController {
         model.addAttribute("quantity",quantity);
         model.addAttribute("attendanceDTO", attendanceDTO);
         model.addAttribute("month",month != null ? month.toString() : "");
-        return "user-attendance";
+        model.addAttribute("contentFragment", "fragments/user-attendance-fragments");
+        return "index";
     }
 
     @RequestMapping("/filterPayroll")
     public String filterPayroll(Model model,
-                                @RequestParam(value = "month", required = false) YearMonth month) {
+                                @RequestParam(value = "month", required = false) YearMonth month,
+                                @RequestParam(value = "page", defaultValue = "0") int page,
+                                @RequestParam(value = "size", defaultValue = "5") int size) {
         if (month != null) {
             Integer months = month.getMonthValue();
             Integer year = month.getYear();
-            Page<PayrollDTO> payrollDTO = salaryRecordService.filterByMonth(PageRequest.of(0, 5), getEmployeeId(), months, year);
+            Page<PayrollDTO> payrollDTO = salaryRecordService.filterByMonth(PageRequest.of(page, size), getEmployeeId(), months, year);
             model.addAttribute("payrollDTO", payrollDTO);
             model.addAttribute("month",month != null ? month.toString() : "");
         }
-        return "user-payroll";
+        model.addAttribute("contentFragment", "fragments/user-payroll-fragments");
+        return "index";
     }
 
 
     @GetMapping("/download/{id}")
-    public String dowloadInvoice(Model model,
+    public String downloadPayslip(Model model,
                                  @PathVariable("id") int id){
         PayrollDTO payroll = salaryRecordService.payrollDTO(id);
         model.addAttribute("payroll", payroll);

@@ -22,17 +22,14 @@ import java.util.List;
 public class EmployeeDTO {
   private Integer employeeId;
   private String employeeCode;
-  @NotBlank(message = "First name cannot be blank")
-  private String employeeFirstName;
-  @NotBlank(message = "Last name cannot be blank")
-  private String employeeLastName;
-  @NotNull
-  @DateTimeFormat(pattern = "yyyy-MM-dd") private LocalDate employeeBirthDate;
+  @NotBlank(message = "First name cannot be blank") private String employeeFirstName;
+  @NotBlank(message = "Last name cannot be blank") private String employeeLastName;
+  @NotNull @DateTimeFormat(pattern = "yyyy-MM-dd") private LocalDate employeeBirthDate;
   private String employeeGender;
-  private String employeeIdNumber;
-  private String employeePermanentAddress;
+  @NotBlank(message = "ID Number cannot be blank") private String employeeIdNumber;
+  @NotBlank(message = "Permanent Address cannot be blank") private String employeePermanentAddress;
   private String employeeTemporaryAddress;
-  private String employeePersonalEmail;
+  @NotBlank(message = "Personal Email cannot be blank") private String employeePersonalEmail;
   private String employeeCompanyEmail;
   private String employeePhone;
   private String employeeMaritalStatus;

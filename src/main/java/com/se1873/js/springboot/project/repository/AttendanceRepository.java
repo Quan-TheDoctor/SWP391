@@ -1,5 +1,6 @@
 package com.se1873.js.springboot.project.repository;
 
+import com.se1873.js.springboot.project.dto.AttendanceDTO;
 import com.se1873.js.springboot.project.entity.Attendance;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
@@ -95,6 +96,15 @@ public interface AttendanceRepository extends JpaRepository<Attendance, Long> {
   @Query("SELECT COUNT(DISTINCT a.employee.employeeId) FROM Attendance a WHERE a.checkIn IS NOT NULL AND a.date = :date")
   int countCheckedInEmployees(@Param("date") LocalDate date);
 
+  @Query("SELECT a FROM Attendance a " +
+    "WHERE a.employee.employeeId = :employeeId " +
+    "AND EXTRACT(MONTH FROM a.date) = :month " +
+    "AND EXTRACT(YEAR FROM a.date) = :year " +
+    "ORDER BY a.date ASC")
+  List<Attendance> getEmployeeAttendancesByMonthAndYear(
+    @Param("employeeId") Integer employeeId,
+    @Param("month") Integer month,
+    @Param("year") Integer year);
 
   @Query("SELECT a FROM Attendance a WHERE EXTRACT(YEAR FROM a.date) = :year AND EXTRACT(MONTH FROM a.date) = :month")
   List<Attendance> findAllAttendanceByMonthYear(@Param("year") int year, @Param("month") int month);
@@ -102,4 +112,6 @@ public interface AttendanceRepository extends JpaRepository<Attendance, Long> {
   List<Attendance> getAttendanceByDateBetweenAndEmployee_EmployeeIdAndEmployee_IsDeleted(LocalDate dateAfter, LocalDate dateBefore, Integer employeeEmployeeId, Boolean employeeIsDeleted);
 
   Page<Attendance> findAttendancesByStatusAndDateBetween(String status, LocalDate dateAfter, LocalDate dateBefore, Pageable pageable);
+
+  Attendance getAttendanceByAttendanceId(Integer attendanceId);
 }

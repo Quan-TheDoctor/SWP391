@@ -29,6 +29,7 @@ import org.springframework.core.io.Resource;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.util.List;
+import java.util.stream.Collectors;
 
 @Service
 @Transactional
@@ -58,6 +59,17 @@ public class EmployeeService {
     return employeeQueryService.getEmployeesByDepartmentId(departmentId, pageable);
   }
 
+  public List<EmployeeDTO> getAllEmployees() {
+    return employeeQueryService.getAll();
+  }
+
+  public List<EmployeeDTO> getEmployeesByDepartmentId(Integer departmentId) {
+    return employeeQueryService.getEmployeesByDepartmentId(departmentId)
+      .stream().map(employeeDTOMapper::toDTO)
+      .filter(e -> e.getDepartmentId().equals(departmentId))
+      .collect(Collectors.toList());
+  }
+
   public EmployeeDTO getEmployeeByEmployeeId(Integer employeeId) {
     return employeeQueryService.getEmployeeByEmployeeId(employeeId);
   }
@@ -74,11 +86,10 @@ public class EmployeeService {
   }
 
   public Page<EmployeeDTO> search(Pageable pageable, String query) {
-    String[] searchTerms = query.trim().split(" ", 2);
-    String firstName = searchTerms[0];
-    String lastName = searchTerms.length > 1 ? searchTerms[1] : searchTerms[0];
-
-    return employeeQueryService.search(firstName, lastName, pageable).map(employeeDTOMapper::toDTO);
+    log.info(query);
+    String searchTerm = query.trim();
+    log.info(searchTerm);
+    return employeeQueryService.search(searchTerm, pageable).map(employeeDTOMapper::toDTO);
   }
 
   public Resource exportToExcel(List<Integer> employeeIds, String departmentFilter, String positionFilter) {

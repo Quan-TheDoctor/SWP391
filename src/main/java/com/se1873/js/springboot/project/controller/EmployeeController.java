@@ -94,9 +94,14 @@ public class EmployeeController {
     return "index";
   }
   @PostMapping("/create/save")
-  public String saveEmployee(@ModelAttribute EmployeeDTO employeeDTO,
+  public String saveEmployee(@Valid @ModelAttribute EmployeeDTO employeeDTO,
                              @RequestParam(value = "avatarFile", required = false) MultipartFile avatarFile,
-                             RedirectAttributes redirectAttributes) {
+                             RedirectAttributes redirectAttributes,
+                             BindingResult bindingResult) {
+    if(bindingResult.hasErrors()) {
+
+      return "redirect:/employee/create/form";
+    }
     try {
       if (avatarFile != null && !avatarFile.isEmpty()) {
         employeeDTO.setPicture(avatarFile.getBytes());

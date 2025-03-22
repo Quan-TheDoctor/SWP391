@@ -29,7 +29,7 @@ public class WebSecurityConfig {
       .authorizeHttpRequests((requests) ->
         requests
           .requestMatchers("/api/face-recognition/recognition-success").permitAll()
-          .requestMatchers("/", "/home", "/login", "/request/**", "/css/**", "/js/**", "/api/attendance/recognize").permitAll() // Cho phép truy cập các trang này
+          .requestMatchers("/", "/home", "/login", "/request/**", "/css/**", "/js/**", "/api/attendance/recognize", "/api/resume/**", "/resume").permitAll() // Cho phép truy cập các trang này
           .requestMatchers("/payroll/**", "/attendance/**", "/request/**", "/employee/employee-insert", "/employee/**").hasAnyRole("ADMIN")
           .requestMatchers("/admin/**").hasRole("ADMIN")
           .anyRequest().authenticated() // Các trang khác yêu cầu đăng nhập
@@ -60,7 +60,7 @@ public class WebSecurityConfig {
         .permitAll()
       )
       .csrf(csrf -> csrf
-        .ignoringRequestMatchers("/api/attendance/**", "/api/face-recognition/**")
+        .ignoringRequestMatchers("/api/attendance/**", "/api/face-recognition/**", "/resume/**")
       );
     return http.build();
   }

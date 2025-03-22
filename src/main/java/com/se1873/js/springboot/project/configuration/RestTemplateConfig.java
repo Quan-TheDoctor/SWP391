@@ -1,4 +1,4 @@
-package com.se1873.js.springboot.project.config;
+package com.se1873.js.springboot.project.configuration;
 
 import org.springframework.boot.web.client.RestTemplateBuilder;
 import org.springframework.context.annotation.Bean;
@@ -15,8 +15,8 @@ public class RestTemplateConfig {
   @Bean
   public RestTemplate restTemplate() {
     SimpleClientHttpRequestFactory factory = new SimpleClientHttpRequestFactory();
-    factory.setConnectTimeout(10000);
-    factory.setReadTimeout(30000);
+    factory.setConnectTimeout(180000);
+    factory.setReadTimeout(180000);
 
     return new RestTemplate(factory);
   }

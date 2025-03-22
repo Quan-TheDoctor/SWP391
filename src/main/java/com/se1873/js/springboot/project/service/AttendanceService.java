@@ -85,6 +85,7 @@ public class AttendanceService {
     return new PageImpl<>(attendanceDTOS.subList(start, end), pageable, total);
   }
 
+
   public Page<AttendanceDTO> getAttendanceByEmployeeId(Integer employeeId, Pageable pageale) {
     Page<Attendance> attendances = attendanceRepository.getAttendanceByEmployee_EmployeeId(employeeId, pageale);
     return attendances.map(attendanceDTOMapper::toDTO);
@@ -169,6 +170,26 @@ public class AttendanceService {
       attendanceDTOS.add(attendanceDTOMapper.toDTO(attendance));
     }
     return attendanceDTOS;
+  }
+
+  public List<AttendanceDTO> getAttendancesOfEmployeeIdByMonthAndYear(Integer employeeId, Integer month, Integer year) {
+    return attendanceRepository.getEmployeeAttendancesByMonthAndYear(employeeId, month, year)
+      .stream().map(attendanceDTOMapper::toDTO).collect(Collectors.toList());
+  }
+
+  public Integer countAttendanceByStatus(List<AttendanceDTO> attendances, String status) {
+    return (int) attendances.stream()
+      .filter(a -> a != null)
+      .filter(attendance -> status.equals(attendance.getAttendanceStatus()))
+      .count();
+  }
+
+  public Double countOvertimeHours(List<AttendanceDTO> attendances) {
+    return attendances.stream()
+          .filter(a -> a != null)
+          .mapToDouble(a -> a.getAttendanceOvertimeHours() != null ?
+            a.getAttendanceOvertimeHours() : 0.0)
+          .sum();
   }
 
   public void updateAttendanceRecord(AttendanceDTO dto) {

@@ -53,6 +53,8 @@ public class WebController {
         }
         return "login";
     }
+
+
     @RequestMapping("/homepage")
     public String homepage(Model model, @RequestParam(value = "month", required = false) String MonthAndYear,
                                         @RequestParam(value = "date", required = false) String date) {

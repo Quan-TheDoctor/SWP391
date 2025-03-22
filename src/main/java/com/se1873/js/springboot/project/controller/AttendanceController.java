@@ -2,8 +2,11 @@ package com.se1873.js.springboot.project.controller;
 
 import com.se1873.js.springboot.project.dto.*;
 import com.se1873.js.springboot.project.entity.Department;
+import com.se1873.js.springboot.project.entity.Employee;
 import com.se1873.js.springboot.project.entity.Position;
 import com.se1873.js.springboot.project.entity.User;
+import com.se1873.js.springboot.project.mapper.AttendanceDTOMapper;
+import com.se1873.js.springboot.project.repository.AttendanceRepository;
 import com.se1873.js.springboot.project.repository.DepartmentRepository;
 import com.se1873.js.springboot.project.repository.UserRepository;
 import com.se1873.js.springboot.project.service.*;
@@ -46,11 +49,14 @@ import java.util.stream.Collectors;
 @SessionAttributes({"formattedDate", "payrollCalculationForm", "user"})
 
 public class AttendanceController {
+  private final AttendanceDTOMapper attendanceDTOMapper;
   private final AttendanceService attendanceService;
   private final EmployeeService employeeService;
   private final DepartmentService departmentService;
   private final PositionService positionService;
   private final SalaryRecordService salaryRecordService;
+  private final AttendanceRepository attendanceRepository;
+  private final DepartmentRepository departmentRepository;
   private AttendanceDTOList attendanceDTOList = new AttendanceDTOList();
 
   @ModelAttribute("payrollCalculationForm")
@@ -227,62 +233,6 @@ public class AttendanceController {
     };
   }
 
-  @RequestMapping("/demo")
-  public String attendance(Model model,
-                           @RequestParam(value = "query", required = false) String query,
-                           @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate startDate,
-                           @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate endDate,
-                           @RequestParam(value = "page", defaultValue = "0") Integer page,
-                           @RequestParam(value = "size", defaultValue = "10") Integer size,
-                           @RequestParam(value = "view", required = false) String view) {
-    if("kanban".equals(view)) {
-      List<AttendanceDTO> allAttendances = attendanceService.getAllAttendances();
-      model.addAttribute("allAttendances", allAttendances);
-    }
-    if (startDate == null || endDate == null) {
-      startDate = LocalDate.now();
-      endDate = LocalDate.now();
-    }
-    attendances = (Page<AttendanceDTO>) model.asMap().get("attendances");
-    Map<String,Integer> quantity = attendanceService.getQuantity();
-    if(attendances == null)
-      attendances = attendanceService.getAll(startDate, endDate, PageRequest.of(page, size));
-
-    model.addAttribute("startDate", startDate);
-    model.addAttribute("endDate", endDate);
-    model.addAttribute("page", page);
-    model.addAttribute("size", size);
-    model.addAttribute("quantity",quantity);
-    model.addAttribute("attendances", attendances);
-    model.addAttribute("contentFragment", "fragments/attendance-fragments");
-    return "index";
-  }
-
-//  @RequestMapping("/filter")
-//  public String filterStatus(Model model,
-//                             @RequestParam(value = "status", required = false) String status,
-//                             @RequestParam(value = "page", defaultValue = "0") Integer page,
-//                             @RequestParam(value = "size", defaultValue = "10") Integer size,
-//                             @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate startDate,
-//                             @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate endDate){
-//    if (startDate == null || endDate == null) {
-//      startDate = LocalDate.now();
-//      endDate = LocalDate.now();
-//    }
-//    attendances = attendanceService.filterByStatus(startDate, endDate, PageRequest.of(page,size), status);
-//
-//    Map<String,Integer> quantity = attendanceService.getQuantity();
-//
-//    model.addAttribute("quantity",quantity);
-//    model.addAttribute("attendances",attendances);
-//    model.addAttribute("startDate", startDate);
-//    model.addAttribute("endDate", endDate);
-//    model.addAttribute("page", page);
-//    model.addAttribute("size", size);
-//    model.addAttribute("contentFragment", "fragments/attendance-fragments");
-//    return "index";
-//  }
-
   @RequestMapping("/create/form")
   public String createForm(Model model,
                            @RequestParam(value = "employeeIds", required = false) Integer[] employeeIds,
@@ -303,7 +253,7 @@ public class AttendanceController {
     model.addAttribute("page", page);
     model.addAttribute("size", size);
     model.addAttribute("attendanceDTOList", attendanceDTOList);
-    model.addAttribute("contentFragment", "fragments/attendance-view-fragments");
+    model.addAttribute("contentFragment", "fragments/attendance-create-fragments");
     return "index";
   }
 
@@ -319,54 +269,113 @@ public class AttendanceController {
   }
 
 
+  @RequestMapping("/summary/filter")
+  public String applyFilters(
+    @RequestParam Integer selectedDepartmentId,
+    @RequestParam Integer selectedMonth,
+    @RequestParam Integer selectedYear,
+    @RequestParam Integer pageSize) {
+
+    return "redirect:/attendance/summary?selectedDepartmentId=" + selectedDepartmentId +
+      "&selectedMonth=" + selectedMonth + "&selectedYear=" + selectedYear + "&pageSize=" + pageSize;
+  }
+
   @RequestMapping("/summary")
-  public String showPage(@ModelAttribute PayrollCalculationForm form,
-                         Model model,
-                         @ModelAttribute("loggedInUser") User loggedInUser) {
-    if (loggedInUser == null) {
-      return "redirect:/login";
-    }
+  public String summaryPage(@ModelAttribute PayrollCalculationForm form,
+                            Model model,
+                            @ModelAttribute("loggedInUser") User loggedInUser,
+                            @RequestParam(value = "selectedDepartmentId", required = false) Integer selectedDepartmentId,
+                            @RequestParam(value = "selectedMonth", required = false) Integer selectedMonth,
+                            @RequestParam(value = "selectedYear", required = false) Integer selectedYear,
+                            @RequestParam(value = "pageSize", required = false, defaultValue = "10") Integer pageSize,
+                            @RequestParam(value = "page", required = false, defaultValue = "0") Integer page,
+                            @RequestParam(value = "search", required = false) String searchQuery) {
+    List<EmployeeDTO> employees = new ArrayList<>();
 
-    if (form.getSelectedDepartmentId() != null) {
+    if(selectedDepartmentId != null) {
       form.getPayrollCalculations().clear();
-      Page<EmployeeDTO> employees = employeeService.getEmployeesByDepartmentId(form.getSelectedDepartmentId(), PageRequest.of(0, 10));
-      model.addAttribute("employees", employees.getContent());
 
-      for (var employee : employees.getContent()) {
-        List<AttendanceDTO> attendanceDTOS = attendanceService.getAttendancesByEmployeeIdAndDate(employee.getEmployeeId(), LocalDate.now());
-        int workDays = Math.toIntExact(
-          attendanceDTOS.stream()
-            .filter(a -> "Đúng giờ".equals(a.getAttendanceStatus()))
-            .count()
-        );
-        int lateDays = Math.toIntExact(
-          attendanceDTOS.stream()
-            .filter(a -> "Đi muộn".equals(a.getAttendanceStatus()))
-            .count()
-        );
-        int absentDays = Math.toIntExact(
-          attendanceDTOS.stream()
-            .filter(a -> "Nghỉ".equals(a.getAttendanceStatus()))
-            .count()
-        );
-        double overtimeHours = attendanceDTOS.stream()
-          .filter(a -> a != null)
-          .mapToDouble(a -> a.getAttendanceOvertimeHours() != null ?
-            a.getAttendanceOvertimeHours() : 0.0)
-          .sum();
+      if (selectedDepartmentId == 0) {
+        employees = employeeService.getAllEmployees();
+      } else {
+        employees = employeeService.getEmployeesByDepartmentId(selectedDepartmentId);
+      }
+
+      if (searchQuery != null && !searchQuery.trim().isEmpty()) {
+        String query = searchQuery.toLowerCase();
+        employees = employees.stream()
+          .filter(e -> (e.getEmployeeFirstName() + " " + e.getEmployeeLastName()).toLowerCase().contains(query))
+          .collect(Collectors.toList());
+      }
+
+
+      if(selectedMonth == null) {
+        selectedMonth = LocalDate.now().getMonthValue();
+      }
+
+      if(selectedYear == null) {
+        selectedYear = LocalDate.now().getYear();
+      }
+
+      List<PayrollCalculationDTO> allCalculations = new ArrayList<>();
+
+      for(EmployeeDTO employee : employees) {
+        List<AttendanceDTO> attendanceDTOS = attendanceService.getAttendancesOfEmployeeIdByMonthAndYear(employee.getEmployeeId(), selectedMonth, selectedYear);
+
+        Integer onTimeCounts = attendanceService.countAttendanceByStatus(attendanceDTOS, "On time");
+        Integer lateCounts = attendanceService.countAttendanceByStatus(attendanceDTOS, "Late");
+        Integer absentCounts = attendanceService.countAttendanceByStatus(attendanceDTOS, "Absent");
+        double overtimeHours = attendanceService.countOvertimeHours(attendanceDTOS);
+
         PayrollCalculationDTO dto = new PayrollCalculationDTO(
           employee.getEmployeeId(),
           employee.getEmployeeFirstName(),
           employee.getEmployeeLastName(),
-          workDays, lateDays, absentDays, Math.floor(overtimeHours)
+          onTimeCounts, lateCounts, absentCounts, Math.floor(overtimeHours)
         );
-        form.getPayrollCalculations().add(dto);
+
+        allCalculations.add(dto);
       }
+
+      int totalItems = allCalculations.size();
+      int totalPages = (int) Math.ceil((double) totalItems / pageSize);
+
+      if (page >= totalPages && totalPages > 0) {
+        page = totalPages - 1;
+      }
+
+      int startIndex = page * pageSize;
+      int endIndex = Math.min(startIndex + pageSize, totalItems);
+
+      List<PayrollCalculationDTO> pagedCalculations =
+        totalItems > 0 ? allCalculations.subList(startIndex, endIndex) : new ArrayList<>();
+
+      form.getPayrollCalculations().addAll(pagedCalculations);
+
+      model.addAttribute("currentPage", page);
+      model.addAttribute("totalPages", totalPages);
+      model.addAttribute("totalItems", totalItems);
+      model.addAttribute("pageSize", pageSize);
+      model.addAttribute("searchQuery", searchQuery);
     }
+
+    model.addAttribute("employees", employees);
     model.addAttribute("departments", departmentService.getAllDepartments());
+    model.addAttribute("selectedMonth", selectedMonth);
+    model.addAttribute("selectedYear", selectedYear);
     model.addAttribute("user", loggedInUser);
     model.addAttribute("payrollCalculationForm", form);
     model.addAttribute("contentFragment", "fragments/attendance-summary-fragments");
+    return "index";
+  }
+
+
+  @GetMapping("/view")
+  public String viewAttendance(@RequestParam("attendanceId") Integer attendanceId, Model model) {
+    AttendanceDTO attendance = attendanceDTOMapper.toDTO(attendanceRepository.getAttendanceByAttendanceId(attendanceId));
+
+    model.addAttribute("attendance", attendance);
+    model.addAttribute("contentFragment", "fragments/attendance-view-fragments");
     return "index";
   }
 

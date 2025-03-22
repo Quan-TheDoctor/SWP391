@@ -29,6 +29,15 @@ public class EmployeeQueryServiceImpl implements EmployeeQueryService {
   }
 
   @Override
+  public List<EmployeeDTO> getAll() {
+     return employeeRepository.findAll()
+        .stream()
+        .filter(e -> !e.getIsDeleted())
+        .map(employeeDTOMapper::toDTO)
+        .collect(Collectors.toList());
+  }
+
+  @Override
   public Double getAverageSalary(List<EmployeeDTO> employees) {
     return employees
       .stream()
@@ -38,13 +47,18 @@ public class EmployeeQueryServiceImpl implements EmployeeQueryService {
   }
 
   @Override
-  public Page<Employee> search(String firstName, String lastName, Pageable pageable) {
-    return employeeRepository.searchEmployee(firstName, lastName, pageable);
+  public Page<Employee> search(String query, Pageable pageable) {
+    return employeeRepository.searchEmployee(query, pageable);
   }
 
   @Override
   public EmployeeDTO getEmployeeByEmployeeId(Integer employeeId) {
     return employeeDTOMapper.toDTO(employeeRepository.getEmployeeByEmployeeIdAndIsDeleted(employeeId, false));
+  }
+
+  @Override
+  public List<Employee> getEmployeesByDepartmentId(Integer departmentId) {
+    return employeeRepository.findEmployeesByIsDeleted(false);
   }
 
   @Override

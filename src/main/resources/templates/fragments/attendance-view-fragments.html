@@ -3,9 +3,104 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Chấm công - Modern Dashboard</title>
+    <title>Chi tiết chấm công - Modern Dashboard</title>
     <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/all.min.css">
+    <script src="https://cdn.jsdelivr.net/npm/echarts@5.4.3/dist/echarts.min.js"></script>
     <style>
+        /* Add these CSS classes to your stylesheet */
+        .attendance-card {
+            @apply relative bg-gradient-to-r from-blue-50 to-purple-50 rounded-2xl p-4 hover:shadow-lg transition-all;
+        }
+
+        .attendance-card-highlighted {
+            @apply bg-gradient-to-r from-yellow-50 to-amber-50 ring-2 ring-yellow-300 highlight-flash;
+        }
+
+        .time-indicator {
+            @apply absolute -top-8 bg-white/95 backdrop-blur-sm px-2 py-1 rounded-md shadow-md border border-gray-100;
+        }
+
+        .time-label {
+            @apply text-[9px] text-gray-500;
+        }
+
+        .legend-item {
+            @apply flex items-center gap-1 text-gray-500;
+        }
+
+        .legend-color {
+            @apply w-3 h-3 rounded-sm;
+        }
+
+        .btn {
+            @apply px-4 py-2 rounded-lg transition-all duration-200 flex items-center justify-center gap-2;
+        }
+
+        .btn-primary {
+            @apply bg-blue-600 text-white hover:bg-blue-700;
+        }
+
+        .btn-secondary {
+            @apply bg-gray-200 text-gray-800 hover:bg-gray-300;
+        }
+
+        .btn-danger {
+            @apply bg-red-600 text-white hover:bg-red-700;
+        }
+
+        .btn-success {
+            @apply bg-green-600 text-white hover:bg-green-700;
+        }
+
+        .btn-sm {
+            @apply px-3 py-1 text-sm;
+        }
+
+        .badge {
+            @apply px-2 py-1 rounded-full text-xs font-medium;
+        }
+
+        .badge-success {
+            @apply bg-green-100 text-green-800;
+        }
+
+        .badge-warning {
+            @apply bg-yellow-100 text-yellow-800;
+        }
+
+        .badge-danger {
+            @apply bg-red-100 text-red-800;
+        }
+
+        .badge-info {
+            @apply bg-blue-100 text-blue-800;
+        }
+
+        .card {
+            @apply bg-white rounded-xl shadow-sm p-4;
+        }
+
+        .time-marker {
+            @apply relative;
+        }
+
+        .time-marker-line {
+            @apply h-4 w-px mx-auto;
+        }
+
+        .time-marker-text {
+            @apply absolute top-1.5 left-1/2 -translate-x-1/2 text-[8px] font-mono;
+        }
+
+        .time-marker-work-hour {
+            @apply bg-blue-300 text-blue-500;
+        }
+
+        .time-marker-non-work-hour {
+            @apply bg-gray-300 text-gray-400;
+        }
+
         .custom-scrollbar::-webkit-scrollbar {
             width: 8px;
         }
@@ -19,188 +114,987 @@
             border-radius: 4px;
         }
 
-        .compact-table {
-            table-layout: fixed;
+        .highlight-flash {
+            animation: flash 2s ease-in-out;
         }
 
-        .compact-table td, .compact-table th {
-            padding: 0.75rem;
-            vertical-align: middle;
+        @keyframes flash {
+            0%, 50%, 100% {
+                opacity: 1;
+            }
+            25%, 75% {
+                opacity: 0.7;
+            }
+        }
+
+        .time-bar {
+            @apply h-2 rounded-full;
+        }
+
+        .time-bar-container {
+            @apply relative w-full bg-gray-200 rounded-full h-2 mt-2;
+        }
+
+        .time-bar-work {
+            @apply bg-blue-500;
+        }
+
+        .time-bar-late {
+            @apply bg-yellow-500;
+        }
+
+        .time-bar-ot {
+            @apply bg-green-500;
         }
     </style>
-    <script>
-        document.addEventListener("DOMContentLoaded", async () => {
-            const departmentFilter = document.getElementById("departmentFilter");
-            const departments = await fetch('/api/department/getAll')
-                .then(res => res.json())
-                .then(data => data);
-
-            departments.forEach(department => {
-                const option = document.createElement('option');
-                option.value = department.departmentId;
-                option.textContent = department.departmentName;
-                departmentFilter.appendChild(option);
-            });
-        });
-
-        function parseTime(timeString) {
-            const [hours, minutes] = timeString.split(':');
-            return {hours: parseInt(hours), minutes: parseInt(minutes)};
-        }
-
-        function calculateOvertime(checkIn, checkOut) {
-            const standardEndTime = parseTime("17:00");
-            const checkOutTime = parseTime(checkOut);
-
-            let overtime = 0;
-
-            if (checkOutTime.hours > standardEndTime.hours ||
-                (checkOutTime.hours === standardEndTime.hours && checkOutTime.minutes > standardEndTime.minutes)) {
-
-                const endMinutes = standardEndTime.hours * 60 + standardEndTime.minutes;
-                const checkoutMinutes = checkOutTime.hours * 60 + checkOutTime.minutes;
-                overtime = (checkoutMinutes - endMinutes) / 60;
-            }
-            return parseFloat(overtime.toFixed(2));
-        }
-
-        function updateOvertime(row) {
-            const checkIn = row.querySelector('input[type="time"]').value;
-            const checkOut = row.querySelectorAll('input[type="time"]')[1].value;
-
-            if (checkIn && checkOut) {
-                row.querySelector('input[type="number"]').value = calculateOvertime(checkIn, checkOut);
-            }
-        }
-
-        function reindexRows() {
-            const rows = document.querySelectorAll('#attendanceTable tbody tr');
-            rows.forEach((row, index) => {
-                row.querySelectorAll('input, select').forEach(input => {
-                    input.name = input.name.replace(/\[\d+\]/, `[${index}]`);
-                });
-                const hiddenInput = row.querySelector('input[type="hidden"]');
-                if (hiddenInput) {
-                    hiddenInput.name = `attendances[${index}].employeeId`;
-                }
-            });
-        }
-
-        function deleteRow(button) {
-            button.closest('tr').remove();
-            reindexRows();
-        }
-
-        function addEmployeeToTable(employeeId, employeeName) {
-            const tableBody = document.querySelector('#attendanceTable tbody');
-            const newRow = document.createElement('tr');
-            newRow.className = 'hover:bg-gray-50';
-
-            newRow.innerHTML = `
-        <td class="w-48 px-4 truncate">${employeeName}</td>
-        <td class="w-32"><input type="date" name="attendances[0].attendanceDate" required></td>
-        <td class="w-24"><input type="time"
-       pattern="[0-9]{2}:[0-9]{2}" name="attendances[0].attendanceCheckIn" onchange="updateOvertime(this.parentElement.parentElement)" required></td>
-        <td class="w-24"><input type="time"
-       pattern="[0-9]{2}:[0-9]{2}" name="attendances[0].attendanceCheckOut" onchange="updateOvertime(this.parentElement.parentElement)" required></td>
-        <td class="w-32"><input type="number" step="0.01" name="attendances[0].attendanceOvertimeHours" readonly></td>
-        <td class="w-36">
-            <select name="attendances[0].attendanceStatus">
-                <option value="PRESENT">Có mặt</option>
-                <option value="ABSENT">Vắng mặt</option>
-            </select>
-        </td>
-        <td class="w-24">
-            <button type="button" onclick="deleteRow(this)">Xóa</button>
-        </td>
-        <input type="hidden" name="attendances[0].employeeId" value="${employeeId}">
-    `;
-
-            tableBody.appendChild(newRow);
-            reindexRows();
-        }
-
-        async function filterEmployees() {
-            const departmentId = document.getElementById('departmentFilter').value;
-            const employeeList = document.getElementById('employeeList');
-            employeeList.innerHTML = '';
-
-            if (!departmentId) return;
-
-            const employees = await fetch(`/api/employee/getAllByDepartmentId?departmentId=${departmentId}`)
-                .then(res => res.json())
-                .then(data => data);
-
-            console.log(employees)
-
-            employees.forEach(employee => {
-                const employeeDiv = document.createElement('div');
-                employeeDiv.className = 'p-2 mb-2 flex justify-between items-center bg-white rounded shadow-sm hover:shadow-md transition-shadow';
-                employeeDiv.innerHTML = `
-                    <span class="truncate">${employee.employeeFirstName} ${employee.employeeLastName}</span>
-                    <button type="button"
-                        class="px-3 py-1 bg-blue-600 text-white rounded hover:bg-blue-700"
-                        onclick="addEmployeeToTable(${employee.employeeId}, '${employee.employeeFirstName} ${employee.employeeLastName}')">+</button>
-                `;
-                employeeList.appendChild(employeeDiv);
-            });
-        }
-    </script>
 </head>
 <div th:fragment="main-content" xmlns:sec="http://www.w3.org/1999/xhtml">
-<div class="max-w-7xl mx-auto">
-    <div class="mb-6">
-        <h1 class="text-2xl font-bold text-gray-800">📅 Quản lý chấm công</h1>
-        <p class="text-gray-600">Chọn phòng ban và thêm nhân viên vào bảng chấm công</p>
-    </div>
-
-    <div class="grid grid-cols-1 lg:grid-cols-4 gap-6">
-
-        <div class="lg:col-span-1">
-            <div class="bg-white rounded-xl shadow-sm p-4">
-                <div class="mb-4">
-                    <label class="block text-sm font-medium text-gray-700 mb-2">Phòng ban</label>
-                    <select id="departmentFilter" onchange="filterEmployees()"
-                            class="w-full p-2 border rounded-lg focus:ring-2 focus:ring-blue-500">
-                        <option value="">-- Chọn phòng ban --</option>
-                    </select>
+    <div class="max-w-7xl mx-auto py-6">
+        <!-- Header Section -->
+        <div class="flex flex-col md:flex-row justify-between items-start md:items-center mb-6 gap-4">
+            <div>
+                <div class="flex items-center gap-3">
+                    <h1 class="text-2xl font-bold text-gray-800">Chi tiết chấm công</h1>
+                    <span th:if="${attendance.attendanceStatus == 'PRESENT'}" class="badge badge-success">Có mặt</span>
+                    <span th:if="${attendance.attendanceStatus == 'ABSENT'}" class="badge badge-danger">Vắng mặt</span>
+                    <span th:if="${attendance.attendanceStatus == 'LATE'}" class="badge badge-warning">Đi muộn</span>
                 </div>
-                <div id="employeeList" class="h-96 overflow-y-auto custom-scrollbar space-y-2">
+                <p class="text-gray-600">ID: <span th:text="${attendance.attendanceId}"></span> • Ngày: <span th:text="${#temporals.format(attendance.attendanceDate, 'dd/MM/yyyy')}"></span></p>
+            </div>
 
+            <div class="flex gap-3">
+                <a th:href="@{/attendance}" class="btn btn-secondary">
+                    <i class="fas fa-arrow-left"></i>
+                    <span>Quay lại</span>
+                </a>
+                <a th:href="@{/attendance/edit/{id}(id=${attendance.attendanceId})}" class="btn btn-primary">
+                    <i class="fas fa-edit"></i>
+                    <span>Chỉnh sửa</span>
+                </a>
+                <button type="button" onclick="confirmDelete()" class="btn btn-danger">
+                    <i class="fas fa-trash"></i>
+                    <span>Xóa</span>
+                </button>
+            </div>
+        </div>
+
+        <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+            <!-- Thông tin chính -->
+            <div class="lg:col-span-2 space-y-6">
+                <!-- Thông tin chấm công -->
+                <div class="card">
+                    <h2 class="text-lg font-semibold mb-4">Thông tin chấm công</h2>
+
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                        <div>
+                            <div class="mb-4">
+                                <p class="text-sm text-gray-500">Nhân viên</p>
+                                <div class="flex items-center mt-1">
+                                    <div class="w-10 h-10 rounded-full bg-blue-100 flex items-center justify-center text-blue-600 font-semibold mr-3">
+                                        <span th:text="${#strings.substring(attendance.employeeFirstName, 0, 1)}"></span>
+                                    </div>
+                                    <div>
+                                        <p class="font-medium" th:text="${attendance.employeeFirstName + ' ' + attendance.employeeLastName}"></p>
+                                        <p class="text-sm text-gray-500" th:text="${attendance.departmentName}"></p>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="mb-4">
+                                <p class="text-sm text-gray-500">Ngày chấm công</p>
+                                <p class="font-medium text-lg" th:text="${#temporals.format(attendance.attendanceDate, 'EEEE, dd/MM/yyyy')}"></p>
+                            </div>
+                        </div>
+
+                        <div>
+                            <div class="grid grid-cols-2 gap-4">
+                                <div class="bg-gray-50 p-3 rounded-lg">
+                                    <p class="text-sm text-gray-500">Giờ check-in</p>
+                                    <p class="font-medium text-lg" th:text="${attendance.attendanceCheckIn}"></p>
+                                    <span th:if="${attendance.attendanceStatus == 'LATE'}" class="text-xs text-yellow-600">
+                                        <i class="fas fa-exclamation-triangle"></i> Muộn <span th:text="${attendance.attendanceLateMinutes}"></span> phút
+                                    </span>
+                                </div>
+
+                                <div class="bg-gray-50 p-3 rounded-lg">
+                                    <p class="text-sm text-gray-500">Giờ check-out</p>
+                                    <p class="font-medium text-lg" th:text="${attendance.attendanceCheckOut}"></p>
+                                </div>
+
+                                <div class="bg-blue-50 p-3 rounded-lg">
+                                    <p class="text-sm text-gray-500">Giờ làm việc</p>
+<!--                                    <p class="font-medium text-lg text-blue-700" th:text="${attendance.attendanceWorkHours + ' giờ'}"></p>-->
+                                </div>
+
+                                <div class="bg-green-50 p-3 rounded-lg">
+                                    <p class="text-sm text-gray-500">Giờ OT</p>
+                                    <p class="font-medium text-lg text-green-700" th:text="${attendance.attendanceOvertimeHours + ' giờ'}"></p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Time Visualization -->
+                    <div class="mt-6 pt-4 border-t border-gray-100">
+                        <div class="flex justify-between items-center mb-2">
+                            <h3 class="text-sm font-medium text-gray-700">Biểu đồ thời gian làm việc</h3>
+
+                            <!-- Legend -->
+                            <div class="flex items-center gap-3 text-xs">
+                                <div class="legend-item">
+                                    <div class="legend-color bg-blue-500"></div>
+                                    <span>Giờ làm việc</span>
+                                </div>
+                                <div class="legend-item">
+                                    <div class="legend-color bg-yellow-500"></div>
+                                    <span>Đi muộn</span>
+                                </div>
+                                <div class="legend-item">
+                                    <div class="legend-color bg-green-500"></div>
+                                    <span>Tăng ca</span>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Time markers -->
+                        <div class="flex justify-between mb-1">
+                            <div class="time-marker">
+                                <div class="time-marker-line time-marker-work-hour"></div>
+                                <span class="time-marker-text">06:00</span>
+                            </div>
+                            <div class="time-marker">
+                                <div class="time-marker-line time-marker-work-hour"></div>
+                                <span class="time-marker-text">08:00</span>
+                            </div>
+                            <div class="time-marker">
+                                <div class="time-marker-line time-marker-work-hour"></div>
+                                <span class="time-marker-text">10:00</span>
+                            </div>
+                            <div class="time-marker">
+                                <div class="time-marker-line time-marker-work-hour"></div>
+                                <span class="time-marker-text">12:00</span>
+                            </div>
+                            <div class="time-marker">
+                                <div class="time-marker-line time-marker-work-hour"></div>
+                                <span class="time-marker-text">14:00</span>
+                            </div>
+                            <div class="time-marker">
+                                <div class="time-marker-line time-marker-work-hour"></div>
+                                <span class="time-marker-text">16:00</span>
+                            </div>
+                            <div class="time-marker">
+                                <div class="time-marker-line time-marker-work-hour"></div>
+                                <span class="time-marker-text">18:00</span>
+                            </div>
+                            <div class="time-marker">
+                                <div class="time-marker-line time-marker-non-work-hour"></div>
+                                <span class="time-marker-text">20:00</span>
+                            </div>
+                        </div>
+
+                        <!-- Time bar -->
+                        <div class="time-bar-container" id="timeBarContainer">
+                            <!-- Time bars will be dynamically inserted here -->
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Lịch sử chỉnh sửa -->
+                <div class="card">
+                    <h2 class="text-lg font-semibold mb-4">Lịch sử chỉnh sửa</h2>
+
+                    <div class="overflow-x-auto">
+                        <table class="min-w-full">
+                            <thead class="bg-gray-50">
+                            <tr>
+                                <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Thời gian</th>
+                                <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Người chỉnh sửa</th>
+                                <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Hành động</th>
+                                <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Chi tiết</th>
+                            </tr>
+                            </thead>
+                            <tbody class="divide-y divide-gray-200">
+                            <tr th:each="log : ${editLogs}" class="hover:bg-gray-50">
+                                <td class="px-4 py-3 whitespace-nowrap" th:text="${#temporals.format(log.timestamp, 'dd/MM/yyyy HH:mm')}"></td>
+                                <td class="px-4 py-3 whitespace-nowrap" th:text="${log.editor}"></td>
+                                <td class="px-4 py-3 whitespace-nowrap">
+                                    <span class="badge" th:classappend="${log.action == 'CREATE' ? 'badge-success' : (log.action == 'UPDATE' ? 'badge-info' : 'badge-warning')}"
+                                          th:text="${log.action == 'CREATE' ? 'Tạo mới' : (log.action == 'UPDATE' ? 'Cập nhật' : 'Khác')}"></span>
+                                </td>
+                                <td class="px-4 py-3" th:text="${log.details}"></td>
+                            </tr>
+                            <!-- Fallback khi không có dữ liệu -->
+                            <tr th:if="${#lists.isEmpty(editLogs)}">
+                                <td colspan="4" class="px-4 py-3 text-center text-gray-500">Không có lịch sử chỉnh sửa</td>
+                            </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+
+                <!-- Chi tiết chấm công tháng -->
+                <div class="card">
+                    <div class="flex justify-between items-center mb-4">
+                        <h2 class="text-lg font-semibold">Chi tiết chấm công tháng</h2>
+                        <div class="flex items-center">
+                            <label class="mr-2 text-sm font-medium text-gray-700">Trạng thái:</label>
+                            <select id="statusFilter" class="p-2 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500">
+                                <option value="all">Tất cả</option>
+                                <option value="ontime">Đúng giờ</option>
+                                <option value="late">Đi muộn</option>
+                                <option value="overtime">Tăng ca</option>
+                                <option value="absent">Vắng mặt</option>
+                            </select>
+                        </div>
+                    </div>
+
+                    <!-- Monthly attendance cards will be displayed here -->
+                    <div class="space-y-4 max-h-96 overflow-y-auto custom-scrollbar" id="attendanceCards">
+                        <p class="text-gray-500 text-center py-4">Đang tải dữ liệu chấm công...</p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Sidebar -->
+            <div class="space-y-6">
+                <!-- Thống kê tháng -->
+                <div class="card">
+                    <h2 class="text-lg font-semibold mb-4">Thống kê tháng này</h2>
+
+                    <div id="monthlyStats" style="width: 100%; height: 200px;"></div>
+
+                    <div class="grid grid-cols-2 gap-4 mt-4">
+                        <div class="bg-gray-50 p-3 rounded-lg text-center">
+                            <p class="text-sm text-gray-500">Ngày làm việc</p>
+                            <p class="font-medium text-lg" id="totalWorkDays">18</p>
+                        </div>
+
+                        <div class="bg-gray-50 p-3 rounded-lg text-center">
+                            <p class="text-sm text-gray-500">Ngày nghỉ</p>
+                            <p class="font-medium text-lg" id="totalAbsentDays">1</p>
+                        </div>
+
+                        <div class="bg-gray-50 p-3 rounded-lg text-center">
+                            <p class="text-sm text-gray-500">Đi muộn</p>
+                            <p class="font-medium text-lg" id="totalLateDays">2</p>
+                        </div>
+
+                        <div class="bg-gray-50 p-3 rounded-lg text-center">
+                            <p class="text-sm text-gray-500">Tổng OT</p>
+                            <p class="font-medium text-lg" id="totalOTHours">1.5</p>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Hành động -->
+                <div class="card">
+                    <h2 class="text-lg font-semibold mb-4">Hành động</h2>
+
+                    <div class="space-y-3">
+                        <button type="button" onclick="printAttendance()" class="btn btn-secondary w-full">
+                            <i class="fas fa-print"></i>
+                            <span>In báo cáo</span>
+                        </button>
+
+                        <button type="button" onclick="exportPDF()" class="btn btn-secondary w-full">
+                            <i class="fas fa-file-pdf"></i>
+                            <span>Xuất PDF</span>
+                        </button>
+
+                        <button type="button" onclick="showApprovalModal()" class="btn btn-success w-full">
+                            <i class="fas fa-check-circle"></i>
+                            <span>Phê duyệt chấm công</span>
+                        </button>
+                    </div>
                 </div>
             </div>
         </div>
 
+        <!-- Modals -->
+        <!-- Modal phê duyệt -->
+        <div id="approvalModal" class="hidden fixed inset-0 bg-black bg-opacity-50 z-50 flex items-center justify-center">
+            <div class="bg-white rounded-xl shadow-lg p-6 w-full max-w-md">
+                <h3 class="text-lg font-semibold mb-4">Phê duyệt chấm công</h3>
 
-        <div class="lg:col-span-3">
-            <div class="bg-white rounded-xl shadow-sm p-4">
-                <form th:action="@{/attendance/create/save}" method="post" th:object="${attendanceDTOList}">
-                    <div class="mt-4 flex justify-end">
-                        <button type="submit"
-                                class="px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors">
-                            💾 Lưu chấm công
+                <form th:action="@{/attendance/approve}" method="post">
+                    <input type="hidden" name="attendanceId" th:value="${attendance.attendanceId}">
+
+                    <div class="mb-4">
+                        <label for="approvalStatus" class="block text-sm font-medium text-gray-700 mb-1">Trạng thái phê duyệt</label>
+                        <select id="approvalStatus" name="approvalStatus" class="w-full p-2 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500">
+                            <option value="APPROVED">Phê duyệt</option>
+                            <option value="REJECTED">Từ chối</option>
+                        </select>
+                    </div>
+
+                    <div class="mb-4">
+                        <label for="approvalComment" class="block text-sm font-medium text-gray-700 mb-1">Ghi chú</label>
+                        <textarea id="approvalComment" name="approvalComment" rows="3" class="w-full p-2 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500" placeholder="Nhập ghi chú phê duyệt..."></textarea>
+                    </div>
+
+                    <div class="flex justify-end gap-3">
+                        <button type="button" onclick="closeApprovalModal()" class="btn btn-secondary">
+                            <i class="fas fa-times"></i>
+                            <span>Hủy</span>
+                        </button>
+                        <button type="submit" class="btn btn-success">
+                            <i class="fas fa-check"></i>
+                            <span>Xác nhận</span>
                         </button>
                     </div>
-                    <table id="attendanceTable" class="compact-table w-full">
-                        <thead class="bg-gray-50">
-                        <tr>
-                            <th class="w-48 text-left">Tên NV</th>
-                            <th class="w-32">Ngày</th>
-                            <th class="w-24">Check-in</th>
-                            <th class="w-24">Check-out</th>
-                            <th class="w-32">Overtime</th>
-                            <th class="w-36">Trạng thái</th>
-                            <th class="w-24">Thao tác</th>
-                        </tr>
-                        </thead>
-                        <tbody class="divide-y divide-gray-200">
-
-                        </tbody>
-                    </table>
                 </form>
             </div>
         </div>
+
+        <!-- Modal xác nhận xóa -->
+        <div id="deleteModal" class="hidden fixed inset-0 bg-black bg-opacity-50 z-50 flex items-center justify-center">
+            <div class="bg-white rounded-xl shadow-lg p-6 w-full max-w-md">
+                <h3 class="text-lg font-semibold mb-2">Xác nhận xóa</h3>
+                <p class="text-gray-600 mb-4">Bạn có chắc chắn muốn xóa dữ liệu chấm công này? Hành động này không thể hoàn tác.</p>
+
+                <div class="flex justify-end gap-3">
+                    <button type="button" onclick="closeDeleteModal()" class="btn btn-secondary">
+                        <i class="fas fa-times"></i>
+                        <span>Hủy</span>
+                    </button>
+                    <form th:action="@{/attendance/delete}" method="post">
+                        <input type="hidden" name="attendanceId" th:value="${attendance.attendanceId}">
+                        <button type="submit" class="btn btn-danger">
+                            <i class="fas fa-trash"></i>
+                            <span>Xóa</span>
+                        </button>
+                    </form>
+                </div>
+            </div>
+        </div>
+
+        <!-- Edit Attendance Modal -->
+        <div id="editAttendanceModal" class="hidden fixed inset-0 bg-black bg-opacity-50 z-50 flex items-center justify-center">
+            <div class="bg-white rounded-xl shadow-lg p-6 w-full max-w-md">
+                <div class="flex justify-between items-center mb-4">
+                    <h3 class="text-lg font-semibold" id="editDate">Chỉnh sửa chấm công</h3>
+                    <button onclick="closeEditModal()" class="text-gray-500 hover:text-gray-700">
+                        <i class="fas fa-times"></i>
+                    </button>
+                </div>
+
+                <input type="hidden" id="editRecordIndex" value="">
+
+                <div class="space-y-4">
+                    <div>
+                        <label for="editStatus" class="block text-sm font-medium text-gray-700 mb-1">Trạng thái</label>
+                        <select id="editStatus" class="w-full p-2 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500">
+                            <option value="On time">Đúng giờ</option>
+                            <option value="Late">Đi muộn</option>
+                            <option value="OT">Tăng ca</option>
+                            <option value="Absent">Vắng mặt</option>
+                        </select>
+                    </div>
+
+                    <div class="grid grid-cols-2 gap-4">
+                        <div>
+                            <label for="editStartTime" class="block text-sm font-medium text-gray-700 mb-1">Giờ check-in</label>
+                            <input type="time" id="editStartTime" class="w-full p-2 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500">
+                        </div>
+                        <div>
+                            <label for="editEndTime" class="block text-sm font-medium text-gray-700 mb-1">Giờ check-out</label>
+                            <input type="time" id="editEndTime" class="w-full p-2 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500">
+                        </div>
+                    </div>
+
+                    <div id="lateMinutesContainer" class="hidden">
+                        <label for="editLateMinutes" class="block text-sm font-medium text-gray-700 mb-1">Số phút đi muộn</label>
+                        <input type="number" id="editLateMinutes" min="1" max="180" class="w-full p-2 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500">
+                    </div>
+
+                    <div id="otHoursContainer" class="hidden">
+                        <label for="editOTHours" class="block text-sm font-medium text-gray-700 mb-1">Số giờ OT</label>
+                        <input type="number" id="editOTHours" step="0.1" min="0.1" max="12" class="w-full p-2 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500">
+                    </div>
+                </div>
+
+                <div class="flex justify-end gap-3 mt-6">
+                    <button type="button" onclick="closeEditModal()" class="px-4 py-2 bg-gray-200 text-gray-800 rounded-lg hover:bg-gray-300">
+                        Hủy
+                    </button>
+                    <button type="button" onclick="saveAttendanceChanges()" class="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700">
+                        Lưu thay đổi
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Error Popup -->
+        <div id="errorPopup" class="hidden fixed inset-0 z-[60] flex items-center justify-center">
+            <div id="overlay" class="fixed inset-0 bg-black opacity-50"></div>
+            <div class="bg-white rounded-xl shadow-lg p-6 w-full max-w-md relative z-10">
+                <div class="text-center mb-4">
+                    <svg class="mx-auto h-12 w-12 text-red-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
+                    </svg>
+                    <h3 class="text-lg font-medium text-gray-900 mt-2">Lỗi</h3>
+                    <div class="mt-2">
+                        <p class="text-sm text-gray-500" id="errorMessage">Đã xảy ra lỗi. Vui lòng thử lại sau.</p>
+                    </div>
+                </div>
+                <div class="mt-5">
+                    <button type="button" onclick="closePopup()" class="w-full px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700">
+                        Đóng
+                    </button>
+                </div>
+            </div>
+        </div>
     </div>
-</div>
+
+    <script>
+        // Time bar utilities
+        const TimeBarUtils = {
+            timeToMinutes: function(timeStr) {
+                if (!timeStr || timeStr === '00:00') return 0;
+                const [hours, minutes] = timeStr.split(':').map(Number);
+                return hours * 60 + minutes;
+            },
+
+            calculatePosition: function(timeStr) {
+                const totalMinutesInView = 14 * 60;
+                const startMinutes = 6 * 60;
+
+                const timeMinutes = this.timeToMinutes(timeStr);
+                if (timeMinutes === 0) return 0;
+
+                const position = ((timeMinutes - startMinutes) / totalMinutesInView) * 100;
+                return Math.max(0, Math.min(100, position));
+            },
+
+            createTimeBar: function(checkIn, checkOut, status) {
+                const container = document.createElement('div');
+                container.className = 'time-bar-container';
+
+                if (status.toLowerCase().includes('absent')) {
+                    const absentBar = document.createElement('div');
+                    absentBar.className = 'time-bar bg-gray-400';
+                    absentBar.style.width = '100%';
+                    container.appendChild(absentBar);
+                    return container;
+                }
+
+                const standardStartPos = this.calculatePosition('08:00');
+                const standardEndPos = this.calculatePosition('17:00');
+
+                const startPos = this.calculatePosition(checkIn);
+                const endPos = this.calculatePosition(checkOut);
+
+                if (status.toLowerCase().includes('late')) {
+                    const lateBar = document.createElement('div');
+                    lateBar.className = 'time-bar time-bar-late absolute';
+                    lateBar.style.left = `${standardStartPos}%`;
+                    lateBar.style.width = `${startPos - standardStartPos}%`;
+                    container.appendChild(lateBar);
+
+                    const workBar = document.createElement('div');
+                    workBar.className = 'time-bar time-bar-work absolute';
+                    workBar.style.left = `${startPos}%`;
+                    workBar.style.width = `${endPos - startPos}%`;
+                    container.appendChild(workBar);
+                } else if (status.toLowerCase().includes('ot')) {
+                    const workBar = document.createElement('div');
+                    workBar.className = 'time-bar time-bar-work absolute';
+                    workBar.style.left = `${startPos}%`;
+                    workBar.style.width = `${standardEndPos - startPos}%`;
+                    container.appendChild(workBar);
+
+                    const otBar = document.createElement('div');
+                    otBar.className = 'time-bar time-bar-ot absolute';
+                    otBar.style.left = `${standardEndPos}%`;
+                    otBar.style.width = `${endPos - standardEndPos}%`;
+                    container.appendChild(otBar);
+                } else {
+                    const workBar = document.createElement('div');
+                    workBar.className = 'time-bar time-bar-work absolute';
+                    workBar.style.left = `${startPos}%`;
+                    workBar.style.width = `${endPos - startPos}%`;
+                    container.appendChild(workBar);
+                }
+
+                return container;
+            }
+        };
+
+        const AttendanceDetailManager = {
+            attendanceData: [],
+            employeeId: null,
+            employeeName: null,
+
+            api: {
+                fetchAttendanceData: async (employeeId, date) => {
+                    console.error('API method not implemented');
+                    return [];
+                },
+
+                updateAttendance: async (data) => {
+                    // This will be overridden by mock implementation
+                    console.error('API method not implemented');
+                    return { success: false };
+                }
+            },
+
+            initCurrentAttendanceTimeBar: function() {
+                const timeBarContainer = document.getElementById('timeBarContainer');
+                if (!timeBarContainer) return;
+
+                const checkIn = document.querySelector('[th\\:text="${attendance.attendanceCheckIn}"]')?.textContent || "08:00";
+                const checkOut = document.querySelector('[th\\:text="${attendance.attendanceCheckOut}"]')?.textContent || "17:00";
+                const statusElement = document.querySelector('.badge');
+                const status = statusElement ? statusElement.textContent : "On time";
+
+                const timeBar = TimeBarUtils.createTimeBar(checkIn, checkOut, status);
+                timeBarContainer.innerHTML = '';
+                timeBarContainer.appendChild(timeBar);
+            },
+
+            loadMonthlyAttendance: async function() {
+                try {
+                    const employeeIdElement = document.querySelector('[th\\:text="${attendance.employeeId}"]');
+                    this.employeeId = employeeIdElement ? employeeIdElement.textContent : "EMP001";
+
+                    const firstNameElement = document.querySelector('[th\\:text="${attendance.employeeFirstName}"]');
+                    const lastNameElement = document.querySelector('[th\\:text="${attendance.employeeLastName}"]');
+                    const firstName = firstNameElement ? firstNameElement.textContent : "Nguyễn";
+                    const lastName = lastNameElement ? lastNameElement.textContent : "Văn A";
+                    this.employeeName = `${firstName} ${lastName}`;
+
+                    const dateElement = document.querySelector('[th\\:text="${#temporals.format(attendance.attendanceDate, \'dd/MM/yyyy\')}"]');
+                    const currentDate = dateElement ? dateElement.textContent : new Date().toLocaleDateString('vi-VN');
+
+                    this.attendanceData = await this.api.fetchAttendanceData(this.employeeId, currentDate);
+
+                    this.updateStatistics();
+
+                    this.renderAttendanceCards();
+                } catch (error) {
+                    console.error('Error loading attendance data:', error);
+                    document.getElementById('attendanceCards').innerHTML =
+                        '<p class="text-red-500 text-center py-4">Lỗi khi tải dữ liệu chấm công</p>';
+                }
+            },
+
+            updateStatistics: function() {
+                let workDays = 0;
+                let lateDays = 0;
+                let absentDays = 0;
+                let totalOT = 0;
+
+                this.attendanceData.forEach(record => {
+                    if (record.attendanceStatus.toLowerCase().includes('absent')) {
+                        absentDays++;
+                    } else {
+                        workDays++;
+
+                        if (record.attendanceStatus.toLowerCase().includes('late')) {
+                            lateDays++;
+                        }
+
+                        if (record.attendanceOvertimeHours) {
+                            totalOT += parseFloat(record.attendanceOvertimeHours);
+                        }
+                    }
+                });
+
+                document.getElementById('totalWorkDays').textContent = workDays;
+                document.getElementById('totalAbsentDays').textContent = absentDays;
+                document.getElementById('totalLateDays').textContent = lateDays;
+                document.getElementById('totalOTHours').textContent = totalOT.toFixed(1);
+            },
+
+            renderAttendanceCards: function() {
+                const container = document.getElementById('attendanceCards');
+                if (!container) return;
+
+                container.innerHTML = '';
+
+                if (this.attendanceData.length === 0) {
+                    container.innerHTML = '<p class="text-gray-500 text-center py-4">Không có dữ liệu chấm công</p>';
+                    return;
+                }
+
+                this.attendanceData.forEach((record, index) => {
+                    const card = this.createAttendanceCard(record, index);
+                    container.appendChild(card);
+                });
+            },
+
+            createAttendanceCard: function(record, index) {
+                const card = document.createElement('div');
+                card.className = 'attendance-card';
+                card.dataset.status = record.attendanceStatus.toLowerCase();
+
+                const header = document.createElement('div');
+                header.className = 'flex justify-between items-center mb-2';
+
+                const dateDiv = document.createElement('div');
+                dateDiv.className = 'font-medium';
+                dateDiv.textContent = record.attendanceDate;
+                header.appendChild(dateDiv);
+
+                const statusBadge = document.createElement('span');
+                statusBadge.className = 'badge';
+
+                if (record.attendanceStatus.toLowerCase().includes('on time')) {
+                    statusBadge.classList.add('badge-success');
+                    statusBadge.textContent = 'Đúng giờ';
+                } else if (record.attendanceStatus.toLowerCase().includes('late')) {
+                    statusBadge.classList.add('badge-warning');
+                    statusBadge.textContent = record.attendanceStatus;
+                } else if (record.attendanceStatus.toLowerCase().includes('ot')) {
+                    statusBadge.classList.add('badge-info');
+                    statusBadge.textContent = record.attendanceStatus;
+                } else if (record.attendanceStatus.toLowerCase().includes('absent')) {
+                    statusBadge.classList.add('badge-danger');
+                    statusBadge.textContent = 'Vắng mặt';
+                }
+
+                header.appendChild(statusBadge);
+                card.appendChild(header);
+
+                const timeDetails = document.createElement('div');
+                timeDetails.className = 'flex justify-between text-sm text-gray-500 mb-3';
+
+                const checkInDiv = document.createElement('div');
+                checkInDiv.innerHTML = `<span class="font-medium">Check-in:</span> ${record.attendanceCheckIn || 'N/A'}`;
+                timeDetails.appendChild(checkInDiv);
+
+                const checkOutDiv = document.createElement('div');
+                checkOutDiv.innerHTML = `<span class="font-medium">Check-out:</span> ${record.attendanceCheckOut || 'N/A'}`;
+                timeDetails.appendChild(checkOutDiv);
+
+                card.appendChild(timeDetails);
+
+                const timeBar = TimeBarUtils.createTimeBar(
+                    record.attendanceCheckIn,
+                    record.attendanceCheckOut,
+                    record.attendanceStatus
+                );
+                card.appendChild(timeBar);
+
+                const editButton = document.createElement('button');
+                editButton.className = 'btn btn-sm btn-secondary mt-3 ml-auto block';
+                editButton.innerHTML = '<i class="fas fa-edit mr-1"></i> Chỉnh sửa';
+                editButton.onclick = (e) => {
+                    e.stopPropagation();
+                    this.openEditModal(index);
+                };
+                card.appendChild(editButton);
+
+                return card;
+            },
+
+            openEditModal: function(index) {
+                const record = this.attendanceData[index];
+                if (!record) return;
+
+                document.getElementById('editDate').textContent = `Chỉnh sửa chấm công - ${record.attendanceDate}`;
+
+                document.getElementById('editRecordIndex').value = index;
+
+                document.getElementById('editStatus').value = record.attendanceStatus.includes('Late') ? 'Late' :
+                    record.attendanceStatus.includes('OT') ? 'OT' :
+                        record.attendanceStatus.includes('Absent') ? 'Absent' : 'On time';
+
+                document.getElementById('editStartTime').value = this.convertTimeFormat(record.attendanceCheckIn);
+                document.getElementById('editEndTime').value = this.convertTimeFormat(record.attendanceCheckOut);
+
+                this.updateEditModalFields();
+
+                if (record.attendanceStatus.toLowerCase().includes('late')) {
+                    const lateMinutes = record.attendanceStatus.match(/\d+/);
+                    document.getElementById('editLateMinutes').value = lateMinutes ? lateMinutes[0] : '15';
+                }
+
+                if (record.attendanceOvertimeHours) {
+                    document.getElementById('editOTHours').value = record.attendanceOvertimeHours;
+                }
+
+                document.getElementById('editAttendanceModal').classList.remove('hidden');
+            },
+
+            updateEditModalFields: function() {
+                const status = document.getElementById('editStatus').value;
+                const lateContainer = document.getElementById('lateMinutesContainer');
+                const otContainer = document.getElementById('otHoursContainer');
+                const startTimeInput = document.getElementById('editStartTime');
+                const endTimeInput = document.getElementById('editEndTime');
+
+                lateContainer.classList.add('hidden');
+                otContainer.classList.add('hidden');
+                startTimeInput.disabled = false;
+                endTimeInput.disabled = false;
+
+                if (status === 'Late') {
+                    lateContainer.classList.remove('hidden');
+                } else if (status === 'OT') {
+                    otContainer.classList.remove('hidden');
+                } else if (status === 'Absent') {
+                    startTimeInput.value = '00:00';
+                    endTimeInput.value = '00:00';
+                    startTimeInput.disabled = true;
+                    endTimeInput.disabled = true;
+                }
+            },
+
+            convertTimeFormat: function(timeStr) {
+                if (!timeStr || timeStr === '00:00') return '00:00';
+                return timeStr;
+            },
+
+            closeEditModal: function() {
+                document.getElementById('editAttendanceModal').classList.add('hidden');
+            },
+
+            saveAttendanceChanges: async function() {
+                const index = parseInt(document.getElementById('editRecordIndex').value);
+                const record = this.attendanceData[index];
+                if (!record) return;
+
+                const status = document.getElementById('editStatus').value;
+                let checkIn = document.getElementById('editStartTime').value;
+                let checkOut = document.getElementById('editEndTime').value;
+                let statusText = status;
+                let overtimeHours = '0';
+
+                checkIn = checkIn.replace(':', ':');
+                checkOut = checkOut.replace(':', ':');
+
+                if (status === 'Late') {
+                    const lateMinutes = document.getElementById('editLateMinutes').value;
+                    statusText = `Late ${lateMinutes}p`;
+                } else if (status === 'OT') {
+                    overtimeHours = document.getElementById('editOTHours').value;
+                    statusText = `OT ${overtimeHours}h`;
+                } else if (status === 'Absent') {
+                    checkIn = '00:00';
+                    checkOut = '00:00';
+                    statusText = 'Absent';
+                    overtimeHours = '0';
+                } else {
+                    statusText = 'On time';
+                }
+
+                const updatedRecord = {
+                    ...record,
+                    attendanceCheckIn: checkIn,
+                    attendanceCheckOut: checkOut,
+                    attendanceStatus: statusText,
+                    attendanceOvertimeHours: overtimeHours
+                };
+
+                try {
+                    const result = await this.api.updateAttendance(updatedRecord);
+
+                    if (result.success) {
+                        this.attendanceData[index] = updatedRecord;
+
+                        this.renderAttendanceCards();
+                        this.updateStatistics();
+
+                        this.closeEditModal();
+                    } else {
+                        this.showError('Không thể cập nhật dữ liệu chấm công');
+                    }
+                } catch (error) {
+                    console.error('Error updating attendance:', error);
+                    this.showError('Đã xảy ra lỗi khi cập nhật dữ liệu chấm công');
+                }
+            },
+
+            showError: function(message) {
+                document.getElementById('errorMessage').textContent = message;
+                document.getElementById('errorPopup').classList.remove('hidden');
+            }
+        };
+
+        function closePopup() {
+            document.getElementById('errorPopup').classList.add('hidden');
+        }
+
+        document.getElementById('statusFilter').addEventListener('change', function() {
+            const status = this.value;
+            const cards = document.querySelectorAll('#attendanceCards .attendance-card');
+
+            cards.forEach(card => {
+                const statusBadge = card.querySelector('.badge').textContent.toLowerCase();
+
+                if (status === 'all') {
+                    card.style.display = 'block';
+                } else if (status === 'ontime' && statusBadge.includes('đúng giờ')) {
+                    card.style.display = 'block';
+                } else if (status === 'late' && statusBadge.includes('late')) {
+                    card.style.display = 'block';
+                } else if (status === 'overtime' && statusBadge.includes('ot')) {
+                    card.style.display = 'block';
+                } else if (status === 'absent' && statusBadge.includes('vắng mặt')) {
+                    card.style.display = 'block';
+                } else {
+                    card.style.display = 'none';
+                }
+            });
+        });
+
+        document.getElementById('editStatus').addEventListener('change', function() {
+            AttendanceDetailManager.updateEditModalFields();
+        });
+
+        function closeEditModal() {
+            AttendanceDetailManager.closeEditModal();
+        }
+
+        function saveAttendanceChanges() {
+            AttendanceDetailManager.saveAttendanceChanges();
+        }
+
+        function showApprovalModal() {
+            document.getElementById('approvalModal').classList.remove('hidden');
+        }
+
+        function closeApprovalModal() {
+            document.getElementById('approvalModal').classList.add('hidden');
+        }
+
+        function confirmDelete() {
+            document.getElementById('deleteModal').classList.remove('hidden');
+        }
+
+        function closeDeleteModal() {
+            document.getElementById('deleteModal').classList.add('hidden');
+        }
+
+        // Các hàm xử lý khác
+        function printAttendance() {
+            window.print();
+        }
+
+        function exportPDF() {
+            alert('Tính năng xuất PDF đang được phát triển');
+        }
+
+        // Mock API implementation
+        const mockAttendanceData = [
+            {
+                attendanceId: 1,
+                attendanceDate: "21/03/2025",
+                attendanceCheckIn: "08:00",
+                attendanceCheckOut: "17:00",
+                attendanceStatus: "On time",
+                attendanceOvertimeHours: "0"
+            },
+            {
+                attendanceId: 2,
+                attendanceDate: "20/03/2025",
+                attendanceCheckIn: "08:15",
+                attendanceCheckOut: "17:00",
+                attendanceStatus: "Late 15p",
+                attendanceOvertimeHours: "0"
+            },
+            {
+                attendanceId: 3,
+                attendanceDate: "19/03/2025",
+                attendanceCheckIn: "08:00",
+                attendanceCheckOut: "18:30",
+                attendanceStatus: "OT 1.5h",
+                attendanceOvertimeHours: "1.5"
+            },
+            {
+                attendanceId: 4,
+                attendanceDate: "18/03/2025",
+                attendanceCheckIn: "00:00",
+                attendanceCheckOut: "00:00",
+                attendanceStatus: "Absent",
+                attendanceOvertimeHours: "0"
+            }
+        ];
+
+        const api = {
+            fetchAttendanceData: async (employeeId, date) => {
+                console.log(`Fetching attendance data for employee ${employeeId} on ${date}`);
+                // Simulate API delay
+                await new Promise(resolve => setTimeout(resolve, 500));
+                return mockAttendanceData;
+            },
+
+            updateAttendance: async (data) => {
+                console.log('Updating attendance data:', data);
+                // Simulate API delay
+                await new Promise(resolve => setTimeout(resolve, 800));
+                return { success: true };
+            }
+        };
+
+        // Initialize charts and data
+        document.addEventListener('DOMContentLoaded', function() {
+            // Override API methods for demonstration
+            AttendanceDetailManager.api = api;
+
+            // Initialize time visualization for current attendance
+            AttendanceDetailManager.initCurrentAttendanceTimeBar();
+
+            // Load monthly attendance data
+            AttendanceDetailManager.loadMonthlyAttendance();
+
+            // Initialize monthly stats chart
+            const monthlyStatsChart = echarts.init(document.getElementById('monthlyStats'));
+
+            const option = {
+                tooltip: {
+                    trigger: 'item',
+                    formatter: '{a} <br/>{b}: {c} ({d}%)'
+                },
+                legend: {
+                    orient: 'vertical',
+                    right: 10,
+                    top: 'center',
+                    data: ['Đúng giờ', 'Đi muộn', 'Vắng mặt', 'Tăng ca']
+                },
+                series: [
+                    {
+                        name: 'Thống kê chấm công',
+                        type: 'pie',
+                        radius: ['50%', '70%'],
+                        avoidLabelOverlap: false,
+                        itemStyle: {
+                            borderRadius: 10,
+                            borderColor: '#fff',
+                            borderWidth: 2
+                        },
+                        label: {
+                            show: false,
+                            position: 'center'
+                        },
+                        emphasis: {
+                            label: {
+                                show: true,
+                                fontSize: '16',
+                                fontWeight: 'bold'
+                            }
+                        },
+                        labelLine: {
+                            show: false
+                        },
+                        data: [
+                            {value: 15, name: 'Đúng giờ', itemStyle: {color: '#4ade80'}},
+                            {value: 2, name: 'Đi muộn', itemStyle: {color: '#fbbf24'}},
+                            {value: 1, name: 'Vắng mặt', itemStyle: {color: '#f87171'}},
+                            {value: 3, name: 'Tăng ca', itemStyle: {color: '#60a5fa'}}
+                        ]
+                    }
+                ]
+            };
+
+            monthlyStatsChart.setOption(option);
+
+            // Resize chart when window is resized
+            window.addEventListener('resize', function() {
+                monthlyStatsChart.resize();
+            });
+        });
+    </script>
 </div>
 </html>

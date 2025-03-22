@@ -251,11 +251,11 @@
                         </thead>
 
                         <tbody class="divide-y divide-gray-200 min-h-[400px]">
-                        <tr th:each="a : ${attendances.getContent()}" class="hover:bg-gray-50 transition-colors">
+                        <tr th:each="a : ${attendances.getContent()}" class="hover:bg-gray-50 transition-colors" >
                             <td class="px-6 py-4">
                                 <input type="checkbox"
                                        class="checkboxes rounded border-gray-300 text-primary-500 focus:ring-primary-400"
-                                       th:value="${a.getEmployeeId()}">
+                                       th:value="${a.getAttendanceId()}">
                             </td>
                             <td class="px-6 py-4 font-medium">
                                 <div class="flex items-center gap-2">
@@ -299,8 +299,10 @@
                             </td>
                             <td class="px-6 py-4">
                                 <div class="flex gap-2">
-                                    <a href="#"
-                                       class="text-primary-600 hover:text-primary-800 transition-colors">Edit</a>
+                                    <a th:href="@{/attendance/view(attendanceId=${a.attendanceId})}" class="btn btn-primary">
+                                        <i class="fas fa-edit"></i>
+                                        <span>View</span>
+                                    </a>
                                     <a href="#" class="text-red-600 hover:text-red-800 transition-colors">Delete</a>
                                 </div>
                             </td>

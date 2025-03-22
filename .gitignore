@@ -37,7 +37,8 @@ node_modules/
 target/
 build/
 dist/
-
+*.yml
+*.xml
 # Face recognition data if not needed in repository
 src/main/face_recog/**
 
@@ -48,3 +49,4 @@ src/main/face_recog/**
 /New folder/
 /dev-backup/
 /datasets/
+/src/main/frontend/node_modules/

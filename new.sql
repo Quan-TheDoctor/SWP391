@@ -3,6 +3,8 @@ DROP SCHEMA public CASCADE;
 -- Tạo lại schema public sau khi đã xoá
 Create SCHEMA public;
 
+create extension if not exists unaccent;
+
 -- Bảng thông tin nhân viên cơ bản
 Create TABLE employees
 (
@@ -151,7 +153,8 @@ Create TABLE salary_records
     tax_amount          DECIMAL(15, 2) NOT NULL,
     net_salary          DECIMAL(15, 2) NOT NULL,
     payment_status      VARCHAR(20)    NOT NULL,
-    Created_at          TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+    Created_at          TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    is_deleted bool default false
 );
 
 -- Bảng người phụ thuộc
@@ -351,11 +354,11 @@ VALUES (1, 'annguyen', '$2a$10$cUtg8nvDC7PnZLe5eZGVDO4fwD5yvRhemp/vFXDG67OxDMSv7
 INSERT INTO employees (employee_code, first_name, last_name, birth_date, gender,
                        id_number, permanent_address, temporary_address,
                        personal_email, company_email, phone_number,
-                       marital_status, bank_account, bank_name, tax_code)
+                       marital_status, bank_account, bank_name, tax_code, is_deleted)
 VALUES ('SYSTEM', 'System', 'Notification', '2000-01-01', 'Other',
         'SYSTEM123456', 'System Address', 'System Address',
         'system@system.com', 'system@company.com', '0000000000',
-        'N/A', 'N/A', 'N/A', 'N/A');
+        'N/A', 'N/A', 'N/A', 'N/A', true);
 
 INSERT INTO users (employee_id, username, password_hash, role)
 SELECT employee_id, 'system', '$2a$10$cUtg8nvDC7PnZLe5eZGVDO4fwD5yvRhemp/vFXDG67OxDMSv7fHbm', 'SYSTEM'
@@ -632,8 +635,8 @@ SELECT e.employee_id,
            ELSE '18:30:00'::time
            END AS check_out,
        CASE
-           WHEN random() < 0.9 THEN 'Đúng giờ'
-           ELSE 'Đi muộn'
+           WHEN random() < 0.9 THEN 'On time'
+           ELSE 'Late'
            END AS status,
        CASE
            WHEN random() < 0.3 THEN round((random() * 2)::numeric, 1)
@@ -650,22 +653,22 @@ INSERT INTO salary_records (employee_id, month, year, base_salary, total_allowan
                             overtime_pay, deductions, insurance_deduction, tax_amount, net_salary, payment_status)
 VALUES
     -- Tiếp tục từ nhân viên 15
-    (15, 1, 2023, 17000000, 2100000, 1700000, 0, 1700000, 2100000, 17000000, 'Đã thanh toán'),
-    (15, 2, 2023, 17000000, 2100000, 1500000, 0, 1700000, 2000000, 16900000, 'Đã thanh toán'),
-    (14, 1, 2023, 12500000, 2100000, 12500000, 0, 12500000, 2100000, 12500000, 'Đã thanh toán'),
-    (13, 1, 2023, 16500000, 2100000, 16500000, 0, 16500000, 2100000, 16500000, 'Đã thanh toán'),
-    (12, 1, 2023, 15000000, 2100000, 15000000, 0, 15000000, 2100000, 15000000, 'Đã thanh toán'),
-    (11, 1, 2023, 16000000, 2100000, 16000000, 0, 16000000, 2100000, 16000000, 'Đã thanh toán'),
-    (10, 1, 2023, 14000000, 2100000, 14000000, 0, 14000000, 2100000, 14000000, 'Đã thanh toán'),
-    (9, 1, 2023, 18000000, 2100000, 18000000, 0, 18000000, 2100000, 18000000, 'Đã thanh toán'),
-    (8, 1, 2023, 15000000, 2100000, 15000000, 0, 15000000, 2100000, 15000000, 'Đã thanh toán'),
-    (7, 1, 2023, 30000000, 2100000, 30000000, 0, 30000000, 2100000, 30000000, 'Đã thanh toán'),
-    (6, 1, 2023, 30000000, 2100000, 30000000, 0, 30000000, 2100000, 30000000, 'Đã thanh toán'),
-    (5, 1, 2023, 30000000, 2100000, 30000000, 0, 30000000, 2100000, 30000000, 'Đã thanh toán'),
-    (4, 1, 2023, 30000000, 2100000, 30000000, 0, 30000000, 2100000, 30000000, 'Đã thanh toán'),
-    (3, 1, 2023, 30000000, 2100000, 30000000, 0, 30000000, 2100000, 30000000, 'Đã thanh toán'),
-    (2, 1, 2023, 40000000, 2100000, 40000000, 0, 40000000, 2100000, 40000000, 'Đã thanh toán'),
-    (1, 1, 2023, 50000000, 2100000, 50000000, 0, 50000000, 2100000, 50000000, 'Đã thanh toán');
+    (15, 1, 2023, 17000000, 2100000, 1700000, 0, 1700000, 2100000, 17000000, 'Paid'),
+    (15, 2, 2023, 17000000, 2100000, 1500000, 0, 1700000, 2000000, 16900000, 'Paid'),
+    (14, 1, 2023, 12500000, 2100000, 12500000, 0, 12500000, 2100000, 12500000, 'Paid'),
+    (13, 1, 2023, 16500000, 2100000, 16500000, 0, 16500000, 2100000, 16500000, 'Paid'),
+    (12, 1, 2023, 15000000, 2100000, 15000000, 0, 15000000, 2100000, 15000000, 'Paid'),
+    (11, 1, 2023, 16000000, 2100000, 16000000, 0, 16000000, 2100000, 16000000, 'Paid'),
+    (10, 1, 2023, 14000000, 2100000, 14000000, 0, 14000000, 2100000, 14000000, 'Paid'),
+    (9, 1, 2023, 18000000, 2100000, 18000000, 0, 18000000, 2100000, 18000000, 'Paid'),
+    (8, 1, 2023, 15000000, 2100000, 15000000, 0, 15000000, 2100000, 15000000, 'Paid'),
+    (7, 1, 2023, 30000000, 2100000, 30000000, 0, 30000000, 2100000, 30000000, 'Paid'),
+    (6, 1, 2023, 30000000, 2100000, 30000000, 0, 30000000, 2100000, 30000000, 'Paid'),
+    (5, 1, 2023, 30000000, 2100000, 30000000, 0, 30000000, 2100000, 30000000, 'Paid'),
+    (4, 1, 2023, 30000000, 2100000, 30000000, 0, 30000000, 2100000, 30000000, 'Paid'),
+    (3, 1, 2023, 30000000, 2100000, 30000000, 0, 30000000, 2100000, 30000000, 'Paid'),
+    (2, 1, 2023, 40000000, 2100000, 40000000, 0, 40000000, 2100000, 40000000, 'Paid'),
+    (1, 1, 2023, 50000000, 2100000, 50000000, 0, 50000000, 2100000, 50000000, 'Paid');
 
 ;
 
