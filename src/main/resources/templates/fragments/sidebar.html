@@ -36,9 +36,9 @@
 
                 <!-- HRM Section -->
                 <li class="relative group">
-                    <button class="w-full flex items-center gap-3 p-2 hover:bg-gray-100 rounded-md text-gray-700 transition-colors menu-toggle"
+                    <button class="w-full flex items-center gap-3 p-2 hover:bg-gray-100 rounded-md transition-colors menu-toggle"
                             data-menu-id="hr-management"
-                            th:classappend="${servletPath.startsWith('/employee') || servletPath.startsWith('/attendance') || servletPath.startsWith('/payroll') || servletPath.startsWith('/request') || servletPath.startsWith('/face-recognition') || servletPath.startsWith('/chat')} ? 'bg-primary-50 text-primary-600' : ''">
+                            th:classappend="${servletPath.startsWith('/employee') || servletPath.startsWith('/attendance') || servletPath.startsWith('/payroll') || servletPath.startsWith('/request') || servletPath.startsWith('/face-recognition') || servletPath.startsWith('/chat')} ? 'bg-primary-50 text-primary-600' : 'text-gray-700'">
                         <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
                                   d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z"></path>
@@ -56,213 +56,106 @@
                     <ul class="submenu pl-4 space-y-1 mt-1 overflow-hidden transition-all duration-300 max-h-0" id="hr-management-submenu"
                         th:classappend="${servletPath.startsWith('/employee') || servletPath.startsWith('/attendance') || servletPath.startsWith('/payroll') || servletPath.startsWith('/request') || servletPath.startsWith('/face-recognition') || servletPath.startsWith('/chat')} ? 'max-h-[1000px]' : ''">
 
-                        <!-- Employee Submenu -->
-                        <li class="relative">
-                            <button class="w-full flex items-center gap-3 p-2 hover:bg-gray-100 rounded-md text-gray-700 transition-colors menu-toggle text-sm"
-                                    data-menu-id="employee"
-                                    th:classappend="${servletPath.startsWith('/employee')} ? 'bg-primary-50 text-primary-600' : ''">
+                        <!-- Employee -->
+                        <li>
+                            <a href="/employee"
+                               th:classappend="${servletPath.startsWith('/employee')} ? 'bg-primary-50 text-primary-600' : 'text-gray-600'"
+                               class="flex items-center gap-3 p-2 hover:bg-gray-100 rounded-md text-sm transition-colors">
                                 <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
                                           d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"></path>
                                 </svg>
                                 <span>Employee</span>
-                                <svg class="w-4 h-4 ml-auto transform transition-transform duration-200" fill="none"
-                                     stroke="currentColor" viewBox="0 0 24 24"
-                                     th:classappend="${servletPath.startsWith('/employee')} ? 'rotate-180' : ''">
-                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path>
-                                </svg>
-                            </button>
-                            <ul class="submenu pl-4 space-y-1 mt-1 overflow-hidden transition-all duration-300 max-h-0" id="employee-submenu"
-                                th:classappend="${servletPath.startsWith('/employee')} ? 'max-h-[1000px]' : ''">
-                                <li>
-                                    <a href="/employee"
-                                       th:classappend="${servletPath == '/employee'} ? 'bg-primary-50 text-primary-600' : 'text-gray-600'"
-                                       class="flex items-center gap-2 p-2 pl-4 hover:bg-gray-100 rounded-md text-sm transition-colors">
-                                        <span>List Employees</span>
-                                    </a>
-                                </li>
-                                <li>
-                                    <a href="/employee/create/form"
-                                       th:classappend="${servletPath.startsWith('/employee/create')} ? 'bg-primary-50 text-primary-600' : 'text-gray-600'"
-                                       class="flex items-center gap-2 p-2 pl-4 hover:bg-gray-100 rounded-md text-sm transition-colors">
-                                        <span>Create Employee</span>
-                                    </a>
-                                </li>
-                                <li>
-                                    <a href="/employee/export/view"
-                                       th:classappend="${servletPath.startsWith('/employee/export')} ? 'bg-primary-50 text-primary-600' : 'text-gray-600'"
-                                       class="flex items-center gap-2 p-2 pl-4 hover:bg-gray-100 rounded-md text-sm transition-colors">
-                                        <span>Export Data</span>
-                                    </a>
-                                </li>
-                            </ul>
+                            </a>
                         </li>
 
-                        <!-- Attendance Submenu -->
-                        <li class="relative">
-                            <button class="w-full flex items-center gap-3 p-2 hover:bg-gray-100 rounded-md text-gray-700 transition-colors menu-toggle text-sm"
-                                    data-menu-id="attendance"
-                                    th:classappend="${servletPath.startsWith('/attendance')} ? 'bg-primary-50 text-primary-600' : ''">
+                        <!-- Attendance -->
+                        <li>
+                            <a href="/attendance"
+                               th:classappend="${servletPath.startsWith('/attendance')} ? 'bg-primary-50 text-primary-600' : 'text-gray-600'"
+                               class="flex items-center gap-3 p-2 hover:bg-gray-100 rounded-md text-sm transition-colors">
                                 <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
                                           d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"></path>
                                 </svg>
                                 <span>Attendance</span>
-                                <svg class="w-4 h-4 ml-auto transform transition-transform duration-200" fill="none"
-                                     stroke="currentColor" viewBox="0 0 24 24"
-                                     th:classappend="${servletPath.startsWith('/attendance')} ? 'rotate-180' : ''">
-                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path>
-                                </svg>
-                            </button>
-                            <ul class="submenu pl-4 space-y-1 mt-1 overflow-hidden transition-all duration-300 max-h-0" id="attendance-submenu"
-                                th:classappend="${servletPath.startsWith('/attendance')} ? 'max-h-[1000px]' : ''">
-                                <li>
-                                    <a href="/attendance"
-                                       th:classappend="${servletPath == '/attendance'} ? 'bg-primary-50 text-primary-600' : 'text-gray-600'"
-                                       class="flex items-center gap-2 p-2 pl-4 hover:bg-gray-100 rounded-md text-sm transition-colors">
-                                        <span>List Attendance</span>
-                                    </a>
-                                </li>
-                                <li>
-                                    <a href="/attendance/create/form"
-                                       th:classappend="${servletPath.startsWith('/attendance/create')} ? 'bg-primary-50 text-primary-600' : 'text-gray-600'"
-                                       class="flex items-center gap-2 p-2 pl-4 hover:bg-gray-100 rounded-md text-sm transition-colors">
-                                        <span>Create Attendance</span>
-                                    </a>
-                                </li>
-                                <li>
-                                    <a href="/attendance/summary"
-                                       th:classappend="${servletPath.startsWith('/attendance/summary')} ? 'bg-primary-50 text-primary-600' : 'text-gray-600'"
-                                       class="flex items-center gap-2 p-2 pl-4 hover:bg-gray-100 rounded-md text-sm transition-colors">
-                                        <span>Summary Attendance</span>
-                                    </a>
-                                </li>
-                            </ul>
+                            </a>
                         </li>
 
-                        <!-- Payroll Submenu -->
-                        <li class="relative">
-                            <button class="w-full flex items-center gap-3 p-2 hover:bg-gray-100 rounded-md text-gray-700 transition-colors menu-toggle text-sm"
-                                    data-menu-id="payroll"
-                                    th:classappend="${servletPath.startsWith('/payroll')} ? 'bg-primary-50 text-primary-600' : ''">
+                        <!-- Payroll -->
+                        <li>
+                            <a href="/payroll"
+                               th:classappend="${servletPath.startsWith('/payroll')} ? 'bg-primary-50 text-primary-600' : 'text-gray-600'"
+                               class="flex items-center gap-3 p-2 hover:bg-gray-100 rounded-md text-sm transition-colors">
                                 <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
                                           d="M17 9V7a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2m2 4h10a2 2 0 002-2v-6a2 2 0 00-2-2H9a2 2 0 00-2 2v6a2 2 0 002 2zm7-5a2 2 0 11-4 0 2 2 0 014 0z"></path>
                                 </svg>
                                 <span>Payroll</span>
-                                <svg class="w-4 h-4 ml-auto transform transition-transform duration-200" fill="none"
-                                     stroke="currentColor" viewBox="0 0 24 24"
-                                     th:classappend="${servletPath.startsWith('/payroll')} ? 'rotate-180' : ''">
-                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path>
-                                </svg>
-                            </button>
-                            <ul class="submenu pl-4 space-y-1 mt-1 overflow-hidden transition-all duration-300 max-h-0" id="payroll-submenu"
-                                th:classappend="${servletPath.startsWith('/payroll')} ? 'max-h-[1000px]' : ''">
-                                <li>
-                                    <a href="/payroll"
-                                       th:classappend="${servletPath == '/payroll'} ? 'bg-primary-50 text-primary-600' : 'text-gray-600'"
-                                       class="flex items-center gap-2 p-2 pl-4 hover:bg-gray-100 rounded-md text-sm transition-colors">
-                                        <span>List Payrolls</span>
-                                    </a>
-                                </li>
-                                <li>
-                                    <a href="/payroll/detail"
-                                       th:classappend="${servletPath.startsWith('/payroll/detail')} ? 'bg-primary-50 text-primary-600' : 'text-gray-600'"
-                                       class="flex items-center gap-2 p-2 pl-4 hover:bg-gray-100 rounded-md text-sm transition-colors">
-                                        <span>View Details</span>
-                                    </a>
-                                </li>
-                            </ul>
+                            </a>
                         </li>
 
-                        <!-- Request Submenu -->
-                        <li class="relative">
-                            <button class="w-full flex items-center gap-3 p-2 hover:bg-gray-100 rounded-md text-gray-700 transition-colors menu-toggle text-sm"
-                                    data-menu-id="request"
-                                    th:classappend="${servletPath.startsWith('/request')} ? 'bg-primary-50 text-primary-600' : ''">
+                        <!-- Request -->
+                        <li>
+                            <a href="/request"
+                               th:classappend="${servletPath.startsWith('/request')} ? 'bg-primary-50 text-primary-600' : 'text-gray-600'"
+                               class="flex items-center gap-3 p-2 hover:bg-gray-100 rounded-md text-sm transition-colors">
                                 <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
                                           d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-3 7h3m-3 4h3m-6-4h.01M9 16h.01"></path>
                                 </svg>
                                 <span>Request</span>
-                                <svg class="w-4 h-4 ml-auto transform transition-transform duration-200" fill="none"
-                                     stroke="currentColor" viewBox="0 0 24 24"
-                                     th:classappend="${servletPath.startsWith('/request')} ? 'rotate-180' : ''">
-                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path>
-                                </svg>
-                            </button>
-                            <ul class="submenu pl-4 space-y-1 mt-1 overflow-hidden transition-all duration-300 max-h-0" id="request-submenu"
-                                th:classappend="${servletPath.startsWith('/request')} ? 'max-h-[1000px]' : ''">
-                                <li>
-                                    <a href="/request"
-                                       th:classappend="${servletPath == '/request'} ? 'bg-primary-50 text-primary-600' : 'text-gray-600'"
-                                       class="flex items-center gap-2 p-2 pl-4 hover:bg-gray-100 rounded-md text-sm transition-colors">
-                                        <span>List Requests</span>
-                                    </a>
-                                </li>
-                                <li>
-                                    <a href="/request/view"
-                                       th:classappend="${servletPath.startsWith('/request/view')} ? 'bg-primary-50 text-primary-600' : 'text-gray-600'"
-                                       class="flex items-center gap-2 p-2 pl-4 hover:bg-gray-100 rounded-md text-sm transition-colors">
-                                        <span>View Details</span>
-                                    </a>
-                                </li>
-                                <li>
-                                    <a href="/request/export/view"
-                                       th:classappend="${servletPath.startsWith('/request/export')} ? 'bg-primary-50 text-primary-600' : 'text-gray-600'"
-                                       class="flex items-center gap-2 p-2 pl-4 hover:bg-gray-100 rounded-md text-sm transition-colors">
-                                        <span>Export</span>
-                                    </a>
-                                </li>
-                            </ul>
+                            </a>
                         </li>
 
-                        <!-- Company Utilities -->
-                        <li class="relative">
-                            <button class="w-full flex items-center gap-3 p-2 hover:bg-gray-100 rounded-md text-gray-700 transition-colors menu-toggle text-sm"
-                                    data-menu-id="company"
-                                    th:classappend="${servletPath.startsWith('/face-recognition') || servletPath.startsWith('/chat')} ? 'bg-primary-50 text-primary-600' : ''">
+                        <!-- Face Recognition -->
+                        <li>
+                            <a href="/face-recognition"
+                               th:classappend="${servletPath.startsWith('/face-recognition')} ? 'bg-primary-50 text-primary-600' : 'text-gray-600'"
+                               class="flex items-center gap-3 p-2 hover:bg-gray-100 rounded-md text-sm transition-colors">
+                                <i class="fas fa-fingerprint"></i>
+                                <span>Face Recognition</span>
+                            </a>
+                        </li>
+
+                        <!-- Chat -->
+                        <li>
+                            <a href="/chat"
+                               th:classappend="${servletPath.startsWith('/chat')} ? 'bg-primary-50 text-primary-600' : 'text-gray-600'"
+                               class="flex items-center gap-3 p-2 hover:bg-gray-100 rounded-md text-sm transition-colors">
                                 <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                                          d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4"></path>
+                                          d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z"></path>
                                 </svg>
-                                <span>Company</span>
-                                <svg class="w-4 h-4 ml-auto transform transition-transform duration-200" fill="none"
-                                     stroke="currentColor" viewBox="0 0 24 24"
-                                     th:classappend="${servletPath.startsWith('/face-recognition') || servletPath.startsWith('/chat')} ? 'rotate-180' : ''">
-                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path>
-                                </svg>
-                            </button>
-                            <ul class="submenu pl-4 space-y-1 mt-1 overflow-hidden transition-all duration-300 max-h-0" id="company-submenu"
-                                th:classappend="${servletPath.startsWith('/face-recognition') || servletPath.startsWith('/chat')} ? 'max-h-[1000px]' : ''">
-                                <li>
-                                    <a href="/face-recognition"
-                                       th:classappend="${servletPath.startsWith('/face-recognition')} ? 'bg-primary-50 text-primary-600' : 'text-gray-600'"
-                                       class="flex items-center gap-2 p-2 pl-4 hover:bg-gray-100 rounded-md text-sm transition-colors">
-                                        <i class="fas fa-fingerprint text-lg sm:text-xl"></i>
-                                        <span>Face Recognition</span>
-                                    </a>
-                                </li>
-                                <li>
-                                    <a href="/chat"
-                                       th:classappend="${servletPath.startsWith('/chat')} ? 'bg-primary-50 text-primary-600' : 'text-gray-600'"
-                                       class="flex items-center gap-2 p-2 pl-4 hover:bg-gray-100 rounded-md text-sm transition-colors">
-                                        <span>Chat</span>
-                                    </a>
-                                </li>
-                            </ul>
+                                <span>Chat</span>
+                            </a>
                         </li>
                     </ul>
                 </li>
 
                 <!-- Administration Section -->
                 <li class="relative">
+                    <button class="w-full flex items-center gap-3 p-2 hover:bg-gray-100 rounded-md transition-colors menu-toggle"
+                            data-menu-id="administration"
+                            th:classappend="${servletPath.startsWith('/admin')} ? 'bg-primary-50 text-primary-600' : 'text-gray-700'">
+                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                  d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z"></path>
+                        </svg>
+                        <span>Administration</span>
+                        <svg class="w-4 h-4 ml-auto transform transition-transform duration-200" fill="none"
+                             stroke="currentColor" viewBox="0 0 24 24"
+                             th:classappend="${servletPath.startsWith('/admin')} ? 'rotate-180' : ''">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path>
+                        </svg>
+                    </button>
+
                     <ul class="submenu pl-4 space-y-1 mt-1 overflow-hidden transition-all duration-300 max-h-0" id="administration-submenu"
                         th:classappend="${servletPath.startsWith('/admin')} ? 'max-h-[1000px]' : ''">
                         <li>
                             <a href="/admin"
                                th:classappend="${servletPath == '/admin'} ? 'bg-primary-50 text-primary-600' : 'text-gray-600'"
-                               class="flex items-center gap-2 p-2 hover:bg-gray-100 rounded-md text-sm transition-colors">
+                               class="flex items-center gap-3 p-2 hover:bg-gray-100 rounded-md text-sm transition-colors">
                                 <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
                                           d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z"></path>
@@ -273,7 +166,7 @@
                         <li>
                             <a href="/admin/users"
                                th:classappend="${servletPath.startsWith('/admin/users')} ? 'bg-primary-50 text-primary-600' : 'text-gray-600'"
-                               class="flex items-center gap-2 p-2 hover:bg-gray-100 rounded-md text-sm transition-colors">
+                               class="flex items-center gap-3 p-2 hover:bg-gray-100 rounded-md text-sm transition-colors">
                                 <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
                                           d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M13 7a4 4 0 11-8 0 4 4 0 018 0z"></path>
@@ -284,7 +177,7 @@
                         <li>
                             <a href="/admin/logs"
                                th:classappend="${servletPath.startsWith('/admin/logs')} ? 'bg-primary-50 text-primary-600' : 'text-gray-600'"
-                               class="flex items-center gap-2 p-2 hover:bg-gray-100 rounded-md text-sm transition-colors">
+                               class="flex items-center gap-3 p-2 hover:bg-gray-100 rounded-md text-sm transition-colors">
                                 <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
                                           d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path>
@@ -332,43 +225,84 @@
     </aside>
 
     <script>
-        document.addEventListener('DOMContentLoaded', function() {
+        document.addEventListener('DOMContentLoaded', function () {
+            // Setup menu toggle functionality
             document.querySelectorAll('.menu-toggle').forEach(button => {
-                button.addEventListener('click', function() {
+                button.addEventListener('click', function () {
                     const menuId = this.getAttribute('data-menu-id');
                     const submenu = document.getElementById(`${menuId}-submenu`);
 
                     if (submenu) {
-                        if (submenu.classList.contains('max-h-0')) {
-                            submenu.classList.remove('max-h-0');
-                            submenu.classList.add('max-h-[1000px]');
-                            this.querySelector('svg:last-child').classList.add('rotate-180');
-                        } else {
-                            submenu.classList.add('max-h-0');
-                            submenu.classList.remove('max-h-[1000px]');
-                            this.querySelector('svg:last-child').classList.remove('rotate-180');
+                        // Toggle max height
+                        submenu.classList.toggle('max-h-0');
+                        
+                        // Save submenu state to localStorage
+                        const isOpen = !submenu.classList.contains('max-h-0');
+                        localStorage.setItem(`menu_${menuId}_open`, isOpen);
+
+                        // Toggle arrow rotation
+                        const arrow = this.querySelector('svg:last-child');
+                        if (arrow) {
+                            arrow.classList.toggle('rotate-180');
                         }
                     }
                 });
             });
 
+            // Restore submenu states from localStorage
+            document.querySelectorAll('.menu-toggle').forEach(button => {
+                const menuId = button.getAttribute('data-menu-id');
+                const submenu = document.getElementById(`${menuId}-submenu`);
+                
+                if (submenu) {
+                    const savedState = localStorage.getItem(`menu_${menuId}_open`);
+                    
+                    // If we have a saved state and it's "true"
+                    if (savedState === "true") {
+                        submenu.classList.remove('max-h-0');
+                        
+                        // Rotate the arrow
+                        const arrow = button.querySelector('svg:last-child');
+                        if (arrow) {
+                            arrow.classList.add('rotate-180');
+                        }
+                    }
+                }
+            });
+
+            // Setup mobile menu functionality
             const mobileMenuToggle = document.getElementById('mobile-menu-toggle');
             const sidebar = document.querySelector('aside');
 
             if (mobileMenuToggle && sidebar) {
-                mobileMenuToggle.addEventListener('click', function() {
+                mobileMenuToggle.addEventListener('click', () => {
                     sidebar.classList.toggle('-translate-x-full');
+                });
+
+                // Close sidebar when clicking outside on mobile
+                document.addEventListener('click', (event) => {
+                    if (window.innerWidth < 768 &&
+                        !event.target.closest('aside') &&
+                        !event.target.closest('#mobile-menu-toggle') &&
+                        !sidebar.classList.contains('-translate-x-full')) {
+                        sidebar.classList.add('-translate-x-full');
+                    }
                 });
             }
 
-            document.addEventListener('click', function(event) {
-                const isMobile = window.innerWidth < 768;
-                const isOutsideSidebar = !event.target.closest('aside') && !event.target.closest('#mobile-menu-toggle');
+            // Highlight parent menu when submenu item is active
+            const highlightParentMenu = () => {
+                document.querySelectorAll('.submenu a').forEach(link => {
+                    if (link.classList.contains('bg-primary-50')) {
+                        const parentMenu = link.closest('.submenu').previousElementSibling;
+                        if (parentMenu) {
+                            parentMenu.classList.add('bg-primary-50', 'text-primary-600');
+                        }
+                    }
+                });
+            };
 
-                if (isMobile && isOutsideSidebar && sidebar && !sidebar.classList.contains('-translate-x-full')) {
-                    sidebar.classList.add('-translate-x-full');
-                }
-            });
+            highlightParentMenu();
         });
     </script>
 </div>

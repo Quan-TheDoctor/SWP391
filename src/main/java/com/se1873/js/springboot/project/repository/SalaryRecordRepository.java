@@ -63,10 +63,15 @@ public interface SalaryRecordRepository extends JpaRepository<SalaryRecord, Long
   List<TopSalaryDTO> findTop3Salaries(@Param("month") int month, @Param("year") int year);
 
   SalaryRecord findSalaryRecordBySalaryId(Integer salaryId);
-//
-//  @Query("SELECT s FROM SalaryRecord s WHERE s.month = :month AND s.year = :year")
-//  Page<SalaryRecord> findSalaryRecordsByMonthAndYear(Pageable pageable, @Param("month") Integer month, @Param("year") Integer year);
-//
-//  List<SalaryRecord> findAllBySalaryIdIn(List<Long> salaryIds);
 
+  List<SalaryRecord> findByMonthAndYearAndIsDeleted(Integer month, Integer year, Boolean isDeleted);
+
+
+  SalaryRecord findSalaryRecordByEmployee_EmployeeIdAndMonthAndYearAndIsDeleted(Integer employeeEmployeeId, Integer month, Integer year, Boolean isDeleted);
+
+  List<SalaryRecord> findByYearAndIsDeleted(Integer year, Boolean isDeleted);
+
+  List<SalaryRecord> findSalaryRecordsByIsDeleted(Boolean isDeleted);
+
+  List<AverageSalaryDTO> getAverageSalaryByYear(Integer year);
 }

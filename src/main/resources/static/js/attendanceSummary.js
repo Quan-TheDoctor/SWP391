@@ -418,7 +418,7 @@ ${isAbsent ?
         }
 
         this.ui.updateCards(filteredData);
-        this.ui.updateStats(this.data.attendanceRecords); // Always update stats based on all records
+        this.ui.updateStats(this.data.attendanceRecords);
     },
 
     editRecord: function (index) {
@@ -557,7 +557,6 @@ ${isAbsent ?
                 if (data.success) {
                     this.ui.showToast('Đã lưu thành công!');
 
-                    // Update all summaries
                     this.ui.updateStats(this.data.attendanceRecords);
                     this.ui.updateMonthlySummary();
                     this.ui.updateMainSummary();

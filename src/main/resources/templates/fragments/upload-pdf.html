@@ -319,7 +319,6 @@
 
             let parsedData = null;
 
-            // Handle file selection
             fileInput.addEventListener('change', function(e) {
                 if (fileInput.files.length > 0) {
                     const file = fileInput.files[0];
@@ -335,7 +334,6 @@
                 }
             });
 
-            // Handle drag and drop
             ['dragenter', 'dragover', 'dragleave', 'drop'].forEach(eventName => {
                 dropZone.addEventListener(eventName, preventDefaults, false);
             });
@@ -378,7 +376,6 @@
                 }
             }
 
-            // Handle form submission
             form.addEventListener('submit', async function(e) {
                 e.preventDefault();
 
@@ -391,12 +388,10 @@
                 const formData = new FormData();
                 formData.append('file', file);
 
-                // Hide previous results and errors
                 resultsContainer.classList.add('hidden');
                 errorMessage.classList.add('hidden');
                 populateFormBtn.classList.add('hidden');
 
-                // Show loading indicator
                 loadingIndicator.classList.remove('hidden');
 
                 try {
@@ -408,7 +403,6 @@
                     const result = await response.json();
                     parsedData = result;
 
-                    // Hide loading indicator
                     loadingIndicator.classList.add('hidden');
 
                     if (response.ok) {
@@ -424,7 +418,6 @@
                 }
             });
 
-            // Toggle raw data visibility
             toggleRawData.addEventListener('click', function() {
                 if (rawDataContainer.classList.contains('hidden')) {
                     rawDataContainer.classList.remove('hidden');
@@ -435,7 +428,6 @@
                 }
             });
 
-            // Add education entry
             addEducationBtn.addEventListener('click', function() {
                 const educationEntry = document.createElement('div');
                 educationEntry.className = 'education-entry border border-gray-200 rounded-md p-4 mb-3';
@@ -464,13 +456,11 @@
             `;
                 educationContainer.appendChild(educationEntry);
 
-                // Add remove functionality
                 educationEntry.querySelector('.remove-entry').addEventListener('click', function() {
                     educationContainer.removeChild(educationEntry);
                 });
             });
 
-            // Add experience entry
             addExperienceBtn.addEventListener('click', function() {
                 const experienceEntry = document.createElement('div');
                 experienceEntry.className = 'experience-entry border border-gray-200 rounded-md p-4 mb-3';
@@ -499,17 +489,14 @@
             `;
                 experienceContainer.appendChild(experienceEntry);
 
-                // Add remove functionality
                 experienceEntry.querySelector('.remove-entry').addEventListener('click', function() {
                     experienceContainer.removeChild(experienceEntry);
                 });
             });
 
-            // Populate form with parsed data
             populateFormBtn.addEventListener('click', function() {
                 if (!parsedData) return;
 
-                // Populate personal information
                 document.getElementById('name').value = parsedData.personal_info?.name || '';
                 document.getElementById('email').value = parsedData.contact_information?.email || '';
                 document.getElementById('phone').value = parsedData.contact_information?.phone || '';

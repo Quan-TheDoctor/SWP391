@@ -177,34 +177,27 @@
 
     <script>
         document.addEventListener("DOMContentLoaded", function() {
-            // Initialize all charts
             initDashboard();
         });
 
         function initDashboard() {
             try {
-                // Get current date in YYYY-MM format for monthPicker
                 const today = new Date();
                 const monthInput = document.getElementById("monthPicker");
                 if (monthInput) {
                     monthInput.value = `${today.getFullYear()}-${String(today.getMonth() + 1).padStart(2, '0')}`;
                 }
 
-                // Initialize all charts
                 const charts = initializeCharts();
 
-                // Set up event listeners
                 setupEventListeners(charts);
 
-                // Load initial data
                 loadDashboardData(charts);
 
-                // Handle window resize for charts
                 window.addEventListener('resize', function() {
                     resizeCharts(charts);
                 });
 
-                // Resize once to ensure proper display
                 setTimeout(() => resizeCharts(charts), 100);
             } catch (error) {
                 console.error("Dashboard initialization error:", error);
@@ -212,7 +205,6 @@
         }
 
         function initializeCharts() {
-            // Initialize all chart instances
             const charts = {};
 
             const employeeChartEl = document.getElementById('employeeChart');
@@ -235,17 +227,14 @@
         }
 
         function resizeCharts(charts) {
-            // Resize all charts for responsive layout
             Object.values(charts).forEach(chart => {
                 if (chart) chart.resize();
             });
         }
 
         function setupEventListeners(charts) {
-            // Set up date picker for attendance chart
             setupDatePicker(charts);
 
-            // Set up month picker for payroll data
             setupMonthPicker(charts);
         }
 
@@ -255,22 +244,18 @@
 
             if (!openDatePicker || !datePicker) return;
 
-            // Set initial date picker value to today
             const today = new Date();
             datePicker.value = today.toISOString().split('T')[0];
 
-            // Open date picker when button is clicked
             openDatePicker.addEventListener("click", function(event) {
                 event.preventDefault();
                 datePicker.showPicker();
             });
 
-            // Update attendance chart when date changes
             datePicker.addEventListener("change", function() {
                 const selectedDate = datePicker.value;
 
                 if (selectedDate) {
-                    // Update button text
                     const date = new Date(selectedDate);
                     const formattedDisplayDate = date.toLocaleDateString('en-US', {
                         month: 'short',
@@ -278,7 +263,6 @@
                     });
                     openDatePicker.innerHTML = `<i class="fas fa-calendar-day"></i> ${formattedDisplayDate}`;
 
-                    // Fetch attendance data for selected date
                     fetchAttendanceData(charts.attendance, selectedDate);
                 }
             });
@@ -293,21 +277,17 @@
                 const selectedMonth = this.value.split("-")[1];
                 const selectedYear = this.value.split("-")[0];
 
-                // Update payroll chart with new year data
                 fetchPayrollData(charts.payroll, selectedYear);
 
-                // Fetch top salary employees for selected month
                 fetchTopSalaryEmployees(selectedYear, selectedMonth);
             });
         }
 
         function loadDashboardData(charts) {
-            // Get current date
             const today = new Date();
             const formattedToday = today.toISOString().split('T')[0];
             const currentYear = today.getFullYear().toString();
 
-            // Load all dashboard data
             fetchEmployeeData(charts.employee);
             fetchAttendanceData(charts.attendance, formattedToday);
             fetchPayrollData(charts.payroll, currentYear);
@@ -317,7 +297,6 @@
             if (!chart) return;
 
             try {
-                // Fallback data in case API fails
                 const fallbackData = {
                     totalAvailableEmployees: 85,
                     totalUnavailableEmployees: 15
@@ -338,15 +317,12 @@
                     employeeData = fallbackData;
                 }
 
-                // Calculate percentages
                 const totalEmployees = (employeeData.totalAvailableEmployees + employeeData.totalUnavailableEmployees) || 100;
                 const availablePercent = Math.round((employeeData.totalAvailableEmployees / totalEmployees) * 100);
                 const unavailablePercent = 100 - availablePercent;
 
-                // Update UI
                 updateEmployeeStats(availablePercent, unavailablePercent);
 
-                // Create chart
                 const option = createEmployeeChartOption(employeeData);
                 chart.setOption(option);
 

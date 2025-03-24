@@ -298,6 +298,48 @@ public class AdminController {
     return "redirect:/admin/users";
   }
 
+  @PostMapping("/users/change-role")
+  public String changeUserRole(@RequestParam Integer userId,
+                             @RequestParam String role,
+                             @ModelAttribute("loggedInUser") User loggedInUser,
+                             RedirectAttributes redirectAttributes) {
+    try {
+      entityManager.detach(loggedInUser);
+
+      User userToUpdate = userRepository.findUserByUserId(userId);
+      String oldRole = userToUpdate.getRole();
+      
+      userToUpdate.setRole(role);
+      userRepository.save(userToUpdate);
+
+      User detachedUserRef = new User();
+      detachedUserRef.setUserId(loggedInUser.getUserId());
+
+      AuditLog auditLog = new AuditLog();
+      auditLog.setUser(detachedUserRef);
+      auditLog.setActionInfo("Changed role for user: " + userToUpdate.getUsername() + " from " + oldRole + " to " + role);
+      auditLog.setActionType("Update");
+      auditLog.setActionLevel("High");
+      auditLogRepository.save(auditLog);
+
+      redirectAttributes.addFlashAttribute("successMessage", "User role changed successfully");
+    } catch (Exception e) {
+      User detachedUserRef = new User();
+      detachedUserRef.setUserId(loggedInUser.getUserId());
+
+      AuditLog errorLog = new AuditLog();
+      errorLog.setUser(detachedUserRef);
+      errorLog.setActionInfo("Error changing user role: " + e.getMessage());
+      errorLog.setActionType("Error");
+      errorLog.setActionLevel("High");
+      auditLogRepository.save(errorLog);
+
+      redirectAttributes.addFlashAttribute("errorMessage", "Error changing user role: " + e.getMessage());
+    }
+
+    return "redirect:/admin/users";
+  }
+
   @GetMapping("/logs")
   public String logs(Model model,
                      @ModelAttribute("loggedInUser") User loggedInUser,

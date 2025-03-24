@@ -120,13 +120,6 @@ public class UserController {
     if (reason != null) {
       LeavePolicy selectedPolicy = leavePolicyRepository.findLeavePolicyByLeavePolicyId(reason);
       if (selectedPolicy != null) {
-        //                int totalUsedDays = leaveRepository.findAllByEmployee_EmployeeId(getEmployeeId()).stream()
-        //                        .filter(leave -> leave.getReason().equals(selectedPolicy.getLeavePolicyName()))
-        //                        .mapToInt(Leave::getTotalDays)
-        //                        .sum();
-        //                log.info(String.valueOf(totalUsedDays));
-        //                int remainingDays = selectedPolicy.getLeavePolicyAmount() - totalUsedDays;
-        //                requestDTO.getLeaveDTO().setLeaveAllowedDay(remainingDays);
         Leave leave = leaveRepository.findTopByEmployee_EmployeeIdAndReasonOrderByLeaveIdDesc(getEmployeeId(), selectedPolicy.getLeavePolicyName());
         int remainingDays = leave != null ? leave.getLeaveAllowedDay() : selectedPolicy.getLeavePolicyAmount();
         requestDTO.getLeaveDTO().setLeaveAllowedDay(remainingDays);

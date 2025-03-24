@@ -10,8 +10,8 @@ import com.se1873.js.springboot.project.entity.Employee;
 import com.se1873.js.springboot.project.entity.SalaryRecord;
 import com.se1873.js.springboot.project.entity.User;
 import com.se1873.js.springboot.project.mapper.DepartmentDTOMapper;
+import com.se1873.js.springboot.project.mapper.EmployeeDTOMapper;
 import com.se1873.js.springboot.project.repository.*;
-import com.se1873.js.springboot.project.service.ChatNotificationService;
 import com.se1873.js.springboot.project.service.RequestService;
 import com.se1873.js.springboot.project.service.employee.EmployeeService;
 import com.se1873.js.springboot.project.service.salary_record.command.SalaryRecordCommandService;
@@ -23,11 +23,13 @@ import org.apache.poi.ss.usermodel.*;
 import org.apache.poi.ss.usermodel.Font;
 import org.apache.poi.ss.util.CellRangeAddress;
 import org.apache.poi.xssf.usermodel.XSSFWorkbook;
+import org.springframework.cache.annotation.Cacheable;
 import org.springframework.core.io.ByteArrayResource;
 import org.springframework.core.io.FileSystemResource;
 import org.springframework.core.io.Resource;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
+import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -47,6 +49,7 @@ import java.util.stream.Collectors;
 @Transactional
 @RequiredArgsConstructor
 public class SalaryRecordService {
+  private final EmployeeDTOMapper employeeDTOMapper;
   private final DepartmentDTOMapper departmentDTOMapper;
 
   private final SalaryRecordRepository salaryRecordRepository;
@@ -88,28 +91,23 @@ public class SalaryRecordService {
         PayrollDTO payroll = payrollDTO(payrollId);
 
         if (payroll != null) {
-          // Add page break between records (except for the first one)
           if (payrollIds.indexOf(payrollId) > 0) {
             document.newPage();
           }
 
-          // Header Section
           Paragraph header = new Paragraph("Salary Calculation", titleFont);
           header.setAlignment(Element.ALIGN_CENTER);
           header.setSpacingAfter(20);
           document.add(header);
 
-          // Salary Breakdown Section
           Paragraph salaryBreakdownTitle = new Paragraph("Salary Breakdown", headingFont);
           salaryBreakdownTitle.setSpacingAfter(10);
           document.add(salaryBreakdownTitle);
 
-          // Employee Info and Net Salary
           PdfPTable topTable = new PdfPTable(4);
           topTable.setWidthPercentage(100);
           topTable.setSpacingAfter(15);
 
-          // Employee Info
           PdfPCell employeeInfoCell = new PdfPCell();
           employeeInfoCell.setColspan(2);
           employeeInfoCell.setPadding(10);
@@ -128,11 +126,10 @@ public class SalaryRecordService {
           employeeInfoCell.addElement(employeeInfo);
           topTable.addCell(employeeInfoCell);
 
-          // Net Salary
           PdfPCell netSalaryCell = new PdfPCell();
           netSalaryCell.setColspan(2);
           netSalaryCell.setPadding(10);
-          netSalaryCell.setBackgroundColor(new BaseColor(239, 246, 255)); // Light blue bg
+          netSalaryCell.setBackgroundColor(new BaseColor(239, 246, 255));
 
           Paragraph netSalaryInfo = new Paragraph();
           netSalaryInfo.add(new Phrase("Net Salary\n", boldFont));
@@ -146,12 +143,10 @@ public class SalaryRecordService {
 
           document.add(topTable);
 
-          // Four columns section
           PdfPTable detailsTable = new PdfPTable(4);
           detailsTable.setWidthPercentage(100);
           detailsTable.setSpacingAfter(15);
 
-          // Earnings Column
           PdfPCell earningsCell = new PdfPCell();
           earningsCell.setPadding(10);
           earningsCell.setBorder(Rectangle.NO_BORDER);
@@ -172,7 +167,6 @@ public class SalaryRecordService {
           earningsCell.addElement(earnings);
           detailsTable.addCell(earningsCell);
 
-          // Deductions Column
           PdfPCell deductionsCell = new PdfPCell();
           deductionsCell.setPadding(10);
           deductionsCell.setBorder(Rectangle.NO_BORDER);
@@ -191,7 +185,6 @@ public class SalaryRecordService {
           deductionsCell.addElement(deductions);
           detailsTable.addCell(deductionsCell);
 
-          // Employee Contributions Column
           PdfPCell empContribCell = new PdfPCell();
           empContribCell.setPadding(10);
           empContribCell.setBorder(Rectangle.NO_BORDER);
@@ -210,7 +203,6 @@ public class SalaryRecordService {
           empContribCell.addElement(empContrib);
           detailsTable.addCell(empContribCell);
 
-          // Employer Contributions Column
           PdfPCell emplrContribCell = new PdfPCell();
           emplrContribCell.setPadding(10);
           emplrContribCell.setBorder(Rectangle.NO_BORDER);
@@ -231,27 +223,23 @@ public class SalaryRecordService {
 
           document.add(detailsTable);
 
-          // Detailed Calculation Section
           Paragraph detailedCalcTitle = new Paragraph("Detailed Calculation", headingFont);
           detailedCalcTitle.setSpacingBefore(10);
           detailedCalcTitle.setSpacingAfter(10);
           document.add(detailedCalcTitle);
 
-          // Table for detailed calculations
           PdfPTable calcTable = new PdfPTable(4);
           calcTable.setWidthPercentage(100);
           calcTable.setSpacingAfter(15);
 
-          // Table headers
           String[] headers = {"Component", "Rate", "Base Amount", "Amount"};
           for (String headerr : headers) {
             PdfPCell headerCell = new PdfPCell(new Phrase(headerr, boldFont));
-            headerCell.setBackgroundColor(new BaseColor(249, 250, 251)); // Light gray bg
+            headerCell.setBackgroundColor(new BaseColor(249, 250, 251));
             headerCell.setPadding(6);
             calcTable.addCell(headerCell);
           }
 
-          // Add rows for employee contributions
           addCalcTableRow(calcTable, "Health Insurance (Employee)",
             payroll.getCalculatedEmployeeHealthInsuranceAmount() + "%",
             String.format("%,.0f VND", payroll.getSalaryRecordBaseSalary()),
@@ -276,7 +264,6 @@ public class SalaryRecordService {
             String.format("%,.0f VND", payroll.getCalculatedEmployeeUnemploymentInsurance()),
             normalFont);
 
-          // Add rows for employer contributions
           addCalcTableRow(calcTable, "Health Insurance (Employer)",
             payroll.getCalculatedEmployerHealthInsuranceAmount() + "%",
             String.format("%,.0f VND", payroll.getSalaryRecordBaseSalary()),
@@ -303,7 +290,6 @@ public class SalaryRecordService {
 
           document.add(calcTable);
 
-          // Footer with date
           Paragraph footer = new Paragraph("Generated on: " + new SimpleDateFormat("dd/MM/yyyy HH:mm").format(new Date()), smallFont);
           footer.setAlignment(Element.ALIGN_RIGHT);
           footer.setSpacingBefore(20);
@@ -313,7 +299,6 @@ public class SalaryRecordService {
 
       document.close();
 
-      // Return the generated PDF as a resource
       return new FileSystemResource(tempFile);
     } catch (Exception e) {
       log.error("Error generating PDF: " + e.getMessage(), e);
@@ -326,6 +311,55 @@ public class SalaryRecordService {
     table.addCell(new PdfPCell(new Phrase(rate, font)));
     table.addCell(new PdfPCell(new Phrase(baseAmount, font)));
     table.addCell(new PdfPCell(new Phrase(amount, font)));
+  }
+
+  public Map<Integer, Double> getMonthlySalaryData() {
+    int currentYear = LocalDate.now().getYear();
+
+    List<PayrollDTO> payrolls = getAllPayrollsByYear(currentYear);
+
+    Map<Integer, Double> monthlySalaryData = new HashMap<>();
+
+    for (PayrollDTO payroll : payrolls) {
+      if ("Paid".equals(payroll.getSalaryRecordPaymentStatus())) {
+        int month = payroll.getSalaryRecordMonth();
+        double netSalary = payroll.getSalaryRecordNetSalary();
+
+        monthlySalaryData.put(month,
+          monthlySalaryData.getOrDefault(month, 0.0) + netSalary);
+      }
+    }
+
+    return monthlySalaryData;
+  }
+
+  public Map<Integer, Double> getMonthlyDeductionsData() {
+    int currentYear = LocalDate.now().getYear();
+
+    List<PayrollDTO> payrolls = getAllPayrollsByYear(currentYear);
+
+    Map<Integer, Double> monthlyDeductionsData = new HashMap<>();
+
+    for (PayrollDTO payroll : payrolls) {
+      if ("Paid".equals(payroll.getSalaryRecordPaymentStatus())) {
+        int month = payroll.getSalaryRecordMonth();
+        double deductions = payroll.getCalculatedPersonalDeduction() +
+          payroll.getCalculatedPersonalDependentDeduction();
+
+        monthlyDeductionsData.put(month,
+          monthlyDeductionsData.getOrDefault(month, 0.0) + deductions);
+      }
+    }
+
+    return monthlyDeductionsData;
+  }
+
+  private List<PayrollDTO> getAllPayrollsByYear(int year) {
+    Page<PayrollDTO> allPayrolls = getAllPayrolls(PageRequest.of(0, Integer.MAX_VALUE));
+
+    return allPayrolls.getContent().stream()
+      .filter(p -> p.getSalaryRecordYear() == year)
+      .collect(Collectors.toList());
   }
 
 
@@ -408,21 +442,24 @@ public class SalaryRecordService {
   }
 
   private int compareDoubles(Double d1, Double d2) {
-    if (d1 == null && d2 == null) return 0;
-    if (d1 == null) return -1;
-    if (d2 == null) return 1;
-    return d1.compareTo(d2);
+    if (d1 == null && d2 == null) {
+      return 0;
+    } else if (d1 == null) {
+      return -1;
+    } else if (d2 == null) {
+      return 1;
+    }
+    return Double.compare(d1, d2);
   }
 
   public List<AverageSalaryDTO> getAverageSalaryByYear(int year) {
-    return salaryRecordRepository.getAverageSalaryByMonthAndDepartment(year);
+    return salaryRecordRepository.getAverageSalaryByYear(year);
   }
   public Resource exportToExcel(List<Integer> payrollIds, LocalDate startDate, LocalDate endDate) {
     List<SalaryRecord> salaryRecords = new ArrayList<>();
 
     try {
       if (payrollIds != null && !payrollIds.isEmpty()) {
-        // Find by ID list
         log.info("Exporting by IDs: {}", payrollIds);
         for (Integer id : payrollIds) {
           SalaryRecord record = salaryRecordRepository.findSalaryRecordBySalaryId(id);
@@ -433,14 +470,11 @@ public class SalaryRecordService {
           }
         }
       } else if (startDate != null && endDate != null) {
-        // Find by date range
         log.info("Exporting by date range: {} to {}", startDate, endDate);
         int startMonth = startDate.getMonthValue();
         int startYear = startDate.getYear();
         int endMonth = endDate.getMonthValue();
         int endYear = endDate.getYear();
-
-        // Get all records in the date range
         List<SalaryRecord> allRecords = salaryRecordRepository.findAll();
 
         salaryRecords = allRecords.stream()
@@ -458,14 +492,12 @@ public class SalaryRecordService {
 
         log.info("Found {} records in date range", salaryRecords.size());
       } else {
-        // No filter criteria provided, get all records
         log.info("No filter criteria provided, getting all records");
         salaryRecords = salaryRecordRepository.findAll();
       }
 
       if (salaryRecords.isEmpty()) {
         log.warn("No salary records found for export");
-        // Create an empty workbook with just headers
         return createEmptyExcelFile();
       }
 
@@ -480,7 +512,6 @@ public class SalaryRecordService {
     try (Workbook workbook = new XSSFWorkbook(); ByteArrayOutputStream out = new ByteArrayOutputStream()) {
       Sheet sheet = workbook.createSheet("Payroll");
 
-      // Create title and header rows
       createTitleAndHeaderRows(workbook, sheet);
 
       workbook.write(out);
@@ -500,20 +531,16 @@ public class SalaryRecordService {
       CellStyle currencyStyle = workbook.createCellStyle();
       currencyStyle.setDataFormat(format.getFormat("#,##0.00"));
 
-      // Add data rows
       int rowIdx = 3;
       for (SalaryRecord record : salaryRecords) {
         Row row = sheet.createRow(rowIdx++);
 
-        // Employee name
         Cell cell0 = row.createCell(0);
         cell0.setCellValue(record.getEmployee().getFirstName() + " " + record.getEmployee().getLastName());
 
-        // Month and Year
         row.createCell(1).setCellValue(record.getMonth());
         row.createCell(2).setCellValue(record.getYear());
 
-        // Currency fields with formatting
         Cell cell3 = row.createCell(3);
         cell3.setCellValue(record.getBaseSalary());
         cell3.setCellStyle(currencyStyle);
@@ -530,11 +557,9 @@ public class SalaryRecordService {
         cell6.setCellValue(record.getNetSalary());
         cell6.setCellStyle(currencyStyle);
 
-        // Status
         row.createCell(7).setCellValue(record.getPaymentStatus());
       }
 
-      // Auto-size columns
       for (int i = 0; i < 8; i++) {
         sheet.autoSizeColumn(i);
       }
@@ -545,7 +570,6 @@ public class SalaryRecordService {
   }
 
   private void createTitleAndHeaderRows(Workbook workbook, Sheet sheet) {
-    // Title row
     Font titleFont = workbook.createFont();
     titleFont.setBold(true);
     titleFont.setFontHeightInPoints((short) 16);
@@ -560,7 +584,6 @@ public class SalaryRecordService {
     titleCell.setCellStyle(titleStyle);
     sheet.addMergedRegion(new CellRangeAddress(0, 0, 0, 7));
 
-    // Header row
     Font headerFont = workbook.createFont();
     headerFont.setBold(true);
     headerFont.setColor(IndexedColors.WHITE.getIndex());
@@ -590,21 +613,21 @@ public class SalaryRecordService {
 
   }
 
+  @Cacheable(value = "allPayrolls")
   public Page<PayrollDTO> getAllPayrolls(Pageable pageable) {
-    var srs = salaryRecordQueryService.getAll(pageable);
+    var srs = salaryRecordRepository.findSalaryRecordsByIsDeleted(false);
     List<PayrollDTO> payrolls = new ArrayList<>();
     for (var salaryRecord : srs) {
       PayrollDTO payroll = payrollDTO(salaryRecord.getSalaryId());
       payrolls.add(payroll);
     }
 
-    return new PageImpl<>(payrolls, pageable, srs.getTotalElements());
+    return new PageImpl<>(payrolls, pageable, srs.size());
   }
-  public SalaryRecord findSalaryRecordBySalaryId(Integer salaryId) {
-    return salaryRecordQueryService.findSalaryRecordBySalaryId(salaryId);
+  public PayrollDTO findSalaryRecordBySalaryId(Integer salaryId) {
+    return payrollDTO(salaryId);
   }
 
-  //region getAll()
   public Page<PayrollDTO> getAll(Pageable pageable) {
     var salaryRecords = salaryRecordQueryService.getAll(pageable);
     List<PayrollDTO> payrolls = new ArrayList<>();
@@ -627,7 +650,6 @@ public class SalaryRecordService {
     return salaryRecords.map(salaryRecord -> payrollDTO(salaryRecord.getSalaryId()));
   }
 
-  //endregion
   public Map<Integer, Double> getMonthlySalary(int year) {
     List<Object[]> results = salaryRecordRepository.getTotalSalaryByMonth(year);
     Map<Integer, Double> payrollMap = new HashMap<>();
@@ -643,7 +665,6 @@ public class SalaryRecordService {
     }
     return payrollMap;
   }
-  //region payrollDTO()
   public double calculateInsuranceOrFee(int salaryId, int financialPolicyId) {
     SalaryRecord salaryRecord = salaryRecordRepository.findSalaryRecordBySalaryIdAndIsDeleted(salaryId, false);
     double policyRate = financialPolicyRepository.getFinancialPolicyAmount(financialPolicyId);
@@ -719,6 +740,7 @@ public class SalaryRecordService {
   public PayrollDTO payrollDTO(int salaryId) {
     SalaryRecord salaryRecords = salaryRecordRepository.findSalaryRecordBySalaryIdAndIsDeleted(salaryId, false);
     Employee employee = employeeRepository.findEmployeeByEmployeeId(salaryRecords.getEmployee().getEmployeeId());
+    EmployeeDTO employeeDTO = employeeService.getEmployeeByEmployeeId(employee.getEmployeeId());
     double calculatedEmployeeHealthInsuranceAmount = financialPolicyRepository.getFinancialPolicyAmount(1);
     double calculatedEmployeeSocialInsuranceAmount = financialPolicyRepository.getFinancialPolicyAmount(3);
     double calculatedEmployeeUnionFeeAmount = financialPolicyRepository.getFinancialPolicyAmount(5);
@@ -748,6 +770,7 @@ public class SalaryRecordService {
 
     double grossSalary = totalEarning - totalDeductions;
     return PayrollDTO.builder()
+      .departmentName(employeeDTO.getDepartmentName())
       .employeeId(employee.getEmployeeId())
       .employeeFirstName(employee.getFirstName())
       .employeeLastName(employee.getLastName())
@@ -788,20 +811,18 @@ public class SalaryRecordService {
       .totalGrossSalary(grossSalary)
       .build();
   }
-  //endregion
-  //region SavePayroll()
   public void savePayroll(PayrollCalculationForm form) {
     List<Integer> payrollIds = new ArrayList<>();
     int workingDaysPerMonth = (int) financialPolicyRepository.getFinancialPolicyAmount(12);
     double lateDayPenalty = financialPolicyRepository.getFinancialPolicyAmount(13);
     for (var payroll : form.getPayrollCalculations()) {
-      EmployeeDTO employeeDTO = employeeService.getEmployeeByEmployeeId(payroll.employeeId());
+      EmployeeDTO employeeDTO = employeeService.getEmployeeByEmployeeId(payroll.getEmployeeId());
 
       SalaryCalculationResult calculated = calculateSalaryComponents(
         employeeDTO.getContractBaseSalary(),
-        payroll.workedDays(),
-        payroll.lateDays(),
-        payroll.overtimeHours(),
+        payroll.getWorkedDays(),
+        payroll.getLateDays(),
+        payroll.getOvertimeHours(),
         workingDaysPerMonth,
         lateDayPenalty
       );
@@ -870,7 +891,7 @@ public class SalaryRecordService {
     SalaryCalculationResult calculated
   ) {
     return SalaryRecord.builder()
-      .employee(employeeRepository.findEmployeeByEmployeeId(payroll.employeeId()))
+      .employee(employeeRepository.findEmployeeByEmployeeId(payroll.getEmployeeId()))
       .baseSalary(calculated.proratedBaseSalary())
       .month(LocalDate.now().getMonthValue())
       .year(LocalDate.now().getYear())
@@ -897,6 +918,29 @@ public class SalaryRecordService {
     salaryRecordRepository.save(salaryRecord);
   }
 
+  public double calculateTotalCompanyTaxContribution(List<PayrollDTO> payrolls) {
+    double totalContribution = 0.0;
+    
+    for (PayrollDTO payroll : payrolls) {
+      if ("Paid".equals(payroll.getSalaryRecordPaymentStatus())) {
+        // Tính tổng các khoản đóng góp của công ty
+        double employerHealthInsurance = payroll.getCalculatedEmployerHealthInsurance() != null ? 
+                                         payroll.getCalculatedEmployerHealthInsurance() : 0.0;
+        double employerSocialInsurance = payroll.getCalculatedEmployerSocialInsurance() != null ? 
+                                        payroll.getCalculatedEmployerSocialInsurance() : 0.0;
+        double employerUnionFee = payroll.getCalculatedEmployerUnionFee() != null ? 
+                                  payroll.getCalculatedEmployerUnionFee() : 0.0;
+        double employerUnemploymentInsurance = payroll.getCalculatedEmployerUnemploymentInsurance() != null ? 
+                                              payroll.getCalculatedEmployerUnemploymentInsurance() : 0.0;
+        
+        totalContribution += employerHealthInsurance + employerSocialInsurance + 
+                             employerUnionFee + employerUnemploymentInsurance;
+      }
+    }
+    
+    return totalContribution;
+  }
+
   private record SalaryCalculationResult(
     double dailyRate,
     double proratedBaseSalary,
@@ -905,5 +949,4 @@ public class SalaryRecordService {
     double grossSalary
   ) {
   }
-  //endregion
 }

@@ -11,6 +11,7 @@ public class PayrollDTO {
   private String employeeFirstName;
   private String employeeLastName;
   private String employeeTaxCode;
+  private String departmentName;
 
   private Integer salaryRecordId;
   private Integer salaryRecordMonth;

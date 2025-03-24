@@ -58,11 +58,15 @@ public class EmployeeController {
     Page<EmployeeDTO> employees = employeeService.getAll(pageable);
     var totalEmployees = employees.getTotalElements();
     var avgSalary = employeeService.getAverageSalary(employees.getContent());
+    var activeEmployees = employeeService.countActiveEmployees(employees.getContent());
 
     addCommonAttributes(model);
     model.addAttribute("totalEmployees", totalEmployees);
+    model.addAttribute("activeEmployees", activeEmployees);
     model.addAttribute("avgSalary", avgSalary);
     model.addAttribute("employees", employees);
+    model.addAttribute("currentSortField", "employeeId");
+    model.addAttribute("direction", "asc");
     model.addAttribute("currentRequestURI", "/employee");
     model.addAttribute("contentFragment", "fragments/employee-fragments");
     return "index";
@@ -159,12 +163,16 @@ public class EmployeeController {
     }
     var totalEmployees = employees.getTotalElements();
     var avgSalary = employees.getContent().stream().mapToDouble(EmployeeDTO::getContractBaseSalary).average().orElse(0.0);
+    var activeEmployees = employeeService.countActiveEmployees(employees.getContent());
 
     globalController.createAuditLog(loggedInUser, "Filter list Employee by " + field , "View", "Normal");
     addCommonAttributes(model);
     model.addAttribute("totalEmployees", totalEmployees);
+    model.addAttribute("activeEmployees", activeEmployees);
     model.addAttribute("avgSalary", avgSalary);
     model.addAttribute("employees", employees);
+    model.addAttribute("currentSortField", "employeeId");
+    model.addAttribute("direction", "asc");
     model.addAttribute("contentFragment", "fragments/employee-fragments");
     return "index";
   }
@@ -176,20 +184,28 @@ public class EmployeeController {
                        @RequestParam(value = "size", defaultValue = "10") int size,
                        @ModelAttribute("loggedInUser") User loggedInUser) {
     Pageable pageable = PageRequest.of(page, size);
-    var employees = employeeService.getAll(pageable);
-    List<EmployeeDTO> searchEmployees = employees.getContent().stream()
-      .filter(e -> (e.getEmployeeFirstName() + " " + e.getEmployeeLastName()).toLowerCase().contains(query))
+    
+    List<EmployeeDTO> allEmployees = employeeService.getAllEmployees();
+    
+    List<EmployeeDTO> searchEmployees = allEmployees.stream()
+      .filter(e -> (e.getEmployeeFirstName() + " " + e.getEmployeeLastName()).toLowerCase().contains(query.toLowerCase()))
       .collect(Collectors.toList());
-
-    var totalEmployees = employees.getTotalElements();
-    var avgSalary = employees.getContent().stream().mapToDouble(EmployeeDTO::getContractBaseSalary).average().orElse(0.0);
-
-    employees = new PageImpl<>(searchEmployees, pageable, totalEmployees);
+    
+    long totalSearchResults = searchEmployees.size();
+    
+    int start = (int) Math.min(page * size, totalSearchResults);
+    int end = (int) Math.min(start + size, totalSearchResults);
+    
+    List<EmployeeDTO> paginatedResults = searchEmployees.subList(start, end);
+    
+    Page<EmployeeDTO> employeePage = new PageImpl<>(paginatedResults, pageable, totalSearchResults);
+    
+    double avgSalary = searchEmployees.stream().mapToDouble(EmployeeDTO::getContractBaseSalary).average().orElse(0.0);
 
     globalController.createAuditLog(loggedInUser, "Search Employee by " + query , "View", "Normal");
     addCommonAttributes(model);
-    model.addAttribute("employees", employees);
-    model.addAttribute("totalEmployees", totalEmployees);
+    model.addAttribute("employees", employeePage);
+    model.addAttribute("totalEmployees", totalSearchResults);
     model.addAttribute("avgSalary", avgSalary);
     model.addAttribute("contentFragment", "fragments/employee-fragments");
     return "index";
@@ -201,12 +217,26 @@ public class EmployeeController {
                      @RequestParam("direction") String direction,
                      @RequestParam(value = "page", defaultValue = "0") int page,
                      @RequestParam(value = "size", defaultValue = "10") int size,
-                     @ModelAttribute("loggedInUser") User loggedInUser,
-                     @ModelAttribute("employees") Page<EmployeeDTO> filteredEmployeePage) {
-    Pageable pageable = PageRequest.of(page, size);
-    var employees = employeeService.sort(filteredEmployeePage, direction, field);
+                     @ModelAttribute("loggedInUser") User loggedInUser) {
+    
+    // Tạo pageable với thông tin sắp xếp
+    Sort sort = "asc".equals(direction) ? 
+        Sort.by(field).ascending() : 
+        Sort.by(field).descending();
+    Pageable pageable = PageRequest.of(page, size, sort);
+    
+    // Lấy danh sách nhân viên đã sắp xếp và phân trang
+    Page<EmployeeDTO> employees = employeeService.getAll(pageable);
+    var totalEmployees = employees.getTotalElements();
+    var avgSalary = employees.getContent().stream().mapToDouble(EmployeeDTO::getContractBaseSalary).average().orElse(0.0);
+    var activeEmployees = employeeService.countActiveEmployees(employees.getContent());
 
     globalController.createAuditLog(loggedInUser, "Sort Employee by " + field + " in " + direction + " order", "View", "Normal");
+    
+    addCommonAttributes(model);
+    model.addAttribute("totalEmployees", totalEmployees);
+    model.addAttribute("activeEmployees", activeEmployees);
+    model.addAttribute("avgSalary", avgSalary);
     model.addAttribute("employees", employees);
     model.addAttribute("direction", direction);
     model.addAttribute("currentSortField", field);

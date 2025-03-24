@@ -12,6 +12,7 @@ import com.se1873.js.springboot.project.service.channel.ChannelService;
 import com.se1873.js.springboot.project.service.department.DepartmentService;
 import com.se1873.js.springboot.project.service.employee.EmployeeService;
 import com.se1873.js.springboot.project.service.message.MessageService;
+import com.se1873.js.springboot.project.service.user.UserService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.poi.ss.usermodel.*;
@@ -54,6 +55,7 @@ public class AttendanceService {
   private final UserRepository userRepository;
   private final MessageService messageService;
   private final ChannelService channelService;
+  private final UserService userService;
 
   public Page<AttendanceDTO> getAll(LocalDate startDate, LocalDate endDate, Pageable pageable) {
     var employees = employeeService.getAll(PageRequest.of(0, 1000));
@@ -176,6 +178,8 @@ public class AttendanceService {
     return attendanceRepository.getEmployeeAttendancesByMonthAndYear(employeeId, month, year)
       .stream().map(attendanceDTOMapper::toDTO).collect(Collectors.toList());
   }
+
+
 
   public Integer countAttendanceByStatus(List<AttendanceDTO> attendances, String status) {
     return (int) attendances.stream()
@@ -754,8 +758,7 @@ public class AttendanceService {
       titleCell.setCellValue("Attendance Data Export");
       titleCell.setCellStyle(titleStyle);
 
-      sheet.addMergedRegion(new CellRangeAddress(0, 0, 0, 5));  // Merge columns for title
-
+      sheet.addMergedRegion(new CellRangeAddress(0, 0, 0, 5));
       Font headerFont = workbook.createFont();
       headerFont.setBold(true);
       headerFont.setFontHeightInPoints((short) 12);
@@ -886,11 +889,6 @@ public class AttendanceService {
       return Collections.emptyList();
     }
     List<EmployeeAttendanceStatusDTO> employeeAttendanceStatusDTOList = getEmployeeAttendanceStatus(date, pageable);
-//    for (EmployeeAttendanceStatusDTO dto : employeeAttendanceStatusDTOList) {
-//      System.out.println("DTO Employee ID Type: " + dto.getEmployee().getEmployeeId().getClass().getName());
-//    }
-//    System.out.println("Set Employee ID Type: " + employeeIds.get(0).getClass().getName());
-
     System.out.println(employeeAttendanceStatusDTOList);
     Set<Long> employeeIdSet = employeeIds.stream().map(Long::valueOf).collect(Collectors.toSet());
 
@@ -934,6 +932,4 @@ public class AttendanceService {
 
     return employeeAttendanceStatusDTOList.stream().filter(dto -> employeeIdSet.contains(dto.getEmployee().getEmployeeId().longValue())).collect(Collectors.toList());
   }
-
-
 }

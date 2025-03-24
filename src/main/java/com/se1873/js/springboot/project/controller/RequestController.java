@@ -320,12 +320,4 @@ public class RequestController {
     model.addAttribute("requestDetail", result);
     return "request-detail";
   }
-//  @GetMapping("/view/{id}")
-//  public String getDetailRequest(@PathVariable Long id, Model model) {
-//    var result = requestService.getDetailRequest(id);
-//    model.addAttribute("requestDetail", result);
-//
-//    return "request-detail";
-//  }
-
 }

@@ -49,9 +49,10 @@
           <label class="block text-sm font-medium text-gray-700 mb-1">Status</label>
           <select name="status" class="w-full px-4 py-2 rounded-lg border border-gray-200 focus:ring-2 focus:ring-blue-500 focus:border-transparent">
             <option value="" th:selected="${status == null}">All</option>
-            <option value="Đúng giờ" th:selected="${status == 'Đúng giờ'}">Đúng giờ</option>
-            <option value="Đi muộn" th:selected="${status == 'Đi muộn'}">Đi muộn</option>
-            <option value="Nghỉ" th:selected="${status == 'Nghỉ làm'}">Nghỉ làm</option>
+            <option value="On time" th:selected="${status == 'On time'}">On time</option>
+            <option value="Late" th:selected="${status == 'Late'}">Late</option>
+            <option value="OT" th:selected="${status == 'OT'}">OT</option>
+            <option value="Absent" th:selected="${status == 'Absent'}">Absent</option>
           </select>
         </div>
         <div class="self-end">
@@ -77,9 +78,9 @@
           <td class="px-6 py-4" th:text="${at.attendanceCheckIn}"></td>
           <td class="px-6 py-4" th:text="${at.attendanceCheckOut}"></td>
           <td class="px-6 py-4">
-            <span th:if="${at.attendanceStatus == 'Đúng giờ'}" class="px-2 py-1 bg-green-100 text-green-800 rounded-full text-sm">Đúng giờ</span>
-            <span th:if="${at.attendanceStatus == 'Đi muộn'}" class="px-2 py-1 bg-yellow-100 text-yellow-800 rounded-full text-sm">Đi muộn</span>
-            <span th:if="${at.attendanceStatus == 'Nghỉ làm'}" class="px-2 py-1 bg-red-100 text-red-800 rounded-full text-sm">Nghỉ làm</span>
+            <span th:if="${at.attendanceStatus == 'On time'}" class="px-2 py-1 bg-green-100 text-green-800 rounded-full text-sm">On time</span>
+            <span th:if="${at.attendanceStatus == 'Late'}" class="px-2 py-1 bg-yellow-100 text-yellow-800 rounded-full text-sm">Late</span>
+            <span th:if="${at.attendanceStatus == 'Absent'}" class="px-2 py-1 bg-red-100 text-red-800 rounded-full text-sm">Absent</span>
           </td>
         </tr>
         <tr th:if="${attendanceDTO.content.isEmpty()}">
@@ -92,16 +93,20 @@
     <!-- Statistics -->
     <div class="mt-8 statistics-grid" th:object="${quantity}">
       <div class="statistics-item bg-blue-50">
-        <p class="text-sm text-gray-500">Total Working Days</p>
-        <p class="text-xl font-bold" id="totalOnTimeDays" th:text="${quantity['Đúng giờ'] ?:0}"></p>
+        <p class="text-sm text-gray-500">Tổng ngày làm việc</p>
+        <p class="text-xl font-bold" id="totalOnTimeDays" th:text="${quantity['On time'] ?:0}"></p>
       </div>
       <div class="statistics-item bg-green-50">
-        <p class="text-sm text-gray-500">Total Late Days</p>
-        <p class="text-xl font-bold" id="totalLateDays" th:text="${quantity['Đi muộn'] ?:0}"></p>
+        <p class="text-sm text-gray-500">Tổng ngày đi trễ</p>
+        <p class="text-xl font-bold" id="totalLateDays" th:text="${quantity['Late'] ?:0}"></p>
       </div>
       <div class="statistics-item bg-red-50">
-        <p class="text-sm text-gray-500">Total Absent Days</p>
-        <p class="text-xl font-bold" id="totalAbsentDays" th:text="${quantity['Vắng mặt'] ?:0}"></p>
+        <p class="text-sm text-gray-500">Tổng ngày vắng mặt</p>
+        <p class="text-xl font-bold" id="totalAbsentDays" th:text="${quantity['Absent'] ?:0}"></p>
+      </div>
+      <div class="statistics-item bg-purple-50">
+        <p class="text-sm text-gray-500">Tổng số ngày</p>
+        <p class="text-xl font-bold" id="totalDays" th:text="${(quantity['On time']?:0) + (quantity['Late']?:0) + (quantity['Absent']?:0)}"></p>
       </div>
     </div>
   </div>
@@ -115,32 +120,8 @@
 </div>
 
 <!-- Pagination -->
-<div class="mt-6 flex justify-center">
-  <nav class="relative z-0 inline-flex rounded-md shadow-sm -space-x-px" aria-label="Pagination">
-    <a th:href="@{/attendance(page=${attendanceDTO.number - 1})}"
-       class="relative inline-flex items-center px-2 py-2 rounded-l-md border bg-white text-sm font-medium text-gray-500 hover:bg-gray-50">
-      <span class="sr-only">Previous</span>
-      <svg class="h-5 w-5" fill="currentColor" viewBox="0 0 20 20">
-        <path fill-rule="evenodd" d="M12.707 5.293a1 1 0 010 1.414L9.414 10l3.293 3.293a1 1 0 01-1.414 1.414l-4-4a1 1 0 010-1.414l4-4a1 1 0 011.414 0z" clip-rule="evenodd"/>
-      </svg>
-    </a>
-    <th:block th:each="i : ${#numbers.sequence(0, attendanceDTO.totalPages - 1)}">
-      <a th:href="@{/attendance(page=${i})}"
-         th:class="${i == attendanceDTO.number} ?
-                                           'z-10 bg-blue-50 border-blue-500 text-blue-600 relative inline-flex items-center px-4 py-2 border text-sm font-medium' :
-                                           'bg-white border-gray-300 text-gray-500 hover:bg-gray-50 relative inline-flex items-center px-4 py-2 border text-sm font-medium'"
-         th:text="${i + 1}"></a>
-    </th:block>
-    <a th:href="@{/attendance(page=${attendanceDTO.number + 1})}"
-       class="relative inline-flex items-center px-2 py-2 rounded-r-md border bg-white text-sm font-medium text-gray-500 hover:bg-gray-50">
-      <span class="sr-only">Next</span>
-      <svg class="h-5 w-5" fill="currentColor" viewBox="0 0 20 20">
-        <path fill-rule="evenodd" d="M7.293 14.707a1 1 0 010-1.414L10.586 10 7.293 6.707a1 1 0 011.414-1.414l4 4a1 1 0 0101.414l-4 4a1 1 0 01-1.414 0z" clip-rule="evenodd"/>
-      </svg>
-    </a>
-  </nav>
+<div th:replace="~{fragments/pagination :: pagination(${attendanceDTO}, '/user/attendance', null, null)}">
 </div>
-
 
 </div>
 </html>

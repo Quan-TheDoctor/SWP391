@@ -428,10 +428,8 @@
 
                 reader.onload = function(e) {
                     if (currentAvatar) {
-                        // Update existing avatar
                         currentAvatar.src = e.target.result;
                     } else if (placeholder) {
-                        // Replace placeholder with new avatar
                         const newAvatar = document.createElement('img');
                         newAvatar.src = e.target.result;
                         newAvatar.id = 'avatar-preview';

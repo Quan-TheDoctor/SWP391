@@ -224,9 +224,19 @@
                                        class="text-primary-500 hover:text-primary-700 transition-colors">
                                         <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                                                  d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"/>
+                                                  d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h10a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"/>
                                         </svg>
                                     </a>
+                                    
+                                    <!-- Change Role Button -->
+                                    <button th:attr="data-user-id=${user.userId}, data-username=${user.username}, data-role=${user.role}"
+                                            onclick="showChangeRoleModal(this.getAttribute('data-user-id'), this.getAttribute('data-username'), this.getAttribute('data-role'))"
+                                            class="text-blue-500 hover:text-blue-700 transition-colors">
+                                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" 
+                                                  d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z"></path>
+                                        </svg>
+                                    </button>
 
                                     <!-- Lock Button -->
                                     <button th:if="${user.status != 'locked'}"
@@ -393,6 +403,48 @@
                 </div>
             </div>
         </div>
+
+        <!-- Change Role Modal (Hidden by default) -->
+        <div class="fixed inset-0 bg-black bg-opacity-50 z-50 hidden animate__animated animate__fadeIn" id="changeRoleModal">
+            <div class="flex items-center justify-center min-h-screen p-4">
+                <div class="bg-white rounded-lg shadow-lg w-full max-w-md animate__animated animate__zoomIn">
+                    <div class="p-4 border-b flex justify-between items-center">
+                        <h3 class="font-bold text-lg">Change User Role</h3>
+                        <button class="text-gray-500 hover:text-gray-700" onclick="closeModal('changeRoleModal')">
+                            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/>
+                            </svg>
+                        </button>
+                    </div>
+                    <div class="p-4">
+                        <p class="text-gray-700 mb-4">Change role for user <span id="changeRoleUserName" class="font-semibold"></span></p>
+
+                        <form id="changeRoleForm" th:action="@{/admin/users/change-role}" method="post">
+                            <input type="hidden" id="changeRoleUserId" name="userId">
+
+                            <div class="mb-4">
+                                <label class="block text-sm font-medium text-gray-700 mb-1">Select Role</label>
+                                <select name="role" id="roleSelect" class="w-full border rounded-md p-2 focus:ring-2 focus:ring-primary-500 focus:border-primary-500">
+                                    <option value="">Select a role</option>
+                                    <option th:each="role : ${roles}" th:value="${role.name}" th:text="${role.name}"></option>
+                                </select>
+                            </div>
+
+                            <div class="flex justify-end gap-2">
+                                <button type="button" onclick="closeModal('changeRoleModal')"
+                                        class="px-4 py-2 bg-gray-200 text-gray-800 rounded-md hover:bg-gray-300 transition-colors">
+                                    Cancel
+                                </button>
+                                <button type="submit"
+                                        class="px-4 py-2 bg-primary-500 text-white rounded-md hover:bg-primary-600 transition-colors">
+                                    Change Role
+                                </button>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+            </div>
+        </div>
     </main>
 </div>
 
@@ -422,7 +474,7 @@
 
         // Close modals when clicking outside
         document.addEventListener('click', function(event) {
-            const modals = ['lockUserModal', 'unlockUserModal', 'deleteUserModal'];
+            const modals = ['lockUserModal', 'unlockUserModal', 'deleteUserModal', 'changeRoleModal'];
             modals.forEach(modalId => {
                 const modal = document.getElementById(modalId);
                 if (event.target === modal) {
@@ -448,6 +500,22 @@
         document.getElementById('deleteUserId').value = userId;
         document.getElementById('deleteUserName').textContent = username;
         document.getElementById('deleteUserModal').classList.remove('hidden');
+    }
+
+    function showChangeRoleModal(userId, username, currentRole) {
+        document.getElementById('changeRoleUserId').value = userId;
+        document.getElementById('changeRoleUserName').textContent = username;
+        
+        // Pre-select current role if it exists
+        const roleSelect = document.getElementById('roleSelect');
+        for (let i = 0; i < roleSelect.options.length; i++) {
+            if (roleSelect.options[i].value === currentRole) {
+                roleSelect.selectedIndex = i;
+                break;
+            }
+        }
+        
+        document.getElementById('changeRoleModal').classList.remove('hidden');
     }
 
     function closeModal(modalId) {

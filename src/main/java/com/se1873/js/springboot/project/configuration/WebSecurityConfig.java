@@ -60,7 +60,7 @@ public class WebSecurityConfig {
         .permitAll()
       )
       .csrf(csrf -> csrf
-        .ignoringRequestMatchers("/api/attendance/**", "/api/face-recognition/**", "/resume/**")
+        .ignoringRequestMatchers("/api/attendance/**", "/api/face-recognition/**", "/resume/**", "/request/bulk-delete")
       );
     return http.build();
   }
@@ -75,6 +75,11 @@ public class WebSecurityConfig {
     return username -> {
       com.se1873.js.springboot.project.entity.User u = userRepository.findUserByUsername(username)
         .orElseThrow(() -> new UsernameNotFoundException("not found user " + username));
+      
+      if (u.getStatus() != null && "locked".equals(u.getStatus())) {
+        throw new org.springframework.security.authentication.LockedException("Tài khoản đã bị khóa");
+      }
+      
       return User.withUsername(u.getUsername())
         .password(u.getPasswordHash())
         .roles(u.getRole())
