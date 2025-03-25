@@ -846,7 +846,7 @@ public class SalaryRecordService {
       .payrollIds(payrollIds)
       .requestDate(LocalDate.now())
       .requestType("Hạch toán lương")
-      .requestStatus("pending")
+      .requestStatus("Pending")
       .approvalName(approval.get().getUsername())
       .build();
 

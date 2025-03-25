@@ -129,7 +129,6 @@ public class AttendanceViewController {
 //  public ResponseEntity<Resource> exportAttendanceToPdf(@RequestParam("attendanceId") Integer attendanceId) {
 //    AttendanceDTO attendance = attendanceDTOMapper.toDTO(attendanceRepository.getAttendanceByAttendanceId(attendanceId));
 //
-//    // Call service to generate PDF
 //    Resource pdfResource = attendanceService.generateAttendancePdf(attendance);
 //
 //    return ResponseEntity.ok()
@@ -142,7 +141,6 @@ public class AttendanceViewController {
 //  public ResponseEntity<Resource> exportAttendanceToExcel(@RequestParam("attendanceId") Integer attendanceId) {
 //    AttendanceDTO attendance = attendanceDTOMapper.toDTO(attendanceRepository.getAttendanceByAttendanceId(attendanceId));
 //
-//    // Call service to generate Excel
 //    Resource excelResource = attendanceService.generateAttendanceExcel(attendance);
 //
 //    return ResponseEntity.ok()
@@ -155,7 +153,6 @@ public class AttendanceViewController {
 //  public String printAttendance(@RequestParam("attendanceId") Integer attendanceId, Model model) {
 //    AttendanceDTO attendance = attendanceDTOMapper.toDTO(attendanceRepository.getAttendanceByAttendanceId(attendanceId));
 //
-//    // Calculate work hours
 //    calculateWorkHours(attendance);
 //
 //    model.addAttribute("attendance", attendance);

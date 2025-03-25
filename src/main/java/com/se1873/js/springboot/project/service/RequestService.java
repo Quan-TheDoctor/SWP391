@@ -39,7 +39,7 @@ import java.util.stream.Collectors;
 @Transactional
 @RequiredArgsConstructor
 public class RequestService {
-  private static final String DEFAULT_STATUS = "pending";
+  private static final String DEFAULT_STATUS = "Pending";
   private static final String LEAVE_REQUEST_TYPE = "Đơn xin nghỉ";
 
   private final RequestRepository requestRepository;
@@ -95,7 +95,7 @@ public class RequestService {
     leave.setStartDate(requestDTO.getLeaveDTO().getStartDate());
     leave.setEndDate(requestDTO.getLeaveDTO().getEndDate());
     leave.setTotalDays(requestDTO.getLeaveDTO().getTotalDays());
-    leave.setStatus("pending");
+    leave.setStatus("Pending");
     leave.setReason(requestDTO.getLeaveDTO().getReason());
     leave.setCreatedAt(LocalDateTime.now());
     leave.setEmployee(employee);
@@ -127,7 +127,7 @@ public class RequestService {
     request.setNote(requestDTO.getNote());
     request.setTotalDays(requestDTO.getLeaveDTO().getTotalDays());
     request.setRequestType("Đơn xin nghỉ");
-    request.setStatus("pending");
+    request.setStatus("Pending");
     request.setCreatedAt(LocalDateTime.now());
     request.setApproval(approval.get());
     request.setUser(user);
@@ -143,7 +143,7 @@ public class RequestService {
     Request request = Request.builder()
             .requesterId(user.getUserId())
             .requestType(requestDTO.getRequestType())
-            .status("pending")
+            .status("Pending")
             .requestIdList(requestDTO.getPayrollIds().toString())
             .createdAt(LocalDateTime.now())
             .user(user)
@@ -163,7 +163,7 @@ public class RequestService {
 
     } else if("Hạch toán lương".equals(type)) {
       for(var payrollId : requestDTO.getPayrollIds()) {
-        String status = requestDTO.getRequestStatus().equals("approve") ? "Paid" : "Cancelled";
+        String status = requestDTO.getRequestStatus().equals("Approved") ? "Paid" : "Cancelled";
         SalaryRecord salaryRecord = salaryRecordRepository.findSalaryRecordBySalaryIdAndIsDeleted(payrollId, false);
         salaryRecord.setPaymentStatus(status);
         salaryRecordRepository.save(salaryRecord);
@@ -331,7 +331,7 @@ public class RequestService {
               .insuranceDeduction(0.0)
               .taxAmount(0.0)
               .netSalary(newSalary)
-              .paymentStatus("PENDING")
+              .paymentStatus("Pending")
               .createdAt(LocalDateTime.now())
               .build();
 
@@ -354,10 +354,10 @@ public class RequestService {
 
       Request request = Request.builder()
               .requesterId(userCreate.getUserId())
-              .requestType("Tăng lương")
+              .requestType("Salary Raise")
               .approval(approver)
               .user(userCreate)
-              .status("PENDING")
+              .status("Pending")
               .createdAt(LocalDateTime.now())
               .build();
 
@@ -427,7 +427,7 @@ public class RequestService {
             .collect(Collectors.toMap(
                     RequestCreationResponseDTO::getEmployeeCode,
                     request -> request,
-                    (existing, replacement) -> replacement)) // Nếu có bản ghi trùng employeeCode, giữ lại bản ghi mới nhất
+                    (existing, replacement) -> replacement))
             .values()
             .stream()
             .toList();

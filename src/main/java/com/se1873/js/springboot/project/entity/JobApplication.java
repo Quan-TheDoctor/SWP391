@@ -39,8 +39,7 @@ public class JobApplication {
 
     @Column
     private String notes;
-    
-    // Thông tin từ resume parsing
+
     @Column(columnDefinition = "TEXT")
     private String experience;
     

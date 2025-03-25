@@ -76,10 +76,9 @@ public class JobApplicationService {
         jobApplication.setPhone(dto.getPhone());
         jobApplication.setResumeUrl(dto.getResumeUrl());
         jobApplication.setCoverLetter(dto.getCoverLetter());
-        jobApplication.setStatus("PENDING");
+        jobApplication.setStatus("Pending");
         jobApplication.setNotes(dto.getNotes());
-        
-        // Thêm thông tin từ resume parsing
+
         jobApplication.setExperience(dto.getExperience());
         jobApplication.setEducation(dto.getEducation());
         jobApplication.setSkills(dto.getSkills());

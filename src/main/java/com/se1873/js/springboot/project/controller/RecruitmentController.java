@@ -51,8 +51,7 @@ public class RecruitmentController {
                               @RequestParam(required = false) String status,
                               @RequestParam(required = false) String department) {
         List<JobPositionDTO> positions;
-        
-        // Xử lý tìm kiếm và lọc
+
         if (keyword != null && !keyword.isEmpty()) {
             positions = jobPositionService.searchPositions(keyword);
         } else if (status != null && !status.isEmpty()) {
@@ -63,10 +62,8 @@ public class RecruitmentController {
             positions = jobPositionService.getAllPositions();
         }
 
-        // Lấy số lượng applications cho mỗi position
         Map<Long, Long> applicationCounts = jobPositionService.getApplicationCounts();
 
-        // Lấy danh sách departments duy nhất cho filter
         List<String> departments = jobPositionService.getAllPositions().stream()
                 .map(JobPositionDTO::getDepartment)
                 .distinct()
@@ -111,8 +108,7 @@ public class RecruitmentController {
                                  @RequestParam(required = false) String status) {
         List<JobApplicationDTO> applications;
         List<JobPositionDTO> positions = jobPositionService.getAllPositions();
-        
-        // Xử lý filter theo position và status
+
         if (positionId != null && status != null && !status.isEmpty()) {
             applications = jobApplicationService.getApplicationsByPositionAndStatus(positionId, status);
         } else if (positionId != null) {

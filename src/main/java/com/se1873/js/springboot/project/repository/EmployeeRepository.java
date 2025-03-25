@@ -72,4 +72,7 @@ public interface EmployeeRepository extends JpaRepository<Employee, Long> {
   Employee getEmployeeByUser_UserId(Integer userUserId);
 
   List<Employee> findEmployeesByIsDeleted(Boolean isDeleted);
+
+  Optional<Employee> findByEmployeeCode (String employeeCode);
+
 }

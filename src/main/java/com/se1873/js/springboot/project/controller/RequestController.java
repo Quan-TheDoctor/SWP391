@@ -26,6 +26,8 @@ import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.validation.BindingResult;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.context.request.RequestContextHolder;
+import org.springframework.web.context.request.ServletRequestAttributes;
 import org.springframework.web.server.ResponseStatusException;
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 
@@ -88,7 +90,12 @@ public class RequestController {
                          @RequestParam("value") String value,
                          @RequestParam(value = "page", defaultValue = "0") int page,
                          @RequestParam(value = "size", defaultValue = "5") int size) {
-        return populateRequestModel(model, requestService.filter(field, value, getPageable(page, size)), "request");
+        var requests = requestService.filter(field, value, getPageable(page, size));
+        addRequestStatistics(requests, model);
+        model.addAttribute("requests", requests);
+        model.addAttribute("requestTypes", requestService.getAllRequestTypes());
+        model.addAttribute("contentFragment", "fragments/request-fragments");
+        return "index";
     }
 
     @RequestMapping("/search")
@@ -183,22 +190,22 @@ public class RequestController {
         response responseDetails = reponseRepo.findByRequestId((requestId))
                 .orElseThrow(() -> new RuntimeException("Request not found"));
 
-        if ("approve".equals(field)) {
+        if ("Approved".equals(field)) {
             String employeeCode=responseDetails.getEmployeeCode();
             Employee employee=employeeRepository.findByEmployeeCode(employeeCode)
                     .orElseThrow(() -> new RuntimeException("Employee not found"));
             Contract employeeContract= contractRepository.findContractByEmployee_EmployeeIdAndPresent(employee.getEmployeeId(),true);
             employeeContract.setBaseSalary(responseDetails.getNewBaseSalary());
             contractRepository.save(employeeContract);
-            request.setStatus("APPROVED");
-        } else if ("deny".equals(field)) {
+            request.setStatus("Approved");
+        } else if ("Denied".equals(field)) {
             String employeeCode=responseDetails.getEmployeeCode();
             Employee employee=employeeRepository.findByEmployeeCode(employeeCode)
                     .orElseThrow(() -> new RuntimeException("Employee not found"));
             Contract employeeContract= contractRepository.findContractByEmployee_EmployeeIdAndPresent(employee.getEmployeeId(),true);
             employeeContract.setBaseSalary(responseDetails.getOldBaseSalary());
             contractRepository.save(employeeContract);
-            request.setStatus("DENIED");
+            request.setStatus("Denied");
         }
 
         requestRepository.save(request);
@@ -227,15 +234,15 @@ public class RequestController {
 
         if ("Hạch toán lương".equals(type)) {
             switch (field) {
-                case "approve":
-                    if ("pending".equals(requestDTO.getRequestStatus())) {
+                case "Approved":
+                    if ("Pending".equals(requestDTO.getRequestStatus())) {
                         requestDTO.setRequestStatus("Approved");
                         requestDTO.setApprovalName(user.getUsername());
                         requestService.updateStatus(requestDTO, type);
                     }
                     break;
-                case "deny":
-                    if ("pending".equals(requestDTO.getRequestStatus())) {
+                case "Denied":
+                    if ("Pending".equals(requestDTO.getRequestStatus())) {
                         requestDTO.setRequestStatus("Denied");
                         requestService.updateStatus(requestDTO, type);
                     }
@@ -244,16 +251,16 @@ public class RequestController {
 
         } else if ("Đơn xin nghỉ".equals(type)) {
             switch (field) {
-                case "approve":
-                    if ("pending".equals(requestDTO.getRequestStatus())) {
-                        requestDTO.setRequestStatus("approve");
+                case "Approved":
+                    if ("Pending".equals(requestDTO.getRequestStatus())) {
+                        requestDTO.setRequestStatus("Approved");
                         requestDTO.setApprovalName(user.getUsername());
                         requestService.updateStatus(requestDTO, type);
                     }
                     break;
-                case "deny":
-                    if ("pending".equals(requestDTO.getRequestStatus())) {
-                        requestDTO.setRequestStatus("deny");
+                case "Denied":
+                    if ("Pending".equals(requestDTO.getRequestStatus())) {
+                        requestDTO.setRequestStatus("Denied");
                         requestService.updateStatus(requestDTO, type);
                     }
                     break;
@@ -265,7 +272,7 @@ public class RequestController {
             totalFinishedRequests = 0;
             for (var request : requests) {
                 totalRequests++;
-                if (request.getRequestStatus().equals("pending")) totalPendingRequests++;
+                if (request.getRequestStatus().equals("Pending")) totalPendingRequests++;
                 else totalFinishedRequests++;
                 requestTypes.add(request.getRequestType());
             }
@@ -290,6 +297,7 @@ public class RequestController {
 
         var requestDTO = requestService.getAllRequests();
         model.addAttribute("requestDTO", requestDTO);
+        model.addAttribute("_csrf", ((ServletRequestAttributes) RequestContextHolder.getRequestAttributes()).getRequest().getAttribute("_csrf"));
         return "request-create";
     }
 

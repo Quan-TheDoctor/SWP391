@@ -711,7 +711,6 @@
                 e.preventDefault();
                 console.log('Form submission started');
 
-                // Tổng hợp thông tin experience
                 const experienceEntries = [];
                 document.querySelectorAll('.experience-entry').forEach(entry => {
                     const inputs = entry.querySelectorAll('input, textarea');
@@ -724,7 +723,6 @@
                 });
                 document.getElementById('experience').value = JSON.stringify(experienceEntries);
 
-                // Tổng hợp thông tin education
                 const educationEntries = [];
                 document.querySelectorAll('.education-entry').forEach(entry => {
                     const inputs = entry.querySelectorAll('input');
@@ -737,14 +735,12 @@
                 });
                 document.getElementById('education').value = JSON.stringify(educationEntries);
 
-                // Validate job position selection
                 const jobPositionId = document.getElementById('jobPositionId').value;
                 if (!jobPositionId) {
                     showErrorMessage('Please select a position to apply for.');
                     return;
                 }
 
-                // Validate required fields
                 const candidateName = document.getElementById('candidateName').value;
                 const email = document.getElementById('email').value;
                 const phone = document.getElementById('phone').value;
@@ -795,7 +791,6 @@
                     if (response.ok && result.success) {
                         showSuccessMessage(result.message);
                         console.log('Redirecting to:', result.redirectUrl);
-                        // Redirect to position detail page after 2 seconds
                         setTimeout(() => {
                             window.location.href = result.redirectUrl;
                         }, 2000);

@@ -25,7 +25,7 @@ public class LeavePolicyService {
         LeavePolicy leavePolicy = leavePolicyRepository.findLeavePolicyByLeavePolicyId(leavePolicyId);
         List<Leave> allLeave = leaveRepository.findAllByEmployee_EmployeeId(employeeId);
         int totalUsedDay = allLeave.stream()
-          .filter(leave -> leave.getReason().equals(leavePolicy.getLeavePolicyName()) && leave.getStatus().equals("approve"))
+          .filter(leave -> leave.getReason().equals(leavePolicy.getLeavePolicyName()) && leave.getStatus().equals("Approved"))
           .mapToInt(Leave::getTotalDays)
           .sum();
         int remainingDays = 0;
