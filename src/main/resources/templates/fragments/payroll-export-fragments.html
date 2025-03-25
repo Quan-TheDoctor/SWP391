@@ -98,7 +98,6 @@
 </body>
 </html>
 <script>
-  // Function to toggle select all checkboxes
   function toggleSelectAll() {
     const isChecked = document.getElementById("selectAll").checked;
     document.querySelectorAll('input[name="payrollCheck"]').forEach(cb => {
@@ -106,14 +105,12 @@
     });
   }
 
-  // Function to submit the export form with selected payrolls
   function submitExport() {
     let selected = [];
     document.querySelectorAll('input[name="payrollCheck"]:checked').forEach(cb => {
       selected.push(cb.value);
     });
 
-    // If no payrolls are selected, export all
     document.getElementById('selectedPayrolls').value = selected.length > 0 ? selected.join(',') : "";
     document.getElementById('exportForm').submit();
   }

@@ -65,10 +65,6 @@
                             Setting
                         </button>
                     </form>
-                    <button id="showReportBtn" class="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 transition-colors flex items-center gap-2 font-medium">
-                        <i class="fas fa-chart-pie"></i>
-                        Reports
-                    </button>
                     <button id="showAddPayrollBtn" class="px-4 py-2 bg-green-600 text-white rounded-md hover:bg-green-700 transition-colors flex items-center gap-2 font-medium">
                         <i class="fas fa-plus"></i>
                         Insert
@@ -228,10 +224,11 @@
                         <select name="department" id="departmentFilter" onchange="submitMultiFilter()"
                                 class="w-full p-2 border rounded-md focus:ring-2 focus:ring-primary-300 transition-colors">
                             <option value="all" th:selected="${param.department == null || param.department[0] == 'all'}">All Departments</option>
-                            <option value="HR" th:selected="${param.department != null && param.department[0] == 'HR'}">Human Resources</option>
-                            <option value="IT" th:selected="${param.department != null && param.department[0] == 'IT'}">Information Technology</option>
-                            <option value="Finance" th:selected="${param.department != null && param.department[0] == 'Finance'}">Finance</option>
-                            <option value="Marketing" th:selected="${param.department != null && param.department[0] == 'Marketing'}">Marketing</option>
+                            <option th:each="dept : ${departments}"
+                                    th:value="${dept.departmentId}"
+                                    th:text="${dept.departmentName}"
+                                    th:selected="${param.department != null && param.department[0] == dept.departmentId}">
+                            </option>
                         </select>
                     </div>
 
@@ -240,10 +237,11 @@
                         <select name="position" id="positionFilter" onchange="submitMultiFilter()"
                                 class="w-full p-2 border rounded-md focus:ring-2 focus:ring-primary-300 transition-colors">
                             <option value="all" th:selected="${param.position == null || param.position[0] == 'all'}">All Positions</option>
-                            <option value="Manager" th:selected="${param.position != null && param.position[0] == 'Manager'}">Manager</option>
-                            <option value="Developer" th:selected="${param.position != null && param.position[0] == 'Developer'}">Developer</option>
-                            <option value="Analyst" th:selected="${param.position != null && param.position[0] == 'Analyst'}">Analyst</option>
-                            <option value="Assistant" th:selected="${param.position != null && param.position[0] == 'Assistant'}">Assistant</option>
+                            <option th:each="pos : ${positions}"
+                                    th:value="${pos.positionId}"
+                                    th:text="${pos.positionName}"
+                                    th:selected="${param.position != null && param.position[0] == pos.positionId}">
+                            </option>
                         </select>
                     </div>
 
@@ -462,8 +460,8 @@
                             </select>
                             <select name="year" required class="p-2 border rounded-md focus:ring-2 focus:ring-primary-300 transition-colors">
                                 <option value="2023">2023</option>
-                                <option value="2024" selected>2024</option>
-                                <option value="2025">2025</option>
+                                <option value="2024">2024</option>
+                                <option value="2025" selected>2025</option>
                             </select>
                         </div>
                     </div>
@@ -519,38 +517,6 @@
         </div>
     </div>
 
-    <!-- Reports Modal -->
-    <div id="reportsModal" class="fixed inset-0 bg-black bg-opacity-50 z-50 hidden flex items-center justify-center">
-        <div class="bg-white rounded-lg p-6 w-full max-w-4xl animate__animated animate__fadeInDown">
-            <div class="flex justify-between items-center mb-4">
-                <h3 class="text-lg font-semibold flex items-center">
-                    <i class="fas fa-chart-pie text-primary-500 mr-2"></i>
-                    Payroll Reports
-                </h3>
-                <button id="closeReportsModal" class="text-gray-500 hover:text-gray-700">
-                    <i class="fas fa-times"></i>
-                </button>
-            </div>
-
-            <div class="grid grid-cols-1 gap-4">
-                <div class="bg-white p-4 rounded-lg shadow-sm">
-                    <h5 class="text-sm font-medium text-gray-700 mb-2">Monthly Salary Breakdown</h5>
-                    <div id="monthlySalaryChart" class="h-64"></div>
-                </div>
-            </div>
-            <div class="flex justify-between mt-4">
-                <a href="/payroll" class="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 transition-colors flex items-center gap-2">
-                    <i class="fas fa-list"></i>
-                    Back to Payroll List
-                </a>
-                <a href="/payroll/export" class="px-4 py-2 bg-primary-600 text-white rounded-md hover:bg-primary-700 transition-colors flex items-center gap-2">
-                    <i class="fas fa-download"></i>
-                    Export Payroll Data
-                </a>
-            </div>
-        </div>
-    </div>
-
     <script th:inline="javascript">
         document.addEventListener('DOMContentLoaded', function() {
             initializeMonthlySalaryChart();
@@ -563,10 +529,8 @@
             const chartData = /*[[${chartData}]]*/ { netSalary: {}, deductions: {} };
             const monthlySalaryChart = echarts.init(document.getElementById('monthlySalaryChart'));
 
-            // Tạo mảng các tháng từ 1-12
             const months = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
 
-            // Chuyển đổi dữ liệu từ Map sang mảng cho biểu đồ
             const netSalaryData = [];
             const deductionsData = [];
 
@@ -704,7 +668,6 @@
             }
         }
 
-        // Khởi tạo checkbox và các nút xử lý hàng loạt
         function initializeCheckboxes() {
             const selectAllCheckbox = document.getElementById('selectAllCheckboxes');
             const rowCheckboxes = document.querySelectorAll('input[name="subCheckboxes"]');
@@ -712,7 +675,6 @@
             const bulkExportPdfBtn = document.getElementById('bulkExportPdfBtn');
             const selectedIdsInput = document.getElementById('selectedIdsInput');
 
-            // Cập nhật trạng thái nút xử lý hàng loạt
             function updateBulkActionButtons() {
                 const checkedBoxes = document.querySelectorAll('input[name="subCheckboxes"]:checked');
                 const isAnyChecked = checkedBoxes.length > 0;
@@ -721,7 +683,6 @@
                 if (bulkExportPdfBtn) bulkExportPdfBtn.disabled = !isAnyChecked;
             }
 
-            // Khởi tạo checkbox "Chọn tất cả"
             if (selectAllCheckbox) {
                 selectAllCheckbox.addEventListener('change', function() {
                     rowCheckboxes.forEach(checkbox => {
@@ -731,14 +692,11 @@
                 });
             }
 
-            // Thêm sự kiện cho từng checkbox
             rowCheckboxes.forEach(checkbox => {
                 checkbox.addEventListener('change', function() {
-                    // Nếu có checkbox nào bị bỏ chọn, bỏ chọn checkbox "Chọn tất cả"
                     if (!this.checked && selectAllCheckbox) {
                         selectAllCheckbox.checked = false;
                     } else if (selectAllCheckbox) {
-                        // Nếu tất cả checkbox đều được chọn, chọn checkbox "Chọn tất cả"
                         const allChecked = [...rowCheckboxes].every(cb => cb.checked);
                         selectAllCheckbox.checked = allChecked;
                     }
@@ -746,13 +704,11 @@
                 });
             });
 
-            // Lấy danh sách ID đã chọn
             function getSelectedIds() {
                 const checkedBoxes = document.querySelectorAll('input[name="subCheckboxes"]:checked');
                 return Array.from(checkedBoxes).map(cb => cb.value);
             }
 
-            // Xử lý sự kiện cho nút xóa hàng loạt
             if (bulkDeleteBtn) {
                 bulkDeleteBtn.addEventListener('click', function() {
                     const selectedIds = getSelectedIds();
@@ -763,7 +719,6 @@
                 });
             }
 
-            // Xử lý sự kiện cho nút xuất PDF hàng loạt
             if (bulkExportPdfBtn) {
                 bulkExportPdfBtn.addEventListener('click', function() {
                     const selectedIds = getSelectedIds();
@@ -773,7 +728,6 @@
                 });
             }
 
-            // Xử lý sự kiện cho nút xác nhận xóa hàng loạt
             const confirmBulkDelete = document.getElementById('confirmBulkDelete');
             if (confirmBulkDelete) {
                 confirmBulkDelete.addEventListener('click', function() {
@@ -791,7 +745,6 @@
                 });
             }
 
-            // Xử lý sự kiện cho nút hủy xóa hàng loạt
             const cancelBulkDelete = document.getElementById('cancelBulkDelete');
             if (cancelBulkDelete) {
                 cancelBulkDelete.addEventListener('click', function() {
@@ -801,9 +754,7 @@
             }
         }
 
-        // Khởi tạo các modal
         function initializeModals() {
-            // Modal thêm bảng lương
             const showAddPayrollBtn = document.getElementById('showAddPayrollBtn');
             const addPayrollModal = document.getElementById('addPayrollModal');
             const cancelAddPayroll = document.getElementById('cancelAddPayroll');
@@ -821,7 +772,6 @@
                 });
             }
 
-            // Tự động tính toán lương ròng trong form
             if (addPayrollForm) {
                 const baseSalaryInput = addPayrollForm.querySelector('input[name="baseSalary"]');
                 const totalAllowanceInput = addPayrollForm.querySelector('input[name="totalAllowance"]');
@@ -832,10 +782,9 @@
                     const totalAllowance = parseFloat(totalAllowanceInput.value) || 0;
                     const overtimePay = parseFloat(overtimePayInput.value) || 0;
 
-                    // Tính toán lương ròng
                     const grossSalary = baseSalary + totalAllowance + overtimePay;
-                    const deductions = grossSalary * 0.105; // 10.5% cho bảo hiểm xã hội, y tế, v.v.
-                    const taxableIncome = grossSalary - deductions - 11000000; // 11M là khoản giảm trừ cá nhân
+                    const deductions = grossSalary * 0.105;
+                    const taxableIncome = grossSalary - deductions - 11000000;
 
                     let tax = 0;
                     if (taxableIncome > 0) {
@@ -852,21 +801,17 @@
 
                     const netSalary = grossSalary - deductions - tax;
 
-                    // Cập nhật giá trị hiển thị
                     document.getElementById('calculatedNetSalary').textContent = new Intl.NumberFormat('vi-VN').format(netSalary) + ' VND';
                     document.getElementById('calculatedTax').textContent = new Intl.NumberFormat('vi-VN').format(tax) + ' VND';
                 };
 
-                // Thêm sự kiện cho các trường nhập liệu
                 if (baseSalaryInput) baseSalaryInput.addEventListener('input', updateCalculations);
                 if (totalAllowanceInput) totalAllowanceInput.addEventListener('input', updateCalculations);
                 if (overtimePayInput) overtimePayInput.addEventListener('input', updateCalculations);
 
-                // Tính toán ban đầu
                 updateCalculations();
             }
 
-            // Modal báo cáo
             const showReportBtn = document.getElementById('showReportBtn');
             const reportsModal = document.getElementById('reportsModal');
             const closeReportsModal = document.getElementById('closeReportsModal');
@@ -887,16 +832,13 @@
             }
         }
 
-        // Hàm gửi form bộ lọc
         function submitMultiFilter() {
             document.getElementById('multiFilterForm').submit();
         }
 
-        // Khởi tạo biểu đồ trong modal báo cáo
         function initializeReportCharts() {
             console.log("Initializing report charts");
 
-            // Biểu đồ phân bố lương theo phòng ban
             const departmentChart = echarts.init(document.getElementById('departmentChart'));
             departmentChart.setOption({
                 tooltip: {
@@ -932,7 +874,6 @@
                 ]
             });
 
-            // Biểu đồ trạng thái thanh toán
             const paymentStatusChart = echarts.init(document.getElementById('paymentStatusChart'));
             paymentStatusChart.setOption({
                 tooltip: {
@@ -966,7 +907,6 @@
                 ]
             });
 
-            // Biểu đồ so sánh theo năm
             const yearComparisonChart = echarts.init(document.getElementById('yearComparisonChart'));
             yearComparisonChart.setOption({
                 tooltip: {
@@ -1022,7 +962,6 @@
                 ]
             });
 
-            // Biểu đồ phân tích đóng góp thuế của công ty theo tháng
             const companyTaxBreakdownChart = echarts.init(document.getElementById('companyTaxBreakdownChart'));
             companyTaxBreakdownChart.setOption({
                 tooltip: {
@@ -1074,7 +1013,6 @@
                 ]
             });
 
-            // Biểu đồ loại đóng góp thuế của công ty
             const contributionTypesChart = echarts.init(document.getElementById('contributionTypesChart'));
             contributionTypesChart.setOption({
                 tooltip: {
@@ -1109,7 +1047,6 @@
                 ]
             });
 
-            // Đảm bảo biểu đồ thay đổi kích thước khi cửa sổ thay đổi kích thước
             window.addEventListener('resize', function() {
                 departmentChart.resize();
                 paymentStatusChart.resize();
@@ -1119,9 +1056,7 @@
             });
         }
 
-        // Cập nhật biểu đồ trong modal báo cáo
         function updateReportCharts(data) {
-            // Cập nhật biểu đồ phân tích hàng tháng
             const companyTaxBreakdownChart = echarts.getInstanceByDom(document.getElementById('companyTaxBreakdownChart'));
             if (companyTaxBreakdownChart && data.monthlyContributions) {
                 const monthlyData = [];
@@ -1135,7 +1070,6 @@
                 });
             }
 
-            // Cập nhật biểu đồ loại đóng góp
             const contributionTypesChart = echarts.getInstanceByDom(document.getElementById('contributionTypesChart'));
             if (contributionTypesChart) {
                 contributionTypesChart.setOption({

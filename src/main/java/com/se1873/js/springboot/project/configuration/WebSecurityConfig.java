@@ -29,14 +29,14 @@ public class WebSecurityConfig {
       .authorizeHttpRequests((requests) ->
         requests
           .requestMatchers("/api/face-recognition/recognition-success").permitAll()
-          .requestMatchers("/", "/home", "/login", "/request/**", "/css/**", "/js/**", "/api/attendance/recognize", "/api/resume/**", "/resume").permitAll() // Cho phép truy cập các trang này
+          .requestMatchers("/", "/home", "/login", "/request/**", "/css/**", "/js/**", "/api/attendance/recognize", "/api/resume/**", "/resume").permitAll()
           .requestMatchers("/payroll/**", "/attendance/**", "/request/**", "/employee/employee-insert", "/employee/**").hasAnyRole("ADMIN")
           .requestMatchers("/admin/**").hasRole("ADMIN")
-          .anyRequest().authenticated() // Các trang khác yêu cầu đăng nhập
+          .anyRequest().authenticated()
       )
       .formLogin((form) ->
         form
-          .loginPage("/login") // Chỉ định trang login tùy chỉnh
+          .loginPage("/login")
           .successHandler((request, response, authentication) -> {
             boolean isAdmin = false;
             for (GrantedAuthority ga : authentication.getAuthorities()) {
@@ -50,17 +50,17 @@ public class WebSecurityConfig {
             userService.handleSuccessfulLogin(user.getUsername(), response);
 
           })
-          .failureUrl("/login?error=true") // Xử lý lỗi đăng nhập
+          .failureUrl("/login?error=true")
           .permitAll()
       )
       .logout((logout) -> logout
         .logoutUrl("/logout")
         .logoutRequestMatcher(new AntPathRequestMatcher("/logout", "GET"))
-        .logoutSuccessUrl("/login?logout=true") // Chuyển hướng sau khi đăng xuất
+        .logoutSuccessUrl("/login?logout=true")
         .permitAll()
       )
       .csrf(csrf -> csrf
-        .ignoringRequestMatchers("/api/attendance/**", "/api/face-recognition/**", "/resume/**", "/request/bulk-delete")
+        .ignoringRequestMatchers("/api/attendance/**", "/api/face-recognition/**", "/api/chat/**", "/api/chat"  ,"/resume/**", "/request/bulk-delete")
       );
     return http.build();
   }

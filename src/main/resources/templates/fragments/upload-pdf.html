@@ -4,8 +4,8 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Resume Parser</title>
-    <!-- Tailwind CSS via CDN -->
-    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com?plugins=forms"></script>
     <style>
         .fade-in {
             animation: fadeIn 0.5s;
@@ -174,34 +174,50 @@
                         </button>
                     </div>
 
-                    <form id="candidateForm" class="space-y-6">
+                    <form id="candidateForm" class="space-y-6" th:action="@{/resume/save-candidate}" method="post">
+                        <!-- Hidden fields for experience and education -->
+                        <input type="hidden" id="experience" name="experience">
+                        <input type="hidden" id="education" name="education">
+                        
+                        <!-- Job Position Selection -->
+                        <div class="form-group">
+                            <label for="jobPositionId" class="form-label">Select Position</label>
+                            <select id="jobPositionId" name="jobPositionId" class="form-input" required>
+                                <option value="">Choose a position...</option>
+                                <option th:each="position : ${openPositions}"
+                                        th:value="${position.id}"
+                                        th:text="${position.title + ' - ' + position.department}">
+                                </option>
+                            </select>
+                        </div>
+
                         <!-- Personal Information -->
                         <div>
                             <h3 class="text-lg font-medium text-gray-900 mb-3">Personal Information</h3>
                             <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
                                 <div class="form-group">
-                                    <label for="name" class="form-label">Full Name</label>
-                                    <input type="text" id="name" name="name" class="form-input" placeholder="John Doe">
+                                    <label for="candidateName" class="form-label">Full Name</label>
+                                    <input type="text" id="candidateName" name="candidateName" class="form-input" placeholder="John Doe" required>
                                 </div>
                                 <div class="form-group">
                                     <label for="email" class="form-label">Email Address</label>
-                                    <input type="email" id="email" name="email" class="form-input" placeholder="john@example.com">
+                                    <input type="email" id="email" name="email" class="form-input" placeholder="john@example.com" required>
                                 </div>
                                 <div class="form-group">
                                     <label for="phone" class="form-label">Phone Number</label>
-                                    <input type="tel" id="phone" name="phone" class="form-input" placeholder="+1 (555) 123-4567">
+                                    <input type="tel" id="phone" name="phone" class="form-input" placeholder="+1 (555) 123-4567" required>
                                 </div>
                                 <div class="form-group">
-                                    <label for="linkedin" class="form-label">LinkedIn</label>
-                                    <input type="url" id="linkedin" name="linkedin" class="form-input" placeholder="https://linkedin.com/in/johndoe">
+                                    <label for="resumeUrl" class="form-label">Resume URL</label>
+                                    <input type="text" id="resumeUrl" name="resumeUrl" class="form-input" placeholder="https://example.com/resume.pdf">
                                 </div>
                                 <div class="form-group">
-                                    <label for="location" class="form-label">Location</label>
-                                    <input type="text" id="location" name="location" class="form-input" placeholder="City, Country">
+                                    <label for="coverLetter" class="form-label">Cover Letter</label>
+                                    <textarea id="coverLetter" name="coverLetter" class="form-input" rows="3" placeholder="Your cover letter..."></textarea>
                                 </div>
                                 <div class="form-group">
-                                    <label for="nationality" class="form-label">Nationality</label>
-                                    <input type="text" id="nationality" name="nationality" class="form-input" placeholder="Nationality">
+                                    <label for="notes" class="form-label">Additional Notes</label>
+                                    <textarea id="notes" name="notes" class="form-input" rows="3" placeholder="Any additional notes..."></textarea>
                                 </div>
                             </div>
                         </div>
@@ -497,31 +513,27 @@
             populateFormBtn.addEventListener('click', function() {
                 if (!parsedData) return;
 
-                document.getElementById('name').value = parsedData.personal_info?.name || '';
+                document.getElementById('candidateName').value = parsedData.personal_info?.name || '';
                 document.getElementById('email').value = parsedData.contact_information?.email || '';
                 document.getElementById('phone').value = parsedData.contact_information?.phone || '';
-                document.getElementById('linkedin').value = parsedData.contact_information?.linkedin || '';
-                document.getElementById('location').value = parsedData.personal_info?.address || '';
-                document.getElementById('nationality').value = parsedData.personal_info?.nationality || '';
+                document.getElementById('resumeUrl').value = parsedData.contact_information?.linkedin || '';
+                document.getElementById('coverLetter').value = parsedData.cover_letter || '';
+                document.getElementById('notes').value = parsedData.additional_notes || '';
 
-                // Clear existing education entries except the first one
                 const educationEntries = educationContainer.querySelectorAll('.education-entry');
                 for (let i = 1; i < educationEntries.length; i++) {
                     educationContainer.removeChild(educationEntries[i]);
                 }
 
-                // Populate education
                 if (parsedData.education && parsedData.education.degrees && parsedData.education.degrees.length > 0) {
-                    // First entry already exists
                     const firstEducationInputs = educationEntries[0].querySelectorAll('input');
                     firstEducationInputs[0].value = parsedData.education.degrees[0] || '';
                     firstEducationInputs[1].value = parsedData.education.institutions[0] || '';
                     firstEducationInputs[2].value = parsedData.education.years[0] || '';
                     firstEducationInputs[3].value = parsedData.education.gpa || '';
 
-                    // Add additional education entries
                     for (let i = 1; i < parsedData.education.degrees.length; i++) {
-                        addEducationBtn.click(); // Create a new entry
+                        addEducationBtn.click();
                         const newEntry = educationContainer.lastElementChild;
                         const inputs = newEntry.querySelectorAll('input');
 
@@ -531,15 +543,12 @@
                     }
                 }
 
-                // Clear existing experience entries except the first one
                 const experienceEntries = experienceContainer.querySelectorAll('.experience-entry');
                 for (let i = 1; i < experienceEntries.length; i++) {
                     experienceContainer.removeChild(experienceEntries[i]);
                 }
 
-                // Populate experience
                 if (parsedData.experience && parsedData.experience.companies && parsedData.experience.companies.length > 0) {
-                    // First entry already exists
                     const firstExperienceInputs = experienceEntries[0].querySelectorAll('input, textarea');
                     firstExperienceInputs[0].value = parsedData.experience.companies[0] || '';
                     firstExperienceInputs[1].value = parsedData.experience.job_titles[0] || '';
@@ -549,9 +558,8 @@
                         firstExperienceInputs[3].value = parsedData.experience.descriptions[0];
                     }
 
-                    // Add additional experience entries
                     for (let i = 1; i < parsedData.experience.companies.length; i++) {
-                        addExperienceBtn.click(); // Create a new entry
+                        addExperienceBtn.click();
                         const newEntry = experienceContainer.lastElementChild;
                         const inputs = newEntry.querySelectorAll('input, textarea');
 
@@ -565,19 +573,111 @@
                     }
                 }
 
-                // Populate skills and languages
                 document.getElementById('skills').value = parsedData.skills ? parsedData.skills.join(', ') : '';
                 document.getElementById('languages').value = parsedData.languages ? parsedData.languages.join(', ') : '';
             });
 
-            // Handle candidate form submission
-            document.getElementById('candidateForm').addEventListener('submit', function(e) {
+            document.getElementById('candidateForm').addEventListener('submit', async function(e) {
                 e.preventDefault();
-                // Here you would typically send the form data to your backend
-                alert('Candidate profile saved successfully!');
+                console.log('Form submission started');
+
+                // Tổng hợp thông tin experience
+                const experienceEntries = [];
+                document.querySelectorAll('.experience-entry').forEach(entry => {
+                    const inputs = entry.querySelectorAll('input, textarea');
+                    experienceEntries.push({
+                        company: inputs[0].value,
+                        jobTitle: inputs[1].value,
+                        duration: inputs[2].value,
+                        description: inputs[3].value
+                    });
+                });
+                document.getElementById('experience').value = JSON.stringify(experienceEntries);
+
+                // Tổng hợp thông tin education
+                const educationEntries = [];
+                document.querySelectorAll('.education-entry').forEach(entry => {
+                    const inputs = entry.querySelectorAll('input');
+                    educationEntries.push({
+                        degree: inputs[0].value,
+                        institution: inputs[1].value,
+                        years: inputs[2].value,
+                        gpa: inputs[3].value
+                    });
+                });
+                document.getElementById('education').value = JSON.stringify(educationEntries);
+
+                // Validate job position selection
+                const jobPositionId = document.getElementById('jobPositionId').value;
+                if (!jobPositionId) {
+                    showErrorMessage('Please select a position to apply for.');
+                    return;
+                }
+
+                // Validate required fields
+                const candidateName = document.getElementById('candidateName').value;
+                const email = document.getElementById('email').value;
+                const phone = document.getElementById('phone').value;
+
+                if (!candidateName || !email || !phone) {
+                    showErrorMessage('Please fill in all required fields (Name, Email, Phone).');
+                    return;
+                }
+                
+                const formData = new FormData(this);
+                try {
+                    console.log('Sending request to server with data:', {
+                        jobPositionId: formData.get('jobPositionId'),
+                        candidateName: formData.get('candidateName'),
+                        email: formData.get('email'),
+                        phone: formData.get('phone'),
+                        resumeUrl: formData.get('resumeUrl'),
+                        coverLetter: formData.get('coverLetter'),
+                        notes: formData.get('notes'),
+                        experience: formData.get('experience') || null,
+                        education: formData.get('education') || null,
+                        skills: formData.get('skills') || null
+                    });
+
+                    const response = await fetch(this.action, {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json'
+                        },
+                        body: JSON.stringify({
+                            jobPositionId: parseInt(formData.get('jobPositionId')),
+                            candidateName: formData.get('candidateName'),
+                            email: formData.get('email'),
+                            phone: formData.get('phone'),
+                            resumeUrl: formData.get('resumeUrl') || null,
+                            coverLetter: formData.get('coverLetter') || null,
+                            notes: formData.get('notes') || null,
+                            experience: formData.get('experience') || null,
+                            education: formData.get('education') || null,
+                            skills: formData.get('skills') || null
+                        })
+                    });
+
+                    console.log('Received response from server:', response);
+                    const result = await response.json();
+                    console.log('Parsed response:', result);
+
+                    if (response.ok && result.success) {
+                        showSuccessMessage(result.message);
+                        console.log('Redirecting to:', result.redirectUrl);
+                        // Redirect to position detail page after 2 seconds
+                        setTimeout(() => {
+                            window.location.href = result.redirectUrl;
+                        }, 2000);
+                    } else {
+                        showErrorMessage(result.message || 'Failed to save profile.');
+                    }
+                } catch (error) {
+                    console.error('Error during form submission:', error);
+                    showErrorMessage('An error occurred while saving the profile.');
+                }
             });
 
-            // Helper functions
             function formatFileSize(bytes) {
                 if (bytes < 1024) return bytes + ' bytes';
                 else if (bytes < 1048576) return (bytes / 1024).toFixed(1) + ' KB';
@@ -589,17 +689,32 @@
                 errorMessage.classList.remove('hidden');
             }
 
+            function showSuccessMessage(message) {
+                const alertDiv = document.createElement('div');
+                alertDiv.className = 'fixed top-4 right-4 bg-green-100 border border-green-400 text-green-700 px-4 py-3 rounded';
+                alertDiv.role = 'alert';
+                alertDiv.innerHTML = message;
+                document.body.appendChild(alertDiv);
+                setTimeout(() => alertDiv.remove(), 5000);
+            }
+
+            function showErrorMessage(message) {
+                const alertDiv = document.createElement('div');
+                alertDiv.className = 'fixed top-4 right-4 bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded';
+                alertDiv.role = 'alert';
+                alertDiv.innerHTML = message;
+                document.body.appendChild(alertDiv);
+                setTimeout(() => alertDiv.remove(), 5000);
+            }
+
             function displayResults(data) {
-                // Display raw data
                 rawData.textContent = JSON.stringify(data, null, 2);
 
-                // Display personal information
                 document.getElementById('parsed-name').textContent = data.personal_info?.name || '-';
                 document.getElementById('parsed-email').textContent = data.contact_information?.email || '-';
                 document.getElementById('parsed-phone').textContent = data.contact_information?.phone || '-';
                 document.getElementById('parsed-linkedin').textContent = data.contact_information?.linkedin || '-';
 
-                // Display education
                 const educationList = document.getElementById('parsed-education');
                 educationList.innerHTML = '';
 
@@ -620,7 +735,6 @@
                     educationList.innerHTML = '<p class="text-gray-500">No education information found</p>';
                 }
 
-                // Display experience
                 const experienceList = document.getElementById('parsed-experience');
                 experienceList.innerHTML = '';
 
@@ -646,7 +760,6 @@
                     experienceList.innerHTML = '<p class="text-gray-500">No experience information found</p>';
                 }
 
-                // Display skills
                 const skillsList = document.getElementById('parsed-skills');
                 skillsList.innerHTML = '';
 
@@ -661,7 +774,6 @@
                     skillsList.innerHTML = '<p class="text-gray-500">No skills found</p>';
                 }
 
-                // Display languages
                 const languagesList = document.getElementById('parsed-languages');
                 languagesList.innerHTML = '';
 
@@ -676,7 +788,6 @@
                     languagesList.innerHTML = '<p class="text-gray-500">No languages found</p>';
                 }
 
-                // Show results container
                 resultsContainer.classList.remove('hidden');
             }
         });

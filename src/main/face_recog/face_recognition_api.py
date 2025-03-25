@@ -12,10 +12,10 @@ from parser import ResumeParser
 
 logger = setup_logger('resume_api')
 
+os.environ['PYTHONUNBUFFERED'] = '1'
 
 app = Flask(__name__)
 
-# Global process tracker
 current_process = None
 system_status = {
     "status": "idle",
@@ -42,20 +42,17 @@ def allowed_file(filename):
 @app.route('/parse_resume', methods=['POST'])
 def parse_resume():
     logger.info("Received resume parsing request")
-    # Check if file part exists in the request
     if 'file' not in request.files:
         logger.error("No file part in the request")
         return jsonify({'error': 'No file part'}), 400
     
     file = request.files['file']
-    
-    # Check if filename is empty
+
     if file.filename == '':
         logger.error("No selected file")
         return jsonify({'error': 'No selected file'}), 400
     
     if file and allowed_file(file.filename):
-        # Generate a unique filename to avoid conflicts
         original_filename = secure_filename(file.filename)
         file_extension = original_filename.rsplit('.', 1)[1].lower()
         unique_filename = f"{uuid.uuid4().hex}.{file_extension}"
@@ -119,11 +116,12 @@ def get_status():
 
 @app.route('/api/take-photos', methods=['POST'])
 def take_photos():
-    logger.info("Received resume parsing request")
+    logger.info("Received photo capture request")
     """Start the photo capture process for a user"""
     global current_process, system_status
 
     if current_process and current_process.poll() is None:
+        logger.info("Terminating existing process")
         current_process.terminate()
         current_process = None
 
@@ -132,7 +130,10 @@ def take_photos():
         user_id = data.get('id')
         user_name = data.get('name', '')
 
+        logger.info(f"Starting photo capture for user_id: {user_id}, name: {user_name}")
+
         if not user_id:
+            logger.error("Missing user ID in request")
             return jsonify({
                 'status': 'error',
                 'message': 'User ID is required'
@@ -152,8 +153,18 @@ def take_photos():
                 if user_name:
                     cmd.append(user_name)
 
-                current_process = subprocess.Popen(cmd)
-                current_process.wait()
+                logger.info(f"Executing command: {' '.join(cmd)}")
+
+                current_process = subprocess.Popen(cmd,
+                                                   stdout=subprocess.PIPE,
+                                                   stderr=subprocess.PIPE)
+                stdout, stderr = current_process.communicate()
+
+                logger.info(f"Process completed with return code: {current_process.returncode}")
+                if stdout:
+                    logger.info(f"Process stdout: {stdout.decode('utf-8')}")
+                if stderr:
+                    logger.error(f"Process stderr: {stderr.decode('utf-8')}")
 
                 if current_process.returncode == 0:
                     system_status = {
@@ -168,6 +179,7 @@ def take_photos():
                         "last_updated": time.time()
                     }
             except Exception as e:
+                logger.error(f"Exception during photo capture: {str(e)}")
                 system_status = {
                     "status": "error",
                     "message": f"Error: {str(e)}",
@@ -182,6 +194,7 @@ def take_photos():
         })
 
     except Exception as e:
+        logger.error(f"Exception in take_photos endpoint: {str(e)}")
         system_status = {
             "status": "error",
             "message": f"Error: {str(e)}",
@@ -191,6 +204,7 @@ def take_photos():
             'status': 'error',
             'message': f'Failed to start photo capture: {str(e)}'
         })
+
 
 @app.route('/api/train', methods=['POST'])
 def train_model():

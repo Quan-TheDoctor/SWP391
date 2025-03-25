@@ -8,6 +8,8 @@ import com.se1873.js.springboot.project.service.FinancialPolicyService;
 import com.se1873.js.springboot.project.service.employee.EmployeeService;
 import com.se1873.js.springboot.project.service.salary_record.SalaryRecordService;
 import com.se1873.js.springboot.project.service.salary_record.query.SalaryRecordQueryService;
+import com.se1873.js.springboot.project.service.department.DepartmentService;
+import com.se1873.js.springboot.project.service.position.PositionService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.Page;
@@ -37,43 +39,48 @@ import java.util.stream.Collectors;
 public class PayrollController {
 
   private final SalaryRecordService salaryRecordService;
-  private final FinancialPolicyService financialPolicyService;
   private final SalaryRecordQueryService salaryRecordQueryService;
   private final EmployeeService employeeService;
+  private final DepartmentService departmentService;
+  private final PositionService positionService;
+  private final FinancialPolicyService financialPolicyService;
+  private final GlobalController globalController;
   private final EmployeeRepository employeeRepository;
   private final SalaryRecordRepository salaryRecordRepository;
 
-  @RequestMapping
-  public String payroll(Model model,
-                        @RequestParam(value = "page", defaultValue = "0") int page,
-                        @RequestParam(value = "size", defaultValue = "10") int size) {
+  @GetMapping
+  public String payroll(Model model, @RequestParam(defaultValue = "0") int page,
+      @RequestParam(defaultValue = "10") int size) {
     Pageable pageable = PageRequest.of(page, size);
-    var payrolls = salaryRecordService.getAllPayrolls(pageable);
-    Double totalNetSalary = payrolls.getContent().stream()
-      .filter(payrollDTO -> payrollDTO.getSalaryRecordPaymentStatus().equals("Paid"))
-      .map(PayrollDTO::getSalaryRecordNetSalary).mapToDouble(Double::doubleValue).sum();
-    Double unpaidSalary = payrolls.getContent()
-      .stream()
-      .filter(payrollDTO -> payrollDTO.getSalaryRecordPaymentStatus().equals("Pending")).map(PayrollDTO::getSalaryRecordNetSalary).mapToDouble(Double::doubleValue).sum();
-    Double companyTaxContributions = salaryRecordService.calculateTotalCompanyTaxContribution(payrolls.getContent());
+    Page<PayrollDTO> payrolls = salaryRecordService.getAllPayrolls(pageable);
 
-    ChartDataDTO chartData = generateChartData();
-    model.addAttribute("chartData", chartData);
+    double totalNetSalary = salaryRecordService.getTotalNetSalary();
+    double unpaidSalary = salaryRecordService.getTotalUnpaidSalary();
+    double companyTaxContributions = salaryRecordService.getTotalCompanyTaxContributions();
+
+    Map<Integer, Double> monthlySalaryData = salaryRecordService.getMonthlySalaryData();
+    Map<Integer, Double> monthlyDeductionsData = salaryRecordService.getMonthlyDeductionsData();
+
+    List<String> labels = new ArrayList<>();
+    List<Double> salaryValues = new ArrayList<>();
+    List<Double> deductionValues = new ArrayList<>();
+
+    for (int i = 1; i <= 12; i++) {
+      salaryValues.add(monthlySalaryData.getOrDefault(i, 0.0));
+      deductionValues.add(monthlyDeductionsData.getOrDefault(i, 0.0));
+    }
 
     model.addAttribute("payrolls", payrolls);
     model.addAttribute("totalNetSalary", totalNetSalary);
     model.addAttribute("unpaidSalary", unpaidSalary);
     model.addAttribute("companyTaxContributions", companyTaxContributions);
+    model.addAttribute("labels", labels);
+    model.addAttribute("salaryValues", salaryValues);
+    model.addAttribute("deductionValues", deductionValues);
+
+    log.info("Đã tải {} bản ghi lương cho trang hiện tại", payrolls.getContent().size());
     model.addAttribute("contentFragment", "fragments/payroll-fragments");
     return "index";
-  }
-
-
-  private ChartDataDTO generateChartData() {
-    Map<Integer, Double> monthlySalaryData = salaryRecordService.getMonthlySalaryData();
-    Map<Integer, Double> monthlyDeductionsData = salaryRecordService.getMonthlyDeductionsData();
-    
-    return new ChartDataDTO(monthlySalaryData, monthlyDeductionsData);
   }
 
   @RequestMapping("/policies")
@@ -153,9 +160,20 @@ public class PayrollController {
     @RequestParam(value = "page", defaultValue = "0") int page,
     @RequestParam(value = "size", defaultValue = "10") int size
   ) {
-    Pageable pageable = PageRequest.of(page, size);
+    boolean isAllFilters = (year == null || year.equals("all")) &&
+                          (month == null || month.equals("all")) &&
+                          (salaryRange == null || salaryRange.equals("all")) &&
+                          (paymentStatus == null || paymentStatus.equals("all")) &&
+                          (department == null || department.equals("all")) &&
+                          (position == null || position.equals("all"));
 
-    Page<PayrollDTO> initialPayrolls = salaryRecordService.getAllPayrolls(pageable);
+    Page<PayrollDTO> initialPayrolls;
+    if (isAllFilters) {
+      initialPayrolls = salaryRecordService.getAllPayrolls(PageRequest.of(0, Integer.MAX_VALUE));
+    } else {
+      initialPayrolls = salaryRecordService.getAllPayrolls(PageRequest.of(0, Integer.MAX_VALUE));
+    }
+
     List<PayrollDTO> filteredPayrolls = new ArrayList<>(initialPayrolls.getContent());
 
     if (year != null && !year.equals("all")) {
@@ -216,22 +234,28 @@ public class PayrollController {
       }
     }
 
+    int start = page * size;
+    int end = Math.min(start + size, filteredPayrolls.size());
+    List<PayrollDTO> pageContent = filteredPayrolls.subList(start, end);
+    
     Page<PayrollDTO> resultPage = new PageImpl<>(
-      filteredPayrolls,
-      pageable,
+      pageContent,
+      PageRequest.of(page, size),
       filteredPayrolls.size()
     );
 
     double totalNetSalary = salaryRecordQueryService.calculateTotalNetSalary(filteredPayrolls);
     double unpaidSalary = salaryRecordQueryService.calculateUnpaidSalary(filteredPayrolls);
     double companyTaxContributions = salaryRecordService.calculateTotalCompanyTaxContribution(filteredPayrolls);
+    ChartDataDTO chartData = generateChartDataFromPayrolls(filteredPayrolls);
 
     model.addAttribute("totalNetSalary", totalNetSalary);
     model.addAttribute("unpaidSalary", unpaidSalary);
     model.addAttribute("companyTaxContributions", companyTaxContributions);
     model.addAttribute("currentMonth", new SimpleDateFormat("MMMM").format(new Date()));
-    ChartDataDTO chartData = generateChartDataFromPayrolls(filteredPayrolls);
     model.addAttribute("chartData", chartData);
+    model.addAttribute("departments", departmentService.getAllDepartments());
+    model.addAttribute("positions", positionService.getAllPositions());
 
     updateModel(model, resultPage, totalNetSalary, unpaidSalary);
 
@@ -480,7 +504,7 @@ public class PayrollController {
     double totalNetSalary = salaryRecordQueryService.calculateTotalNetSalary(sortedPayrolls);
     double unpaidSalary = salaryRecordQueryService.calculateUnpaidSalary(sortedPayrolls);
 
-    ChartDataDTO chartData = generateChartData();
+    ChartDataDTO chartData = generateChartDataFromPayrolls(sortedPayrolls);
     model.addAttribute("chartData", chartData);
     model.addAttribute("sortField", field);
     model.addAttribute("direction", direction);

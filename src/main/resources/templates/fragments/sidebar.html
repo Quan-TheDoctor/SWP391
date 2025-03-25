@@ -1,12 +1,10 @@
 <div th:fragment="sidebar" xmlns:sec="http://www.w3.org/1999/xhtml">
     <aside class="w-64 bg-white shadow-lg fixed h-full flex flex-col z-50">
-        <!-- Logo Section -->
         <div class="p-4 border-b flex items-center justify-center md:justify-start">
             <img src="/logo-normal.png" class="h-8 hidden md:block" alt="Logo">
             <img src="/logo-small.png" class="h-8 md:hidden" alt="Small Logo">
         </div>
 
-        <!-- User Profile -->
         <div class="p-4 border-b">
             <div class="flex items-center gap-3">
                 <div class="w-10 h-10 rounded-full bg-primary-100 flex items-center justify-center text-primary-600 font-bold">
@@ -18,10 +16,8 @@
             </div>
         </div>
 
-        <!-- Main Menu -->
         <nav class="flex-1 overflow-y-auto py-2">
             <ul class="space-y-1 p-2">
-                <!-- Dashboard -->
                 <li>
                     <a href="/homepage"
                        th:classappend="${servletPath == '/homepage'} ? 'bg-primary-50 text-primary-600' : 'text-gray-700'"
@@ -34,7 +30,6 @@
                     </a>
                 </li>
 
-                <!-- HRM Section -->
                 <li class="relative group">
                     <button class="w-full flex items-center gap-3 p-2 hover:bg-gray-100 rounded-md transition-colors menu-toggle"
                             data-menu-id="hr-management"
@@ -52,11 +47,9 @@
                         </svg>
                     </button>
 
-                    <!-- HR Management Submenu -->
                     <ul class="submenu pl-4 space-y-1 mt-1 overflow-hidden transition-all duration-300 max-h-0" id="hr-management-submenu"
                         th:classappend="${servletPath.startsWith('/employee') || servletPath.startsWith('/attendance') || servletPath.startsWith('/payroll') || servletPath.startsWith('/request') || servletPath.startsWith('/face-recognition') || servletPath.startsWith('/chat')} ? 'max-h-[1000px]' : ''">
 
-                        <!-- Employee -->
                         <li>
                             <a href="/employee"
                                th:classappend="${servletPath.startsWith('/employee')} ? 'bg-primary-50 text-primary-600' : 'text-gray-600'"
@@ -69,7 +62,6 @@
                             </a>
                         </li>
 
-                        <!-- Attendance -->
                         <li>
                             <a href="/attendance"
                                th:classappend="${servletPath.startsWith('/attendance')} ? 'bg-primary-50 text-primary-600' : 'text-gray-600'"
@@ -82,7 +74,6 @@
                             </a>
                         </li>
 
-                        <!-- Payroll -->
                         <li>
                             <a href="/payroll"
                                th:classappend="${servletPath.startsWith('/payroll')} ? 'bg-primary-50 text-primary-600' : 'text-gray-600'"
@@ -95,7 +86,6 @@
                             </a>
                         </li>
 
-                        <!-- Request -->
                         <li>
                             <a href="/request"
                                th:classappend="${servletPath.startsWith('/request')} ? 'bg-primary-50 text-primary-600' : 'text-gray-600'"
@@ -108,7 +98,6 @@
                             </a>
                         </li>
 
-                        <!-- Face Recognition -->
                         <li>
                             <a href="/face-recognition"
                                th:classappend="${servletPath.startsWith('/face-recognition')} ? 'bg-primary-50 text-primary-600' : 'text-gray-600'"
@@ -118,7 +107,6 @@
                             </a>
                         </li>
 
-                        <!-- Chat -->
                         <li>
                             <a href="/chat"
                                th:classappend="${servletPath.startsWith('/chat')} ? 'bg-primary-50 text-primary-600' : 'text-gray-600'"
@@ -133,7 +121,6 @@
                     </ul>
                 </li>
 
-                <!-- Administration Section -->
                 <li class="relative">
                     <button class="w-full flex items-center gap-3 p-2 hover:bg-gray-100 rounded-md transition-colors menu-toggle"
                             data-menu-id="administration"
@@ -188,7 +175,6 @@
                     </ul>
                 </li>
 
-                <!-- User Settings -->
                 <li>
                     <a href="/user/detail"
                        th:classappend="${servletPath == '/profile'} ? 'bg-primary-50 text-primary-600' : 'text-gray-700'"
@@ -201,7 +187,6 @@
                     </a>
                 </li>
 
-                <!-- Logout -->
                 <li>
                     <form th:action="@{/logout}" method="get" class="w-full">
                         <button type="submit"
@@ -217,7 +202,6 @@
             </ul>
         </nav>
 
-        <!-- Footer -->
         <div class="p-4 border-t text-xs text-gray-500 text-center">
             <p>HR Management System v1.0</p>
             <p>© 2025 Your Company</p>
@@ -226,21 +210,16 @@
 
     <script>
         document.addEventListener('DOMContentLoaded', function () {
-            // Setup menu toggle functionality
             document.querySelectorAll('.menu-toggle').forEach(button => {
                 button.addEventListener('click', function () {
                     const menuId = this.getAttribute('data-menu-id');
                     const submenu = document.getElementById(`${menuId}-submenu`);
 
                     if (submenu) {
-                        // Toggle max height
                         submenu.classList.toggle('max-h-0');
-                        
-                        // Save submenu state to localStorage
                         const isOpen = !submenu.classList.contains('max-h-0');
                         localStorage.setItem(`menu_${menuId}_open`, isOpen);
 
-                        // Toggle arrow rotation
                         const arrow = this.querySelector('svg:last-child');
                         if (arrow) {
                             arrow.classList.toggle('rotate-180');
@@ -249,19 +228,16 @@
                 });
             });
 
-            // Restore submenu states from localStorage
             document.querySelectorAll('.menu-toggle').forEach(button => {
                 const menuId = button.getAttribute('data-menu-id');
                 const submenu = document.getElementById(`${menuId}-submenu`);
-                
+
                 if (submenu) {
                     const savedState = localStorage.getItem(`menu_${menuId}_open`);
-                    
-                    // If we have a saved state and it's "true"
+
                     if (savedState === "true") {
                         submenu.classList.remove('max-h-0');
-                        
-                        // Rotate the arrow
+
                         const arrow = button.querySelector('svg:last-child');
                         if (arrow) {
                             arrow.classList.add('rotate-180');
@@ -270,7 +246,6 @@
                 }
             });
 
-            // Setup mobile menu functionality
             const mobileMenuToggle = document.getElementById('mobile-menu-toggle');
             const sidebar = document.querySelector('aside');
 
@@ -279,7 +254,6 @@
                     sidebar.classList.toggle('-translate-x-full');
                 });
 
-                // Close sidebar when clicking outside on mobile
                 document.addEventListener('click', (event) => {
                     if (window.innerWidth < 768 &&
                         !event.target.closest('aside') &&
@@ -290,7 +264,6 @@
                 });
             }
 
-            // Highlight parent menu when submenu item is active
             const highlightParentMenu = () => {
                 document.querySelectorAll('.submenu a').forEach(link => {
                     if (link.classList.contains('bg-primary-50')) {

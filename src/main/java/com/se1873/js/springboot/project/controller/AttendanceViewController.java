@@ -10,6 +10,7 @@ import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 
 import java.time.LocalDate;
 import java.time.LocalTime;
@@ -30,7 +31,12 @@ public class AttendanceViewController {
   }
 
   @GetMapping
-  public String viewAttendance(@RequestParam("attendanceId") Integer attendanceId, Model model) {
+  public String viewAttendance(@RequestParam(value = "attendanceId", required = false) Integer attendanceId, Model model, RedirectAttributes redirectAttributes) {
+    if(attendanceId == null) {
+      redirectAttributes.addFlashAttribute("message", "Employee haven't check attendance yet, no details");
+      redirectAttributes.addFlashAttribute("messageType", "error");
+      return "redirect:/attendance";
+    }
     AttendanceDTO attendance = attendanceDTOMapper.toDTO(attendanceRepository.getAttendanceByAttendanceId(attendanceId));
 
     calculateWorkHours(attendance);

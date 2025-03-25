@@ -24,6 +24,10 @@ public class ChatRoomAPI {
     return channels;
   }
 
+  @PostMapping("/createChannel")
+  public ChannelDTO createChannel(@RequestBody ChannelDTO channelDTO) {
+    return channelService.createChannel(channelDTO);
+  }
 
   @GetMapping("/channels/{channelId}/messages")
   public List<MessageDTO> getChannelMessages(

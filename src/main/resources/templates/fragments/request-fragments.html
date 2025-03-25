@@ -181,6 +181,7 @@
                             <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Type</th>
                             <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Request Date</th>
                             <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Status</th>
+                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Approver</th>
                             <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Actions</th>
                         </tr>
                         </thead>
@@ -203,6 +204,7 @@
                                 <span th:if="${r.requestStatus == 'approve'}" class="px-2 py-1 bg-green-100 text-green-800 rounded-full text-xs font-medium">Approved</span>
                                 <span th:if="${r.requestStatus == 'deny'}" class="px-2 py-1 bg-red-100 text-red-800 rounded-full text-xs font-medium">Denied</span>
                             </td>
+                            <td class="px-6 py-4" th:text="${r.approvalName}"></td>
                             <td class="px-6 py-4">
                                 <div class="flex gap-2">
                                     <a th:href="@{/request/view(requestId=${r.requestId})}"
@@ -317,7 +319,6 @@
 
     <script>
         document.addEventListener('DOMContentLoaded', function() {
-            // Help Modal Functionality
             const helpButton = document.getElementById('helpButton');
             const helpModal = document.getElementById('helpModal');
             const closeHelpModal = document.getElementById('closeHelpModal');

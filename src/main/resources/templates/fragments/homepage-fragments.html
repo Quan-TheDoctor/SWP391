@@ -377,7 +377,6 @@
             if (!chart || !date) return;
 
             try {
-                // Fallback data in case API fails
                 const fallbackData = {
                     workedEmployee: 59,
                     lateEmployee: 21,
@@ -400,10 +399,8 @@
                     attendanceData = fallbackData;
                 }
 
-                // Update UI
                 updateAttendanceStats(attendanceData);
 
-                // Create chart
                 const option = createAttendanceChartOption(attendanceData);
                 chart.setOption(option);
 
@@ -486,7 +483,6 @@
             if (!chart || !year) return;
 
             try {
-                // Fallback data in case API fails
                 const fallbackData = [
                     { month: 'Jan', total: 120000000 },
                     { month: 'Feb', total: 132000000 },
@@ -521,7 +517,6 @@
                     payrollData = fallbackData;
                 }
 
-                // Create chart
                 const option = createPayrollChartOption(payrollData);
                 chart.setOption(option);
 
@@ -534,7 +529,6 @@
             const months = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
             const totals = [];
 
-            // Extract totals from data
             if (Array.isArray(data)) {
                 data.forEach(item => {
                     totals.push(item.total);
@@ -602,10 +596,8 @@
                 const salaryContainer = document.getElementById("top-highest-salary");
                 if (!salaryContainer) return;
 
-                // Clear current content
                 salaryContainer.innerHTML = "";
 
-                // Fallback data
                 const fallbackData = [
                     { firstName: "John", lastName: "Doe", position: "Director", netSalary: 35000000 },
                     { firstName: "Jane", lastName: "Smith", position: "Manager", netSalary: 28000000 },
@@ -631,13 +623,10 @@
                     employeeData = fallbackData;
                 }
 
-                // Render employee cards
                 employeeData.forEach(emp => {
-                    // Get initials for the employee avatar
                     const initials = (emp.firstName ? emp.firstName.charAt(0) : '') +
                         (emp.lastName ? emp.lastName.charAt(0) : '');
 
-                    // Create employee card HTML
                     const employeeCard = `
                         <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-1">
                             <div class="flex items-center">
@@ -653,7 +642,6 @@
                         </div>
                     `;
 
-                    // Add to container
                     salaryContainer.innerHTML += employeeCard;
                 });
 

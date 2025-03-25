@@ -129,7 +129,46 @@
         <div class="p-4 border-b border-discord-900">
             <div class="flex items-center justify-between">
                 <h2 class="font-bold text-lg">Chatbox</h2>
-                <span class="w-3 h-3 bg-green-500 rounded-full"></span>
+                <div class="flex items-center gap-2">
+                    <button id="addChannelBtn" class="text-discord-400 hover:text-white">
+                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/>
+                        </svg>
+                    </button>
+                    <span class="w-3 h-3 bg-green-500 rounded-full"></span>
+                </div>
+            </div>
+        </div>
+
+        <!-- Add Channel Modal -->
+        <div id="addChannelModal" class="fixed inset-0 bg-black bg-opacity-50 hidden items-center justify-center z-50">
+            <div class="bg-discord-800 rounded-lg p-6 w-96">
+                <div class="flex justify-between items-center mb-4">
+                    <h3 class="text-lg font-semibold">Create New Channel</h3>
+                    <button id="closeAddChannelModal" class="text-discord-400 hover:text-white">
+                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/>
+                        </svg>
+                    </button>
+                </div>
+                <form id="addChannelForm">
+                    <div class="mb-4">
+                        <label class="block text-sm font-medium text-discord-400 mb-1">Channel Name</label>
+                        <input type="text" id="channelName" name="channelName" required
+                               class="w-full bg-discord-700 border border-discord-600 rounded px-3 py-2 text-white focus:outline-none focus:border-primary-500">
+                    </div>
+                    <div class="mb-4">
+                        <label class="block text-sm font-medium text-discord-400 mb-1">Description</label>
+                        <textarea id="channelDescription" name="channelDescription" rows="3"
+                                  class="w-full bg-discord-700 border border-discord-600 rounded px-3 py-2 text-white focus:outline-none focus:border-primary-500"></textarea>
+                    </div>
+                    <div class="flex justify-end gap-2">
+                        <button type="button" id="cancelAddChannel"
+                                class="px-4 py-2 text-discord-400 hover:text-white">Cancel</button>
+                        <button type="submit"
+                                class="px-4 py-2 bg-primary-600 text-white rounded hover:bg-primary-700">Create Channel</button>
+                    </div>
+                </form>
             </div>
         </div>
 

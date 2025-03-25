@@ -892,7 +892,7 @@ public class AttendanceService {
     System.out.println(employeeAttendanceStatusDTOList);
     Set<Long> employeeIdSet = employeeIds.stream().map(Long::valueOf).collect(Collectors.toSet());
 
-    return employeeAttendanceStatusDTOList.stream().filter(dto -> employeeIdSet.contains(dto.getEmployee().getEmployeeId().longValue())) // Ép kiểu về Long trước khi so sánh
+    return employeeAttendanceStatusDTOList.stream().filter(dto -> employeeIdSet.contains(dto.getEmployee().getEmployeeId().longValue()))
       .collect(Collectors.toList());
   }
 

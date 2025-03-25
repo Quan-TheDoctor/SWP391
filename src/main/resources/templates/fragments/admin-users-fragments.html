@@ -448,10 +448,8 @@
     </main>
 </div>
 
-<!-- External JavaScript -->
 <script>
     document.addEventListener('DOMContentLoaded', function() {
-        // Sidebar toggle functionality
         const sidebarToggle = document.getElementById('sidebar-toggle');
         const mainContent = document.getElementById('main-content');
         const sidebar = document.querySelector('aside');
@@ -472,7 +470,6 @@
             });
         }
 
-        // Close modals when clicking outside
         document.addEventListener('click', function(event) {
             const modals = ['lockUserModal', 'unlockUserModal', 'deleteUserModal', 'changeRoleModal'];
             modals.forEach(modalId => {
@@ -506,7 +503,6 @@
         document.getElementById('changeRoleUserId').value = userId;
         document.getElementById('changeRoleUserName').textContent = username;
         
-        // Pre-select current role if it exists
         const roleSelect = document.getElementById('roleSelect');
         for (let i = 0; i < roleSelect.options.length; i++) {
             if (roleSelect.options[i].value === currentRole) {

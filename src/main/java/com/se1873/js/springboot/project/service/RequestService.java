@@ -31,9 +31,6 @@ import java.time.LocalTime;
 import java.util.*;
 import java.util.stream.Collectors;
 
-/**
- * Service xử lý logic cho request từ Controller
- */
 @Service
 @Slf4j
 @Transactional
@@ -53,11 +50,6 @@ public class RequestService {
   private final EmploymentHistoryService employmentHistoryService;
   private final EmployeeRepository employeeRepository;
 
-  /**
-   * Lấy danh sách requests đi kèm pagination
-   * @param pageable Pagination information
-   * @return Page of RequestDTOs
-   */
   public Page<RequestDTO> getRequests(Pageable pageable) {
     return requestRepository.findAll(pageable).map(this::convertRequestToDTO);
   }

@@ -219,13 +219,11 @@ public class EmployeeController {
                      @RequestParam(value = "size", defaultValue = "10") int size,
                      @ModelAttribute("loggedInUser") User loggedInUser) {
     
-    // Tạo pageable với thông tin sắp xếp
-    Sort sort = "asc".equals(direction) ? 
+    Sort sort = "asc".equals(direction) ?
         Sort.by(field).ascending() : 
         Sort.by(field).descending();
     Pageable pageable = PageRequest.of(page, size, sort);
     
-    // Lấy danh sách nhân viên đã sắp xếp và phân trang
     Page<EmployeeDTO> employees = employeeService.getAll(pageable);
     var totalEmployees = employees.getTotalElements();
     var avgSalary = employees.getContent().stream().mapToDouble(EmployeeDTO::getContractBaseSalary).average().orElse(0.0);

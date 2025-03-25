@@ -24,7 +24,7 @@ class PythonScript {
         return;
       }
 
-      ProcessBuilder processBuilder = new ProcessBuilder("py", "face_recognition_api.py");
+      ProcessBuilder processBuilder = new ProcessBuilder("python", "face_recognition_api.py");
       processBuilder.directory(scriptDir);
 
       processBuilder.redirectErrorStream(true);

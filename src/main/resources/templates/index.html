@@ -161,14 +161,12 @@
         const mobileMenuToggle = document.getElementById('mobile-menu-toggle');
         const sidebar = document.getElementById('sidebar');
 
-        // Mobile menu toggle
         if (mobileMenuToggle) {
             mobileMenuToggle.addEventListener('click', function() {
                 sidebar.classList.toggle('show');
             });
         }
 
-        // Close sidebar when clicking outside on mobile
         document.addEventListener('click', function(e) {
             if (window.innerWidth <= 768 &&
                 sidebar.classList.contains('show') &&
@@ -274,7 +272,6 @@
             }
         });
 
-        // Adjust sidebar width based on screen size
         function adjustSidebarWidth() {
             if (window.innerWidth > 1600) {
                 sidebar.style.width = '16%';
@@ -287,10 +284,8 @@
             }
         }
 
-        // Initial adjustment
         adjustSidebarWidth();
 
-        // Adjust on window resize
         window.addEventListener('resize', adjustSidebarWidth);
     });
 </script>

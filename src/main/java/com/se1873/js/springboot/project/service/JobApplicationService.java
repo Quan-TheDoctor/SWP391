@@ -1,0 +1,115 @@
+package com.se1873.js.springboot.project.service;
+
+import com.se1873.js.springboot.project.dto.JobApplicationDTO;
+import com.se1873.js.springboot.project.entity.JobApplication;
+import com.se1873.js.springboot.project.entity.JobPosition;
+import com.se1873.js.springboot.project.repository.JobApplicationRepository;
+import com.se1873.js.springboot.project.repository.JobPositionRepository;
+import lombok.extern.slf4j.Slf4j;
+import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
+
+import java.util.List;
+import java.util.stream.Collectors;
+
+@Slf4j
+@Service
+public class JobApplicationService {
+    private final JobApplicationRepository jobApplicationRepository;
+    private final JobPositionRepository jobPositionRepository;
+
+    public JobApplicationService(JobApplicationRepository jobApplicationRepository,
+                               JobPositionRepository jobPositionRepository) {
+        this.jobApplicationRepository = jobApplicationRepository;
+        this.jobPositionRepository = jobPositionRepository;
+    }
+
+    public List<JobApplicationDTO> getApplicationsByPosition(Long positionId) {
+        List<JobApplication> jobApplications = jobApplicationRepository.findByJobPositionId(positionId);
+        return jobApplications.stream()
+                .map(this::convertToDTO)
+                .collect(Collectors.toList());
+    }
+
+    public List<JobApplicationDTO> getApplicationsByStatus(String status) {
+        return jobApplicationRepository.findByStatus(status).stream()
+                .map(this::convertToDTO)
+                .collect(Collectors.toList());
+    }
+
+    public List<JobApplicationDTO> getApplicationsByPositionAndStatus(Long positionId, String status) {
+        return jobApplicationRepository.findByJobPositionIdAndStatus(positionId, status).stream()
+                .map(this::convertToDTO)
+                .collect(Collectors.toList());
+    }
+
+    public JobApplicationDTO getApplicationById(Long id) {
+        return jobApplicationRepository.findById(id)
+                .map(this::convertToDTO)
+                .orElse(null);
+    }
+
+    public void updateApplicationStatus(Long id, String status) {
+        JobApplication application = jobApplicationRepository.findById(id)
+                .orElseThrow(() -> new RuntimeException("Application not found"));
+        application.setStatus(status);
+        jobApplicationRepository.save(application);
+    }
+
+    @Transactional
+    public JobApplication saveJobApplication(JobApplicationDTO dto) {
+        log.info("Starting to save job application for candidate: {}", dto.getCandidateName());
+        
+        log.debug("Finding job position with ID: {}", dto.getJobPositionId());
+        JobPosition jobPosition = jobPositionRepository.findById(dto.getJobPositionId())
+            .orElseThrow(() -> {
+                log.error("Job position not found with ID: {}", dto.getJobPositionId());
+                return new RuntimeException("Job position not found");
+            });
+        log.debug("Found job position: {}", jobPosition.getTitle());
+
+        log.debug("Creating new job application entity");
+        JobApplication jobApplication = new JobApplication();
+        jobApplication.setJobPosition(jobPosition);
+        jobApplication.setCandidateName(dto.getCandidateName());
+        jobApplication.setEmail(dto.getEmail());
+        jobApplication.setPhone(dto.getPhone());
+        jobApplication.setResumeUrl(dto.getResumeUrl());
+        jobApplication.setCoverLetter(dto.getCoverLetter());
+        jobApplication.setStatus("PENDING");
+        jobApplication.setNotes(dto.getNotes());
+        
+        // Thêm thông tin từ resume parsing
+        jobApplication.setExperience(dto.getExperience());
+        jobApplication.setEducation(dto.getEducation());
+        jobApplication.setSkills(dto.getSkills());
+
+        log.debug("Saving job application to database");
+        JobApplication savedApplication = jobApplicationRepository.save(jobApplication);
+        log.info("Successfully saved job application with ID: {}", savedApplication.getId());
+
+        return savedApplication;
+    }
+
+    private JobApplicationDTO convertToDTO(JobApplication jobApplication) {
+        JobApplicationDTO dto = new JobApplicationDTO();
+        dto.setId(jobApplication.getId());
+        dto.setJobPositionId(jobApplication.getJobPosition().getId());
+        dto.setJobPositionTitle(jobApplication.getJobPosition().getTitle());
+        dto.setCandidateName(jobApplication.getCandidateName());
+        dto.setEmail(jobApplication.getEmail());
+        dto.setPhone(jobApplication.getPhone());
+        dto.setResumeUrl(jobApplication.getResumeUrl());
+        dto.setCoverLetter(jobApplication.getCoverLetter());
+        dto.setAppliedDate(jobApplication.getAppliedDate());
+        dto.setStatus(jobApplication.getStatus());
+        dto.setNotes(jobApplication.getNotes());
+        
+        // Thêm thông tin từ resume parsing
+        dto.setExperience(jobApplication.getExperience());
+        dto.setEducation(jobApplication.getEducation());
+        dto.setSkills(jobApplication.getSkills());
+        
+        return dto;
+    }
+} 

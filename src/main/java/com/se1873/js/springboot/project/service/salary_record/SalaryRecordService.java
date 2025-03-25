@@ -314,44 +314,44 @@ public class SalaryRecordService {
   }
 
   public Map<Integer, Double> getMonthlySalaryData() {
-    int currentYear = LocalDate.now().getYear();
-
-    List<PayrollDTO> payrolls = getAllPayrollsByYear(currentYear);
-
     Map<Integer, Double> monthlySalaryData = new HashMap<>();
-
-    for (PayrollDTO payroll : payrolls) {
-      if ("Paid".equals(payroll.getSalaryRecordPaymentStatus())) {
-        int month = payroll.getSalaryRecordMonth();
-        double netSalary = payroll.getSalaryRecordNetSalary();
-
-        monthlySalaryData.put(month,
-          monthlySalaryData.getOrDefault(month, 0.0) + netSalary);
-      }
+    List<Object[]> results = salaryRecordRepository.getMonthlyNetSalaryData();
+    
+    for (Object[] row : results) {
+      Integer month = (Integer) row[0];
+      Double total = (Double) row[1];
+      monthlySalaryData.put(month, total);
     }
-
+    
     return monthlySalaryData;
   }
 
   public Map<Integer, Double> getMonthlyDeductionsData() {
-    int currentYear = LocalDate.now().getYear();
-
-    List<PayrollDTO> payrolls = getAllPayrollsByYear(currentYear);
-
     Map<Integer, Double> monthlyDeductionsData = new HashMap<>();
-
-    for (PayrollDTO payroll : payrolls) {
-      if ("Paid".equals(payroll.getSalaryRecordPaymentStatus())) {
-        int month = payroll.getSalaryRecordMonth();
-        double deductions = payroll.getCalculatedPersonalDeduction() +
-          payroll.getCalculatedPersonalDependentDeduction();
-
-        monthlyDeductionsData.put(month,
-          monthlyDeductionsData.getOrDefault(month, 0.0) + deductions);
-      }
+    List<Object[]> results = salaryRecordRepository.getMonthlyDeductionsData();
+    
+    for (Object[] row : results) {
+      Integer month = (Integer) row[0];
+      Double total = (Double) row[1];
+      monthlyDeductionsData.put(month, total);
     }
-
+    
     return monthlyDeductionsData;
+  }
+
+  public double getTotalNetSalary() {
+    Double total = salaryRecordRepository.getTotalNetSalary();
+    return total != null ? total : 0.0;
+  }
+
+  public double getTotalUnpaidSalary() {
+    Double total = salaryRecordRepository.getTotalUnpaidSalary();
+    return total != null ? total : 0.0;
+  }
+
+  public double getTotalCompanyTaxContributions() {
+    Double total = salaryRecordRepository.getTotalCompanyTaxContributions();
+    return total != null ? total : 0.0;
   }
 
   private List<PayrollDTO> getAllPayrollsByYear(int year) {
@@ -615,14 +615,12 @@ public class SalaryRecordService {
 
   @Cacheable(value = "allPayrolls")
   public Page<PayrollDTO> getAllPayrolls(Pageable pageable) {
-    var srs = salaryRecordRepository.findSalaryRecordsByIsDeleted(false);
-    List<PayrollDTO> payrolls = new ArrayList<>();
-    for (var salaryRecord : srs) {
-      PayrollDTO payroll = payrollDTO(salaryRecord.getSalaryId());
-      payrolls.add(payroll);
-    }
+    Page<SalaryRecord> salaryRecords = salaryRecordRepository.findSalaryRecordsByIsDeleted(false, pageable);
+    List<PayrollDTO> payrolls = salaryRecords.getContent().stream()
+      .map(salaryRecord -> payrollDTO(salaryRecord.getSalaryId()))
+      .collect(Collectors.toList());
 
-    return new PageImpl<>(payrolls, pageable, srs.size());
+    return new PageImpl<>(payrolls, pageable, salaryRecords.getTotalElements());
   }
   public PayrollDTO findSalaryRecordBySalaryId(Integer salaryId) {
     return payrollDTO(salaryId);
@@ -923,8 +921,7 @@ public class SalaryRecordService {
     
     for (PayrollDTO payroll : payrolls) {
       if ("Paid".equals(payroll.getSalaryRecordPaymentStatus())) {
-        // Tính tổng các khoản đóng góp của công ty
-        double employerHealthInsurance = payroll.getCalculatedEmployerHealthInsurance() != null ? 
+        double employerHealthInsurance = payroll.getCalculatedEmployerHealthInsurance() != null ?
                                          payroll.getCalculatedEmployerHealthInsurance() : 0.0;
         double employerSocialInsurance = payroll.getCalculatedEmployerSocialInsurance() != null ? 
                                         payroll.getCalculatedEmployerSocialInsurance() : 0.0;

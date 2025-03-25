@@ -80,116 +80,118 @@
     </style>
 </head>
 <div th:fragment="main-content" xmlns:sec="http://www.w3.org/1999/xhtml">
-    <div class="max-w-7xl mx-auto space-y-6">
-        <!-- Header Section with gradient background -->
-        <div class="flex flex-col md:flex-row gap-4 items-center justify-between p-4 bg-gradient-to-r from-primary-600 to-secondary-600 rounded-lg text-white shadow-lg animate__animated animate__fadeIn">
-            <div>
-                <h1 class="text-2xl font-bold">Attendance Management</h1>
-                <p class="text-primary-100">Select a department and add employees to the attendance sheet</p>
+    <main class="flex-1 ml-64 p-6">
+        <div class="max-w-7xl mx-auto space-y-6">
+            <!-- Header Section with gradient background -->
+            <div class="flex flex-col md:flex-row gap-4 items-center justify-between p-4 bg-gradient-to-r from-primary-600 to-secondary-600 rounded-lg text-white shadow-lg animate__animated animate__fadeIn">
+                <div>
+                    <h1 class="text-2xl font-bold">Attendance Management</h1>
+                    <p class="text-primary-100">Select a department and add employees to the attendance sheet</p>
+                </div>
+
+                <!-- Action Buttons -->
+                <div class="flex gap-2">
+                    <a href="/attendance" class="px-4 py-2 bg-white text-primary-600 rounded-md hover:bg-primary-50 transition-colors flex items-center gap-2 shadow">
+                        <i class="fas fa-arrow-left"></i>
+                        <span>Back</span>
+                    </a>
+                    <button type="button" onclick="document.getElementById('attendanceForm').submit()" class="px-4 py-2 bg-green-600 text-white rounded-md hover:bg-green-700 transition-colors flex items-center gap-2 shadow">
+                        <i class="fas fa-save"></i>
+                        <span>Save Attendance</span>
+                    </button>
+                </div>
             </div>
 
-            <!-- Action Buttons -->
-            <div class="flex gap-2">
-                <a href="/attendance" class="px-4 py-2 bg-white text-primary-600 rounded-md hover:bg-primary-50 transition-colors flex items-center gap-2 shadow">
-                    <i class="fas fa-arrow-left"></i>
-                    <span>Back</span>
-                </a>
-                <button type="button" onclick="document.getElementById('attendanceForm').submit()" class="px-4 py-2 bg-green-600 text-white rounded-md hover:bg-green-700 transition-colors flex items-center gap-2 shadow">
-                    <i class="fas fa-save"></i>
-                    <span>Save Attendance</span>
-                </button>
-            </div>
-        </div>
-
-        <!-- Main Content -->
-        <div class="grid grid-cols-1 lg:grid-cols-4 gap-6">
-            <!-- Employee Selection Panel -->
-            <div class="lg:col-span-1">
-                <div class="bg-white rounded-xl shadow-lg p-4 animate__animated animate__fadeIn">
-                    <div class="mb-4">
-                        <h3 class="text-lg font-semibold mb-3 text-gray-800 flex items-center">
-                            <i class="fas fa-users mr-2 text-primary-500"></i>
-                            <span>Employee List</span>
-                        </h3>
+            <!-- Main Content -->
+            <div class="grid grid-cols-1 lg:grid-cols-4 gap-6">
+                <!-- Employee Selection Panel -->
+                <div class="lg:col-span-1">
+                    <div class="bg-white rounded-xl shadow-lg p-4 animate__animated animate__fadeIn">
                         <div class="mb-4">
-                            <label class="block text-sm font-medium text-gray-700 mb-2">Department</label>
-                            <select id="departmentFilter" onchange="filterEmployees()"
-                                    class="w-full p-2 border rounded-lg focus:ring-2 focus:ring-primary-500 transition-colors">
-                                <option value="">-- Select Department --</option>
-                            </select>
+                            <h3 class="text-lg font-semibold mb-3 text-gray-800 flex items-center">
+                                <i class="fas fa-users mr-2 text-primary-500"></i>
+                                <span>Employee List</span>
+                            </h3>
+                            <div class="mb-4">
+                                <label class="block text-sm font-medium text-gray-700 mb-2">Department</label>
+                                <select id="departmentFilter" onchange="filterEmployees()"
+                                        class="w-full p-2 border rounded-lg focus:ring-2 focus:ring-primary-500 transition-colors">
+                                    <option value="">-- Select Department --</option>
+                                </select>
+                            </div>
                         </div>
-                    </div>
 
-                    <div id="employeeListActions" class="mb-3 flex justify-between items-center" style="display: none;">
+                        <div id="employeeListActions" class="mb-3 flex justify-between items-center" style="display: none;">
                         <span class="text-sm text-gray-500">
                             <span id="employeeListCount">0</span> employees found
                         </span>
-                        <button onclick="addAllEmployees()" class="px-3 py-1 bg-primary-600 text-white rounded hover:bg-primary-700 text-sm flex items-center gap-1">
-                            <i class="fas fa-users"></i> Add All
-                        </button>
-                    </div>
+                            <button onclick="addAllEmployees()" class="px-3 py-1 bg-primary-600 text-white rounded hover:bg-primary-700 text-sm flex items-center gap-1">
+                                <i class="fas fa-users"></i> Add All
+                            </button>
+                        </div>
 
-                    <div id="employeeList" class="h-[calc(100vh-300px)] overflow-y-auto custom-scrollbar space-y-2">
-                        <!-- Employee cards will be populated here -->
-                        <div class="flex flex-col items-center justify-center h-40 text-gray-400">
-                            <i class="fas fa-users text-3xl mb-2"></i>
-                            <p class="text-sm">Select a department to display employees</p>
+                        <div id="employeeList" class="h-[calc(100vh-300px)] overflow-y-auto custom-scrollbar space-y-2">
+                            <!-- Employee cards will be populated here -->
+                            <div class="flex flex-col items-center justify-center h-40 text-gray-400">
+                                <i class="fas fa-users text-3xl mb-2"></i>
+                                <p class="text-sm">Select a department to display employees</p>
+                            </div>
                         </div>
                     </div>
                 </div>
-            </div>
 
-            <!-- Attendance Table Panel -->
-            <div class="lg:col-span-3">
-                <div class="bg-white rounded-xl shadow-lg p-4 animate__animated animate__fadeIn">
-                    <h3 class="text-lg font-semibold mb-4 text-gray-800 flex items-center">
-                        <i class="fas fa-calendar-check mr-2 text-primary-500"></i>
-                        <span>Attendance Sheet</span>
-                    </h3>
+                <!-- Attendance Table Panel -->
+                <div class="lg:col-span-3">
+                    <div class="bg-white rounded-xl shadow-lg p-4 animate__animated animate__fadeIn">
+                        <h3 class="text-lg font-semibold mb-4 text-gray-800 flex items-center">
+                            <i class="fas fa-calendar-check mr-2 text-primary-500"></i>
+                            <span>Attendance Sheet</span>
+                        </h3>
 
-                    <form id="attendanceForm" th:action="@{/attendance/create/save}" method="post" th:object="${attendanceDTOList}">
-                        <div class="overflow-x-auto">
-                            <table id="attendanceTable" class="compact-table w-full min-w-full">
-                                <thead class="bg-gray-50">
-                                <tr>
-                                    <th class="text-left px-4 py-3 text-xs font-medium text-gray-500 uppercase tracking-wider">Employee</th>
-                                    <th class="text-left px-4 py-3 text-xs font-medium text-gray-500 uppercase tracking-wider">Date</th>
-                                    <th class="text-left px-4 py-3 text-xs font-medium text-gray-500 uppercase tracking-wider">Check-in</th>
-                                    <th class="text-left px-4 py-3 text-xs font-medium text-gray-500 uppercase tracking-wider">Check-out</th>
-                                    <th class="text-left px-4 py-3 text-xs font-medium text-gray-500 uppercase tracking-wider">Overtime</th>
-                                    <th class="text-left px-4 py-3 text-xs font-medium text-gray-500 uppercase tracking-wider">Status</th>
-                                    <th class="text-left px-4 py-3 text-xs font-medium text-gray-500 uppercase tracking-wider">Actions</th>
-                                </tr>
-                                </thead>
-                                <tbody class="divide-y divide-gray-200">
-                                <!-- Attendance rows will be added here -->
-                                <tr class="h-20 text-center text-gray-400" id="emptyTableRow">
-                                    <td colspan="7">
-                                        <div class="flex flex-col items-center justify-center">
-                                            <i class="fas fa-calendar-plus text-3xl mb-2"></i>
-                                            <p>Select employees from the list on the left to add to the attendance sheet</p>
-                                        </div>
-                                    </td>
-                                </tr>
-                                </tbody>
-                            </table>
-                        </div>
+                        <form id="attendanceForm" th:action="@{/attendance/create/save}" method="post" th:object="${attendanceDTOList}">
+                            <div class="overflow-x-auto">
+                                <table id="attendanceTable" class="compact-table w-full min-w-full">
+                                    <thead class="bg-gray-50">
+                                    <tr>
+                                        <th class="text-left px-4 py-3 text-xs font-medium text-gray-500 uppercase tracking-wider">Employee</th>
+                                        <th class="text-left px-4 py-3 text-xs font-medium text-gray-500 uppercase tracking-wider">Date</th>
+                                        <th class="text-left px-4 py-3 text-xs font-medium text-gray-500 uppercase tracking-wider">Check-in</th>
+                                        <th class="text-left px-4 py-3 text-xs font-medium text-gray-500 uppercase tracking-wider">Check-out</th>
+                                        <th class="text-left px-4 py-3 text-xs font-medium text-gray-500 uppercase tracking-wider">Overtime</th>
+                                        <th class="text-left px-4 py-3 text-xs font-medium text-gray-500 uppercase tracking-wider">Status</th>
+                                        <th class="text-left px-4 py-3 text-xs font-medium text-gray-500 uppercase tracking-wider">Actions</th>
+                                    </tr>
+                                    </thead>
+                                    <tbody class="divide-y divide-gray-200">
+                                    <!-- Attendance rows will be added here -->
+                                    <tr class="h-20 text-center text-gray-400" id="emptyTableRow">
+                                        <td colspan="7">
+                                            <div class="flex flex-col items-center justify-center">
+                                                <i class="fas fa-calendar-plus text-3xl mb-2"></i>
+                                                <p>Select employees from the list on the left to add to the attendance sheet</p>
+                                            </div>
+                                        </td>
+                                    </tr>
+                                    </tbody>
+                                </table>
+                            </div>
 
-                        <div class="mt-6 flex justify-between items-center">
-                            <p class="text-sm text-gray-500">
-                                <i class="fas fa-info-circle mr-1"></i>
-                                <span id="employeeCount">0</span> employees added to attendance sheet
-                            </p>
-                            <button type="submit" class="px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors flex items-center gap-2">
-                                <i class="fas fa-save"></i>
-                                <span>Save Attendance</span>
-                            </button>
-                        </div>
-                    </form>
+                            <div class="mt-6 flex justify-between items-center">
+                                <p class="text-sm text-gray-500">
+                                    <i class="fas fa-info-circle mr-1"></i>
+                                    <span id="employeeCount">0</span> employees added to attendance sheet
+                                </p>
+                                <button type="submit" class="px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors flex items-center gap-2">
+                                    <i class="fas fa-save"></i>
+                                    <span>Save Attendance</span>
+                                </button>
+                            </div>
+                        </form>
+                    </div>
                 </div>
             </div>
         </div>
-    </div>
+    </main>
 </div>
 
 <script>
@@ -267,10 +269,8 @@
             }
         });
 
-        // Update employee count
         document.getElementById('employeeCount').textContent = rows.length;
 
-        // Show/hide empty table message
         const emptyRow = document.getElementById('emptyTableRow');
         if (rows.length > 0) {
             emptyRow.style.display = 'none';
@@ -285,12 +285,10 @@
     }
 
     function addEmployeeToTable(employeeId, employeeName) {
-        // Check if employee is already added
         const existingRows = document.querySelectorAll('#attendanceTable tbody tr');
         for (let row of existingRows) {
             const hiddenInput = row.querySelector('input[type="hidden"]');
             if (hiddenInput && hiddenInput.value == employeeId) {
-                // Flash the row to indicate it's already added
                 row.classList.add('bg-yellow-50');
                 setTimeout(() => row.classList.remove('bg-yellow-50'), 1500);
                 return;
@@ -301,10 +299,8 @@
         const newRow = document.createElement('tr');
         newRow.className = 'hover:bg-gray-50 animate__animated animate__fadeIn';
 
-        // Get today's date in YYYY-MM-DD format
         const today = new Date().toISOString().split('T')[0];
 
-        // Default times
         const defaultCheckIn = "08:00";
         const defaultCheckOut = "17:00";
 
@@ -386,7 +382,6 @@
             return;
         }
 
-        // Show loading state
         employeeList.innerHTML = `
             <div class="flex flex-col items-center justify-center h-40">
                 <div class="animate-spin h-8 w-8 border-4 border-primary-500 border-t-transparent rounded-full mb-2"></div>
@@ -411,7 +406,6 @@
                 return;
             }
 
-            // Show the actions bar with employee count
             employeeListActions.style.display = 'flex';
             document.getElementById('employeeListCount').textContent = employees.length;
 

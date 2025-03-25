@@ -73,5 +73,22 @@ public interface SalaryRecordRepository extends JpaRepository<SalaryRecord, Long
 
   List<SalaryRecord> findSalaryRecordsByIsDeleted(Boolean isDeleted);
 
+  Page<SalaryRecord> findSalaryRecordsByIsDeleted(Boolean isDeleted, Pageable pageable);
+
   List<AverageSalaryDTO> getAverageSalaryByYear(Integer year);
+
+  @Query("SELECT SUM(s.netSalary) FROM SalaryRecord s WHERE s.isDeleted = false AND s.paymentStatus = 'Paid'")
+  Double getTotalNetSalary();
+
+  @Query("SELECT SUM(s.netSalary) FROM SalaryRecord s WHERE s.isDeleted = false AND s.paymentStatus = 'Pending'")
+  Double getTotalUnpaidSalary();
+
+  @Query("SELECT SUM(s.insuranceDeduction) FROM SalaryRecord s WHERE s.isDeleted = false AND s.paymentStatus = 'Paid'")
+  Double getTotalCompanyTaxContributions();
+
+  @Query("SELECT s.month, SUM(s.netSalary) FROM SalaryRecord s WHERE s.isDeleted = false AND s.paymentStatus = 'Paid' GROUP BY s.month ORDER BY s.month")
+  List<Object[]> getMonthlyNetSalaryData();
+
+  @Query("SELECT s.month, SUM(s.insuranceDeduction) FROM SalaryRecord s WHERE s.isDeleted = false AND s.paymentStatus = 'Paid' GROUP BY s.month ORDER BY s.month")
+  List<Object[]> getMonthlyDeductionsData();
 }

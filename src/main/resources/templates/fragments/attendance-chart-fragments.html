@@ -135,10 +135,8 @@
         </div>
     </main>
 
-    <!-- JavaScript for Chart -->
     <script th:inline="javascript">
         document.addEventListener('DOMContentLoaded', function() {
-            // Get chart data from hidden div
             const chartDataElement = document.getElementById('chartData');
             const months = JSON.parse(chartDataElement.getAttribute('data-months'));
             const onTimeData = JSON.parse(chartDataElement.getAttribute('data-ontime'));
@@ -146,11 +144,9 @@
             const absentData = JSON.parse(chartDataElement.getAttribute('data-absent'));
             const overtimeData = JSON.parse(chartDataElement.getAttribute('data-overtime'));
 
-            // Initialize chart
             const chartDom = document.getElementById('attendanceChart');
             const myChart = echarts.init(chartDom);
 
-            // Initial chart options
             const option = {
                 tooltip: {
                     trigger: 'axis',
@@ -202,7 +198,7 @@
                             width: 3
                         },
                         itemStyle: {
-                            color: '#10B981'  // green-500
+                            color: '#10B981'
                         },
                         data: onTimeData
                     },
@@ -247,15 +243,12 @@
                 ]
             };
 
-            // Apply options to chart
             myChart.setOption(option);
 
-            // Make chart responsive
             window.addEventListener('resize', function() {
                 myChart.resize();
             });
 
-            // Expose chart and data for other functions
             window.attendanceChart = {
                 chart: myChart,
                 data: {
@@ -269,14 +262,12 @@
             };
         });
 
-        // Function to update chart type
         function updateChartType() {
             const chartType = document.getElementById('chartTypeSelector').value;
             const chart = window.attendanceChart.chart;
             const data = window.attendanceChart.data;
             const options = window.attendanceChart.options;
 
-            // Update series type
             const newOptions = {
                 series: [
                     {
@@ -336,7 +327,6 @@
                 ]
             };
 
-            // Apply new options
             chart.setOption(newOptions);
         }
     </script>

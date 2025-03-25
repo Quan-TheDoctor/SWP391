@@ -254,13 +254,11 @@
 <script>
     document.addEventListener("DOMContentLoaded", function () {
         let today = new Date();
-        let currentMonth = String(today.getMonth() + 1).padStart(2, "0"); // Đảm bảo định dạng 2 chữ số
+        let currentMonth = String(today.getMonth() + 1).padStart(2, "0");
         let currentYear = today.getFullYear();
 
-        // Đặt giá trị mặc định
         document.getElementById("monthSelect").value = currentMonth;
 
-        // Thêm các năm vào dropdown
         let yearSelect = document.getElementById("yearSelect");
         for (let year = currentYear - 5; year <= currentYear + 5; year++) {
             let option = document.createElement("option");
@@ -272,14 +270,12 @@
             yearSelect.appendChild(option);
         }
 
-        // Kiểm tra URL
         let urlParams = new URLSearchParams(window.location.search);
         let hasMonth = urlParams.has("month");
         let hasYear = urlParams.has("year");
 
-        // Kiểm tra xem form đã submit trước đó chưa
         if ((!hasMonth || !hasYear) && !sessionStorage.getItem("formSubmitted")) {
-            sessionStorage.setItem("formSubmitted", "true"); // Đánh dấu đã submit
+            sessionStorage.setItem("formSubmitted", "true");
             document.getElementById("filterForm").submit();
         }
     });
