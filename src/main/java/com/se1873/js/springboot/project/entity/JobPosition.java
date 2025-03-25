@@ -39,8 +39,11 @@ public class JobPosition {
     @Column(nullable = false)
     private LocalDateTime deadline;
 
-    @Column(nullable = false)
+    @Column(name = "status")
     private String status; // OPEN, CLOSED, ON_HOLD
+
+    @Column(name = "is_deleted")
+    private boolean isDeleted = false;
 
     @PrePersist
     protected void onCreate() {

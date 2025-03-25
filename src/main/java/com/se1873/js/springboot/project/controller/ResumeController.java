@@ -100,12 +100,11 @@ public class ResumeController {
     log.info("Received request to save candidate profile: {}", jobApplicationDTO);
     try {
       JobApplication savedApplication = jobApplicationService.saveJobApplication(jobApplicationDTO);
-      log.info("Successfully saved candidate profile with ID: {}", savedApplication.getId());
-      
+
       Map<String, Object> response = new HashMap<>();
       response.put("success", true);
       response.put("message", "Candidate profile saved successfully!");
-      response.put("redirectUrl", "/positions/" + jobApplicationDTO.getJobPositionId());
+      response.put("redirectUrl", "/recruitment/positions/" + jobApplicationDTO.getJobPositionId());
       
       return ResponseEntity.ok(response);
     } catch (Exception e) {

@@ -8,6 +8,7 @@ public class JobApplicationDTO {
     private Long id;
     private Long jobPositionId;
     private String jobPositionTitle;
+    private String jobPositionDepartment;
     private String candidateName;
     private String email;
     private String phone;

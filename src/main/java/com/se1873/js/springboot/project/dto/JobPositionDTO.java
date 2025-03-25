@@ -17,4 +17,5 @@ public class JobPositionDTO {
     private LocalDateTime deadline;
     private String status;
     private Integer applicationCount;
+    private boolean isDeleted;
 } 

@@ -3,12 +3,14 @@ package com.se1873.js.springboot.project.service;
 import com.se1873.js.springboot.project.dto.JobPositionDTO;
 import com.se1873.js.springboot.project.entity.Department;
 import com.se1873.js.springboot.project.entity.JobPosition;
+import com.se1873.js.springboot.project.repository.JobApplicationRepository;
 import com.se1873.js.springboot.project.repository.JobPositionRepository;
 import com.se1873.js.springboot.project.service.department.DepartmentService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
+import java.util.Map;
 import java.util.stream.Collectors;
 
 @Service
@@ -16,27 +18,28 @@ import java.util.stream.Collectors;
 public class JobPositionService {
     private final JobPositionRepository jobPositionRepository;
     private final DepartmentService departmentService;
+    private final JobApplicationRepository jobApplicationRepository;
 
     public List<JobPositionDTO> getAllPositions() {
-        return jobPositionRepository.findAll().stream()
+        return jobPositionRepository.findByIsDeletedFalse().stream()
                 .map(this::convertToDTO)
                 .collect(Collectors.toList());
     }
 
     public List<JobPositionDTO> getOpenPositions() {
-        return jobPositionRepository.findByStatus("OPEN").stream()
+        return jobPositionRepository.findByStatusAndIsDeletedFalse("OPEN").stream()
                 .map(this::convertToDTO)
                 .collect(Collectors.toList());
     }
 
     public List<JobPositionDTO> getPositionsByDepartment(String department) {
-        return jobPositionRepository.findByDepartment(department).stream()
+        return jobPositionRepository.findByDepartmentAndIsDeletedFalse(department).stream()
                 .map(this::convertToDTO)
                 .collect(Collectors.toList());
     }
 
     public JobPositionDTO getPositionById(Long id) {
-        return jobPositionRepository.findById(id)
+        return jobPositionRepository.findByIdAndIsDeletedFalse(id)
                 .map(this::convertToDTO)
                 .orElse(null);
     }
@@ -63,6 +66,58 @@ public class JobPositionService {
         return convertToDTO(savedPosition);
     }
 
+    public JobPositionDTO updatePosition(JobPositionDTO positionDTO) {
+        JobPosition position = jobPositionRepository.findById(positionDTO.getId())
+                .orElseThrow(() -> new RuntimeException("Position not found with id: " + positionDTO.getId()));
+        
+        position.setTitle(positionDTO.getTitle());
+        position.setDepartment(positionDTO.getDepartment());
+        position.setDescription(positionDTO.getDescription());
+        position.setRequirements(positionDTO.getRequirements());
+        position.setStatus(positionDTO.getStatus());
+        position.setPostedDate(positionDTO.getPostedDate());
+        position.setDeadline(positionDTO.getDeadline());
+        position.setNumberOfPositions(positionDTO.getNumberOfPositions());
+        position.setResponsibilities(positionDTO.getResponsibilities());
+        position.setSalaryRange(positionDTO.getSalaryRange());
+        
+        JobPosition updatedPosition = jobPositionRepository.save(position);
+        return convertToDTO(updatedPosition);
+    }
+
+    public void deletePosition(Long id) {
+        JobPosition position = jobPositionRepository.findByIdAndIsDeletedFalse(id)
+                .orElseThrow(() -> new RuntimeException("Position not found with id: " + id));
+        
+        position.setDeleted(true);
+        jobPositionRepository.save(position);
+    }
+
+    public JobPositionDTO closePosition(Long id) {
+        JobPosition position = jobPositionRepository.findByIdAndIsDeletedFalse(id)
+                .orElseThrow(() -> new RuntimeException("Position not found with id: " + id));
+        
+        position.setStatus("CLOSED");
+        JobPosition updatedPosition = jobPositionRepository.save(position);
+        return convertToDTO(updatedPosition);
+    }
+
+    public List<JobPositionDTO> searchPositions(String keyword) {
+        return jobPositionRepository.findByTitleContainingIgnoreCaseOrDepartmentContainingIgnoreCase(keyword, keyword).stream()
+                .map(this::convertToDTO)
+                .collect(Collectors.toList());
+    }
+
+    public List<JobPositionDTO> getPositionsByStatus(String status) {
+        return jobPositionRepository.findByStatusAndIsDeletedFalse(status).stream()
+                .map(this::convertToDTO)
+                .collect(Collectors.toList());
+    }
+
+    public Map<Long, Long> getApplicationCounts() {
+        return jobApplicationRepository.countApplicationsByPositionId();
+    }
+
     private JobPositionDTO convertToDTO(JobPosition position) {
         JobPositionDTO dto = new JobPositionDTO();
         dto.setId(position.getId());
@@ -75,6 +130,8 @@ public class JobPositionService {
         dto.setResponsibilities(position.getResponsibilities());
         dto.setSalaryRange(position.getSalaryRange());
         dto.setStatus(position.getStatus());
+        dto.setDeleted(position.isDeleted());
+        dto.setPostedDate(position.getPostedDate());
         return dto;
     }
 } 

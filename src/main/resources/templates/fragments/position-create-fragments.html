@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Create Job Position</title>
+    <title th:text="${jobPositionDTO.id == null ? 'Create Position' : 'Edit Position'}">Position Form</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <script>
         tailwind.config = {
@@ -41,172 +41,252 @@
     </script>
 </head>
 <body class="bg-gray-50">
-<div class="max-w-4xl mx-auto p-6">
-    <!-- Header -->
-    <div class="bg-gradient-to-r from-primary-600 to-secondary-600 rounded-xl shadow-lg p-6 mb-6 text-white">
-        <div class="flex flex-col md:flex-row md:items-center md:justify-between">
+<div class="container mx-auto px-4 py-8">
+    <div class="max-w-3xl mx-auto">
+        <div class="flex justify-between items-center mb-6">
+            <h1 class="text-2xl font-bold" th:text="${jobPositionDTO.id == null ? 'Create New Position' : 'Edit Position'}">Position Form</h1>
+            <a th:href="@{/recruitment/positions}" class="text-blue-500 hover:text-blue-700">
+                Back to Positions
+            </a>
+        </div>
+
+        <form th:if="${jobPositionDTO.id == null}" 
+              th:action="@{/recruitment/positions/create}" 
+              th:object="${jobPositionDTO}" 
+              method="post" 
+              class="space-y-6">
+            
+            <!-- Title -->
             <div>
-                <h1 class="text-2xl font-bold">Create Job Position</h1>
-                <p class="text-primary-100">Add a new job opening to your recruitment pipeline</p>
+                <label for="title" class="block text-sm font-medium text-gray-700">Position Title</label>
+                <input type="text" 
+                       id="title" 
+                       th:field="*{title}" 
+                       class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500"
+                       required>
             </div>
-            <div class="mt-4 md:mt-0">
-                <a th:href="@{/templates/recruitment}" class="px-4 py-2 bg-white text-primary-700 rounded-md hover:bg-primary-50 transition-colors text-sm font-medium flex items-center inline-flex">
-                    <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 19l-7-7m0 0l7-7m-7 7h18" />
-                    </svg>
-                    Back to Dashboard
+
+            <!-- Department -->
+            <div>
+                <label for="department" class="block text-sm font-medium text-gray-700">Department</label>
+                <select id="department" 
+                        th:field="*{department}" 
+                        class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500"
+                        required>
+                    <option value="">Select a department</option>
+                    <option th:each="dept : ${departments}" 
+                            th:value="${dept}" 
+                            th:text="${dept}">
+                    </option>
+                </select>
+            </div>
+
+            <!-- Number of Positions -->
+            <div>
+                <label for="numberOfPositions" class="block text-sm font-medium text-gray-700">Number of Positions</label>
+                <input type="number" 
+                       id="numberOfPositions" 
+                       th:field="*{numberOfPositions}" 
+                       class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500"
+                       required>
+            </div>
+
+            <!-- Description -->
+            <div>
+                <label for="description" class="block text-sm font-medium text-gray-700">Description</label>
+                <textarea id="description" 
+                          th:field="*{description}" 
+                          rows="4" 
+                          class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500"
+                          required></textarea>
+            </div>
+
+            <!-- Requirements -->
+            <div>
+                <label for="requirements" class="block text-sm font-medium text-gray-700">Requirements</label>
+                <textarea id="requirements" 
+                          th:field="*{requirements}" 
+                          rows="4" 
+                          class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500"
+                          required></textarea>
+            </div>
+
+            <!-- Responsibilities -->
+            <div>
+                <label for="responsibilities" class="block text-sm font-medium text-gray-700">Responsibilities</label>
+                <textarea id="responsibilities" 
+                          th:field="*{responsibilities}" 
+                          rows="4" 
+                          class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500"
+                          required></textarea>
+            </div>
+
+            <!-- Salary Range -->
+            <div>
+                <label for="salaryRange" class="block text-sm font-medium text-gray-700">Salary Range</label>
+                <input type="text" 
+                       id="salaryRange" 
+                       th:field="*{salaryRange}" 
+                       class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500"
+                       required>
+            </div>
+
+            <!-- Status -->
+            <div>
+                <label for="status" class="block text-sm font-medium text-gray-700">Status</label>
+                <select id="status" 
+                        th:field="*{status}" 
+                        class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500"
+                        required>
+                    <option value="OPEN">Open</option>
+                    <option value="CLOSED">Closed</option>
+                    <option value="ON_HOLD">On Hold</option>
+                </select>
+            </div>
+
+            <!-- Deadline -->
+            <div>
+                <label for="deadline" class="block text-sm font-medium text-gray-700">Application Deadline</label>
+                <input type="datetime-local" 
+                       id="deadline" 
+                       th:field="*{deadline}" 
+                       class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500"
+                       required>
+            </div>
+
+            <!-- Submit Button -->
+            <div class="flex justify-end gap-4">
+                <a th:href="@{/recruitment/positions}" 
+                   class="px-4 py-2 border border-gray-300 rounded-md shadow-sm text-sm font-medium text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500">
+                    Cancel
                 </a>
+                <button type="submit" 
+                        class="px-4 py-2 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500">
+                    Create Position
+                </button>
             </div>
-        </div>
-    </div>
+        </form>
 
-    <!-- Form Card -->
-    <div class="bg-white rounded-xl shadow-md overflow-hidden">
-        <div class="bg-gradient-to-r from-primary-50 to-secondary-50 px-6 py-4 border-b border-gray-200">
-            <div class="flex items-center">
-                <div class="p-2 rounded-md bg-primary-100 text-primary-600 mr-3">
-                    <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 13.255A23.931 23.931 0 0112 15c-3.183 0-6.22-.62-9-1.745M16 6V4a2 2 0 00-2-2h-4a2 2 0 00-2 2v2m4 6h.01M5 20h14a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
-                    </svg>
-                </div>
-                <h2 class="text-lg font-semibold text-gray-800">Job Position Details</h2>
+        <form th:unless="${jobPositionDTO.id == null}" 
+              th:action="@{/recruitment/positions/{id}/edit(id=${jobPositionDTO.id})}" 
+              th:object="${jobPositionDTO}" 
+              method="post" 
+              class="space-y-6">
+            <!-- Hidden fields -->
+            <input type="hidden" th:field="*{id}">
+            <input type="hidden" th:field="*{postedDate}" th:value="${jobPositionDTO.postedDate}">
+
+            <!-- Title -->
+            <div>
+                <label for="title" class="block text-sm font-medium text-gray-700">Position Title</label>
+                <input type="text" 
+                       id="title" 
+                       th:field="*{title}" 
+                       class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500"
+                       required>
             </div>
-        </div>
 
-        <div class="p-6">
-            <form th:action="@{/recruitment/positions/create}" method="post" th:object="${jobPositionDTO}" class="space-y-6">
-                <!-- Basic Information Section -->
-                <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
-                    <div class="col-span-2">
-                        <label for="title" class="block text-sm font-medium text-gray-700 mb-1">Job Title</label>
-                        <input type="text" th:field="*{title}" id="title" required
-                               class="block w-full rounded-md border-gray-300 shadow-sm focus:border-primary-500 focus:ring-primary-500 sm:text-sm"
-                               placeholder="e.g. Software Engineer, UX Designer">
-                    </div>
-
-                    <div>
-                        <label for="department" class="block text-sm font-medium text-gray-700 mb-1">Department</label>
-                        <select th:field="*{department}" id="department" required
-                                class="block w-full rounded-md border-gray-300 shadow-sm focus:border-primary-500 focus:ring-primary-500 sm:text-sm">
-                            <option value="">Select department</option>
-                            <option th:each="dept : ${departments}"
-                                    th:value="${dept}"
-                                    th:text="${dept}">
-                            </option>
-                        </select>
-                    </div>
-
-                    <div>
-                        <label for="salaryRange" class="block text-sm font-medium text-gray-700 mb-1">Salary Range</label>
-                        <input type="text" th:field="*{salaryRange}" id="salaryRange" required
-                               class="block w-full rounded-md border-gray-300 shadow-sm focus:border-primary-500 focus:ring-primary-500 sm:text-sm"
-                               placeholder="e.g. $50,000 - $70,000">
-                    </div>
-
-                    <div>
-                        <label for="numberOfPositions" class="block text-sm font-medium text-gray-700 mb-1">Number of Openings</label>
-                        <input type="number" th:field="*{numberOfPositions}" id="numberOfPositions" required min="1"
-                               class="block w-full rounded-md border-gray-300 shadow-sm focus:border-primary-500 focus:ring-primary-500 sm:text-sm">
-                    </div>
-
-                    <div>
-                        <label for="deadline" class="block text-sm font-medium text-gray-700 mb-1">Application Deadline</label>
-                        <input type="datetime-local" th:field="*{deadline}" id="deadline" required
-                               class="block w-full rounded-md border-gray-300 shadow-sm focus:border-primary-500 focus:ring-primary-500 sm:text-sm">
-                    </div>
-                </div>
-
-                <!-- Divider -->
-                <div class="relative">
-                    <div class="absolute inset-0 flex items-center" aria-hidden="true">
-                        <div class="w-full border-t border-gray-200"></div>
-                    </div>
-                    <div class="relative flex justify-center">
-                        <span class="bg-white px-3 text-sm text-gray-500">Job Details</span>
-                    </div>
-                </div>
-
-                <!-- Detailed Information Section -->
-                <div class="space-y-6">
-                    <div>
-                        <label for="description" class="block text-sm font-medium text-gray-700 mb-1">Job Description</label>
-                        <textarea th:field="*{description}" id="description" rows="5" required
-                                  class="block w-full rounded-md border-gray-300 shadow-sm focus:border-primary-500 focus:ring-primary-500 sm:text-sm"
-                                  placeholder="Provide a detailed description of the job role..."></textarea>
-                        <p class="mt-1 text-xs text-gray-500">Describe the position, its purpose, and how it fits into the organization.</p>
-                    </div>
-
-                    <div>
-                        <label for="requirements" class="block text-sm font-medium text-gray-700 mb-1">Requirements</label>
-                        <textarea th:field="*{requirements}" id="requirements" rows="5" required
-                                  class="block w-full rounded-md border-gray-300 shadow-sm focus:border-primary-500 focus:ring-primary-500 sm:text-sm"
-                                  placeholder="List the qualifications, skills, and experience required..."></textarea>
-                        <p class="mt-1 text-xs text-gray-500">Include education, experience, technical skills, and other qualifications.</p>
-                    </div>
-
-                    <div>
-                        <label for="responsibilities" class="block text-sm font-medium text-gray-700 mb-1">Responsibilities</label>
-                        <textarea th:field="*{responsibilities}" id="responsibilities" rows="5" required
-                                  class="block w-full rounded-md border-gray-300 shadow-sm focus:border-primary-500 focus:ring-primary-500 sm:text-sm"
-                                  placeholder="Outline the key duties and responsibilities..."></textarea>
-                        <p class="mt-1 text-xs text-gray-500">Detail the day-to-day tasks and responsibilities of the position.</p>
-                    </div>
-                </div>
-
-                <!-- Form Actions -->
-                <div class="flex items-center justify-end space-x-4 pt-4 border-t border-gray-200">
-                    <a th:href="@{/templates/recruitment}" class="px-4 py-2 border border-gray-300 rounded-md shadow-sm text-sm font-medium text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary-500">
-                        Cancel
-                    </a>
-                    <button type="submit" class="px-4 py-2 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-gradient-to-r from-primary-600 to-secondary-600 hover:from-primary-700 hover:to-secondary-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary-500">
-                        Create Position
-                    </button>
-                </div>
-            </form>
-        </div>
-    </div>
-
-    <!-- Tips Card -->
-    <div class="mt-6 bg-white rounded-xl shadow-md overflow-hidden">
-        <div class="bg-gradient-to-r from-amber-50 to-yellow-50 px-6 py-4 border-b border-gray-200">
-            <div class="flex items-center">
-                <div class="p-2 rounded-md bg-amber-100 text-amber-600 mr-3">
-                    <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
-                    </svg>
-                </div>
-                <h2 class="text-lg font-semibold text-gray-800">Tips for Creating Effective Job Postings</h2>
+            <!-- Department -->
+            <div>
+                <label for="department" class="block text-sm font-medium text-gray-700">Department</label>
+                <select id="department" 
+                        th:field="*{department}" 
+                        class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500"
+                        required>
+                    <option value="">Select a department</option>
+                    <option th:each="dept : ${departments}" 
+                            th:value="${dept}" 
+                            th:text="${dept}">
+                    </option>
+                </select>
             </div>
-        </div>
 
-        <div class="p-6">
-            <ul class="space-y-3 text-sm text-gray-600">
-                <li class="flex items-start">
-                    <svg class="h-5 w-5 text-green-500 mr-2 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path>
-                    </svg>
-                    <span>Be specific about required skills and qualifications to attract suitable candidates.</span>
-                </li>
-                <li class="flex items-start">
-                    <svg class="h-5 w-5 text-green-500 mr-2 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path>
-                    </svg>
-                    <span>Include information about company culture and benefits to attract top talent.</span>
-                </li>
-                <li class="flex items-start">
-                    <svg class="h-5 w-5 text-green-500 mr-2 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path>
-                    </svg>
-                    <span>Use clear, concise language and avoid industry jargon when possible.</span>
-                </li>
-                <li class="flex items-start">
-                    <svg class="h-5 w-5 text-green-500 mr-2 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path>
-                    </svg>
-                    <span>Set realistic expectations for the role to ensure candidate satisfaction.</span>
-                </li>
-            </ul>
-        </div>
+            <!-- Number of Positions -->
+            <div>
+                <label for="numberOfPositions" class="block text-sm font-medium text-gray-700">Number of Positions</label>
+                <input type="number" 
+                       id="numberOfPositions" 
+                       th:field="*{numberOfPositions}" 
+                       class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500"
+                       required>
+            </div>
+
+            <!-- Description -->
+            <div>
+                <label for="description" class="block text-sm font-medium text-gray-700">Description</label>
+                <textarea id="description" 
+                          th:field="*{description}" 
+                          rows="4" 
+                          class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500"
+                          required></textarea>
+            </div>
+
+            <!-- Requirements -->
+            <div>
+                <label for="requirements" class="block text-sm font-medium text-gray-700">Requirements</label>
+                <textarea id="requirements" 
+                          th:field="*{requirements}" 
+                          rows="4" 
+                          class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500"
+                          required></textarea>
+            </div>
+
+            <!-- Responsibilities -->
+            <div>
+                <label for="responsibilities" class="block text-sm font-medium text-gray-700">Responsibilities</label>
+                <textarea id="responsibilities" 
+                          th:field="*{responsibilities}" 
+                          rows="4" 
+                          class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500"
+                          required></textarea>
+            </div>
+
+            <!-- Salary Range -->
+            <div>
+                <label for="salaryRange" class="block text-sm font-medium text-gray-700">Salary Range</label>
+                <input type="text" 
+                       id="salaryRange" 
+                       th:field="*{salaryRange}" 
+                       class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500"
+                       required>
+            </div>
+
+            <!-- Status -->
+            <div>
+                <label for="status" class="block text-sm font-medium text-gray-700">Status</label>
+                <select id="status" 
+                        th:field="*{status}" 
+                        class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500"
+                        required>
+                    <option value="OPEN">Open</option>
+                    <option value="CLOSED">Closed</option>
+                    <option value="ON_HOLD">On Hold</option>
+                </select>
+            </div>
+
+            <!-- Deadline -->
+            <div>
+                <label for="deadline" class="block text-sm font-medium text-gray-700">Application Deadline</label>
+                <input type="datetime-local"
+                       id="deadline"
+                       name="deadline"
+                       th:value="${#temporals.format(jobPositionDTO.deadline, 'yyyy-MM-dd''T''HH:mm')}"
+                       class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500"
+                       required>
+            </div>
+
+            <!-- Submit Button -->
+            <div class="flex justify-end gap-4">
+                <a th:href="@{/recruitment/positions}" 
+                   class="px-4 py-2 border border-gray-300 rounded-md shadow-sm text-sm font-medium text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500">
+                    Cancel
+                </a>
+                <button type="submit" 
+                        class="px-4 py-2 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500">
+                    Update Position
+                </button>
+            </div>
+        </form>
     </div>
 </div>
 

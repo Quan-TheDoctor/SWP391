@@ -60,7 +60,7 @@ public class WebSecurityConfig {
         .permitAll()
       )
       .csrf(csrf -> csrf
-        .ignoringRequestMatchers("/api/attendance/**", "/api/face-recognition/**", "/api/chat/**", "/api/chat"  ,"/resume/**", "/request/bulk-delete")
+        .ignoringRequestMatchers("/api/attendance/**", "/api/face-recognition/**", "/api/chat/**", "/api/chat"  ,"/resume/**", "/request/bulk-delete", "recruitment/**")
       );
     return http.build();
   }

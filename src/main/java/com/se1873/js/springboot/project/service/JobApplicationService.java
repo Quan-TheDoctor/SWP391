@@ -91,25 +91,29 @@ public class JobApplicationService {
         return savedApplication;
     }
 
+    public List<JobApplicationDTO> getAllApplications() {
+        return jobApplicationRepository.findAll().stream()
+                .map(this::convertToDTO)
+                .collect(Collectors.toList());
+    }
+
     private JobApplicationDTO convertToDTO(JobApplication jobApplication) {
         JobApplicationDTO dto = new JobApplicationDTO();
         dto.setId(jobApplication.getId());
         dto.setJobPositionId(jobApplication.getJobPosition().getId());
         dto.setJobPositionTitle(jobApplication.getJobPosition().getTitle());
+        dto.setJobPositionDepartment(jobApplication.getJobPosition().getDepartment());
         dto.setCandidateName(jobApplication.getCandidateName());
         dto.setEmail(jobApplication.getEmail());
         dto.setPhone(jobApplication.getPhone());
         dto.setResumeUrl(jobApplication.getResumeUrl());
         dto.setCoverLetter(jobApplication.getCoverLetter());
-        dto.setAppliedDate(jobApplication.getAppliedDate());
         dto.setStatus(jobApplication.getStatus());
+        dto.setAppliedDate(jobApplication.getAppliedDate());
         dto.setNotes(jobApplication.getNotes());
-        
-        // Thêm thông tin từ resume parsing
         dto.setExperience(jobApplication.getExperience());
         dto.setEducation(jobApplication.getEducation());
         dto.setSkills(jobApplication.getSkills());
-        
         return dto;
     }
 } 

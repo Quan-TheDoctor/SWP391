@@ -50,7 +50,7 @@
                 <p class="text-primary-100">Job Position Details</p>
             </div>
             <div class="mt-4 md:mt-0">
-                <a th:href="@{/templates/recruitment}" class="px-4 py-2 bg-white text-primary-700 rounded-md hover:bg-primary-50 transition-colors text-sm font-medium flex items-center inline-flex">
+                <a th:href="@{/recruitment}" class="px-4 py-2 bg-white text-primary-700 rounded-md hover:bg-primary-50 transition-colors text-sm font-medium flex items-center inline-flex">
                     <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 19l-7-7m0 0l7-7m-7 7h18" />
                     </svg>
@@ -196,19 +196,15 @@
                     <div class="mt-6">
                         <h3 class="text-sm font-semibold text-gray-800 mb-2">Quick Actions</h3>
                         <div class="space-y-2">
-                            <a href="#" class="block w-full px-4 py-2 bg-primary-50 text-primary-700 rounded-md hover:bg-primary-100 transition-colors text-sm font-medium flex items-center">
+                            <a th:href="@{/recruitment/positions/{id}/edit(id=${position.id})}" class="block w-full px-4 py-2 bg-primary-50 text-primary-700 rounded-md hover:bg-primary-100 transition-colors text-sm font-medium flex items-center">
                                 <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z" />
                                 </svg>
                                 Edit Position
                             </a>
-                            <a href="#" class="block w-full px-4 py-2 bg-secondary-50 text-secondary-700 rounded-md hover:bg-secondary-100 transition-colors text-sm font-medium flex items-center">
-                                <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z" />
-                                </svg>
-                                Duplicate Position
-                            </a>
-                            <button class="block w-full px-4 py-2 bg-red-50 text-red-700 rounded-md hover:bg-red-100 transition-colors text-sm font-medium flex items-center">
+                            <button class="block w-full px-4 py-2 bg-red-50 text-red-700 rounded-md hover:bg-red-100 transition-colors text-sm font-medium flex items-center"
+                                    onclick="closePosition()"
+                                    th:if="${position.status == 'OPEN'}">
                                 <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
                                 </svg>
@@ -303,5 +299,30 @@
         </div>
     </div>
 </div>
+
+<script th:inline="javascript">
+    function closePosition() {
+        if (confirm('Are you sure you want to close this position?')) {
+            const positionId = /*[[${position.id}]]*/ null;
+            fetch(`/recruitment/positions/${positionId}/close`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                }
+            })
+            .then(response => {
+                if (response.ok) {
+                    window.location.reload();
+                } else {
+                    alert('Failed to close position');
+                }
+            })
+            .catch(error => {
+                console.error('Error:', error);
+                alert('An error occurred while closing the position');
+            });
+        }
+    }
+</script>
 </body>
 </html>
