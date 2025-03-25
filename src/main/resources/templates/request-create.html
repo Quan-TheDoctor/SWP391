@@ -1,0 +1,148 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Create Salary Increase Request</title>
+  <script>
+    async function fetchEmployeesByDepartment() {
+      const departmentId = document.getElementById("department").value;
+      if (!departmentId) return;
+
+      const response = await fetch(`/api/employee/getAllByDepartmentId?departmentId=${departmentId}`);
+      const employees = await response.json();
+
+      const tableBody = document.getElementById("employeeTableBody");
+      tableBody.innerHTML = "";
+
+      employees.forEach((emp, index) => {
+        tableBody.innerHTML += `
+          <tr>
+            <td><input type="checkbox" name="selectedEmployees" value="${emp.employeeId}"></td>
+            <td>${index + 1}</td>
+            <td>${emp.employeeFirstName} ${emp.employeeLastName}</td>
+            <td>${emp.employeeCode}</td>
+            <td>${emp.positionName}</td>
+            <td><input type="number" name="salaryIncrease[${emp.employeeId}]" min="0" step="0.1" placeholder="%" /></td>
+            <td></td>
+            <td></td>
+            <td></td>
+          </tr>`;
+      });
+    }
+
+    function submitRequest() {
+      const departmentId = document.getElementById("department").value;
+      const selectedEmployees = Array.from(document.querySelectorAll("input[name='selectedEmployees']:checked"))
+              .map(cb => cb.value);
+
+      if (!departmentId || selectedEmployees.length === 0) {
+        alert("Please fill in all fields and select at least one employee.");
+        return;
+      }
+
+      const salaryIncreases = {};
+      selectedEmployees.forEach(id => {
+        const row = document.querySelector(`input[value='${id}']`).closest("tr");
+        const employeeCode = row.children[3].textContent.trim();
+        const percentageInput = row.querySelector(`input[name='salaryIncrease[${id}]']`).value;
+        if (percentageInput) salaryIncreases[employeeCode] = parseFloat(percentageInput);
+      });
+
+      const payload = {
+        departmentId: Number(departmentId),
+        requestType: "Tăng lương",
+        employeeNamewithSalary: salaryIncreases
+      };
+
+      fetch("/request/create", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(payload)
+      })
+              .then(res => {
+                if (!res.ok) {
+                  throw new Error("Server responded with status: " + res.status);
+                }
+                return res.json();
+              })
+              .then(data => {
+                alert("Request submitted successfully!");
+
+                // Update the table with new salary information
+                data.forEach(item => {
+                  // Find the row by employee code
+                  const rows = document.querySelectorAll("#employeeTableBody tr");
+                  for (let i = 0; i < rows.length; i++) {
+                    const row = rows[i];
+                    const codeCell = row.children[3];
+                    if (codeCell && codeCell.textContent.trim() === item.employeeCode) {
+                      const oldSalaryCell = row.children[6];
+                      if (oldSalaryCell) {
+                        oldSalaryCell.textContent = item.oldBaseSalary.toFixed(2);
+                      }
+
+                      const newSalaryCell = row.children[7];
+                      if (newSalaryCell) {
+                        newSalaryCell.textContent = item.newBaseSalary.toFixed(2);
+                      }
+
+                      const startDateCell = row.children[8];
+                      if (startDateCell) {
+                        startDateCell.textContent = item.startedAt;
+                      }
+                      break;
+                    }
+                  }                });
+
+
+
+              })
+              .catch(err => {
+                console.error("Error:", err);
+                alert("Error submitting request: " + err.message);
+              });
+    }
+  </script>
+  <style>
+    /* Basic styling */
+    body { font-family: Arial, sans-serif; padding: 20px; }
+    select, input, button { margin: 10px 0; padding: 5px; }
+    table { width: 100%; border-collapse: collapse; }
+    th, td { padding: 10px; border: 1px solid #ddd; text-align: left; }
+    button { background-color: #4CAF50; color: white; border: none; cursor: pointer; padding: 10px 15px; }
+    button:hover { background-color: #45a049; }
+  </style>
+</head>
+<body>
+<h1>Create Salary Increase Request</h1>
+
+<label for="department">Department:</label>
+<select id="department" name="departmentId" onchange="fetchEmployeesByDepartment()">
+  <option value="">Chọn phòng ban</option>
+  <option th:each="d : ${departmentList}" th:value="${d.departmentId}" th:text="${d.departmentName}"></option>
+</select>
+
+<h2>Employees in Selected Department</h2>
+<table>
+  <thead>
+  <tr>
+    <th>Select</th>
+    <th>STT</th>
+    <th>Employee</th>
+    <th>Employee Code</th>
+    <th>Position</th>
+    <th>Salary Increase (%)</th>
+    <th>Old Base Salary</th>
+    <th>New Base Salary</th>
+    <th>Started At</th>
+  </tr>
+  </thead>
+  <tbody id="employeeTableBody"></tbody>
+</table>
+
+<button type="button" onclick="submitRequest()">Submit Request</button>
+<button type="button" onclick="window.location.href='/request'">Back</button>
+
+</body>
+</html>

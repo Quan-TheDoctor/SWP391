@@ -15,6 +15,9 @@ import java.util.List;
 @Repository
 public interface SalaryRecordRepository extends JpaRepository<SalaryRecord, Long> {
 
+  @Query("SELECT s FROM SalaryRecord s WHERE s.employee.employeeId = :employeeId")
+  SalaryRecord findSalaryRecordsByEmployeeId(Integer employeeId);
+
   SalaryRecord findSalaryRecordBySalaryIdAndIsDeleted(Integer salaryId, boolean isDeleted);
 
   Page<SalaryRecord> getSalaryRecordsByEmployee_EmployeeId(Integer employeeId, Pageable pageable);

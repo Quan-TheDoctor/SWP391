@@ -1,0 +1,54 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Request Details</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+</head>
+<body class="bg-gray-100 min-h-screen flex items-center justify-center p-4">
+<div class="bg-white p-6 rounded-lg shadow-xl max-w-md w-full">
+    <div class="text-center mb-6">
+        <h2 class="text-2xl font-bold text-gray-800">Salary Increase Request</h2>
+        <div class="h-1 w-20 bg-blue-500 mx-auto mt-2 rounded"></div>
+    </div>
+
+    <div class="space-y-4">
+        <div class="flex justify-between border-b pb-2">
+            <span class="font-semibold text-gray-600">Employee:</span>
+            <span class="text-gray-800" th:text="${responseDetails.fullName}">John Doe</span>
+        </div>
+
+        <div class="flex justify-between border-b pb-2">
+            <span class="font-semibold text-gray-600">Position:</span>
+            <span class="text-gray-800" th:text="${responseDetails.positionName}">Software Engineer</span>
+        </div>
+
+        <div class="flex justify-between border-b pb-2">
+            <span class="font-semibold text-gray-600">Old Salary:</span>
+            <span class="text-gray-800" th:text="${T(java.lang.String).format('%,.0f', responseDetails.oldBaseSalary) + ' VND'}">$5000</span>
+
+        </div>
+
+        <div class="flex justify-between border-b pb-2">
+            <span class="font-semibold text-gray-600">New Salary:</span>
+            <span class="text-green-600 font-bold" th:text="${T(java.lang.String).format('%,.0f',responseDetails.newBaseSalary) + ' VND'}">$6000</span>
+        </div>
+
+        <div class="flex justify-between">
+            <span class="font-semibold text-gray-600">Started At:</span>
+            <span class="text-gray-800" th:text="${#temporals.format(responseDetails.startedAt, 'dd/MM/yyyy')}">01/01/2024</span>
+        </div>
+    </div>
+
+    <div class="mt-6 text-center">
+        <button
+                onclick="window.location.href='/request'"
+                class="w-full bg-blue-500 hover:bg-blue-600 text-white font-bold py-3 px-4 rounded-lg transition duration-300 ease-in-out transform hover:scale-105 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-opacity-50"
+        >
+            Close
+        </button>
+    </div>
+</div>
+</body>
+</html>

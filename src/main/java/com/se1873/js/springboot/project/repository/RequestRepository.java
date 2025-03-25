@@ -16,7 +16,7 @@ import java.util.Optional;
 public interface RequestRepository extends JpaRepository<Request, Long> {
 
     Page<Request> findRequestsByStatus(String status, Pageable pageable);
-    Request findRequestByRequestId(Integer requestId);
+     Request findRequestByRequestId(Integer requestId);
     Page<Request> findByRequestType(String type, Pageable pageable);
     @Query("SELECT  r.requestType FROM Request r")
     List<String> findRequestTypes();
