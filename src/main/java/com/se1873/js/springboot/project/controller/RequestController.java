@@ -142,7 +142,8 @@ public class RequestController {
                      Model model,
                      RedirectAttributes redirectAttributes) {
     if (result.hasErrors()) {
-      return "user-request-create";
+      model.addAttribute("contentFragment", "fragments/user-request-create-fragments");
+      return "index";
     }
 
     Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
@@ -166,7 +167,8 @@ public class RequestController {
       model.addAttribute("requestDTO", requestDTO);
       model.addAttribute("leavePolicy", leavePolicyRepository.findAll());
       model.addAttribute("reason", leavePolicyId);
-      return "user-request-create";
+      model.addAttribute("contentFragment", "fragments/user-request-create-fragments");
+      return "index";
     }
 
     if (requestDTO.getLeaveDTO().getTotalDays() > requestDTO.getLeaveDTO().getLeaveAllowedDay()) {
@@ -174,7 +176,8 @@ public class RequestController {
       model.addAttribute("requestDTO", requestDTO);
       model.addAttribute("leavePolicy", leavePolicyRepository.findAll());
       model.addAttribute("reason", leavePolicyId);
-      return "user-request-create";
+      model.addAttribute("contentFragment", "fragments/user-request-create-fragments");
+      return "index";
     }
 
     User admin = userRepository.findUserByUsername("admin").orElseThrow(() ->
@@ -243,7 +246,6 @@ public class RequestController {
             requestDTO.setRequestStatus("approve");
             requestDTO.setApprovalName(user.getUsername());
             requestService.updateStatus(requestDTO,type);
-            log.info(String.valueOf(requestDTO.getLeaveDTO().getLeavePolicyId()));
             int remainingDays = leavePolicyService.calculate(requestDTO.getLeaveDTO().getLeavePolicyId(), employeeId,requestDTO);
             requestDTO.getLeaveDTO().setLeaveAllowedDay(remainingDays);
             requestService.save(requestDTO,requestUser,employee);

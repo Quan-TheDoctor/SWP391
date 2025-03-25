@@ -2,11 +2,11 @@ package com.se1873.js.springboot.project.controller;
 
 import com.se1873.js.springboot.project.dto.*;
 import com.se1873.js.springboot.project.entity.*;
-import com.se1873.js.springboot.project.repository.AttendanceRepository;
-import com.se1873.js.springboot.project.repository.LeavePolicyRepository;
-import com.se1873.js.springboot.project.repository.LeaveRepository;
+import com.se1873.js.springboot.project.repository.*;
 import com.se1873.js.springboot.project.service.AttendanceService;
 import com.se1873.js.springboot.project.service.LeavePolicyService;
+import com.se1873.js.springboot.project.service.NotificationService;
+import com.se1873.js.springboot.project.service.RequestService;
 import com.se1873.js.springboot.project.service.employee.EmployeeService;
 import com.se1873.js.springboot.project.service.salary_record.SalaryRecordService;
 import com.se1873.js.springboot.project.service.user.UserService;
@@ -41,8 +41,12 @@ public class UserController {
   private final LeavePolicyRepository leavePolicyRepository;
   private final LeaveRepository leaveRepository;
   private final AttendanceRepository attendanceRepository;
+  private final NotificationRepository notificationRepository;
+  private final UserRepository userRepository;
+  private final RequestService requestService;
+  private final NotificationService notificationService;
 
-  public UserController(UserService userService, EmployeeService employeeService, AttendanceService attendanceService, SalaryRecordService salaryRecordService, LeavePolicyService leavePolicyService, LeavePolicyRepository leavePolicyRepository, LeaveRepository leaveRepository, AttendanceRepository attendanceRepository) {
+  public UserController(UserService userService, EmployeeService employeeService, AttendanceService attendanceService, SalaryRecordService salaryRecordService, LeavePolicyService leavePolicyService, LeavePolicyRepository leavePolicyRepository, LeaveRepository leaveRepository, AttendanceRepository attendanceRepository, NotificationRepository notificationRepository, UserRepository userRepository, RequestService requestService, NotificationService notificationService) {
     this.userService = userService;
     this.employeeService = employeeService;
     this.attendanceService = attendanceService;
@@ -51,6 +55,10 @@ public class UserController {
     this.leavePolicyRepository = leavePolicyRepository;
     this.leaveRepository = leaveRepository;
     this.attendanceRepository = attendanceRepository;
+    this.notificationRepository = notificationRepository;
+    this.userRepository = userRepository;
+    this.requestService = requestService;
+    this.notificationService = notificationService;
   }
 
   public Integer getEmployeeId() {
@@ -64,10 +72,24 @@ public class UserController {
     }
   }
 
+  public Integer getUserId(){
+    Authentication authencation = SecurityContextHolder.getContext().getAuthentication();
+    String userName = authencation.getName();
+    Optional<User> user = userRepository.findUserByUsername(userName);
+    if(user.isPresent()) {
+      return user.get().getUserId();
+    }else{
+      throw new UsernameNotFoundException("not found user");
+    }
+  }
+
   @GetMapping("/detail")
   public String viewUserProfile(Model model) {
     EmployeeDTO employee = employeeService.getEmployeeByEmployeeId(getEmployeeId());
 
+    List<Notification> notification = notificationRepository.getNotificationsByUser_UserId(getUserId());
+    long unreadCount = notification.stream().filter(n -> "unread".equals(n.getStatus())).count();
+    model.addAttribute("unreadCount",unreadCount);
     model.addAttribute("employeeDTO", employee);
     model.addAttribute("contentFragment", "fragments/user-fragments");
     return "index";
@@ -129,8 +151,6 @@ public class UserController {
     model.addAttribute("leavePolicy", leavePolicy);
     model.addAttribute("requestDTO", requestDTO);
     model.addAttribute("reason", reason);
-
-    model.addAttribute("requestDTO", new RequestDTO());
     model.addAttribute("contentFragment", "fragments/user-request-create-fragments");
     return "index";
   }
@@ -218,5 +238,52 @@ public class UserController {
     return "payroll-slip";
   }
 
+  @RequestMapping("/notification")
+  public String notification(Model model){
+    List<Notification> notifications = notificationRepository.getNotificationsByUser_UserId(getUserId());
+    long unreadCount = notifications.stream().filter(n -> "unread".equals(n.getStatus())).count();
+    model.addAttribute("unreadCount",unreadCount);
+    model.addAttribute("notifications",notifications);
+    model.addAttribute("contentFragment", "fragments/notification");
+    return "index";
+  }
+
+  @RequestMapping("/mark")
+  public String mark(Model model,
+                     @RequestParam("notificationId") Integer notificationId){
+    Notification notification = notificationRepository.getNotificationByNotificationId(notificationId);
+    String status = notification.getStatus();
+    if("unread".equals(status)){
+      String updateStatus = "read";
+      notificationService.updateStatus(updateStatus,notificationId);
+    }
+    List<Notification> notifications = notificationRepository.getNotificationsByUser_UserId(getUserId());
+    long unreadCount = notifications.stream().filter(n -> "unread".equals(n.getStatus())).count();
+    model.addAttribute("unreadCount",unreadCount);
+    model.addAttribute("notifications",notifications);
+    model.addAttribute("contentFragment", "fragments/notification");
+    return "index";
+  }
+
+  @GetMapping("/view/{notificationId}")
+  public String view(Model model,
+                     @PathVariable("notificationId") Integer notificationId){
+    Notification notification = notificationRepository.getNotificationByNotificationId(notificationId);
+    Integer requestId = notification.getRequestId();
+    RequestDTO requestDTO = requestService.findRequestByRequestId(requestId);
+    model.addAttribute("requestDTO", requestDTO);
+    model.addAttribute("contentFragment", "fragments/notificationDetail");
+    return "index";
+  }
+
+  @RequestMapping("/backNotification")
+  public String backNotification(Model model){
+    List<Notification> notifications = notificationRepository.getNotificationsByUser_UserId(getUserId());
+    long unreadCount = notifications.stream().filter(n -> "unread".equals(n.getStatus())).count();
+    model.addAttribute("unreadCount",unreadCount);
+    model.addAttribute("notifications",notifications);
+    model.addAttribute("contentFragment", "fragments/notification");
+    return "index";
+  }
 
 }

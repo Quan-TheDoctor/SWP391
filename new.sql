@@ -114,28 +114,27 @@ Create TABLE attendance
 
 CREATE TABLE leave_policies
 (
-    leave_policy_id   SERIAL PRIMARY KEY,
-    leave_policy_name text,
+    leave_policy_id     SERIAL PRIMARY KEY,
+    leave_policy_name   text,
     leave_policy_amount INTEGER
 );
 
 -- Bảng nghỉ phép
 CREATE TABLE leaves
 (
-    leave_id    SERIAL PRIMARY KEY,
-    employee_id INTEGER REFERENCES employees (employee_id),
-    leave_type  VARCHAR(50) NOT NULL,
-    start_date  DATE        NOT NULL,
-    end_date    DATE        NOT NULL,
-    total_days  INTEGER     NOT NULL,
-    status      VARCHAR(20) NOT NULL,
-    reason      TEXT,
-    leave_allowed_day INTEGER NOT NULL,
-    leave_policy_id INTEGER REFERENCES leave_policies(leave_policy_id),
-    approved_by INTEGER REFERENCES employees (employee_id),
-    created_at  TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+    leave_id          SERIAL PRIMARY KEY,
+    employee_id       INTEGER REFERENCES employees (employee_id),
+    leave_type        VARCHAR(50) NOT NULL,
+    start_date        DATE        NOT NULL,
+    end_date          DATE        NOT NULL,
+    total_days        INTEGER     NOT NULL,
+    status            VARCHAR(20) NOT NULL,
+    reason            TEXT,
+    leave_allowed_day INTEGER     NOT NULL,
+    leave_policy_id   INTEGER REFERENCES leave_policies (leave_policy_id),
+    approved_by       INTEGER REFERENCES employees (employee_id),
+    created_at        TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
-
 
 
 -- Bảng lương tháng
@@ -154,7 +153,7 @@ Create TABLE salary_records
     net_salary          DECIMAL(15, 2) NOT NULL,
     payment_status      VARCHAR(20)    NOT NULL,
     Created_at          TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-    is_deleted bool default false
+    is_deleted          bool      default false
 );
 
 -- Bảng người phụ thuộc
@@ -214,6 +213,18 @@ Create TABLE requests
     total_days      INTEGER,
     note            TEXT
 );
+
+CREATE TABLE notifications
+(
+    notification_id SERIAL PRIMARY KEY,
+    create_at       TIMESTAMP,
+    message         TEXT,
+    type            VARCHAR(50) NOT NULL,
+    status          VARCHAR(50),
+    user_id         INTEGER REFERENCES users (user_id),
+    request_id      INTEGER REFERENCES requests(request_id)
+);
+
 
 -- Bảng chính sách tài chính
 Create TABLE financial_policies
@@ -669,7 +680,6 @@ VALUES
     (3, 1, 2023, 30000000, 2100000, 30000000, 0, 30000000, 2100000, 30000000, 'Paid'),
     (2, 1, 2023, 40000000, 2100000, 40000000, 0, 40000000, 2100000, 40000000, 'Paid'),
     (1, 1, 2023, 50000000, 2100000, 50000000, 0, 50000000, 2100000, 50000000, 'Paid');
-
 ;
 
 -- Thêm nhật ký hệ thống
@@ -744,13 +754,13 @@ create table messages
     created_at      TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
 
-INSERT INTO leave_policies(leave_policy_id, leave_policy_name,leave_policy_amount)
-VALUES (1,'annual leave',12),
-       (2,'sick leave',10),
-       (3,'maternity leave',180),
-       (4,'wedding leave',3),
-       (5,'funeral leave',4),
-       (6,'no pay leave',1000);
+INSERT INTO leave_policies(leave_policy_id, leave_policy_name, leave_policy_amount)
+VALUES (1, 'annual leave', 12),
+       (2, 'sick leave', 10),
+       (3, 'maternity leave', 180),
+       (4, 'wedding leave', 3),
+       (5, 'funeral leave', 4),
+       (6, 'no pay leave', 1000);
 
 -- Thêm dữ liệu lương cho tháng 1, 2, 3 năm 2025
 -- Tháng 1/2025

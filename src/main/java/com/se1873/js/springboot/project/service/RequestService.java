@@ -189,35 +189,41 @@ public class RequestService {
 
 
   private RequestDTO convertRequestToDTO(Request request) {
-    if (request == null) {
-      return null;
+    if (request == null) return null;
+
+    LeaveDTO leaveDTO = null;
+    List<Integer> idList = Arrays.stream(request.getRequestIdList().replace("[", "").replace("]", "").replace(" ", "").split(","))
+            .map(Integer::parseInt)
+            .collect(Collectors.toList());
+
+    if ("Đơn xin nghỉ".equals(request.getRequestType()) && !idList.isEmpty()) {
+      Leave leave = leaveRepository.findById(Long.valueOf(idList.get(0))).orElse(null);
+
+      if (leave != null) {
+        leaveDTO = LeaveDTO.builder()
+                .leaveId(leave.getLeaveId())
+                .startDate(leave.getStartDate())
+                .endDate(leave.getEndDate())
+                .totalDays(leave.getTotalDays())
+                .reason(leave.getReason())
+                .leavePolicyId(leave.getLeavePolicyId())
+                .leaveAllowedDay(leave.getLeaveAllowedDay())
+                .build();
+      }
     }
-
-    LeaveDTO leaveDTO = LeaveDTO.builder()
-      .reason(request.getReason())
-      .startDate(request.getStartDate())
-      .endDate(request.getEndDate())
-      .totalDays(request.getTotalDays())
-      .build();
-
-    List<Integer> integerList = new ArrayList<>();
-    for(var p : request.getRequestIdList().replace("[", "").replace("]","").replace(" ","").split(",")) {
-      integerList.add(Integer.parseInt(p));
-    }
-
 
     return RequestDTO.builder()
-      .requestId(request.getRequestId())
-      .approvalName(request.getApproval().getUsername())
-      .requestType(request.getRequestType())
-      .requesterId(request.getUser() != null ? request.getUser().getUserId() : null)
-      .requesterName(request.getUser() != null ? request.getUser().getUsername() : null)
-      .requestDate(request.getCreatedAt() != null ? request.getCreatedAt().toLocalDate() : null)
-      .requestStatus(request.getStatus())
-      .note(request.getNote())
-      .leaveDTO(leaveDTO)
-      .payrollIds(integerList)
-      .build();
+            .requestId(request.getRequestId())
+            .approvalName(request.getApproval() != null ? request.getApproval().getUsername() : null)
+            .requestType(request.getRequestType())
+            .requesterId(request.getUser() != null ? request.getUser().getUserId() : null)
+            .requesterName(request.getUser() != null ? request.getUser().getUsername() : null)
+            .requestDate(request.getCreatedAt() != null ? request.getCreatedAt().toLocalDate() : null)
+            .requestStatus(request.getStatus())
+            .note(request.getNote())
+            .leaveDTO(leaveDTO)
+            .payrollIds(idList)
+            .build();
   }
 
   public Page<RequestDTO> searchRequests(String query, Pageable pageable) {
