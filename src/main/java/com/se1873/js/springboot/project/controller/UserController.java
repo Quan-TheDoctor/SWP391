@@ -9,6 +9,8 @@ import com.se1873.js.springboot.project.service.NotificationService;
 import com.se1873.js.springboot.project.service.RequestService;
 import com.se1873.js.springboot.project.service.employee.EmployeeService;
 import com.se1873.js.springboot.project.service.salary_record.SalaryRecordService;
+import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Autowired;
 import com.se1873.js.springboot.project.service.user.UserService;
 import jakarta.validation.Valid;
 import lombok.extern.slf4j.Slf4j;
@@ -285,5 +287,6 @@ public class UserController {
     model.addAttribute("contentFragment", "fragments/notification");
     return "index";
   }
+
 
 }

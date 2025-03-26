@@ -1,15 +1,19 @@
 package com.se1873.js.springboot.project.controller;
 
 import com.se1873.js.springboot.project.dto.*;
-import com.se1873.js.springboot.project.entity.*;
+import com.se1873.js.springboot.project.entity.Department;
+import com.se1873.js.springboot.project.entity.Position;
+import com.se1873.js.springboot.project.entity.User;
 import com.se1873.js.springboot.project.mapper.AttendanceDTOMapper;
 import com.se1873.js.springboot.project.repository.AttendanceRepository;
 import com.se1873.js.springboot.project.repository.DepartmentRepository;
+import com.se1873.js.springboot.project.repository.UserRepository;
 import com.se1873.js.springboot.project.service.*;
 import com.se1873.js.springboot.project.service.department.DepartmentService;
 import com.se1873.js.springboot.project.service.employee.EmployeeService;
 import com.se1873.js.springboot.project.service.position.PositionService;
 import com.se1873.js.springboot.project.service.salary_record.SalaryRecordService;
+import jakarta.servlet.http.HttpSession;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -22,6 +26,9 @@ import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
+import org.springframework.security.core.userdetails.UserDetails;
+import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.validation.BindingResult;
@@ -349,19 +356,23 @@ public class AttendanceController {
     List<Position> positions = positionService.getAllPositions();
     List<Department> departments = departmentService.getAllDepartments();
     List<EmployeeAttendanceStatusDTO> employeeAttendanceStatusDTOS = new ArrayList<>();
-    System.out.println("4" + action);
     if("search".equals(action) && query != null && !query.trim().isEmpty()){
         employeeAttendanceStatusDTOS = attendanceService.findEmployeeAttendanceStatusbyEmployeeName(query, pageable, formattedDate);
-      System.out.println(2);
-      System.out.println("check date: " + formattedDate);
-      System.out.println(employeeAttendanceStatusDTOS);
+
     }else if( "departmentfilter".equals(action) && query != null && !query.trim().isEmpty()){
       employeeAttendanceStatusDTOS = attendanceService.departmentFilter(query, pageable, formattedDate);
     }else {
       employeeAttendanceStatusDTOS = attendanceService.getEmployeeAttendanceStatus(formattedDate, pageable);
-      System.out.println(3);
-    }
 
+    }
+    Map<String, EmployeeAttendanceStatusDTO> mostLateAndAbsent = attendanceService.findEmployeesWithMostLateAndAbsent(employeeAttendanceStatusDTOS);
+
+    EmployeeAttendanceStatusDTO mostLate = mostLateAndAbsent.get("MostLate");
+    EmployeeAttendanceStatusDTO mostAbsent = mostLateAndAbsent.get("MostAbsent");
+    int employeeCount = employeeService.countEmployees();
+    model.addAttribute("employeeCount", employeeCount);
+    model.addAttribute("mostLate", mostLate);
+    model.addAttribute("mostAbsent", mostAbsent);
     model.addAttribute("employeeAttendanceStatusDTOS", employeeAttendanceStatusDTOS);
     model.addAttribute("positions", positions);
     model.addAttribute("departments", departments);

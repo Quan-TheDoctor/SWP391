@@ -24,4 +24,6 @@ public interface RequestRepository extends JpaRepository<Request, Long> {
     Page<Request> searchRequestsByRequester(@Param("requesterName") String requesterName, Pageable pageable);
 
     Page<Request> findByStatus(String status, Pageable pageable);
+
+    Integer countByStatus(String status);
 }

@@ -23,6 +23,11 @@ public class LeaveDTO {
     private LocalDateTime createdAt;
     private Integer leaveAllowedDay;
     private Integer leavePolicyId;
+    private Integer DepartmentId;
+    private String Position;
+    private String employeeName;
+    private EmployeeDTO employee;
+
 
 
 }

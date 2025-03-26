@@ -122,5 +122,36 @@ public interface AttendanceRepository extends JpaRepository<Attendance, Long> {
 
   Page<Attendance> findAttendancesByStatusAndDateBetween(String status, LocalDate dateAfter, LocalDate dateBefore, Pageable pageable);
 
+  List<Attendance> findAllById(Iterable<Long> ids);
+  @Query("SELECT DISTINCT YEAR(a.date) FROM Attendance a")
+  List<Integer> findDistinctYears();
+
+    @Query("SELECT a FROM Attendance a WHERE a.date BETWEEN :startDate AND :endDate AND a.status IS NOT NULL")
+    List<Attendance> findRecordedAttendancesByDateRange(
+            @Param("startDate") LocalDate startDate,
+            @Param("endDate") LocalDate endDate);
+
+    @Query("SELECT a FROM Attendance a WHERE a.date BETWEEN :startDate AND :endDate AND a.status IS NOT NULL")
+    Page<Attendance> findRecordedAttendancesByDateRange(
+            @Param("startDate") LocalDate startDate,
+            @Param("endDate") LocalDate endDate,
+            Pageable pageable);
+  @Query("SELECT a FROM Attendance a " +
+          "WHERE a.date BETWEEN :startDate AND :endDate " +
+          "AND (:status IS NULL OR a.status = :status) " +
+          "AND a.status IS NOT NULL")
+  List<Attendance> findAttendancesByDateRangeAndStatus(
+          @Param("startDate") LocalDate startDate,
+          @Param("endDate") LocalDate endDate,
+          @Param("status") String status);
+  @Query("SELECT a FROM Attendance a WHERE a.date BETWEEN :startDate AND :endDate AND a.status = :status")
+  List<Attendance> findAttendancesByStatusAndDateRange(
+          @Param("startDate") LocalDate startDate,
+          @Param("endDate") LocalDate endDate,
+          @Param("status") String status
+  );
+
+
+  Attendance findAttendancesByEmployee_EmployeeIdAndDate(Integer employeeEmployeeId, LocalDate date);
   Attendance getAttendanceByAttendanceId(Integer attendanceId);
 }
