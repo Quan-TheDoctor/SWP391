@@ -40,6 +40,10 @@ import java.util.*;
 public class RequestController {
     private static final Integer DEFAULT_PAGE_SIZE = 5;
     private static final String REQUEST_STATUS_PENDING = "pending";
+    private static final String REQUEST_TYPE = "requestTypes";
+    private static final String CONTENT_FRAGMENT = "contentFragment";
+    private static final String REQUEST_FRAGMENTS = "fragments/request-fragments";
+    private static final String INDEX = "index";
 
     private final RequestService requestService;
     private final DepartmentService departmentService;
@@ -63,9 +67,9 @@ public class RequestController {
     private String populateRequestModel(Model model, Page<RequestDTO> requests, String viewName) {
         model.addAttribute("requests", requests);
         addRequestStatistics(requests, model);
-        model.addAttribute("requestTypes", requestService.getAllRequestTypes());
-        model.addAttribute("contentFragment", "fragments/request-fragments");
-        return "index";
+        model.addAttribute(REQUEST_TYPE, requestService.getAllRequestTypes());
+        model.addAttribute(CONTENT_FRAGMENT, REQUEST_FRAGMENTS);
+        return INDEX;
     }
     private void addRequestStatistics(Page<RequestDTO> requests, Model model) {
         long totalPending = requests.stream()
@@ -93,9 +97,9 @@ public class RequestController {
         var requests = requestService.filter(field, value, getPageable(page, size));
         addRequestStatistics(requests, model);
         model.addAttribute("requests", requests);
-        model.addAttribute("requestTypes", requestService.getAllRequestTypes());
-        model.addAttribute("contentFragment", "fragments/request-fragments");
-        return "index";
+        model.addAttribute(REQUEST_TYPE, requestService.getAllRequestTypes());
+        model.addAttribute(CONTENT_FRAGMENT, REQUEST_FRAGMENTS);
+        return INDEX;
     }
 
     @RequestMapping("/search")
@@ -108,8 +112,8 @@ public class RequestController {
         model.addAttribute("requests", requests);
         model.addAttribute("query", query);
         addRequestStatistics(requests, model);
-        model.addAttribute("contentFragment", "fragments/request-fragments");
-        return "index";
+        model.addAttribute(CONTENT_FRAGMENT, REQUEST_FRAGMENTS);
+        return INDEX;
     }
 
     @RequestMapping("/export/view")
@@ -122,11 +126,11 @@ public class RequestController {
 
         model.addAttribute("requests", requests.getContent());
         model.addAttribute("totalRequests", requests.getTotalElements());
-        model.addAttribute("requestTypes", requestService.getAllRequestTypes());
+        model.addAttribute(REQUEST_TYPE, requestService.getAllRequestTypes());
         model.addAttribute("selectedStatus", status);
         model.addAttribute("selectedType", type);
-        model.addAttribute("contentFragment", "fragments/request-export-fragments");
-        return "index";
+        model.addAttribute(CONTENT_FRAGMENT, "fragments/request-export-fragments");
+        return INDEX;
     }
 
     @RequestMapping("/export")
@@ -170,8 +174,8 @@ public class RequestController {
         requestDTO.setSalaryRecords(salaryRecords);
 
         model.addAttribute("requestDTO", requestDTO);
-        model.addAttribute("contentFragment", "fragments/request-view-fragments");
-        return "index";
+        model.addAttribute(CONTENT_FRAGMENT, "fragments/request-view-fragments");
+        return INDEX;
     }
 
     @GetMapping("salary")
@@ -282,11 +286,11 @@ public class RequestController {
             model.addAttribute("totalFinishedRequests", totalFinishedRequests);
             model.addAttribute("requestDTO", requestDTO);
             model.addAttribute("requests", requests);
-            model.addAttribute("contentFragment", "fragments/request-fragments");
-            return "index";
+            model.addAttribute(CONTENT_FRAGMENT, REQUEST_FRAGMENTS);
+            return INDEX;
         }
-        model.addAttribute("contentFragment", "fragments/request-fragments");
-        return "index";
+        model.addAttribute(CONTENT_FRAGMENT, REQUEST_FRAGMENTS);
+        return INDEX;
     }
 
 

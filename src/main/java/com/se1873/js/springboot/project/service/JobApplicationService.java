@@ -96,6 +96,24 @@ public class JobApplicationService {
                 .collect(Collectors.toList());
     }
 
+    public void updateApplication(JobApplicationDTO applicationDTO) {
+        JobApplication application = jobApplicationRepository.findById(applicationDTO.getId())
+            .orElseThrow(() -> new RuntimeException("Application not found"));
+        
+        application.setCandidateName(applicationDTO.getCandidateName());
+        application.setEmail(applicationDTO.getEmail());
+        application.setPhone(applicationDTO.getPhone());
+        application.setResumeUrl(applicationDTO.getResumeUrl());
+        application.setCoverLetter(applicationDTO.getCoverLetter());
+        application.setStatus(applicationDTO.getStatus());
+        application.setExperience(applicationDTO.getExperience());
+        application.setEducation(applicationDTO.getEducation());
+        application.setSkills(applicationDTO.getSkills());
+        application.setNotes(applicationDTO.getNotes());
+        
+        jobApplicationRepository.save(application);
+    }
+
     private JobApplicationDTO convertToDTO(JobApplication jobApplication) {
         JobApplicationDTO dto = new JobApplicationDTO();
         dto.setId(jobApplication.getId());

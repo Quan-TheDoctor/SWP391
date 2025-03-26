@@ -590,19 +590,19 @@
                                     <i class="fas fa-angle-left"></i>
                                 </span>
 
-                                <!-- Page numbers -->
-                                <th:block th:with="start=${T(Math).max(0, requests.number - 2)},
-                                                  end=${T(Math).min(requests.totalPages - 1, requests.number + 2)}">
-                                    <th:block th:each="i : ${#numbers.sequence(start, end)}">
-                                        <a th:if="${i != requests.number}"
-                                           th:href="@{/request/list(page=${i})}"
-                                           class="pagination-item pagination-inactive"
-                                           th:text="${i + 1}"></a>
-                                        <span th:if="${i == requests.number}"
-                                              class="pagination-item pagination-active"
-                                              th:text="${i + 1}"></span>
-                                    </th:block>
-                                </th:block>
+<!--                                &lt;!&ndash; Page numbers &ndash;&gt;-->
+<!--                                <th:block th:with="start=${T(Math).max(0, requests.number - 2)},-->
+<!--                                                  end=${T(Math).min(requests.totalPages - 1, requests.number + 2)}">-->
+<!--                                    <th:block th:each="i : ${#numbers.sequence(start, end)}">-->
+<!--                                        <a th:if="${i != requests.number}"-->
+<!--                                           th:href="@{/request/list(page=${i})}"-->
+<!--                                           class="pagination-item pagination-inactive"-->
+<!--                                           th:text="${i + 1}"></a>-->
+<!--                                        <span th:if="${i == requests.number}"-->
+<!--                                              class="pagination-item pagination-active"-->
+<!--                                              th:text="${i + 1}"></span>-->
+<!--                                    </th:block>-->
+<!--                                </th:block>-->
 
                                 <!-- Next page -->
                                 <a th:if="${requests.hasNext()}"
