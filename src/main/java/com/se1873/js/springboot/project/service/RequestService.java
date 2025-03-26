@@ -14,7 +14,6 @@ import org.apache.poi.ss.usermodel.Row;
 import org.apache.poi.ss.usermodel.Sheet;
 import org.apache.poi.ss.usermodel.Workbook;
 import org.apache.poi.xssf.usermodel.XSSFWorkbook;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.io.ByteArrayResource;
 import org.springframework.core.io.Resource;
 import org.springframework.data.domain.Page;
@@ -198,7 +197,6 @@ public class RequestService {
       }
     }
 
-
     return RequestDTO.builder()
             .requestId(request.getRequestId())
             .approvalName(request.getApproval().getUsername())
@@ -212,7 +210,9 @@ public class RequestService {
             .payrollIds(integerList)
             .build();
   }
-
+  public Integer countPendingRequests() {
+    return requestRepository.countByStatus("pending");
+  }
   public Page<RequestDTO> searchRequests(String query, Pageable pageable) {
     String requesterName = query;
 
@@ -432,7 +432,6 @@ public class RequestService {
             .stream()
             .toList();
   }
-
 
   public com.se1873.js.springboot.project.dto.RequestDetailDTO getDetailRequest(Long requestId) {
     var request = requestRepository.findById(requestId)

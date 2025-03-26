@@ -235,6 +235,10 @@ Create TABLE financial_policies
     financial_policy_amount DECIMAL
 );
 
+
+
+
+
 -- Indexes
 Create INDEX idx_employee_code ON employees (employee_code);
 Create INDEX idx_department_code ON departments (department_code);

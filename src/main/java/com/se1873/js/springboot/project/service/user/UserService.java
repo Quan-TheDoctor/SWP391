@@ -118,4 +118,8 @@ public class UserService {
     return userQueryService.countByStatus(status);
   }
 
+
+  public Optional<User> getManagerByDepartmentId(Integer departmentId) {
+    return userRepository.findManagerByDepartmentId(departmentId);
+  }
 }

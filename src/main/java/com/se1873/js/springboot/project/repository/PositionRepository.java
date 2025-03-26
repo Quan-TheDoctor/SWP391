@@ -11,4 +11,7 @@ public interface PositionRepository extends JpaRepository<Position, Long> {
   Position findPositionByPositionId(Integer positionId);
 
   List<Position> getPositionsByDepartment_DepartmentId(Integer departmentDepartmentId);
+
+  List<Position> getPositionsByDepartment_DepartmentName(String departmentDepartmentName);
+
 }

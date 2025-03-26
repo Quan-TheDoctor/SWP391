@@ -37,6 +37,7 @@ import java.time.temporal.TemporalAdjusters;
 import java.util.*;
 import java.util.function.Function;
 import java.util.stream.Collectors;
+import java.util.stream.IntStream;
 
 @Service
 @Transactional
@@ -55,7 +56,6 @@ public class AttendanceService {
   private final UserRepository userRepository;
   private final MessageService messageService;
   private final ChannelService channelService;
-  private final UserService userService;
 
   public Page<AttendanceDTO> getAll(LocalDate startDate, LocalDate endDate, Pageable pageable) {
     var employees = employeeService.getAll(PageRequest.of(0, 1000));
@@ -250,17 +250,17 @@ public class AttendanceService {
 
   public AttendanceCountDTO countAvailableAttendance(String date) {
     int totalEmployee = employeeService.countEmployees();
-    AttendanceCountDTO attendancecountDTO = AttendanceCountDTO.builder().totalEmployee(totalEmployee).lateEmployee(0).workedEmployee(0).absenceEmployee(0).build();
+    AttendanceCountDTO attendancecountDTO = AttendanceCountDTO.builder().totalEmployee(totalEmployee).lateEmployee(0).workedEmployee(0).absentEmployee(0).build();
     LocalDate dates = LocalDate.parse(date);
     List<AttendanceDTO> attendanceCountDTOList = attendanceRepository.findAttendancesByDate(dates).stream().map(attendanceDTOMapper::toDTO).collect(Collectors.toList());
     for (AttendanceDTO dto : attendanceCountDTOList) {
-      if (dto.getAttendanceStatus().equals("Đi muộn")) {
+      if (dto.getAttendanceStatus().equals("Late")) {
         attendancecountDTO.setLateEmployee(attendancecountDTO.getLateEmployee() + 1);
-      } else {
+      } else if (dto.getAttendanceStatus().equals("On time")){
         attendancecountDTO.setWorkedEmployee(attendancecountDTO.getWorkedEmployee() + 1);
       }
     }
-    attendancecountDTO.setAbsenceEmployee(attendancecountDTO.getTotalEmployee() - attendancecountDTO.getWorkedEmployee() - attendancecountDTO.getLateEmployee());
+    attendancecountDTO.setAbsentEmployee(attendancecountDTO.getTotalEmployee() - attendancecountDTO.getWorkedEmployee() - attendancecountDTO.getLateEmployee());
     return attendancecountDTO;
   }
 
@@ -853,9 +853,9 @@ public class AttendanceService {
 
       EmployeeAttendanceStatusDTO employeeAttendanceStatusDTO = employeeStatusMap.getOrDefault(employeeId, EmployeeAttendanceStatusDTO.builder().employee(employeeService.getEmployeeByEmployeeId(employeeId)).countLateDays(0).countAbsentDays(0).monthYear(yearMonth).build());
 
-      if (attendance.getStatus().startsWith("Đi muộn")) {
+      if (attendance.getStatus().startsWith("Late")) {
         employeeAttendanceStatusDTO.setCountLateDays(employeeAttendanceStatusDTO.getCountLateDays() + 1);
-      } else if (attendance.getStatus().equals("Đúng giờ")) {
+      } else if (attendance.getStatus().equals("On time")) {
         employeeAttendanceStatusDTO.setCountAbsentDays(employeeAttendanceStatusDTO.getCountAbsentDays() + 1);
       }
 
@@ -871,6 +871,31 @@ public class AttendanceService {
     List<EmployeeAttendanceStatusDTO> employeeAttendanceStatusDTOS = new ArrayList<>(employeeStatusMap.values());
 
     return employeeAttendanceStatusDTOS;
+  }
+  public Map<String, EmployeeAttendanceStatusDTO> findEmployeesWithMostLateAndAbsent(List<EmployeeAttendanceStatusDTO> employeeAttendanceStatusDTOS) {
+    EmployeeAttendanceStatusDTO mostLateEmployee = null;
+    EmployeeAttendanceStatusDTO mostAbsentEmployee = null;
+
+    int maxLateDays = 0;
+    int maxAbsentDays = 0;
+
+    for (EmployeeAttendanceStatusDTO dto : employeeAttendanceStatusDTOS) {
+      if (dto.getCountLateDays() > maxLateDays) {
+        maxLateDays = dto.getCountLateDays();
+        mostLateEmployee = dto;
+      }
+
+      if (dto.getCountAbsentDays() > maxAbsentDays) {
+        maxAbsentDays = dto.getCountAbsentDays();
+        mostAbsentEmployee = dto;
+      }
+    }
+
+    Map<String, EmployeeAttendanceStatusDTO> result = new HashMap<>();
+    result.put("MostLate", mostLateEmployee);
+    result.put("MostAbsent", mostAbsentEmployee);
+
+    return result;
   }
 
   public List<EmployeeAttendanceStatusDTO> findEmployeeAttendanceStatusbyEmployeeName(String search, Pageable pageable, String date) {

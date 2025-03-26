@@ -12,4 +12,6 @@ public interface DepartmentRepository extends JpaRepository<Department, Long> {
   Department getDepartmentByDepartmentId(Integer departmentId);
 
   Department getDepartmentByDepartmentName(String departmentName);
+
+  int getManagerIDByDepartmentId(Integer departmentId);
 }

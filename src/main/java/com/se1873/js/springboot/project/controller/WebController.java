@@ -5,6 +5,7 @@ import com.se1873.js.springboot.project.dto.AttendanceDTO;
 import com.se1873.js.springboot.project.dto.EmployeeCountDTO;
 import com.se1873.js.springboot.project.dto.TopSalaryDTO;
 import com.se1873.js.springboot.project.service.AttendanceService;
+import com.se1873.js.springboot.project.service.RequestService;
 import com.se1873.js.springboot.project.service.employee.EmployeeService;
 import com.se1873.js.springboot.project.service.salary_record.SalaryRecordService;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -25,6 +26,8 @@ public class WebController {
     private AttendanceService attendanceService;
     @Autowired
     private SalaryRecordService salaryRecordService;
+    @Autowired
+    private RequestService requestService;
 
 
     @GetMapping("/")
@@ -78,10 +81,11 @@ public class WebController {
 
         List<TopSalaryDTO> Top3salaryDTOS = salaryRecordService.getTop3HighestNetSalary(month, year);
         int countAttendance = attendanceService.countDailyAttendance(today);
+        int countPendingRequest = requestService.countPendingRequests();
+        model.addAttribute("avalableEmployeePercent", avalableEmployeePercent);
+        model.addAttribute("countPendingRequest", countPendingRequest);
 
-        model.addAttribute("avalableEmployeePercent", 90);
-        System.out.println(avalableEmployeePercent);
-        model.addAttribute("unavalableEmployeePercent", 10);
+        model.addAttribute("unavalableEmployeePercent", unavalableEmployeePercent);
         model.addAttribute("Top3salaryDTOS", Top3salaryDTOS);
         model.addAttribute("attendanceCountDTO", attendanceCountDTO);
         model.addAttribute("countAttendance", countAttendance);

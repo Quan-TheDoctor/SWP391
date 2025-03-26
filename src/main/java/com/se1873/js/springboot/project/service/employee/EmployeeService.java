@@ -43,8 +43,7 @@ public class EmployeeService {
   private final PositionRepository positionRepository;
   private final ContractRepository contractRepository;
   private final EmployeeRepository employeeRepository;
-  private final PasswordEncoder passwordEncoder;
-  private final UserRepository userRepository;
+
   private final EmployeeDTOMapper employeeDTOMapper;
   private final EmployeeQueryService employeeQueryService;
   private final DepartmentService departmentService;
@@ -81,6 +80,13 @@ public class EmployeeService {
   public EmployeeDTO getEmployeeByEmployeeId(Integer employeeId) {
     return employeeQueryService.getEmployeeByEmployeeId(employeeId);
   }
+
+  public List<Employee> getEmployeesByPositionName(String positionName) {
+    return employeeRepository.findEmployeesByPositionNames(positionName);
+
+  }
+
+
 
   public Page<EmployeeDTO> sort(Page<EmployeeDTO> source, String direction, String field) {
     if (source == null) source = employeeQueryService.getAll(source.getPageable());

@@ -9,66 +9,112 @@
 <body class="bg-gray-100 min-h-screen p-6">
 
 <div class="max-w-7xl mx-auto space-y-6">
-    <!-- Header Section -->
-    <div class="flex flex-col md:flex-row gap-4 items-center justify-end">
-        <div class="flex gap-2">
-            <a th:href="@{/homepage}" class="px-4 py-2 bg-blue-300 text-white rounded-md hover:bg-blue-700 flex items-center gap-2">Homepage</a>
-        </div>
-        <div class="flex gap-2">
-            <a th:href="@{/employee}" class="px-4 py-2 bg-blue-300 text-white rounded-md hover:bg-blue-700 flex items-center gap-2">Employee</a>
-        </div>
-        <div class="flex gap-2">
-            <a th:href="@{/attendance}" class="px-4 py-2 bg-blue-300 text-white rounded-md hover:bg-blue-700 flex items-center gap-2">Attendance</a>
-        </div>
-        <div class="flex gap-2">
-            <a th:href="@{/payroll}" class="px-4 py-2 bg-blue-300 text-white rounded-md hover:bg-blue-700 flex items-center gap-2">Payroll</a>
-        </div>
-        <div class="flex gap-2">
-            <a th:href="@{/request}" class="px-4 py-2 bg-blue-300 text-white rounded-md hover:bg-blue-700 flex items-center gap-2">Request</a>
-        </div>
-        <div class="flex gap-2">
-            <a th:href="@{/leave}" class="px-4 py-2 bg-blue-300 text-white rounded-md hover:bg-blue-700 flex items-center gap-2">Leave</a>
-        </div>
-    </div>
+
     <div class="max-w-4xl mx-auto bg-white p-6 rounded-lg shadow-md">
         <h2 class="text-2xl font-bold text-center mb-4">Leave Management</h2>
-        <div class="flex justify-between mb-4">
-            <input type="text" id="search" placeholder="Search employee..." class="w-1/2 p-2 border border-gray-300 rounded-md">
-            <select id="leaveTypeFilter" class="w-1/2 p-2 border border-gray-300 rounded-md">
-                <option value="all">All Leave Types</option>
-                <option value="annual">Annual Leave</option>
-                <option value="sick">Sick Leave</option>
-                <option value="maternity">Maternity Leave</option>
-                <option value="other">Other</option>
-            </select>
+        <div class="flex flex-col md:flex-row md:items-center md:justify-between gap-4 mb-6">
+            <!-- Ô tìm kiếm nhân viên -->
+            <div class="w-full md:w-1/2">
+                <input type="text" id="search" placeholder="Search employee..."
+                       class="w-full h-12 p-3 border border-gray-300 rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-primary-500">
+            </div>
+            <form th:action="@{/leave/create-leave}" method="GET">
+                <button type="submit" class="bg-blue-500 text-white px-4 py-2 rounded-lg shadow-md hover:bg-blue-600 transition">
+                    Create
+                </button>
+            </form>
+
+            <!-- Bộ lọc Leave Type -->
+            <form th:action="@{/leave/leavefilter}" method="GET" id="leaveForm" class="w-full md:w-1/2">
+
+                <select name="value"
+                        class="w-full h-12 p-3 border border-gray-300 rounded-lg shadow-sm bg-white focus:outline-none focus:ring-2 focus:ring-primary-500 cursor-pointer"
+                        onchange="document.getElementById('leaveForm').submit();">
+                    <option value="all" class="text-gray-600">All Leave Types</option>
+                    <option th:each="leave : ${leavePolicies}"
+                            th:value="${leave.getLeavePolicyName()}"
+                            th:text="${leave.getLeavePolicyName()}"
+                            th:selected="${param.value != null && param.value[0] == leave.getLeavePolicyName()}">
+                    </option>
+                </select>
+            </form>
         </div>
-        <table class="w-full border-collapse border border-gray-300">
+
+        <table class="w-full border-collapse border border-gray-300" >
             <thead>
             <tr class="bg-blue-500 text-white">
-                <th class="p-2 border border-gray-300">Name</th>
+                <th class="p-2 border border-gray-300 text-left">
+                    <a th:href="@{/leave/sort(field='employeeName', direction=${direction == 'asc' ? 'desc' : 'asc'})}"
+                       class="flex items-center gap-2 group">
+                        <span>Name</span>
+                        <svg th:if="${currentSortField == 'employeeName'}"
+                             class="w-4 h-4 text-white group-hover:text-gray-300 transition-colors"
+                             th:classappend="${direction == 'asc'} ? 'rotate-180' : ''"
+                             fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                  d="M5 15l7-7 7 7"/>
+                        </svg>
+                    </a>
+                </th>
                 <th class="p-2 border border-gray-300">Leave Type</th>
-                <th class="p-2 border border-gray-300">Start Date</th>
-                <th class="p-2 border border-gray-300">End Date</th>
-                <th class="p-2 border border-gray-300">Days</th>
+                <th class="p-2 border border-gray-300 text-left">
+                    <a th:href="@{/leave/sort(field='startDate', direction=${direction == 'asc' ? 'desc' : 'asc'})}"
+                       class="flex items-center gap-2 group">
+                        <span>Start Date</span>
+                        <svg th:if="${currentSortField == 'startDate'}"
+                             class="w-4 h-4 text-white group-hover:text-gray-300 transition-colors"
+                             th:classappend="${direction == 'asc'} ? 'rotate-180' : ''"
+                             fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                  d="M5 15l7-7 7 7"/>
+                        </svg>
+                    </a>
+                </th>
+                <th class="p-2 border border-gray-300 text-left">
+                    <a th:href="@{/leave/sort(field='endDate', direction=${direction == 'asc' ? 'desc' : 'asc'})}"
+                       class="flex items-center gap-2 group">
+                        <span>End Date</span>
+                        <svg th:if="${currentSortField == 'endDate'}"
+                             class="w-4 h-4 text-white group-hover:text-gray-300 transition-colors"
+                             th:classappend="${direction == 'asc'} ? 'rotate-180' : ''"
+                             fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                  d="M5 15l7-7 7 7"/>
+                        </svg>
+                    </a>
+                </th>
+                <th class="p-2 border border-gray-300">Reason</th>
+                <th class="p-2 border border-gray-300">Status</th>
+                <th class="p-2 border border-gray-300 text-left">
+                    <a th:href="@{/leave/sort(field='totalDays', direction=${direction == 'asc' ? 'desc' : 'asc'})}"
+                       class="flex items-center gap-2 group">
+                        <span>Days</span>
+                        <svg th:if="${currentSortField == 'totalDays'}"
+                             class="w-4 h-4 text-white group-hover:text-gray-300 transition-colors"
+                             th:classappend="${direction == 'asc'} ? 'rotate-180' : ''"
+                             fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                  d="M5 15l7-7 7 7"/>
+                        </svg>
+                    </a>
+                </th>
             </tr>
+
             </thead>
             <tbody>
-            <tr class="bg-gray-100">
-                <td class="p-2 border border-gray-300">Nguyễn Văn An</td>
-                <td class="p-2 border border-gray-300">Annual Leave</td>
-                <td class="p-2 border border-gray-300">01/03/2024</td>
-                <td class="p-2 border border-gray-300">05/03/2024</td>
-                <td class="p-2 border border-gray-300">5</td>
+            <tr class="bg-gray-100" th:each="leave : ${leaves.getContent()}" >
+                <td class="p-2 border border-gray-300" th:text="${leave.getEmployee().getFirstName() +' '+ leave.getEmployee().getLastName()}"></td>
+                <td class="p-2 border border-gray-300" th:text="${leave.getLeaveType()}"></td>
+                <td class="p-2 border border-gray-300" th:text="${leave.getStartDate()}"></td>
+                <td class="p-2 border border-gray-300" th:text="${leave.getEndDate()}"></td>
+                <td class="p-2 border border-gray-300" th:text="${leave.getReason()}"></td>
+                <td class="p-2 border border-gray-300" th:text="${leave.getStatus()}"></td>
+                <td class="p-2 border border-gray-300" th:text="${leave.getTotalDays()}"></td>
             </tr>
-            <tr class="bg-white">
-                <td class="p-2 border border-gray-300">Trần Bảo Hùng</td>
-                <td class="p-2 border border-gray-300">Sick Leave</td>
-                <td class="p-2 border border-gray-300">10/02/2024</td>
-                <td class="p-2 border border-gray-300">12/02/2024</td>
-                <td class="p-2 border border-gray-300">3</td>
-            </tr>
+
             </tbody>
         </table>
+        <div th:replace="~{fragments/pagination :: pagination(${leaves}, '/leave', null, null)}"></div>
     </div>
 </div>
 </body>
