@@ -3,7 +3,6 @@ package com.se1873.js.springboot.project.controller;
 import com.se1873.js.springboot.project.dto.RequestCreationRequestDTO;
 import com.se1873.js.springboot.project.dto.RequestCreationResponseDTO;
 import com.se1873.js.springboot.project.dto.RequestDTO;
-import com.se1873.js.springboot.project.entity.Attendance;
 import com.se1873.js.springboot.project.entity.Employee;
 import com.se1873.js.springboot.project.entity.SalaryRecord;
 import com.se1873.js.springboot.project.entity.User;
@@ -14,10 +13,8 @@ import com.se1873.js.springboot.project.repository.UserRepository;
 import com.se1873.js.springboot.project.service.*;
 import com.se1873.js.springboot.project.entity.*;
 import com.se1873.js.springboot.project.repository.*;
-import com.se1873.js.springboot.project.service.ChatNotificationService;
 import com.se1873.js.springboot.project.service.department.DepartmentService;
 import com.se1873.js.springboot.project.service.employee.EmployeeService;
-import com.se1873.js.springboot.project.service.salary_record.SalaryRecordService;
 import com.se1873.js.springboot.project.service.user.UserService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -26,7 +23,6 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.http.HttpHeaders;
-import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.Authentication;
@@ -35,15 +31,10 @@ import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.validation.BindingResult;
 import org.springframework.web.bind.annotation.*;
-import org.springframework.web.server.ResponseStatusException;
 import org.springframework.web.context.request.RequestContextHolder;
 import org.springframework.web.context.request.ServletRequestAttributes;
-import org.springframework.web.server.ResponseStatusException;
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 
-import java.time.LocalDate;
-import java.time.LocalDateTime;
-import java.time.LocalTime;
 import java.util.*;
 
 @Controller
@@ -88,6 +79,8 @@ public class RequestController {
         model.addAttribute("requests", requests);
         addRequestStatistics(requests, model);
         model.addAttribute(REQUEST_TYPE, requestService.getAllRequestTypes());
+        model.addAttribute("departments", departmentService.getAllDepartments());
+        model.addAttribute("requesters", userRepository.findAll());
         model.addAttribute(CONTENT_FRAGMENT, REQUEST_FRAGMENTS);
         return INDEX;
     }
@@ -256,7 +249,7 @@ public class RequestController {
             return "redirect:/request";
         }
 
-        if ("Hạch toán lương".equals(type)) {
+        if ("Salary Calculation".equals(type)) {
             switch (field) {
                 case "Approved":
                     if ("Pending".equals(requestDTO.getRequestStatus())) {
@@ -273,7 +266,7 @@ public class RequestController {
                     break;
             }
 
-        } else if ("Đơn xin nghỉ".equals(type)) {
+        } else if ("Leave Permit".equals(type)) {
             switch (field) {
                 case "Approved":
                     if ("Pending".equals(requestDTO.getRequestStatus())) {
@@ -322,7 +315,8 @@ public class RequestController {
         var requestDTO = requestService.getAllRequests();
         model.addAttribute("requestDTO", requestDTO);
         model.addAttribute("_csrf", ((ServletRequestAttributes) RequestContextHolder.getRequestAttributes()).getRequest().getAttribute("_csrf"));
-        return "request-create";
+        model.addAttribute("contentFragment", "fragments/request-create-fragments");
+      return INDEX;
     }
 
     @PostMapping("/create")
@@ -347,6 +341,91 @@ public class RequestController {
         var result = requestService.getDetailRequest(id);
         model.addAttribute("requestDetail", result);
         return "request-detail";
+    }
+
+    @PostMapping("/bulk-approve")
+    public String bulkApprove(@RequestParam("selectedIds") String selectedIds, RedirectAttributes redirectAttributes) {
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+        String name = authentication.getName();
+        User user = userRepository.findUserByUsername(name)
+                .orElseThrow(() -> new RuntimeException("Không tìm thấy người dùng"));
+
+        String[] ids = selectedIds.split(",");
+        for (String id : ids) {
+            Integer requestId = Integer.parseInt(id);
+            Request request = requestRepository.findRequestByRequestId(requestId);
+            
+            if (request != null && "Pending".equals(request.getStatus())) {
+                if ("Salary Raise".equals(request.getRequestType())) {
+                    response responseDetails = reponseRepo.findByRequestId(requestId)
+                            .orElseThrow(() -> new RuntimeException("Request not found"));
+                    
+                    String employeeCode = responseDetails.getEmployeeCode();
+                    Employee employee = employeeRepository.findByEmployeeCode(employeeCode)
+                            .orElseThrow(() -> new RuntimeException("Employee not found"));
+                    Contract employeeContract = contractRepository.findContractByEmployee_EmployeeIdAndPresent(employee.getEmployeeId(), true);
+                    employeeContract.setBaseSalary(responseDetails.getNewBaseSalary());
+                    contractRepository.save(employeeContract);
+                }
+                
+                request.setStatus("Approved");
+                request.setApproval(user);
+                requestRepository.save(request);
+            }
+        }
+
+        redirectAttributes.addFlashAttribute("message", "Successfully approved selected requests");
+        redirectAttributes.addFlashAttribute("messageType", "success");
+        return "redirect:/request";
+    }
+
+    @PostMapping("/bulk-deny")
+    public String bulkDeny(@RequestParam("selectedIds") String selectedIds, RedirectAttributes redirectAttributes) {
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+        String name = authentication.getName();
+        User user = userRepository.findUserByUsername(name)
+                .orElseThrow(() -> new RuntimeException("Không tìm thấy người dùng"));
+
+        String[] ids = selectedIds.split(",");
+        for (String id : ids) {
+            Integer requestId = Integer.parseInt(id);
+            Request request = requestRepository.findRequestByRequestId(requestId);
+            
+            if (request != null && "Pending".equals(request.getStatus())) {
+                if ("Salary Raise".equals(request.getRequestType())) {
+                    response responseDetails = reponseRepo.findByRequestId(requestId)
+                            .orElseThrow(() -> new RuntimeException("Request not found"));
+                    
+                    String employeeCode = responseDetails.getEmployeeCode();
+                    Employee employee = employeeRepository.findByEmployeeCode(employeeCode)
+                            .orElseThrow(() -> new RuntimeException("Employee not found"));
+                    Contract employeeContract = contractRepository.findContractByEmployee_EmployeeIdAndPresent(employee.getEmployeeId(), true);
+                    employeeContract.setBaseSalary(responseDetails.getOldBaseSalary());
+                    contractRepository.save(employeeContract);
+                }
+                
+                request.setStatus("Denied");
+                request.setApproval(user);
+                requestRepository.save(request);
+            }
+        }
+
+        redirectAttributes.addFlashAttribute("message", "Successfully denied selected requests");
+        redirectAttributes.addFlashAttribute("messageType", "success");
+        return "redirect:/request";
+    }
+
+    @RequestMapping("/multi-filter")
+    public String multiFilter(Model model,
+                            @RequestParam(value = "type", required = false) String type,
+                            @RequestParam(value = "status", required = false) String status,
+                            @RequestParam(value = "dateRange", required = false) String dateRange,
+                            @RequestParam(value = "requester", required = false) String requester,
+                            @RequestParam(value = "department", required = false) String department,
+                            @RequestParam(value = "page", defaultValue = "0") int page,
+                            @RequestParam(value = "size", defaultValue = "5") int size) {
+        Page<RequestDTO> requests = requestService.multiFilter(type, status, dateRange, requester, department, getPageable(page, size));
+        return populateRequestModel(model, requests, "request");
     }
 
 }

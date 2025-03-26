@@ -114,6 +114,36 @@ public class JobApplicationService {
         jobApplicationRepository.save(application);
     }
 
+    @Transactional
+    public void updateApplicationStatusAndNotes(Long id, String newStatus, String notes) {
+        JobApplication application = jobApplicationRepository.findById(id)
+                .orElseThrow(() -> new RuntimeException("Application not found"));
+        
+        // Validate status transition
+        String currentStatus = application.getStatus();
+        if (!isValidStatusTransition(currentStatus, newStatus)) {
+            throw new RuntimeException("Invalid status transition from " + currentStatus + " to " + newStatus);
+        }
+        
+        application.setStatus(newStatus);
+        if (notes != null && !notes.trim().isEmpty()) {
+            application.setNotes(notes);
+        }
+        
+        jobApplicationRepository.save(application);
+    }
+
+    private boolean isValidStatusTransition(String currentStatus, String newStatus) {
+        // Define valid status transitions
+        return switch (currentStatus) {
+            case "Pending" -> newStatus.equals("Reviewing") || newStatus.equals("Rejected");
+            case "Reviewing" -> newStatus.equals("Interviewing") || newStatus.equals("Rejected");
+            case "Interviewing" -> newStatus.equals("Hired") || newStatus.equals("Rejected");
+            case "Hired", "Rejected" -> false; // Terminal states
+            default -> false;
+        };
+    }
+
     private JobApplicationDTO convertToDTO(JobApplication jobApplication) {
         JobApplicationDTO dto = new JobApplicationDTO();
         dto.setId(jobApplication.getId());
@@ -131,6 +161,23 @@ public class JobApplicationService {
         dto.setExperience(jobApplication.getExperience());
         dto.setEducation(jobApplication.getEducation());
         dto.setSkills(jobApplication.getSkills());
+        return dto;
+    }
+
+    public JobApplicationDTO getJobApplicationById(Long id) {
+        JobApplication jobApplication = jobApplicationRepository.findById(id)
+            .orElseThrow(() -> new RuntimeException("Job Application not found"));
+        
+        JobApplicationDTO dto = new JobApplicationDTO();
+        dto.setId(jobApplication.getId());
+        dto.setCandidateName(jobApplication.getCandidateName());
+        dto.setEmail(jobApplication.getEmail());
+        dto.setPhone(jobApplication.getPhone());
+        dto.setJobPositionId(jobApplication.getJobPosition().getId());
+        dto.setJobPositionDepartment(jobApplication.getJobPosition().getDepartment());
+        dto.setStatus(jobApplication.getStatus());
+        dto.setNotes(jobApplication.getNotes());
+        
         return dto;
     }
 } 
