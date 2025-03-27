@@ -883,4 +883,6 @@ alter table roles
 insert into roles(attendance_permission, description, employee_management_permission, name, payroll_permission,
                   recruitment_management_permission, request_permission, system_settings_permission, user_permission)
 VALUES ('MANAGE', 'Admin ne', 'MANAGE', 'Administrator', 'MANAGE',
-        'MANAGE', 'MANAGE', 'MANAGE', 'MANAGE')
+        'MANAGE', 'MANAGE', 'MANAGE', 'MANAGE'),
+       ('NONE', 'Employee ne', 'NONE', 'Employee', 'NONE',
+        'NONE', 'NONE', 'NONE', 'MANAGE')
