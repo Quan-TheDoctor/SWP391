@@ -168,19 +168,56 @@ public class RequestController {
 
     @RequestMapping("/save")
     public String save(@ModelAttribute("requestDTO") RequestDTO requestDTO,
-                       BindingResult result) {
+                       @RequestParam("LeavePolicyId") Integer leavePolicyId,
+                       BindingResult result,
+                       Model model,
+                       RedirectAttributes redirectAttributes) {
         if (result.hasErrors()) {
-            return "redirect:/user/detail";
+            model.addAttribute("contentFragment", "fragments/user-request-create-fragments");
+            return "index";
         }
+
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
         String name = authentication.getName();
-        User user = userRepository.findUserByUsername(name)
-                .orElseThrow(() -> new RuntimeException("Không tìm thấy người dùng"));
-        int id = user.getEmployee().getEmployeeId();
-        Employee employee = employeeRepository.getEmployeeByEmployeeId(id);
+        Optional<User> user = userRepository.findUserByUsername(name);
+        int employeeId = user.get().getEmployee().getEmployeeId();
+        LeavePolicy selectedPolicy = leavePolicyRepository.findLeavePolicyByLeavePolicyId(leavePolicyId);
 
-        requestService.save(requestDTO, user, employee);
-        return "redirect:/user/detail?success=true";
+        if (selectedPolicy != null) {
+            requestDTO.getLeaveDTO().setReason(selectedPolicy.getLeavePolicyName());
+        }
+        boolean isDuplicate = leaveRepository.existsByEmployee_EmployeeIdAndLeavePolicyIdAndStartDateOrEndDate(
+                employeeId,
+                leavePolicyId,
+                requestDTO.getLeaveDTO().getStartDate(),
+                requestDTO.getLeaveDTO().getEndDate()
+        );
+
+        if (isDuplicate) {
+            model.addAttribute("errorMessage", "Đã có yêu cầu nghỉ phép cùng loại và cùng ngày bắt đầu hoặc kết thúc!");
+            model.addAttribute("requestDTO", requestDTO);
+            model.addAttribute("leavePolicy", leavePolicyRepository.findAll());
+            model.addAttribute("reason", leavePolicyId);
+            model.addAttribute("contentFragment", "fragments/user-request-create-fragments");
+            return "index";
+        }
+
+        if (requestDTO.getLeaveDTO().getTotalDays() > requestDTO.getLeaveDTO().getLeaveAllowedDay()) {
+            model.addAttribute("errorMessage", "Số ngày nghỉ vượt quá số ngày được cho phép!");
+            model.addAttribute("requestDTO", requestDTO);
+            model.addAttribute("leavePolicy", leavePolicyRepository.findAll());
+            model.addAttribute("reason", leavePolicyId);
+            model.addAttribute("contentFragment", "fragments/user-request-create-fragments");
+            return "index";
+        }
+
+        User admin = userRepository.findUserByUsername("admin").orElseThrow(() ->
+                new RuntimeException("Không tìm thấy người dùng"));
+        requestDTO.getLeaveDTO().setLeavePolicyId(selectedPolicy.getLeavePolicyId());
+
+        requestService.saveRequestForLeave(requestDTO, user.get(), admin);
+        redirectAttributes.addFlashAttribute("successMessage", "Yêu cầu nghỉ phép đã được gửi thành công!");
+        return "redirect:/user/detail";
     }
 
     @RequestMapping("/view")
@@ -242,75 +279,91 @@ public class RequestController {
     public String approveRequest(Model model,
                                  @RequestParam("requestId") Integer requestId,
                                  @RequestParam("field") String field,
-                                 @RequestParam("type") String type, RedirectAttributes redirectAttributes) {
+                                 @RequestParam("type") String type) {
         RequestDTO requestDTO = requestService.findRequestByRequestId(requestId);
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
         String name = authentication.getName();
         User user = userRepository.findUserByUsername(name)
                 .orElseThrow(() -> new RuntimeException("Không tìm thấy người dùng"));
-        log.info(requestDTO.toString());
-        if(!requestDTO.getApprovalName().equals(user.getUsername())) {
+        String notificationMessage = "";
 
-            redirectAttributes.addFlashAttribute("message", "You're not authorized to approve this request");
-            redirectAttributes.addFlashAttribute("messageType", "error");
-            return "redirect:/request";
-        }
+        Integer requesterId = requestDTO.getRequesterId();
+        User requestUser = userService.findUserByUserId(requesterId);
+        Integer employeeId = requestUser.getEmployee().getEmployeeId();
+        Employee employee = employeeRepository.findEmployeeByEmployeeId(employeeId);
 
         if ("Hạch toán lương".equals(type)) {
             switch (field) {
-                case "Approved":
-                    if ("Pending".equals(requestDTO.getRequestStatus())) {
-                        requestDTO.setRequestStatus("Approved");
+                case "approve":
+                    if ("pending".equals(requestDTO.getRequestStatus())) {
+                        requestDTO.setRequestStatus("approve");
                         requestDTO.setApprovalName(user.getUsername());
                         requestService.updateStatus(requestDTO, type);
+                        notificationMessage = "yêu cầu hạch toán lương được phê duyệt bởi " + user.getUsername();
                     }
                     break;
-                case "Denied":
-                    if ("Pending".equals(requestDTO.getRequestStatus())) {
-                        requestDTO.setRequestStatus("Denied");
+                case "deny":
+                    if ("pending".equals(requestDTO.getRequestStatus())) {
+                        requestDTO.setRequestStatus("deny");
                         requestService.updateStatus(requestDTO, type);
+                        notificationMessage = "yêu cầu hạch toán lương bị từ chối bởi " + user.getUsername();
                     }
                     break;
             }
-
         } else if ("Đơn xin nghỉ".equals(type)) {
             switch (field) {
-                case "Approved":
-                    if ("Pending".equals(requestDTO.getRequestStatus())) {
-                        requestDTO.setRequestStatus("Approved");
+                case "approve":
+                    if ("pending".equals(requestDTO.getRequestStatus())) {
+                        requestDTO.setRequestStatus("approve");
+                        requestDTO.setApprovalName(user.getUsername());
+                        requestService.updateStatus(requestDTO,type);
+                        int remainingDays = leavePolicyService.calculate(requestDTO.getLeaveDTO().getLeavePolicyId(), employeeId,requestDTO);
+                        requestDTO.getLeaveDTO().setLeaveAllowedDay(remainingDays);
+                        requestService.save(requestDTO,requestUser,employee);
+                        notificationMessage = "đơn xin nghỉ được phê duyệt bởi " + user.getUsername();
+                    }
+                    break;
+                case "deny":
+                    if ("pending".equals(requestDTO.getRequestStatus())) {
+                        requestDTO.setRequestStatus("deny");
                         requestDTO.setApprovalName(user.getUsername());
                         requestService.updateStatus(requestDTO, type);
-                    }
-                    break;
-                case "Denied":
-                    if ("Pending".equals(requestDTO.getRequestStatus())) {
-                        requestDTO.setRequestStatus("Denied");
-                        requestService.updateStatus(requestDTO, type);
+                        requestService.save(requestDTO,requestUser,employee);
+                        notificationMessage = "đơn xin nghỉ đã bị từ chối bởi " + user.getUsername();
                     }
                     break;
             }
-
-            var requests = requestService.getRequests(PageRequest.of(0, 10));
-            totalRequests = 0;
-            totalPendingRequests = 0;
-            totalFinishedRequests = 0;
-            for (var request : requests) {
-                totalRequests++;
-                if (request.getRequestStatus().equals("Pending")) totalPendingRequests++;
-                else totalFinishedRequests++;
-                requestTypes.add(request.getRequestType());
-            }
-
-            model.addAttribute("totalRequests", totalRequests);
-            model.addAttribute("totalPendingRequests", totalPendingRequests);
-            model.addAttribute("totalFinishedRequests", totalFinishedRequests);
-            model.addAttribute("requestDTO", requestDTO);
-            model.addAttribute("requests", requests);
-            model.addAttribute(CONTENT_FRAGMENT, REQUEST_FRAGMENTS);
-            return INDEX;
         }
-        model.addAttribute(CONTENT_FRAGMENT, REQUEST_FRAGMENTS);
-        return INDEX;
+        if (!notificationMessage.isEmpty()) {
+            Notification notification = Notification.builder()
+                    .user(requestUser)
+                    .requestId(requestId)
+                    .message(notificationMessage)
+                    .status("unread")
+                    .createdAt(LocalDateTime.now())
+                    .type(type)
+                    .build();
+            notificationRepository.save(notification);
+        }
+
+        var requests = requestService.getRequests(PageRequest.of(0, 10));
+        totalRequests = 0;
+        totalPendingRequests = 0;
+        totalFinishedRequests = 0;
+        for (var request : requests) {
+            totalRequests++;
+            if (request.getRequestStatus().equals("pending")) totalPendingRequests++;
+            else totalFinishedRequests++;
+            requestTypes.add(request.getRequestType());
+        }
+
+        model.addAttribute("totalRequests", totalRequests);
+        model.addAttribute("totalPendingRequests", totalPendingRequests);
+        model.addAttribute("totalFinishedRequests", totalFinishedRequests);
+        model.addAttribute("requestDTO", requestDTO);
+        model.addAttribute("requests", requests);
+        model.addAttribute("contentFragment", "fragments/request-fragments");
+        return "index";
     }
 
 

@@ -27,6 +27,7 @@ import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
+import java.time.LocalTime;
 import java.util.*;
 import java.util.stream.Collectors;
 
@@ -87,50 +88,72 @@ public class RequestService {
     if (user == null) {
       throw new RuntimeException("user ko tồn tại");
     }
+    List<Leave> leaves = leaveRepository.findLeaveByEmployee_EmployeeIdAndStartDateAndEndDate(employee.getEmployeeId(),
+            requestDTO.getLeaveDTO().getStartDate(),
+            requestDTO.getLeaveDTO().getEndDate());
+    Leave leave = leaves.getFirst();
+    if(requestDTO.getRequestStatus().equals("approve")){
+      leave.setStatus("approve");
+      leave.setLeaveAllowedDay(requestDTO.getLeaveDTO().getLeaveAllowedDay());
+      leaveRepository.save(leave);
 
-    Request request = new Request();
-    Leave leave = new Leave();
-    leave.setLeaveType("Đơn xin nghỉ");
-    leave.setStartDate(requestDTO.getLeaveDTO().getStartDate());
-    leave.setEndDate(requestDTO.getLeaveDTO().getEndDate());
-    leave.setTotalDays(requestDTO.getLeaveDTO().getTotalDays());
-    leave.setStatus("Pending");
-    leave.setReason(requestDTO.getLeaveDTO().getReason());
-    leave.setCreatedAt(LocalDateTime.now());
-    leave.setEmployee(employee);
-    leaveRepository.save(leave);
-    Integer leaveId = leave.getLeaveId();
+      for (int i = 0; i < leave.getTotalDays(); i++) {
+        Attendance attendance = Attendance.builder()
+                .date(leave.getStartDate().plusDays(i))
+                .checkIn(LocalTime.of(0, 0, 0))
+                .checkOut(LocalTime.of(0, 0, 0))
+                .overtimeHours(0.0)
+                .status("Nghỉ")
+                .note(leave.getReason())
+                .employee(employee)
+                .build();
 
-    for(int i = 0; i < leave.getTotalDays(); i++) {
-      Attendance attendance = Attendance.builder()
-              .date(leave.getStartDate().plusDays(i))
-              .checkIn(null)
-              .checkOut(null)
-              .overtimeHours(0.0)
-              .status("Nghỉ")
-              .note(leave.getReason())
-              .employee(employee)
-              .build();
-
-      attendanceRepository.save(attendance);
+        attendanceRepository.save(attendance);
+      }
+    }else{
+      leave.setStatus("deny");
+      leaveRepository.save(leave);
     }
 
-    EmployeeDTO employeeDTO = employeeService.getEmployeeByEmployeeId(employee.getEmployeeId());
-    EmployeeDTO managerDTO = employeeService.getEmployeeByEmployeeId(employeeDTO.getManagerId());
-    Optional<User> approval = userRepository.findUserByEmployee_EmployeeId(managerDTO.getEmployeeId());
-    request.setRequestIdList(String.valueOf(leaveId));
-    request.setRequesterId(user.getUserId());
-    request.setReason(requestDTO.getLeaveDTO().getReason());
-    request.setStartDate(requestDTO.getLeaveDTO().getStartDate());
-    request.setEndDate(requestDTO.getLeaveDTO().getEndDate());
-    request.setNote(requestDTO.getNote());
-    request.setTotalDays(requestDTO.getLeaveDTO().getTotalDays());
-    request.setRequestType("Đơn xin nghỉ");
-    request.setStatus("Pending");
-    request.setCreatedAt(LocalDateTime.now());
-    request.setApproval(approval.get());
-    request.setUser(user);
+  }
+  public void saveRequestForLeave(RequestDTO requestDTO, User user, User approval) {
+    if (user == null) {
+      throw new RuntimeException("user ko tồn tại");
+    }
+    int employeeId = user.getEmployee().getEmployeeId();
+    Employee employee = employeeRepository.getEmployeeByEmployeeId(employeeId);
 
+    Leave leave = Leave.builder()
+            .leaveType("Leave Permit")
+            .startDate(requestDTO.getLeaveDTO().getStartDate())
+            .endDate(requestDTO.getLeaveDTO().getEndDate())
+            .totalDays(requestDTO.getLeaveDTO().getTotalDays())
+            .status("pending")
+            .leaveAllowedDay(requestDTO.getLeaveDTO().getLeaveAllowedDay())
+            .reason(requestDTO.getLeaveDTO().getReason())
+            .createdAt(LocalDateTime.now())
+            .employee(employee)
+            .leavePolicyId(requestDTO.getLeaveDTO().getLeavePolicyId())
+            .build();
+    leaveRepository.save(leave);
+    log.info(String.valueOf(requestDTO.getLeaveDTO().getTotalDays()));
+    log.info(String.valueOf(requestDTO.getLeaveDTO().getLeaveAllowedDay()));
+    Integer leaveId = leave.getLeaveId();
+
+    Request request = Request.builder()
+            .requesterId(user.getUserId())
+            .requestType("Đơn xin nghỉ")
+            .reason(requestDTO.getLeaveDTO().getReason())
+            .startDate(requestDTO.getLeaveDTO().getEndDate())
+            .endDate(requestDTO.getLeaveDTO().getEndDate())
+            .totalDays(requestDTO.getLeaveDTO().getTotalDays())
+            .note(requestDTO.getNote())
+            .status("pending")
+            .requestIdList(leaveId.toString())
+            .createdAt(LocalDateTime.now())
+            .user(user)
+            .approval(approval)
+            .build();
     requestRepository.save(request);
   }
 
@@ -159,7 +182,11 @@ public class RequestService {
     User approval = userRepository.findUserByUsername(requestDTO.getApprovalName())
             .orElse(null);
     if("Đơn xin nghỉ".equals(type)) {
-
+      String status = "approve".equals(requestDTO.getRequestStatus()) ? "approve" : "deny";
+      Request request = requestRepository.findRequestByRequestId(requestDTO.getRequestId());
+      request.setApproval(approval);
+      request.setStatus(status);
+      requestRepository.save(request);
     } else if("Hạch toán lương".equals(type)) {
       for(var payrollId : requestDTO.getPayrollIds()) {
         String status = requestDTO.getRequestStatus().equals("Approved") ? "Paid" : "Cancelled";

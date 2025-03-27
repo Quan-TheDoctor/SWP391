@@ -104,7 +104,6 @@ public class UserController {
     BindingResult result,
     Model model) throws IOException {
     if (avatarFile != null && !avatarFile.isEmpty()) {
-      log.info("test");
       employeeDTO.setPicture(avatarFile.getBytes());
     }
 
@@ -117,7 +116,6 @@ public class UserController {
     }
 
     try {
-      log.info(employeeDTO.toString());
       employeeService.saveEmployee(employeeDTO);
     } catch (Exception e) {
       model.addAttribute("message", e.getMessage());
