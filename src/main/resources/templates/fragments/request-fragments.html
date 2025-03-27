@@ -3,7 +3,6 @@
       xmlns:sec="http://www.thymeleaf.org/extras/spring-security">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Request Management</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <script>
@@ -35,626 +34,721 @@
                             800: '#3730a3',
                             900: '#312e81',
                         }
-                    },
-                    animation: {
-                        'pulse-slow': 'pulse 3s cubic-bezier(0.4, 0, 0.6, 1) infinite',
                     }
                 }
             }
         }
     </script>
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/daterangepicker/daterangepicker.css">
-    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
-    <script src="https://cdn.jsdelivr.net/momentjs/latest/moment.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/jquery/dist/jquery.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/moment/moment.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/daterangepicker/daterangepicker.min.js"></script>
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    <style>
-        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap');
-
-        body {
-            font-family: 'Inter', sans-serif;
-        }
-
-        /* Status badges with subtle gradient backgrounds */
-        .badge {
-            @apply inline-flex items-center justify-center px-2.5 py-0.5 rounded-full text-xs font-medium;
-        }
-        .badge-pending {
-            @apply bg-gradient-to-r from-yellow-50 to-yellow-100 text-yellow-800 border border-yellow-200;
-        }
-        .badge-approved {
-            @apply bg-gradient-to-r from-green-50 to-green-100 text-green-800 border border-green-200;
-        }
-        .badge-denied {
-            @apply bg-gradient-to-r from-red-50 to-red-100 text-red-800 border border-red-200;
-        }
-
-        /* Button styles with consistent design language */
-        .btn {
-            @apply inline-flex items-center justify-center px-4 py-2 rounded-lg font-medium text-sm transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-offset-2 shadow-sm;
-        }
-        .btn-primary {
-            @apply bg-gradient-to-r from-primary-600 to-primary-700 text-white hover:from-primary-700 hover:to-primary-800 focus:ring-primary-500;
-        }
-        .btn-secondary {
-            @apply bg-gradient-to-r from-secondary-600 to-secondary-700 text-white hover:from-secondary-700 hover:to-secondary-800 focus:ring-secondary-500;
-        }
-        .btn-success {
-            @apply bg-gradient-to-r from-emerald-600 to-emerald-700 text-white hover:from-emerald-700 hover:to-emerald-800 focus:ring-emerald-500;
-        }
-        .btn-danger {
-            @apply bg-gradient-to-r from-red-600 to-red-700 text-white hover:from-red-700 hover:to-red-800 focus:ring-red-500;
-        }
-        .btn-outline {
-            @apply border border-gray-300 bg-white text-gray-700 hover:bg-gray-50 focus:ring-primary-500;
-        }
-        .btn-sm {
-            @apply px-3 py-1 text-xs;
-        }
-
-        /* Enhanced card styles with subtle shadows and borders */
-        .card {
-            @apply bg-white rounded-xl shadow-sm overflow-hidden border border-gray-100 transition-shadow duration-200 hover:shadow-md;
-        }
-        .card-header {
-            @apply px-6 py-4 bg-gradient-to-r from-gray-50 to-white border-b border-gray-200;
-        }
-        .card-body {
-            @apply p-6;
-        }
-
-        /* Form elements with consistent styling */
-        .form-input {
-            @apply w-full p-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500 shadow-sm;
-        }
-        .form-label {
-            @apply block text-sm font-medium text-gray-700 mb-1.5;
-        }
-
-        /* Table styling with improved readability */
-        .table-container {
-            @apply overflow-x-auto rounded-lg border border-gray-200;
-        }
-        .table {
-            @apply min-w-full divide-y divide-gray-200;
-        }
-        .table-header {
-            @apply bg-gradient-to-r from-gray-50 to-white;
-        }
-        .table-header-cell {
-            @apply px-6 py-3.5 text-left text-xs font-medium text-gray-500 uppercase tracking-wider;
-        }
-        .table-body {
-            @apply bg-white divide-y divide-gray-200;
-        }
-        .table-row {
-            @apply hover:bg-gray-50 transition-colors;
-        }
-        .table-cell {
-            @apply px-6 py-4 whitespace-nowrap text-sm text-gray-500;
-        }
-
-        /* Stat cards with visual enhancements */
-        .stat-card {
-            @apply bg-white rounded-xl shadow-sm p-6 border border-gray-100 transition-all duration-200 hover:shadow-md hover:border-gray-200;
-        }
-        .stat-icon {
-            @apply p-3 rounded-full flex items-center justify-center;
-        }
-
-        /* Custom scrollbar for better UX */
-        ::-webkit-scrollbar {
-            width: 8px;
-            height: 8px;
-        }
-        ::-webkit-scrollbar-track {
-            background: #f1f1f1;
-            border-radius: 10px;
-        }
-        ::-webkit-scrollbar-thumb {
-            background: #c4b5fd;
-            border-radius: 10px;
-        }
-        ::-webkit-scrollbar-thumb:hover {
-            background: #a78bfa;
-        }
-
-        /* Pagination enhancements */
-        .pagination-item {
-            @apply relative inline-flex items-center px-4 py-2 border text-sm font-medium;
-        }
-        .pagination-active {
-            @apply z-10 bg-gradient-to-r from-primary-50 to-primary-100 border-primary-500 text-primary-600;
-        }
-        .pagination-inactive {
-            @apply bg-white border-gray-300 text-gray-500 hover:bg-gray-50;
-        }
-
-        /* Animation for empty state */
-        @keyframes float {
-            0%, 100% {
-                transform: translateY(0);
-            }
-            50% {
-                transform: translateY(-10px);
-            }
-        }
-        .float-animation {
-            animation: float 3s ease-in-out infinite;
-        }
-    </style>
+    <script src="https://cdn.jsdelivr.net/npm/echarts@5.4.3/dist/echarts.min.js"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/animate.css/4.1.1/animate.min.css"/>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/all.min.css"/>
 </head>
 <div th:fragment="main-content" xmlns:sec="http://www.w3.org/1999/xhtml">
-    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 space-y-6">
-        <!-- Page Header with enhanced visual design -->
-        <div class="flex flex-col md:flex-row md:items-center md:justify-between gap-4 bg-gradient-to-r from-primary-50 to-secondary-50 p-6 rounded-xl border border-primary-100 animate-pulse-slow">
-            <div>
-                <h1 class="text-2xl font-bold text-gray-900 flex items-center gap-2">
-                    <i class="fas fa-clipboard-list text-primary-600"></i>
-                    Request Management
-                </h1>
-                <p class="mt-1 text-sm text-gray-600">View and manage all employee requests in one place</p>
+    <main class="flex-1 p-4">
+        <div class="max-w-7xl mx-auto space-y-4">
+            <!-- Header Section -->
+            <div class="flex flex-col md:flex-row gap-4 items-center justify-between p-4 bg-gradient-to-r from-primary-600 to-secondary-600 rounded-lg text-white shadow-lg animate__animated animate__fadeIn">
+                <div>
+                    <h1 class="text-2xl font-bold">Request Management</h1>
+                    <p class="text-primary-100">View and manage all employee requests in one place</p>
+                </div>
+
+                <div class="flex gap-2">
+                    <a th:href="@{/request/create/form}"
+                       sec:authorize="hasAnyRole('ADMIN','MANAGER')"
+                       class="px-4 py-2 bg-green-600 text-white rounded-md hover:bg-green-700 transition-colors flex items-center gap-2 font-medium">
+                        <i class="fas fa-plus"></i>
+                        Create New
+                    </a>
+                    <a th:href="@{/request/export/view}"
+                       sec:authorize="hasAnyRole('ADMIN','MANAGER')"
+                       class="px-4 py-2 bg-purple-600 text-white rounded-md hover:bg-purple-700 transition-colors flex items-center gap-2 font-medium">
+                        <i class="fas fa-file-export"></i>
+                        Export
+                    </a>
+                </div>
             </div>
 
-            <!-- Action Buttons with improved visual hierarchy -->
-            <div sec:authorize="hasAnyRole('ADMIN','MANAGER')" class="flex gap-3">
-                <a th:href="@{/request/create/form}"
-                   class="btn btn-success">
-                    <i class="fas fa-plus mr-2"></i>
-                    Create New
-                </a>
-                <a th:href="@{/request/export/view}"
-                   class="btn btn-secondary">
-                    <i class="fas fa-file-export mr-2"></i>
-                    Export
-                </a>
-            </div>
-        </div>
-
-        <!-- Statistics Cards with improved visual design -->
-        <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
-            <!-- Total Requests Card -->
-            <div class="stat-card group">
-                <div class="flex items-center gap-4">
-                    <div class="stat-icon bg-primary-100 group-hover:bg-primary-200 transition-colors">
-                        <i class="fas fa-clipboard-list text-primary-600 text-xl"></i>
-                    </div>
-                    <div>
-                        <p class="text-sm font-medium text-gray-500">Total Requests</p>
-                        <div class="flex items-end gap-1">
-                            <p class="text-2xl font-bold text-gray-900" th:text="${totalRequests}"></p>
-                            <span class="text-xs text-gray-500 mb-1">requests</span>
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+                <div class="bg-white rounded-lg shadow-md p-4 border-l-4 border-primary-500">
+                    <div class="flex items-center gap-3">
+                        <div class="p-3 bg-primary-100 rounded-full">
+                            <i class="fas fa-clipboard-list text-xl text-primary-600"></i>
+                        </div>
+                        <div>
+                            <p class="text-sm text-gray-500 font-medium">Total Requests</p>
+                            <p class="text-2xl font-bold text-primary-700" th:text="${totalRequests}">125</p>
+                            <p class="text-xs text-gray-500">All time</p>
                         </div>
                     </div>
                 </div>
-                <div class="mt-4 pt-4 border-t border-gray-100">
-                    <div class="flex justify-between items-center">
-                        <span class="text-xs text-gray-500">All time</span>
-                        <span class="text-xs font-medium text-primary-600">
-                            <i class="fas fa-chart-line mr-1"></i> View Details
-                        </span>
-                    </div>
-                </div>
-            </div>
 
-            <!-- Finished Requests Card -->
-            <div class="stat-card group">
-                <div class="flex items-center gap-4">
-                    <div class="stat-icon bg-green-100 group-hover:bg-green-200 transition-colors">
-                        <i class="fas fa-check-circle text-green-600 text-xl"></i>
-                    </div>
-                    <div>
-                        <p class="text-sm font-medium text-gray-500">Finished Requests</p>
-                        <div class="flex items-end gap-1">
-                            <p class="text-2xl font-bold text-gray-900" th:text="${totalFinishedRequests}"></p>
-                            <span class="text-xs text-gray-500 mb-1">completed</span>
+                <div class="bg-white rounded-lg shadow-md p-4 border-l-4 border-green-500">
+                    <div class="flex items-center gap-3">
+                        <div class="p-3 bg-green-100 rounded-full">
+                            <i class="fas fa-check-circle text-xl text-green-600"></i>
+                        </div>
+                        <div>
+                            <p class="text-sm text-gray-500 font-medium">Finished Requests</p>
+                            <p class="text-2xl font-bold text-green-700" th:text="${totalFinishedRequests}">98</p>
+                            <p class="text-xs text-gray-500">
+                                <span th:if="${totalRequests > 0}" class="font-medium text-green-600">
+                                    <i class="fas fa-percentage mr-1"></i>
+                                    <span th:text="${#numbers.formatDecimal(totalFinishedRequests * 100 / totalRequests, 1, 1)}">78.4</span>%
+                                </span>
+                                <span th:if="${totalRequests == 0}" class="font-medium text-green-600">
+                                    <i class="fas fa-percentage mr-1"></i> 0%
+                                </span>
+                            </p>
                         </div>
                     </div>
                 </div>
-                <div class="mt-4 pt-4 border-t border-gray-100">
-                    <div class="flex justify-between items-center">
-                        <span class="text-xs text-gray-500">Completion rate</span>
-                        <span th:if="${totalRequests > 0}" class="text-xs font-medium text-green-600">
-                            <i class="fas fa-percentage mr-1"></i>
-                            <span th:text="${#numbers.formatDecimal(totalFinishedRequests * 100 / totalRequests, 1, 1)}">0</span>%
-                        </span>
-                        <span th:if="${totalRequests == 0}" class="text-xs font-medium text-green-600">
-                            <i class="fas fa-percentage mr-1"></i> 0%
-                        </span>
-                    </div>
-                </div>
-            </div>
 
-            <!-- Pending Requests Card -->
-            <div class="stat-card group">
-                <div class="flex items-center gap-4">
-                    <div class="stat-icon bg-yellow-100 group-hover:bg-yellow-200 transition-colors">
-                        <i class="fas fa-clock text-yellow-600 text-xl"></i>
-                    </div>
-                    <div>
-                        <p class="text-sm font-medium text-gray-500">Pending Requests</p>
-                        <div class="flex items-end gap-1">
-                            <p class="text-2xl font-bold text-gray-900" th:text="${totalPendingRequests}"></p>
-                            <span class="text-xs text-gray-500 mb-1">awaiting action</span>
+                <div class="bg-white rounded-lg shadow-md p-4 border-l-4 border-yellow-500">
+                    <div class="flex items-center gap-3">
+                        <div class="p-3 bg-yellow-100 rounded-full">
+                            <i class="fas fa-clock text-xl text-yellow-600"></i>
+                        </div>
+                        <div>
+                            <p class="text-sm text-gray-500 font-medium">Pending Requests</p>
+                            <p class="text-2xl font-bold text-yellow-700" th:text="${totalPendingRequests}">27</p>
+                            <p class="text-xs text-gray-500">
+                                <span th:if="${totalPendingRequests > 10}" class="font-medium text-red-600">
+                                    <i class="fas fa-exclamation-circle mr-1"></i> High Priority
+                                </span>
+                                <span th:if="${totalPendingRequests > 5 && totalPendingRequests <= 10}" class="font-medium text-yellow-600">
+                                    <i class="fas fa-exclamation-triangle mr-1"></i> Medium Priority
+                                </span>
+                                <span th:if="${totalPendingRequests <= 5}" class="font-medium text-green-600">
+                                    <i class="fas fa-check-circle mr-1"></i> Low Priority
+                                </span>
+                            </p>
                         </div>
                     </div>
                 </div>
-                <div class="mt-4 pt-4 border-t border-gray-100">
-                    <div class="flex justify-between items-center">
-                        <span class="text-xs text-gray-500">Priority</span>
-                        <span th:if="${totalPendingRequests > 10}" class="text-xs font-medium text-red-600">
-                            <i class="fas fa-exclamation-circle mr-1"></i> High
-                        </span>
-                        <span th:if="${totalPendingRequests > 5 && totalPendingRequests <= 10}" class="text-xs font-medium text-yellow-600">
-                            <i class="fas fa-exclamation-triangle mr-1"></i> Medium
-                        </span>
-                        <span th:if="${totalPendingRequests <= 5}" class="text-xs font-medium text-green-600">
-                            <i class="fas fa-check-circle mr-1"></i> Low
-                        </span>
+            </div>
+
+            <!-- Search & Filter Section -->
+            <div class="bg-white rounded-lg shadow-md p-4 animate__animated animate__fadeIn">
+                <div class="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-4">
+                    <h3 class="text-lg font-semibold text-gray-800 flex items-center">
+                        <i class="fas fa-filter mr-2 text-primary-500"></i>
+                        Search & Filter
+                    </h3>
+
+                    <!-- Search -->
+                    <form th:action="@{/request/search}" method="get" class="flex gap-2 w-full md:w-auto md:max-w-md">
+                        <input type="text" name="query" placeholder="Search by requester name, type..."
+                               class="w-full p-2 border rounded-md focus:ring-2 focus:ring-primary-300 transition-colors">
+                        <button type="submit" class="px-4 py-2 bg-primary-600 text-white rounded-md hover:bg-primary-700 transition-colors">
+                            <i class="fas fa-search"></i>
+                        </button>
+                    </form>
+
+                    <!-- Bulk Actions -->
+                    <div class="flex gap-2">
+                        <button id="bulkApproveBtn" class="px-4 py-2 bg-green-600 text-white rounded-md hover:bg-green-700 flex items-center justify-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed" disabled>
+                            <i class="fas fa-check"></i>
+                            <span>Approve</span>
+                        </button>
+                        <button id="bulkDenyBtn" class="px-4 py-2 bg-red-600 text-white rounded-md hover:bg-red-700 flex items-center justify-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed" disabled>
+                            <i class="fas fa-times"></i>
+                            <span>Deny</span>
+                        </button>
                     </div>
                 </div>
-            </div>
-        </div>
 
-        <!-- Search and Filters with improved UX -->
-        <div class="card">
-            <div class="card-header flex items-center justify-between">
-                <h2 class="text-lg font-medium text-gray-900 flex items-center">
-                    <i class="fas fa-filter text-primary-500 mr-2"></i>
-                    Search & Filters
-                </h2>
-                <button id="toggleFilters" class="text-sm text-primary-600 hover:text-primary-700 font-medium">
-                    <i class="fas fa-chevron-down mr-1"></i>
-                    <span>Show Filters</span>
-                </button>
-            </div>
-            <div id="filterSection" class="card-body">
-                <div class="grid grid-cols-1 lg:grid-cols-12 gap-6">
-                    <!-- Search Bar with enhanced design -->
-                    <div class="lg:col-span-6">
-                        <form th:action="@{/request/search}" method="get" class="flex gap-2">
-                            <div class="relative flex-grow">
-                                <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                                    <i class="fas fa-search text-gray-400"></i>
-                                </div>
-                                <input type="text" name="query" placeholder="Search by requester name, type..."
-                                       class="form-input pl-10">
-                            </div>
-                            <button type="submit" class="btn btn-primary">
-                                Search
-                            </button>
-                        </form>
+                <!-- Filters -->
+                <form id="multiFilterForm" th:action="@{/request/multi-filter}" method="get" class="grid grid-cols-1 md:grid-cols-4 gap-4">
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-1">Request Type</label>
+                        <select name="type" id="typeFilter"
+                                class="w-full p-2 border rounded-md focus:ring-2 focus:ring-primary-300 transition-colors">
+                            <option value="all">All Types</option>
+                            <option th:each="type : ${requestTypes}"
+                                    th:value="${type}"
+                                    th:text="${type}"
+                                    th:selected="${param.type != null && param.type[0] == type}"></option>
+                        </select>
                     </div>
 
-                    <!-- Status Filter -->
-                    <div class="lg:col-span-3">
-                        <form th:action="@{/request/filter}">
-                            <input type="hidden" name="field" value="status"/>
-                            <label class="form-label flex items-center">
-                                <i class="fas fa-tag text-primary-500 mr-2"></i>
-                                Status
-                            </label>
-                            <div class="relative">
-                                <select name="value" onchange="this.form.submit()" class="form-input appearance-none">
-                                    <option value="">All Statuses</option>
-                                    <option value="Pending">Pending</option>
-                                    <option value="Approved">Approved</option>
-                                    <option value="Denied">Denied</option>
-                                </select>
-                                <div class="pointer-events-none absolute inset-y-0 right-0 flex items-center px-2 text-gray-700">
-                                    <i class="fas fa-chevron-down text-xs"></i>
-                                </div>
-                            </div>
-                        </form>
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-1">Status</label>
+                        <select name="status" id="statusFilter"
+                                class="w-full p-2 border rounded-md focus:ring-2 focus:ring-primary-300 transition-colors">
+                            <option value="all">All Statuses</option>
+                            <option value="Pending" th:selected="${param.status != null && param.status[0] == 'Pending'}">Pending</option>
+                            <option value="Approved" th:selected="${param.status != null && param.status[0] == 'Approved'}">Approved</option>
+                            <option value="Denied" th:selected="${param.status != null && param.status[0] == 'Denied'}">Denied</option>
+                        </select>
                     </div>
 
-                    <!-- Type Filter -->
-                    <div class="lg:col-span-3">
-                        <form th:action="@{/request/filter}">
-                            <input type="hidden" name="field" value="type"/>
-                            <label class="form-label flex items-center">
-                                <i class="fas fa-list text-primary-500 mr-2"></i>
-                                Request Type
-                            </label>
-                            <div class="relative">
-                                <select name="value" onchange="this.form.submit()" class="form-input appearance-none">
-                                    <option value="all">All Types</option>
-                                    <option th:each="type : ${requestTypes}"
-                                            th:value="${type}"
-                                            th:text="${type}"></option>
-                                </select>
-                                <div class="pointer-events-none absolute inset-y-0 right-0 flex items-center px-2 text-gray-700">
-                                    <i class="fas fa-chevron-down text-xs"></i>
-                                </div>
-                            </div>
-                        </form>
-                    </div>
-
-                    <!-- Date Range Filter (Additional enhancement) -->
-                    <div class="lg:col-span-6">
-                        <label class="form-label flex items-center">
-                            <i class="fas fa-calendar text-primary-500 mr-2"></i>
-                            Date Range
-                        </label>
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-1">Date Range</label>
                         <div class="relative">
                             <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
                                 <i class="fas fa-calendar-alt text-gray-400"></i>
                             </div>
-                            <input type="text" class="form-input pl-10 date-range-picker" placeholder="Select date range">
+                            <input type="text" name="dateRange" th:value="${param.dateRange}" class="w-full p-2 pl-10 border rounded-md focus:ring-2 focus:ring-primary-300 transition-colors date-range-picker" placeholder="Select date range">
                         </div>
                     </div>
 
-                    <!-- Advanced Filters Toggle (Additional enhancement) -->
-                    <div class="lg:col-span-6 flex items-end justify-end">
-                        <button type="button" class="btn btn-outline">
-                            <i class="fas fa-sliders-h mr-2"></i>
-                            Advanced Filters
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-1">Requester</label>
+                        <select name="requester" id="requesterFilter"
+                                class="w-full p-2 border rounded-md focus:ring-2 focus:ring-primary-300 transition-colors">
+                            <option value="all">All Requesters</option>
+                            <option th:each="requester : ${requesters}"
+                                    th:value="${requester.userId}"
+                                    th:text="${requester.username}"
+                                    th:selected="${param.requester != null && param.requester[0] == requester.userId}">
+                            </option>
+                        </select>
+                    </div>
+
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-1">Department</label>
+                        <select name="department" id="departmentFilter"
+                                class="w-full p-2 border rounded-md focus:ring-2 focus:ring-primary-300 transition-colors">
+                            <option value="all">All Departments</option>
+                            <option th:each="dept : ${departments}"
+                                    th:value="${dept.departmentId}"
+                                    th:text="${dept.departmentName}"
+                                    th:selected="${param.department != null && param.department[0] == dept.departmentId}">
+                            </option>
+                        </select>
+                    </div>
+
+                    <div class="md:col-span-4 flex justify-end gap-2">
+                        <button type="button" onclick="clearFilters()" class="px-4 py-2 bg-gray-500 text-white rounded-md hover:bg-gray-600 transition-colors">
+                            <i class="fas fa-times mr-2"></i>Clear Filters
                         </button>
+                        <button type="submit" class="px-4 py-2 bg-primary-600 text-white rounded-md hover:bg-primary-700 transition-colors">
+                            <i class="fas fa-filter mr-2"></i>Apply Filters
+                        </button>
+                    </div>
+                </form>
+            </div>
+
+            <!-- Requests Table -->
+            <div class="bg-white rounded-lg shadow-md overflow-hidden flex flex-col min-h-[390px] animate__animated animate__fadeIn">
+                <div class="overflow-x-auto flex-1">
+                    <form id="bulkActionForm" method="post">
+                        <input type="hidden" name="selectedIds" id="selectedIdsInput" value="">
+                        <table class="w-full min-w-[1024px]">
+                            <thead class="bg-gray-50">
+                            <tr>
+                                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">
+                                    <input type="checkbox" id="selectAllCheckboxes" class="rounded border-gray-300 text-primary-500 focus:ring-primary-400">
+                                </th>
+                                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">
+                                    <a th:href="@{/request/sort(field='requesterName', direction = ${direction == 'asc' ? 'desc' : 'asc'})}"
+                                       class="flex items-center gap-1 hover:text-primary-600 cursor-pointer">
+                                        Requester
+                                        <span class="ml-1">
+                                            <i th:if="${sortField == 'requesterName' && direction == 'asc'}" class="fas fa-sort-up"></i>
+                                            <i th:if="${sortField == 'requesterName' && direction == 'desc'}" class="fas fa-sort-down"></i>
+                                            <i th:if="${sortField != 'requesterName'}" class="fas fa-sort"></i>
+                                        </span>
+                                    </a>
+                                </th>
+                                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">
+                                    <a th:href="@{/request/sort(field='requestType', direction = ${direction == 'asc' ? 'desc' : 'asc'})}"
+                                       class="flex items-center gap-1 hover:text-primary-600 cursor-pointer">
+                                        Type
+                                        <span class="ml-1">
+                                            <i th:if="${sortField == 'requestType' && direction == 'asc'}" class="fas fa-sort-up"></i>
+                                            <i th:if="${sortField == 'requestType' && direction == 'desc'}" class="fas fa-sort-down"></i>
+                                            <i th:if="${sortField != 'requestType'}" class="fas fa-sort"></i>
+                                        </span>
+                                    </a>
+                                </th>
+                                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">
+                                    <a th:href="@{/request/sort(field='requestDate', direction = ${direction == 'asc' ? 'desc' : 'asc'})}"
+                                       class="flex items-center gap-1 hover:text-primary-600 cursor-pointer">
+                                        Request Date
+                                        <span class="ml-1">
+                                            <i th:if="${sortField == 'requestDate' && direction == 'asc'}" class="fas fa-sort-up"></i>
+                                            <i th:if="${sortField == 'requestDate' && direction == 'desc'}" class="fas fa-sort-down"></i>
+                                            <i th:if="${sortField != 'requestDate'}" class="fas fa-sort"></i>
+                                        </span>
+                                    </a>
+                                </th>
+                                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Approver</th>
+                                <th class="px-6 py-3 text-center text-xs font-medium text-gray-500 uppercase">
+                                    <a th:href="@{/request/sort(field='requestStatus', direction = ${direction == 'asc' ? 'desc' : 'asc'})}"
+                                       class="flex items-center justify-center gap-1 hover:text-primary-600 cursor-pointer">
+                                        Status
+                                        <span class="ml-1">
+                                            <i th:if="${sortField == 'requestStatus' && direction == 'asc'}" class="fas fa-sort-up"></i>
+                                            <i th:if="${sortField == 'requestStatus' && direction == 'desc'}" class="fas fa-sort-down"></i>
+                                            <i th:if="${sortField != 'requestStatus'}" class="fas fa-sort"></i>
+                                        </span>
+                                    </a>
+                                </th>
+                                <th class="px-6 py-3 text-center text-xs font-medium text-gray-500 uppercase">Actions</th>
+                            </tr>
+                            </thead>
+                            <tbody class="divide-y divide-gray-200">
+                            <tr class="hover:bg-gray-50 transition-colors" th:each="r : ${requests}"
+                                th:data-id="${r.requestId}"
+                                th:data-request-type="${r.requestType}"
+                                th:data-request-id="${r.requestId}">
+
+                                <td class="px-6 py-4" onclick="event.stopPropagation()">
+                                    <input type="checkbox" name="subCheckboxes" th:value="${r.requestId}" class="rounded border-gray-300 text-primary-500 focus:ring-primary-400">
+                                </td>
+                                <td class="px-6 py-4 font-medium">
+                                    <div class="flex items-center gap-2">
+                                        <div class="w-8 h-8 bg-primary-100 text-primary-600 rounded-full flex items-center justify-center font-bold">
+                                            <span th:text="${#strings.substring(r.requesterName, 0, 1)}">J</span>
+                                        </div>
+                                        <span th:text="${r.requesterName}">John Doe</span>
+                                    </div>
+                                </td>
+                                <td class="px-6 py-4">
+                                    <span class="px-2 py-1 bg-primary-100 text-primary-800 rounded-full text-xs font-medium"
+                                          th:text="${r.requestType}">Leave</span>
+                                </td>
+                                <td class="px-6 py-4">
+                                    <div class="flex items-center">
+                                        <i class="far fa-calendar-alt text-gray-400 mr-2"></i>
+                                        <span th:text="${#temporals.format(r.requestDate, 'dd/MM/yyyy')}">15/03/2025</span>
+                                    </div>
+                                </td>
+                                <td class="px-6 py-4">
+                                    <div th:if="${r.getApprovalName() != null}" class="flex items-center">
+                                        <div class="h-7 w-7 rounded-full bg-green-100 flex items-center justify-center text-green-700 font-medium mr-2"
+                                             th:text="${#strings.substring(r.getApprovalName(), 0, 1)}">A</div>
+                                        <span th:text="${r.getApprovalName()}">Admin User</span>
+                                    </div>
+                                    <span th:unless="${r.getApprovalName() != null}" class="text-gray-400">N/A</span>
+                                </td>
+                                <td class="px-6 py-4 text-center">
+                                    <span th:if="${r.requestStatus == 'Pending'}"
+                                          class="px-2 py-1 rounded-full text-xs bg-yellow-100 text-yellow-800">
+                                        <i class="fas fa-clock mr-1"></i> Pending
+                                    </span>
+                                    <span th:if="${r.requestStatus == 'Approved'}"
+                                          class="px-2 py-1 rounded-full text-xs bg-green-100 text-green-800">
+                                        <i class="fas fa-check-circle mr-1"></i> Approved
+                                    </span>
+                                    <span th:if="${r.requestStatus == 'Denied'}"
+                                          class="px-2 py-1 rounded-full text-xs bg-red-100 text-red-800">
+                                        <i class="fas fa-times-circle mr-1"></i> Denied
+                                    </span>
+                                </td>
+                                <td class="px-6 py-4 text-center" onclick="event.stopPropagation()">
+                                    <div class="flex gap-2 justify-center">
+                                        <a th:href="${r.requestType == 'Salary Raise' ? '/request/salary?requestId=' + r.requestId : '/request/view?requestId=' + r.requestId}"
+                                           class="text-primary-600 hover:text-primary-800 transition-colors">
+                                            <i class="fas fa-eye"></i>
+                                        </a>
+                                        <a th:if="${r.requestStatus == 'Pending'}"
+                                           th:href="${r.requestType == 'Salary Raise' ? '/request/salarystatus?field=Approved&requestId=' + r.requestId : '/request/status?field=Approved&requestId=' + r.requestId + '&type=' + r.requestType}"
+                                           class="text-green-600 hover:text-green-800 transition-colors">
+                                            <i class="fas fa-check"></i>
+                                        </a>
+                                        <a th:if="${r.requestStatus == 'Pending'}"
+                                           th:href="${r.requestType == 'Salary Raise' ? '/request/salarystatus?field=Denied&requestId=' + r.requestId : '/request/status?field=Denied&requestId=' + r.requestId + '&type=' + r.requestType}"
+                                           class="text-red-600 hover:text-red-800 transition-colors">
+                                            <i class="fas fa-times"></i>
+                                        </a>
+                                    </div>
+                                </td>
+                            </tr>
+                            <tr th:if="${requests.isEmpty()}" class="h-[200px]">
+                                <td colspan="7" class="text-center text-gray-500 py-8">
+                                    <div class="flex flex-col items-center justify-center">
+                                        <i class="fas fa-inbox text-4xl text-gray-300 mb-3"></i>
+                                        <p>No requests found</p>
+                                        <p class="text-sm text-gray-400">Try adjusting your search or filter criteria</p>
+                                        <a th:href="@{/request/create/form}"
+                                           sec:authorize="hasAnyRole('ADMIN','MANAGER')"
+                                           class="px-4 py-2 mt-4 bg-primary-600 text-white rounded-md hover:bg-primary-700 transition-colors flex items-center gap-2">
+                                            <i class="fas fa-plus"></i>
+                                            Create New Request
+                                        </a>
+                                    </div>
+                                </td>
+                            </tr>
+                            </tbody>
+                        </table>
+                    </form>
+                </div>
+
+                <!-- Pagination -->
+                <div class="px-6 py-4 border-t border-gray-200" th:if="${!requests.isEmpty()}">
+                    <div class="flex items-center justify-between">
+                        <div class="hidden sm:flex-1 sm:flex sm:items-center sm:justify-between">
+                            <div>
+                                <p class="text-sm text-gray-700">
+                                    Page <span class="font-medium" th:text="${requests.number + 1}">1</span>
+                                    of <span class="font-medium" th:text="${requests.totalPages}">10</span>
+                                </p>
+                            </div>
+                            <div>
+                                <nav class="relative z-0 inline-flex rounded-md shadow-sm -space-x-px"
+                                     aria-label="Pagination">
+                                    <!-- First page -->
+                                    <a th:href="@{/request/multi-filter(page=0, type=${param.type}, status=${param.status}, dateRange=${param.dateRange}, requester=${param.requester})}"
+                                       class="relative inline-flex items-center px-2 py-2 rounded-l-md border border-gray-300 bg-white text-sm font-medium text-gray-500 hover:bg-gray-50">
+                                        <i class="fas fa-angle-double-left"></i>
+                                    </a>
+
+                                    <!-- Previous page -->
+                                    <a th:if="${requests.hasPrevious()}"
+                                       th:href="@{/request/multi-filter(page=${requests.number - 1}, type=${param.type}, status=${param.status}, dateRange=${param.dateRange}, requester=${param.requester})}"
+                                       class="relative inline-flex items-center px-2 py-2 border border-gray-300 bg-white text-sm font-medium text-gray-500 hover:bg-gray-50">
+                                        <i class="fas fa-angle-left"></i>
+                                    </a>
+                                    <span th:unless="${requests.hasPrevious()}"
+                                          class="relative inline-flex items-center px-2 py-2 border border-gray-300 bg-white text-sm font-medium text-gray-300 cursor-not-allowed">
+                                        <i class="fas fa-angle-left"></i>
+                                    </span>
+
+                                    <!-- Page numbers -->
+                                    <span th:each="i : ${#numbers.sequence(1, requests.totalPages)}"
+                                          th:if="${i <= 5 || i > requests.totalPages - 3 || (i >= requests.number - 1 && i <= requests.number + 3)}">
+                                        <a th:if="${i != requests.number + 1}"
+                                           th:href="@{/request/multi-filter(page=${i - 1}, type=${param.type}, status=${param.status}, dateRange=${param.dateRange}, requester=${param.requester})}"
+                                           class="relative inline-flex items-center px-4 py-2 border border-gray-300 bg-white text-sm font-medium text-gray-700 hover:bg-gray-50"
+                                           th:text="${i}">1</a>
+                                        <span th:if="${i == requests.number + 1}"
+                                              class="relative inline-flex items-center px-4 py-2 border border-primary-500 bg-primary-50 text-sm font-medium text-primary-600"
+                                              th:text="${i}">1</span>
+                                    </span>
+
+                                    <!-- Next page -->
+                                    <a th:if="${requests.hasNext()}"
+                                       th:href="@{/request/multi-filter(page=${requests.number + 1}, type=${param.type}, status=${param.status}, dateRange=${param.dateRange}, requester=${param.requester})}"
+                                       class="relative inline-flex items-center px-2 py-2 border border-gray-300 bg-white text-sm font-medium text-gray-500 hover:bg-gray-50">
+                                        <i class="fas fa-angle-right"></i>
+                                    </a>
+                                    <span th:unless="${requests.hasNext()}"
+                                          class="relative inline-flex items-center px-2 py-2 border border-gray-300 bg-white text-sm font-medium text-gray-300 cursor-not-allowed">
+                                        <i class="fas fa-angle-right"></i>
+                                    </span>
+
+                                    <!-- Last page -->
+                                    <a th:href="@{/request/multi-filter(page=${requests.totalPages - 1}, type=${param.type}, status=${param.status}, dateRange=${param.dateRange}, requester=${param.requester})}"
+                                       class="relative inline-flex items-center px-2 py-2 rounded-r-md border border-gray-300 bg-white text-sm font-medium text-gray-500 hover:bg-gray-50">
+                                        <i class="fas fa-angle-double-right"></i>
+                                    </a>
+                                </nav>
+                            </div>
+                        </div>
                     </div>
                 </div>
             </div>
         </div>
+    </main>
 
-        <!-- Requests Table with improved visual design -->
-        <div class="card">
-            <div class="card-header flex justify-between items-center">
-                <h2 class="text-lg font-medium text-gray-900 flex items-center">
-                    <i class="fas fa-list-ul text-primary-500 mr-2"></i>
-                    Request List
-                </h2>
-                <div class="flex items-center gap-4">
-                    <!-- View toggle buttons (Additional enhancement) -->
-                    <div class="hidden sm:flex border border-gray-200 rounded-lg overflow-hidden">
-                        <button class="px-3 py-1.5 bg-primary-100 text-primary-700 border-r border-gray-200">
-                            <i class="fas fa-table"></i>
-                        </button>
-                        <button class="px-3 py-1.5 bg-white text-gray-500 hover:bg-gray-50">
-                            <i class="fas fa-th-large"></i>
-                        </button>
-                    </div>
-
-                    <!-- Results counter -->
-                    <div class="text-sm text-gray-500" th:if="${!requests.isEmpty()}">
-                        Showing
-                        <span class="font-medium text-gray-700" th:text="${requests.number * requests.size + 1}"></span>
-                        to
-                        <span class="font-medium text-gray-700"
-                              th:text="${(requests.number + 1) * requests.size > requests.totalElements ? requests.totalElements : (requests.number + 1) * requests.size}"></span>
-                        of
-                        <span class="font-medium text-gray-700" th:text="${requests.totalElements}"></span>
-                        results
-                    </div>
-                </div>
-            </div>
-
-            <div class="table-container">
-                <table class="table">
-                    <thead class="table-header">
-                    <tr>
-                        <th class="table-header-cell">
-                            <div class="flex items-center">
-                                Requester
-                                <i class="fas fa-sort-alpha-down ml-1 text-gray-400"></i>
-                            </div>
-                        </th>
-                        <th class="table-header-cell">
-                            <div class="flex items-center">
-                                Type
-                                <i class="fas fa-sort ml-1 text-gray-400"></i>
-                            </div>
-                        </th>
-                        <th class="table-header-cell">
-                            <div class="flex items-center">
-                                Request Date
-                                <i class="fas fa-sort ml-1 text-gray-400"></i>
-                            </div>
-                        </th>
-                        <th class="table-header-cell">Approver</th>
-                        <th class="table-header-cell">Status</th>
-                        <th class="table-header-cell">Actions</th>
-                    </tr>
-                    </thead>
-                    <tbody class="table-body">
-                    <tr th:each="r : ${requests}" class="table-row">
-                        <td class="table-cell font-medium text-gray-900">
-                            <div class="flex items-center">
-                                <div class="h-8 w-8 rounded-full bg-primary-100 flex items-center justify-center text-primary-700 font-medium mr-3"
-                                     th:text="${#strings.substring(r.requesterName, 0, 1)}">
-                                </div>
-                                <span th:text="${r.requesterName}"></span>
-                            </div>
-                        </td>
-                        <td class="table-cell">
-                            <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-primary-100 text-primary-800 border border-primary-200"
-                                  th:text="${r.requestType}"></span>
-                        </td>
-                        <td class="table-cell">
-                            <div class="flex items-center">
-                                <i class="far fa-calendar-alt text-gray-400 mr-2"></i>
-                                <span th:text="${#temporals.format(r.requestDate, 'dd/MM/yyyy')}"></span>
-                            </div>
-                        </td>
-                        <td class="table-cell">
-                            <div th:if="${r.getApprovalName() != null}" class="flex items-center">
-                                <div class="h-7 w-7 rounded-full bg-green-100 flex items-center justify-center text-green-700 font-medium mr-2"
-                                     th:text="${#strings.substring(r.getApprovalName(), 0, 1)}">
-                                </div>
-                                <span th:text="${r.getApprovalName()}"></span>
-                            </div>
-                            <span th:unless="${r.getApprovalName() != null}" class="text-gray-400">N/A</span>
-                        </td>
-                        <td class="table-cell">
-                            <span th:if="${r.requestStatus == 'Pending'}"
-                                  class="badge badge-pending">
-                                <i class="fas fa-clock mr-1"></i>
-                                <span th:text="${r.getRequestStatus()}"></span>
-                            </span>
-                            <span th:if="${r.requestStatus == 'Approved'}"
-                                  class="badge badge-approved">
-                                <i class="fas fa-check mr-1"></i>
-                                <span th:text="${r.getRequestStatus()}"></span>
-                            </span>
-                            <span th:if="${r.requestStatus == 'Denied'}"
-                                  class="badge badge-denied">
-                                <i class="fas fa-times mr-1"></i>
-                                <span th:text="${r.getRequestStatus()}"></span>
-                            </span>
-                        </td>
-                        <td class="table-cell">
-                            <div class="flex gap-2">
-                                <div th:if="${r.requestType == 'Salary Raise'}">
-                                    <a th:href="@{/request/salary(requestId=${r.requestId})}"
-                                       class="btn btn-sm btn-outline">
-                                        <i class="fas fa-eye mr-1"></i> View
-                                    </a>
-                                    <a th:if="${r.requestStatus == 'Pending'}"
-                                       th:href="@{/request/salarystatus(field='Approved',requestId=${r.requestId})}"
-                                       class="btn btn-sm bg-green-600 text-white hover:bg-green-700">
-                                        <i class="fas fa-check mr-1"></i> Approve
-                                    </a>
-                                    <a th:if="${r.requestStatus == 'Pending'}"
-                                       th:href="@{/request/salarystatus(field='Denied',requestId=${r.requestId})}"
-                                       class="btn btn-sm bg-red-600 text-white hover:bg-red-700">
-                                        <i class="fas fa-times mr-1"></i> Deny
-                                    </a>
-                                </div>
-                                <div th:unless="${r.requestType == 'Salary Raise'}">
-                                    <a th:href="@{/request/view(requestId=${r.requestId})}"
-                                       class="btn btn-sm btn-outline">
-                                        <i class="fas fa-eye mr-1"></i> View
-                                    </a>
-                                    <a th:if="${r.requestStatus == 'Pending'}"
-                                       th:href="@{/request/status(field='Approved',requestId=${r.requestId},type=${r.requestType})}"
-                                       class="btn btn-sm bg-green-600 text-white hover:bg-green-700">
-                                        <i class="fas fa-check mr-1"></i> Approve
-                                    </a>
-                                    <a th:if="${r.requestStatus == 'Pending'}"
-                                       th:href="@{/request/status(field='Denied',requestId=${r.requestId}, type=${r.requestType})}"
-                                       class="btn btn-sm bg-red-600 text-white hover:bg-red-700">
-                                        <i class="fas fa-times mr-1"></i> Deny
-                                    </a>
-                                </div>
-                            </div>
-                        </td>
-                    </tr>
-                    <tr th:if="${requests.isEmpty()}" class="h-[400px]">
-                        <td colspan="6" class="text-center text-gray-500 py-12">
-                            <div class="flex flex-col items-center justify-center float-animation">
-                                <div class="w-24 h-24 bg-gray-100 rounded-full flex items-center justify-center mb-4">
-                                    <i class="fas fa-inbox text-4xl text-gray-400"></i>
-                                </div>
-                                <p class="text-lg font-medium text-gray-800">No requests found</p>
-                                <p class="text-sm text-gray-500 mt-2 max-w-md text-center">
-                                    Try adjusting your search or filter criteria to find what you're looking for,
-                                    or create a new request to get started.
-                                </p>
-                                <a th:href="@{/request/create/form}"
-                                   sec:authorize="hasAnyRole('ADMIN','MANAGER')"
-                                   class="btn btn-primary mt-4">
-                                    <i class="fas fa-plus mr-2"></i>
-                                    Create New Request
-                                </a>
-                            </div>
-                        </td>
-                    </tr>
-                    </tbody>
-                </table>
-            </div>
-
-            <!-- Enhanced Pagination -->
-            <div class="px-6 py-4 border-t border-gray-200" th:if="${!requests.isEmpty()}">
-                <div class="flex items-center justify-between">
-                    <div class="hidden sm:flex-1 sm:flex sm:items-center sm:justify-between">
-                        <div>
-                            <p class="text-sm text-gray-700">
-                                Page <span class="font-medium" th:text="${requests.number + 1}"></span>
-                                of <span class="font-medium" th:text="${requests.totalPages}"></span>
-                            </p>
-                        </div>
-                        <div>
-                            <nav class="relative z-0 inline-flex rounded-md shadow-sm -space-x-px"
-                                 aria-label="Pagination">
-                                <!-- First page -->                                <a th:href="@{/request/list(page=0)}"
-                                                                                      class="pagination-item rounded-l-md pagination-inactive">
-                                <i class="fas fa-angle-double-left"></i>
-                            </a>
-
-                                <!-- Previous page -->
-                                <a th:if="${requests.hasPrevious()}"
-                                   th:href="@{/request/list(page=${requests.number - 1})}"
-                                   class="pagination-item pagination-inactive">
-                                    <i class="fas fa-angle-left"></i>
-                                </a>
-                                <span th:unless="${requests.hasPrevious()}"
-                                      class="pagination-item pagination-inactive opacity-50 cursor-not-allowed">
-                                    <i class="fas fa-angle-left"></i>
-                                </span>
-
-<!--                                &lt;!&ndash; Page numbers &ndash;&gt;-->
-<!--                                <th:block th:with="start=${T(Math).max(0, requests.number - 2)},-->
-<!--                                                  end=${T(Math).min(requests.totalPages - 1, requests.number + 2)}">-->
-<!--                                    <th:block th:each="i : ${#numbers.sequence(start, end)}">-->
-<!--                                        <a th:if="${i != requests.number}"-->
-<!--                                           th:href="@{/request/list(page=${i})}"-->
-<!--                                           class="pagination-item pagination-inactive"-->
-<!--                                           th:text="${i + 1}"></a>-->
-<!--                                        <span th:if="${i == requests.number}"-->
-<!--                                              class="pagination-item pagination-active"-->
-<!--                                              th:text="${i + 1}"></span>-->
-<!--                                    </th:block>-->
-<!--                                </th:block>-->
-
-                                <!-- Next page -->
-                                <a th:if="${requests.hasNext()}"
-                                   th:href="@{/request/list(page=${requests.number + 1})}"
-                                   class="pagination-item pagination-inactive">
-                                    <i class="fas fa-angle-right"></i>
-                                </a>
-                                <span th:unless="${requests.hasNext()}"
-                                      class="pagination-item pagination-inactive opacity-50 cursor-not-allowed">
-                                    <i class="fas fa-angle-right"></i>
-                                </span>
-
-                                <!-- Last page -->
-                                <a th:href="@{/request/list(page=${requests.totalPages - 1})}"
-                                   class="pagination-item rounded-r-md pagination-inactive">
-                                    <i class="fas fa-angle-double-right"></i>
-                                </a>
-                            </nav>
-                        </div>
-                    </div>
-                </div>
+    <!-- Bulk Approve Modal -->
+    <div id="bulkApproveModal" class="fixed inset-0 bg-black bg-opacity-50 z-50 hidden flex items-center justify-center">
+        <div class="bg-white rounded-lg p-6 w-full max-w-md animate__animated animate__fadeInDown">
+            <h3 class="text-lg font-semibold mb-4 flex items-center">
+                <i class="fas fa-check-circle text-green-500 mr-2"></i>
+                Confirm Approval
+            </h3>
+            <p class="mb-6">Are you sure you want to approve the selected requests?</p>
+            <div class="flex justify-end gap-3">
+                <button id="cancelBulkApprove" class="px-4 py-2 bg-gray-200 text-gray-800 rounded-md hover:bg-gray-300">
+                    Cancel
+                </button>
+                <button id="confirmBulkApprove" class="px-4 py-2 bg-green-600 text-white rounded-md hover:bg-green-700">
+                    Approve
+                </button>
             </div>
         </div>
     </div>
 
-    <!-- JavaScript for interactive elements -->
-    <script>
-        // Toggle filter section visibility
+    <!-- Bulk Deny Modal -->
+    <div id="bulkDenyModal" class="fixed inset-0 bg-black bg-opacity-50 z-50 hidden flex items-center justify-center">
+        <div class="bg-white rounded-lg p-6 w-full max-w-md animate__animated animate__fadeInDown">
+            <h3 class="text-lg font-semibold mb-4 flex items-center">
+                <i class="fas fa-times-circle text-red-500 mr-2"></i>
+                Confirm Denial
+            </h3>
+            <p class="mb-6">Are you sure you want to deny the selected requests?</p>
+            <div class="flex justify-end gap-3">
+                <button id="cancelBulkDeny" class="px-4 py-2 bg-gray-200 text-gray-800 rounded-md hover:bg-gray-300">
+                    Cancel
+                </button>
+                <button id="confirmBulkDeny" class="px-4 py-2 bg-red-600 text-white rounded-md hover:bg-red-700">
+                    Deny
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <script th:inline="javascript">
         document.addEventListener('DOMContentLoaded', function() {
-            const filterSection = document.getElementById('filterSection');
-            const toggleButton = document.getElementById('toggleFilters');
-            const buttonText = toggleButton.querySelector('span');
-            const buttonIcon = toggleButton.querySelector('i');
+            initializeRequestChart();
+            initializeFilters();
+            initializeCheckboxes();
+            initializeModals();
+            initializeDateRangePicker();
+            const rows = document.querySelectorAll('tr[th\\:data-request-id]');
+            rows.forEach(row => {
+                row.addEventListener('click', function(e) {
+                    if (!e.target.closest('td[onclick]')) {
+                        const requestType = this.getAttribute('data-request-type');
+                        const requestId = this.getAttribute('data-request-id');
+                        const url = requestType === 'Salary Raise' 
+                            ? `/request/salary?requestId=${requestId}`
+                            : `/request/view?requestId=${requestId}`;
+                        window.location.href = url;
+                    }
+                });
+            });
+        });
 
-            // Initially hide the filter section
-            filterSection.style.display = 'none';
+        function initializeRequestChart() {
+            const chartData = /*[[${chartData}]]*/ { pending: {}, approved: {}, denied: {} };
+            const requestChart = echarts.init(document.getElementById('monthlyRequestChart'));
 
-            toggleButton.addEventListener('click', function() {
-                if (filterSection.style.display === 'none') {
-                    filterSection.style.display = 'block';
-                    buttonText.textContent = 'Hide Filters';
-                    buttonIcon.classList.remove('fa-chevron-down');
-                    buttonIcon.classList.add('fa-chevron-up');
-                } else {
-                    filterSection.style.display = 'none';
-                    buttonText.textContent = 'Show Filters';
-                    buttonIcon.classList.remove('fa-chevron-up');
-                    buttonIcon.classList.add('fa-chevron-down');
+            const months = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+
+            const pendingData = [];
+            const approvedData = [];
+            const deniedData = [];
+
+            for (let i = 1; i <= 12; i++) {
+                pendingData.push(chartData.pending[i] || 0);
+                approvedData.push(chartData.approved[i] || 0);
+                deniedData.push(chartData.denied[i] || 0);
+            }
+
+            const option = {
+                tooltip: {
+                    trigger: 'axis',
+                    axisPointer: {
+                        type: 'shadow'
+                    }
+                },
+                legend: {
+                    data: ['Pending', 'Approved', 'Denied']
+                },
+                grid: {
+                    left: '3%',
+                    right: '4%',
+                    bottom: '3%',
+                    containLabel: true
+                },
+                xAxis: {
+                    type: 'category',
+                    data: months
+                },
+                yAxis: {
+                    type: 'value'
+                },
+                series: [
+                    {
+                        name: 'Pending',
+                        type: 'bar',
+                        stack: 'total',
+                        itemStyle: {
+                            color: '#f59e0b'
+                        },
+                        data: pendingData
+                    },
+                    {
+                        name: 'Approved',
+                        type: 'bar',
+                        stack: 'total',
+                        itemStyle: {
+                            color: '#10b981'
+                        },
+                        data: approvedData
+                    },
+                    {
+                        name: 'Denied',
+                        type: 'bar',
+                        stack: 'total',
+                        itemStyle: {
+                            color: '#ef4444'
+                        },
+                        data: deniedData
+                    }
+                ]
+            };
+
+            requestChart.setOption(option);
+
+            window.addEventListener('resize', function() {
+                requestChart.resize();
+            });
+        }
+
+        function initializeFilters() {
+            const urlParams = new URLSearchParams(window.location.search);
+            const hasAdvancedFilters = urlParams.has('department') || urlParams.has('priority');
+
+            if (hasAdvancedFilters) {
+                const advancedFilters = document.getElementById('advancedFilters');
+                const advancedFilters2 = document.getElementById('advancedFilters2');
+                const toggleBtn = document.getElementById('toggleAdvancedFilters');
+
+                if (advancedFilters && advancedFilters2 && toggleBtn) {
+                    advancedFilters.style.display = 'block';
+                    advancedFilters2.style.display = 'block';
+                    toggleBtn.innerHTML = '<i class="fas fa-minus-circle mr-1"></i> Hide Advanced Filters';
                 }
+            }
+
+            const toggleAdvancedFiltersBtn = document.getElementById('toggleAdvancedFilters');
+            const advancedFilters = document.getElementById('advancedFilters');
+            const advancedFilters2 = document.getElementById('advancedFilters2');
+
+            if (toggleAdvancedFiltersBtn && advancedFilters && advancedFilters2) {
+                toggleAdvancedFiltersBtn.addEventListener('click', function() {
+                    const isHidden = advancedFilters.style.display === 'none';
+                    advancedFilters.style.display = isHidden ? 'block' : 'none';
+                    advancedFilters2.style.display = isHidden ? 'block' : 'none';
+
+                    if (isHidden) {
+                        this.innerHTML = '<i class="fas fa-minus-circle mr-1"></i> Hide Advanced Filters';
+                    } else {
+                        this.innerHTML = '<i class="fas fa-plus-circle mr-1"></i> Show Advanced Filters';
+                    }
+                });
+            }
+        }
+
+        function formatNumber(number) {
+            return new Intl.NumberFormat('en-US', {
+                minimumFractionDigits: 0,
+                maximumFractionDigits: 0
+            }).format(number);
+        }
+
+        function initializeCheckboxes() {
+            const selectAllCheckbox = document.getElementById('selectAllCheckboxes');
+            const rowCheckboxes = document.querySelectorAll('input[name="subCheckboxes"]');
+            const bulkApproveBtn = document.getElementById('bulkApproveBtn');
+            const bulkDenyBtn = document.getElementById('bulkDenyBtn');
+            const selectedIdsInput = document.getElementById('selectedIdsInput');
+
+            function updateBulkActionButtons() {
+                const checkedBoxes = document.querySelectorAll('input[name="subCheckboxes"]:checked');
+                const isAnyChecked = checkedBoxes.length > 0;
+
+                if (bulkApproveBtn) bulkApproveBtn.disabled = !isAnyChecked;
+                if (bulkDenyBtn) bulkDenyBtn.disabled = !isAnyChecked;
+            }
+
+            if (selectAllCheckbox) {
+                selectAllCheckbox.addEventListener('change', function() {
+                    rowCheckboxes.forEach(checkbox => {
+                        checkbox.checked = this.checked;
+                    });
+                    updateBulkActionButtons();
+                });
+            }
+
+            rowCheckboxes.forEach(checkbox => {
+                checkbox.addEventListener('change', function() {
+                    if (!this.checked && selectAllCheckbox) {
+                        selectAllCheckbox.checked = false;
+                    } else if (selectAllCheckbox) {
+                        const allChecked = [...rowCheckboxes].every(cb => cb.checked);
+                        selectAllCheckbox.checked = allChecked;
+                    }
+                    updateBulkActionButtons();
+                });
             });
 
-            // Initialize date range picker
+            document.querySelectorAll('.old-salary, .new-salary').forEach(element => {
+                const number = parseFloat(element.textContent.replace(/,/g, ''));
+                element.textContent = formatNumber(number);
+            });
+
+            function getSelectedIds() {
+                const checkedBoxes = document.querySelectorAll('input[name="subCheckboxes"]:checked');
+                return Array.from(checkedBoxes).map(cb => cb.value);
+            }
+
+            if (bulkApproveBtn) {
+                bulkApproveBtn.addEventListener('click', function() {
+                    const selectedIds = getSelectedIds();
+                    if (selectedIds.length > 0) {
+                        const bulkApproveModal = document.getElementById('bulkApproveModal');
+                        if (bulkApproveModal) bulkApproveModal.classList.remove('hidden');
+                    }
+                });
+            }
+
+            if (bulkDenyBtn) {
+                bulkDenyBtn.addEventListener('click', function() {
+                    const selectedIds = getSelectedIds();
+                    if (selectedIds.length > 0) {
+                        const bulkDenyModal = document.getElementById('bulkDenyModal');
+                        if (bulkDenyModal) bulkDenyModal.classList.remove('hidden');
+                    }
+                });
+            }
+
+            const confirmBulkApprove = document.getElementById('confirmBulkApprove');
+            if (confirmBulkApprove) {
+                confirmBulkApprove.addEventListener('click', function() {
+                    const selectedIds = getSelectedIds();
+                    if (selectedIds.length > 0 && selectedIdsInput) {
+                        selectedIdsInput.value = selectedIds.join(',');
+                        const form = document.getElementById('bulkActionForm');
+                        if (form) {
+                            form.action = '/request/bulk-approve';
+                            form.submit();
+                        }
+                    }
+                    const bulkApproveModal = document.getElementById('bulkApproveModal');
+                    if (bulkApproveModal) bulkApproveModal.classList.add('hidden');
+                });
+            }
+
+            const confirmBulkDeny = document.getElementById('confirmBulkDeny');
+            if (confirmBulkDeny) {
+                confirmBulkDeny.addEventListener('click', function() {
+                    const selectedIds = getSelectedIds();
+                    if (selectedIds.length > 0 && selectedIdsInput) {
+                        selectedIdsInput.value = selectedIds.join(',');
+                        const form = document.getElementById('bulkActionForm');
+                        if (form) {
+                            form.action = '/request/bulk-deny';
+                            form.submit();
+                        }
+                    }
+                    const bulkDenyModal = document.getElementById('bulkDenyModal');
+                    if (bulkDenyModal) bulkDenyModal.classList.add('hidden');
+                });
+            }
+        }
+
+        function initializeModals() {
+            const cancelBulkApprove = document.getElementById('cancelBulkApprove');
+            const bulkApproveModal = document.getElementById('bulkApproveModal');
+
+            if (cancelBulkApprove && bulkApproveModal) {
+                cancelBulkApprove.addEventListener('click', function() {
+                    bulkApproveModal.classList.add('hidden');
+                });
+            }
+
+            const cancelBulkDeny = document.getElementById('cancelBulkDeny');
+            const bulkDenyModal = document.getElementById('bulkDenyModal');
+
+            if (cancelBulkDeny && bulkDenyModal) {
+                cancelBulkDeny.addEventListener('click', function() {
+                    bulkDenyModal.classList.add('hidden');
+                });
+            }
+        }
+
+        function initializeDateRangePicker() {
             $('.date-range-picker').daterangepicker({
                 autoUpdateInput: false,
                 locale: {
@@ -665,11 +759,42 @@
 
             $('.date-range-picker').on('apply.daterangepicker', function(ev, picker) {
                 $(this).val(picker.startDate.format('DD/MM/YYYY') + ' - ' + picker.endDate.format('DD/MM/YYYY'));
+                submitMultiFilter();
             });
 
             $('.date-range-picker').on('cancel.daterangepicker', function(ev, picker) {
                 $(this).val('');
+                submitMultiFilter();
             });
+        }
+
+        function submitMultiFilter() {
+            document.getElementById('multiFilterForm').submit();
+        }
+
+        function clearFilters() {
+            document.getElementById('typeFilter').value = 'all';
+            document.getElementById('statusFilter').value = 'all';
+            document.getElementById('dateRange').value = '';
+            document.getElementById('requesterFilter').value = 'all';
+            document.getElementById('departmentFilter').value = 'all';
+            document.getElementById('multiFilterForm').submit();
+        }
+
+        $(document).ready(function() {
+            var savedDateRange = $('.date-range-picker').val();
+            if (savedDateRange) {
+                var dates = savedDateRange.split(' - ');
+                if (dates.length === 2) {
+                    $('.date-range-picker').daterangepicker({
+                        startDate: moment(dates[0], 'DD/MM/YYYY'),
+                        endDate: moment(dates[1], 'DD/MM/YYYY'),
+                        locale: {
+                            format: 'DD/MM/YYYY'
+                        }
+                    });
+                }
+            }
         });
     </script>
 </div>

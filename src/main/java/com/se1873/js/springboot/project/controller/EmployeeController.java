@@ -1,8 +1,13 @@
 package com.se1873.js.springboot.project.controller;
 
 import com.se1873.js.springboot.project.dto.EmployeeDTO;
+import com.se1873.js.springboot.project.dto.JobApplicationDTO;
+import com.se1873.js.springboot.project.entity.Department;
 import com.se1873.js.springboot.project.entity.User;
+import com.se1873.js.springboot.project.repository.DepartmentRepository;
 import com.se1873.js.springboot.project.repository.EmployeeRepository;
+import com.se1873.js.springboot.project.repository.JobApplicationRepository;
+import com.se1873.js.springboot.project.service.JobApplicationService;
 import com.se1873.js.springboot.project.service.department.DepartmentService;
 import com.se1873.js.springboot.project.service.employee.EmployeeService;
 import com.se1873.js.springboot.project.service.position.PositionService;
@@ -38,6 +43,10 @@ public class EmployeeController {
   private final DepartmentService departmentService;
   private final PositionService positionService;
   private final GlobalController globalController;
+  private final JobApplicationService jobApplicationService;
+  private final JobApplicationRepository jobApplicationRepository;
+  private final DepartmentRepository departmentRepository;
+
   @ModelAttribute("employees")
   public Page<EmployeeDTO> initDataPage() {
     return Page.empty();
@@ -88,10 +97,33 @@ public class EmployeeController {
   }
 
   @RequestMapping("/create/form")
-  public String createForm(Model model) {
-
+  public String createForm(Model model, @RequestParam(value = "applicationId", required = false) Long applicationId) {
     addCommonAttributes(model);
-    model.addAttribute("employeeDTO", new EmployeeDTO());
+    
+    if (applicationId != null) {
+        try {
+            JobApplicationDTO jobApplication = jobApplicationService.getJobApplicationById(applicationId);
+            if (jobApplication != null) {
+                Department department = departmentRepository.getDepartmentByDepartmentName(jobApplication.getJobPositionDepartment());
+                EmployeeDTO employeeDTO = new EmployeeDTO();
+                employeeDTO.setEmployeeFirstName(jobApplication.getCandidateName().split(" ")[0]);
+                employeeDTO.setEmployeeLastName(jobApplication.getCandidateName().split(" ")[1]);
+                employeeDTO.setEmployeePersonalEmail(jobApplication.getEmail());
+                employeeDTO.setEmployeePhone(jobApplication.getPhone());
+                employeeDTO.setDepartmentId(department.getDepartmentId());
+                employeeDTO.setPositionId(Math.toIntExact(jobApplication.getJobPositionId()));
+                
+                model.addAttribute("employeeDTO", employeeDTO);
+            } else {
+                model.addAttribute("employeeDTO", new EmployeeDTO());
+            }
+        } catch (Exception e) {
+            model.addAttribute("employeeDTO", new EmployeeDTO());
+        }
+    } else {
+        model.addAttribute("employeeDTO", new EmployeeDTO());
+    }
+    
     model.addAttribute("contentFragment", "fragments/employee-create-fragments");
     return "index";
   }

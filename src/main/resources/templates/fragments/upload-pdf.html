@@ -638,10 +638,8 @@
             let currentFormTab = 'position';
             let currentResultTab = 'contact';
 
-            // Initialize form progress
             updateFormProgress();
 
-            // Initialize skills and languages preview
             if (skillsInput) {
                 skillsInput.addEventListener('input', updateSkillsPreview);
             }
@@ -893,11 +891,9 @@
                 document.getElementById('skills').value = parsedData.skills ? parsedData.skills.join(', ') : '';
                 document.getElementById('languages').value = parsedData.languages ? parsedData.languages.join(', ') : '';
 
-                // Update previews
                 updateSkillsPreview();
                 updateLanguagesPreview();
 
-                // Switch to personal info tab
                 switchFormTab('personal');
             });
 
@@ -1123,20 +1119,16 @@
                 }
 
                 resultsContainer.classList.remove('hidden');
-                switchTab('contact'); // Initialize with contact tab
+                switchTab('contact');
             }
 
-            // Tab switching for parsed results
             window.switchTab = function(tabName) {
-                // Hide all tab contents
                 document.querySelectorAll('.tab-content').forEach(tab => {
                     tab.classList.add('hidden');
                 });
 
-                // Show the selected tab content
                 document.getElementById(`tab-content-${tabName}`).classList.remove('hidden');
 
-                // Update tab buttons
                 document.querySelectorAll('[id^="tab-"]').forEach(tab => {
                     if (tab.id === `tab-${tabName}`) {
                         tab.classList.remove('tab-inactive');
@@ -1150,17 +1142,13 @@
                 currentResultTab = tabName;
             };
 
-            // Form tab switching
             window.switchFormTab = function(tabName) {
-                // Hide all form tab contents
                 document.querySelectorAll('.form-tab-content').forEach(tab => {
                     tab.classList.add('hidden');
                 });
 
-                // Show the selected form tab content
                 document.getElementById(`form-content-${tabName}`).classList.remove('hidden');
 
-                // Update form tab buttons
                 document.querySelectorAll('[id^="form-tab-"]').forEach(tab => {
                     if (tab.id === `form-tab-${tabName}`) {
                         tab.classList.remove('tab-inactive');
@@ -1175,7 +1163,6 @@
                 updateFormProgress();
             };
 
-            // Update form progress indicator
             function updateFormProgress() {
                 const steps = ['position', 'personal', 'education', 'experience', 'skills'];
                 const currentStep = steps.indexOf(currentFormTab) + 1;
@@ -1187,7 +1174,6 @@
                 document.getElementById('form-progress-bar').style.width = `${percentage}%`;
             }
 
-            // Update skills preview badges
             function updateSkillsPreview() {
                 if (!skillsInput || !skillsPreview) return;
 
@@ -1204,7 +1190,6 @@
                 });
             }
 
-            // Update languages preview badges
             function updateLanguagesPreview() {
                 if (!languagesInput || !languagesPreview) return;
 

@@ -1,5 +1,6 @@
 package com.se1873.js.springboot.project.controller;
 
+import com.se1873.js.springboot.project.dto.EmployeeDTO;
 import com.se1873.js.springboot.project.dto.JobApplicationDTO;
 import com.se1873.js.springboot.project.dto.JobPositionDTO;
 import com.se1873.js.springboot.project.entity.Department;
@@ -225,5 +226,42 @@ public class RecruitmentController {
     } catch (Exception e) {
       return ResponseEntity.badRequest().body("Failed to close position: " + e.getMessage());
     }
+  }
+
+  @PostMapping("/applications/{id}/update-status")
+  public String updateApplicationStatusAndNotes(
+    @PathVariable Long id,
+    @RequestParam String newStatus,
+    @RequestParam(required = false) String notes,
+    RedirectAttributes redirectAttributes) {
+    try {
+      jobApplicationService.updateApplicationStatusAndNotes(id, newStatus, notes);
+      redirectAttributes.addFlashAttribute("success", "Application status updated successfully");
+      return stringUtils.getRedirectMapping(RECRUITMENT_APPLICATION_URL + id);
+    } catch (Exception e) {
+      redirectAttributes.addFlashAttribute("error", "Failed to update application status: " + e.getMessage());
+      return stringUtils.getRedirectMapping(RECRUITMENT_APPLICATION_URL + id);
+    }
+  }
+
+  @GetMapping("/applications/{id}/create-employee")
+  public String createEmployeeFromApplication(@PathVariable Long id, Model model) {
+    JobApplicationDTO application = jobApplicationService.getApplicationById(id);
+    if (application == null) {
+        return "redirect:/recruitment/applications";
+    }
+
+    EmployeeDTO employeeDTO = new EmployeeDTO();
+    employeeDTO.setEmployeeFirstName(application.getCandidateName());
+    employeeDTO.setEmployeePersonalEmail(application.getEmail());
+    employeeDTO.setEmployeePhone(application.getPhone());
+    employeeDTO.setEmployeePersonalEmail(application.getEmail());
+    employeeDTO.setDepartmentName(application.getJobPositionDepartment());
+    employeeDTO.setPositionName(application.getJobPositionTitle());
+
+    model.addAttribute("employeeDTO", employeeDTO);
+    model.addAttribute("applicationId", id);
+    model.addAttribute(CONTENT_FRAGMENT, "fragments/employee-create-fragments");
+    return INDEX;
   }
 } 

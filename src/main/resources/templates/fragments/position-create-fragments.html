@@ -59,11 +59,12 @@
             <!-- Title -->
             <div>
                 <label for="title" class="block text-sm font-medium text-gray-700">Position Title</label>
-                <input type="text" 
-                       id="title" 
-                       th:field="*{title}" 
-                       class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500"
-                       required>
+                <select id="title" 
+                        th:field="*{title}" 
+                        class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500"
+                        required>
+                    <option value="">Select a position</option>
+                </select>
             </div>
 
             <!-- Department -->
@@ -72,7 +73,8 @@
                 <select id="department" 
                         th:field="*{department}" 
                         class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500"
-                        required>
+                        required
+                        onchange="loadPositionsByDepartment(this.value)">
                     <option value="">Select a department</option>
                     <option th:each="dept : ${departments}" 
                             th:value="${dept}" 
@@ -179,11 +181,12 @@
             <!-- Title -->
             <div>
                 <label for="title" class="block text-sm font-medium text-gray-700">Position Title</label>
-                <input type="text" 
-                       id="title" 
-                       th:field="*{title}" 
-                       class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500"
-                       required>
+                <select id="title" 
+                        th:field="*{title}" 
+                        class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500"
+                        required>
+                    <option value="">Select a position</option>
+                </select>
             </div>
 
             <!-- Department -->
@@ -192,7 +195,8 @@
                 <select id="department" 
                         th:field="*{department}" 
                         class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500"
-                        required>
+                        required
+                        onchange="loadPositionsByDepartment(this.value)">
                     <option value="">Select a department</option>
                     <option th:each="dept : ${departments}" 
                             th:value="${dept}" 
@@ -305,5 +309,32 @@
         box-shadow: 0 0 0 3px rgba(139, 92, 246, 0.1);
     }
 </style>
+
+<script>
+    function loadPositionsByDepartment(departmentName) {
+        if (!departmentName) {
+            document.getElementById('title').innerHTML = '<option value="">Select a position</option>';
+            return;
+        }
+
+        fetch(`/api/positionsByName?departmentName=${encodeURIComponent(departmentName)}`)
+            .then(response => response.json())
+            .then(positions => {
+                const titleSelect = document.getElementById('title');
+                titleSelect.innerHTML = '<option value="">Select a position</option>';
+                
+                positions.forEach(position => {
+                    const option = document.createElement('option');
+                    option.value = position.positionName;
+                    option.textContent = position.positionName;
+                    titleSelect.appendChild(option);
+                });
+            })
+            .catch(error => {
+                console.error('Error loading positions:', error);
+                document.getElementById('title').innerHTML = '<option value="">Error loading positions</option>';
+            });
+    }
+</script>
 </body>
 </html>

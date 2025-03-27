@@ -249,6 +249,7 @@ public class PayrollController {
     double companyTaxContributions = salaryRecordService.calculateTotalCompanyTaxContribution(filteredPayrolls);
     ChartDataDTO chartData = generateChartDataFromPayrolls(filteredPayrolls);
 
+    updateModel(model, resultPage, totalNetSalary, unpaidSalary);
     model.addAttribute("totalNetSalary", totalNetSalary);
     model.addAttribute("unpaidSalary", unpaidSalary);
     model.addAttribute("companyTaxContributions", companyTaxContributions);
@@ -256,9 +257,6 @@ public class PayrollController {
     model.addAttribute("chartData", chartData);
     model.addAttribute("departments", departmentService.getAllDepartments());
     model.addAttribute("positions", positionService.getAllPositions());
-
-    updateModel(model, resultPage, totalNetSalary, unpaidSalary);
-
     return "index";
   }
 

@@ -695,69 +695,6 @@
                     </div>
                 </div>
             </div>
-
-            <div class="bg-white rounded-xl shadow-lg p-4 animate__animated animate__fadeIn">
-                <h2 class="text-lg font-semibold mb-4 text-gray-800 flex items-center">
-                    <i class="fas fa-tasks mr-2 text-primary-500"></i>
-                    Actions
-                </h2>
-
-                <div class="flex flex-col space-y-2">
-                    <a th:href="@{/attendance/print(attendanceId=${attendance.attendanceId})}" class="btn btn-secondary w-full flex justify-center items-center mb-2">
-                        <i class="fas fa-print mr-2"></i>
-                        Print Report
-                    </a>
-
-                    <a th:href="@{/attendance/export/pdf(attendanceId=${attendance.attendanceId})}" class="btn btn-secondary w-full flex justify-center items-center mb-2">
-                        <i class="fas fa-file-pdf mr-2"></i>
-                        Export PDF
-                    </a>
-
-                    <a th:href="@{/attendance/export/excel(attendanceId=${attendance.attendanceId})}" class="btn btn-secondary w-full flex justify-center items-center mb-2">
-                        <i class="fas fa-file-excel mr-2"></i>
-                        Export Excel
-                    </a>
-
-                    <button onclick="emailReport()" class="btn btn-secondary w-full flex justify-center items-center">
-                        <i class="fas fa-envelope mr-2"></i>
-                        Email Report
-                    </button>
-                </div>
-            </div>
-
-            <div class="bg-white rounded-xl shadow-lg p-4 animate__animated animate__fadeIn">
-                <h2 class="text-lg font-semibold mb-4 text-gray-800 flex items-center">
-                    <i class="fas fa-clipboard-check mr-2 text-primary-500"></i>
-                    Approval Status
-                </h2>
-
-                <div th:if="${attendance.attendanceStatus == 'On time' || attendance.attendanceStatus == 'Late'}" class="flex items-center p-3 bg-green-50 rounded-lg">
-                    <i class="fas fa-check-circle text-green-500 text-xl mr-3"></i>
-                    <div>
-                        <p class="font-medium">Approved</p>
-                        <p class="text-sm text-gray-500">Approved by: Admin</p>
-                        <p class="text-xs text-gray-400" th:text="${#temporals.format(attendance.attendanceDate, 'MM/dd/yyyy HH:mm')}">04/03/2025 09:15</p>
-                    </div>
-                </div>
-
-                <div th:if="${attendance.attendanceStatus == 'Absent'}" class="flex items-center p-3 bg-red-50 rounded-lg">
-                    <i class="fas fa-times-circle text-red-500 text-xl mr-3"></i>
-                    <div>
-                        <p class="font-medium">Marked as Absent</p>
-                        <p class="text-sm text-gray-500">By: System</p>
-                        <p class="text-xs text-gray-400" th:text="${#temporals.format(attendance.attendanceDate, 'MM/dd/yyyy HH:mm')}">04/03/2025 09:15</p>
-                    </div>
-                </div>
-
-                <div th:if="${attendance.attendanceStatus != 'On time' && attendance.attendanceStatus != 'Late' && attendance.attendanceStatus != 'Absent'}" class="flex items-center p-3 bg-yellow-50 rounded-lg">
-                    <i class="fas fa-clock text-yellow-500 text-xl mr-3"></i>
-                    <div>
-                        <p class="font-medium">Pending Approval</p>
-                        <p class="text-sm text-gray-500">Submitted on:</p>
-                        <p class="text-xs text-gray-400" th:text="${#temporals.format(attendance.attendanceDate, 'MM/dd/yyyy HH:mm')}">04/03/2025 09:15</p>
-                    </div>
-                </div>
-            </div>
         </div>
     </div>
 </div>

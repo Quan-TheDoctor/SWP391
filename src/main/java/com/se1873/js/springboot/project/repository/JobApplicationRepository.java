@@ -1,5 +1,6 @@
 package com.se1873.js.springboot.project.repository;
 
+import com.se1873.js.springboot.project.dto.JobApplicationDTO;
 import com.se1873.js.springboot.project.entity.JobApplication;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
@@ -18,4 +19,6 @@ public interface JobApplicationRepository extends JpaRepository<JobApplication, 
 
     @Query("SELECT j.jobPosition.id as positionId, COUNT(j) as count FROM JobApplication j GROUP BY j.jobPosition.id")
     Map<Long, Long> countApplicationsByPositionId();
+
+  JobApplicationDTO getJobApplicationById(Long id);
 }

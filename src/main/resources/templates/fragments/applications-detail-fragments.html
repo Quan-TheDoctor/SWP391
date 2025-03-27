@@ -273,33 +273,26 @@
 
                 <div class="p-6">
                     <h3 class="text-sm font-medium text-gray-500 mb-3">Update Status</h3>
-                    <div class="space-y-2 mb-6">
-                        <button class="w-full px-4 py-2 bg-blue-50 text-blue-700 rounded-md hover:bg-blue-100 transition-colors text-sm font-medium flex items-center justify-center">
-                            <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z" />
-                            </svg>
-                            Move to Reviewing
+                    <div class="flex justify-end space-x-3 mb-6">
+                        <button th:if="${jobApplication.status == 'Pending'}"
+                                onclick="showStatusModal('Reviewing', 'Move to Reviewing')"
+                                class="px-4 py-2 bg-yellow-500 text-white rounded-md hover:bg-yellow-600 transition-colors">
+                            <i class="fas fa-eye mr-2"></i>Move to Reviewing
                         </button>
-
-                        <button class="w-full px-4 py-2 bg-purple-50 text-purple-700 rounded-md hover:bg-purple-100 transition-colors text-sm font-medium flex items-center justify-center">
-                            <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
-                            </svg>
-                            Schedule Interview
+                        <button th:if="${jobApplication.status == 'Reviewing'}"
+                                onclick="showStatusModal('Interviewing', 'Schedule Interview')"
+                                class="px-4 py-2 bg-purple-500 text-white rounded-md hover:bg-purple-600 transition-colors">
+                            <i class="fas fa-calendar mr-2"></i>Schedule Interview
                         </button>
-
-                        <button class="w-full px-4 py-2 bg-green-50 text-green-700 rounded-md hover:bg-green-100 transition-colors text-sm font-medium flex items-center justify-center">
-                            <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
-                            </svg>
-                            Send Offer
+                        <button th:if="${jobApplication.status == 'Interviewing'}"
+                                onclick="showStatusModal('Hire', 'Hired')"
+                                class="px-4 py-2 bg-green-600 text-white rounded-md hover:bg-green-700 transition-colors">
+                            <i class="fas fa-check mr-2"></i>Hire
                         </button>
-
-                        <button class="w-full px-4 py-2 bg-red-50 text-red-700 rounded-md hover:bg-red-100 transition-colors text-sm font-medium flex items-center justify-center">
-                            <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
-                            </svg>
-                            Reject Application
+                        <button th:if="${jobApplication.status != 'Rejected' && jobApplication.status != 'Hired'}"
+                                onclick="showStatusModal('Rejected', 'Reject Application')"
+                                class="px-4 py-2 bg-red-500 text-white rounded-md hover:bg-red-600 transition-colors">
+                            <i class="fas fa-times mr-2"></i>Reject Application
                         </button>
                     </div>
 
@@ -321,69 +314,86 @@
                     </div>
                 </div>
             </div>
+        </div>
+    </div>
 
-            <!-- Timeline -->
-            <div class="bg-white rounded-xl shadow-md overflow-hidden">
-                <div class="bg-gradient-to-r from-primary-50 to-secondary-50 px-6 py-4 border-b border-gray-200">
-                    <div class="flex items-center">
-                        <div class="p-2 rounded-md bg-blue-100 text-blue-600 mr-3">
-                            <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
-                            </svg>
-                        </div>
-                        <h2 class="text-lg font-semibold text-gray-800">Timeline</h2>
+    <!-- Status Update Modal -->
+    <div id="statusModal" class="fixed inset-0 bg-gray-600 bg-opacity-50 hidden overflow-y-auto h-full w-full">
+        <div class="relative top-20 mx-auto p-5 border w-96 shadow-lg rounded-md bg-white">
+            <div class="mt-3">
+                <h3 class="text-lg font-medium text-gray-900 mb-4" id="statusModalTitle">Update Status</h3>
+                <form id="statusForm" th:action="@{/recruitment/applications/{id}/update-status(id=${jobApplication.id})}" method="post">
+                    <input type="hidden" name="newStatus" id="newStatus">
+                    <div class="mb-4">
+                        <label for="statusNotes" class="block text-sm font-medium text-gray-700 mb-1">Notes</label>
+                        <textarea id="statusNotes" name="notes" rows="4" 
+                                  class="block w-full rounded-md border-gray-300 shadow-sm focus:border-primary-500 focus:ring-primary-500"
+                                  th:text="${jobApplication.notes}"></textarea>
                     </div>
-                </div>
-
-                <div class="p-6">
-                    <div class="flow-root">
-                        <ul role="list" class="-mb-8">
-                            <li>
-                                <div class="relative pb-8">
-                                    <span class="absolute top-5 left-5 -ml-px h-full w-0.5 bg-gray-200" aria-hidden="true"></span>
-                                    <div class="relative flex items-start space-x-3">
-                                        <div class="relative">
-                                            <div class="h-10 w-10 rounded-full bg-blue-100 text-blue-600 flex items-center justify-center ring-8 ring-white">
-                                                <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6" />
-                                                </svg>
-                                            </div>
-                                        </div>
-                                        <div class="min-w-0 flex-1">
-                                            <div>
-                                                <p class="text-sm text-gray-500">Application Received</p>
-                                                <p class="mt-0.5 text-xs text-gray-400" th:text="${#temporals.format(jobApplication.appliedDate, 'dd MMM yyyy')}"></p>
-                                            </div>
-                                        </div>
-                                    </div>
-                                </div>
-                            </li>
-
-                            <li>
-                                <div class="relative pb-8">
-                                    <div class="relative flex items-start space-x-3">
-                                        <div class="relative">
-                                            <div class="h-10 w-10 rounded-full bg-gray-100 text-gray-400 flex items-center justify-center ring-8 ring-white">
-                                                <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z" />
-                                                </svg>
-                                            </div>
-                                        </div>
-                                        <div class="min-w-0 flex-1">
-                                            <div>
-                                                <p class="text-sm text-gray-500">Status Updated</p>
-                                                <p class="mt-0.5 text-xs text-gray-400">Waiting for next step</p>
-                                            </div>
-                                        </div>
-                                    </div>
-                                </div>
-                            </li>
-                        </ul>
+                    <div class="flex justify-end space-x-3">
+                        <button type="button" onclick="closeStatusModal()" 
+                                class="px-4 py-2 bg-gray-100 text-gray-700 rounded-md hover:bg-gray-200 transition-colors">
+                            Cancel
+                        </button>
+                        <button type="submit" 
+                                class="px-4 py-2 bg-primary-600 text-white rounded-md hover:bg-primary-700 transition-colors">
+                            Update Status
+                        </button>
                     </div>
-                </div>
+                </form>
             </div>
         </div>
     </div>
+
+    <script th:inline="javascript">
+        const applicationId = [[${jobApplication.id}]];
+        
+        function showStatusModal(action, newStatus) {
+            const modal = document.getElementById('statusModal');
+            const modalTitle = document.getElementById('statusModalTitle');
+            const statusInput = document.getElementById('newStatus');
+            const notesTextarea = document.getElementById('statusNotes');
+            const form = document.getElementById('statusForm');
+            
+            modalTitle.textContent = action + ' Application';
+            statusInput.value = newStatus;
+            notesTextarea.value = '';
+            
+            modal.classList.remove('hidden');
+            
+            if (action === 'Hire') {
+                form.onsubmit = function(e) {
+                    e.preventDefault();
+                    const formData = new FormData(form);
+                    fetch(form.action, {
+                        method: 'POST',
+                        body: formData
+                    }).then(response => {
+                        if (response.ok) {
+                            window.location.href = `/employee/create/form?applicationId=${applicationId}`;
+                        } else {
+                            console.error('Failed to update status');
+                        }
+                    }).catch(error => {
+                        console.error('Error:', error);
+                    });
+                };
+            } else {
+                form.onsubmit = null;
+            }
+        }
+
+        function closeStatusModal() {
+            document.getElementById('statusModal').classList.add('hidden');
+        }
+
+        window.onclick = function(event) {
+            const modal = document.getElementById('statusModal');
+            if (event.target == modal) {
+                closeStatusModal();
+            }
+        }
+    </script>
 </div>
 </body>
 </html>

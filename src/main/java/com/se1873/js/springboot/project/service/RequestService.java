@@ -40,7 +40,7 @@ import java.util.stream.Collectors;
 @RequiredArgsConstructor
 public class RequestService {
   private static final String DEFAULT_STATUS = "Pending";
-  private static final String LEAVE_REQUEST_TYPE = "Đơn xin nghỉ";
+  private static final String LEAVE_REQUEST_TYPE = "Leave Permit";
 
   private final RequestRepository requestRepository;
   private final LeaveRepository leaveRepository;
@@ -480,5 +480,82 @@ public class RequestService {
                     .orElse(null))
             .createdDate(request.getCreatedAt().toLocalDate())
             .build();
+  }
+
+  public Page<RequestDTO> multiFilter(String type, String status, String dateRange,
+                                    String requester, String department, Pageable pageable) {
+    try {
+      // Lấy tất cả requests
+      List<Request> allRequests = requestRepository.findAll();
+      List<Request> filteredRequests = new ArrayList<>(allRequests);
+
+      // Lọc theo loại yêu cầu
+      if (type != null && !"all".equals(type)) {
+        filteredRequests = filteredRequests.stream()
+                .filter(r -> r.getRequestType() != null && r.getRequestType().equalsIgnoreCase(type))
+                .collect(Collectors.toList());
+      }
+
+      if (status != null && !"all".equals(status)) {
+        filteredRequests = filteredRequests.stream()
+                .filter(r -> r.getStatus() != null && r.getStatus().equalsIgnoreCase(status))
+                .collect(Collectors.toList());
+      }
+
+      if (dateRange != null && !dateRange.isEmpty()) {
+        try {
+          String[] dates = dateRange.split(" - ");
+          if (dates.length == 2) {
+            LocalDate startDate = LocalDate.parse(dates[0], java.time.format.DateTimeFormatter.ofPattern("dd/MM/yyyy"));
+            LocalDate endDate = LocalDate.parse(dates[1], java.time.format.DateTimeFormatter.ofPattern("dd/MM/yyyy"));
+            filteredRequests = filteredRequests.stream()
+                    .filter(r -> {
+                      if (r.getCreatedAt() == null) return false;
+                      LocalDate requestDate = r.getCreatedAt().toLocalDate();
+                      return !requestDate.isBefore(startDate) && !requestDate.isAfter(endDate);
+                    })
+                    .collect(Collectors.toList());
+          }
+        } catch (Exception e) {
+          log.error("Error parsing date range: {}", e.getMessage());
+        }
+      }
+
+      if (requester != null && !"all".equals(requester)) {
+        filteredRequests = filteredRequests.stream()
+                .filter(r -> r.getUser() != null && r.getUser().getUserId() != null &&
+                           r.getUser().getUserId().toString().equals(requester))
+                .collect(Collectors.toList());
+      }
+
+      if (department != null && !"all".equals(department)) {
+        filteredRequests = filteredRequests.stream()
+                .filter(r -> {
+                  try {
+                    if (r.getUser() == null || r.getUser().getEmployee() == null) return false;
+                    EmployeeDTO dto = employeeService.getEmployeeByEmployeeId(r.getUser().getEmployee().getEmployeeId());
+                    return dto != null && dto.getDepartmentId() != null &&
+                           dto.getDepartmentId().equals(department);
+                  } catch (Exception e) {
+                    log.error("Error filtering by department: {}", e.getMessage());
+                    return false;
+                  }
+                })
+                .collect(Collectors.toList());
+      }
+
+      int start = (int) pageable.getOffset();
+      int end = Math.min((start + pageable.getPageSize()), filteredRequests.size());
+      List<Request> pageContent = filteredRequests.subList(start, end);
+
+      List<RequestDTO> filteredDTOs = pageContent.stream()
+              .map(this::convertRequestToDTO)
+              .collect(Collectors.toList());
+
+      return new PageImpl<>(filteredDTOs, pageable, filteredRequests.size());
+    } catch (Exception e) {
+      log.error("Error in multiFilter: {}", e.getMessage());
+      return new PageImpl<>(Collections.emptyList(), pageable, 0);
+    }
   }
 }

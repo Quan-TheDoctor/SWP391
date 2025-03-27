@@ -845,7 +845,7 @@ public class SalaryRecordService {
       .requesterId(form.getRequesterId())
       .payrollIds(payrollIds)
       .requestDate(LocalDate.now())
-      .requestType("Hạch toán lương")
+      .requestType("Salary Calculation")
       .requestStatus("Pending")
       .approvalName(approval.get().getUsername())
       .build();

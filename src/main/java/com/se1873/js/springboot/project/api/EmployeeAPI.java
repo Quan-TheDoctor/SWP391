@@ -33,4 +33,9 @@ public class EmployeeAPI {
     Page<EmployeeDTO> employees = employeeService.getEmployeesByDepartmentId(departmentId, PageRequest.of(0, 10));
     return ResponseEntity.ok(employees.getContent());
   }
+  @GetMapping("/getAll")
+  public ResponseEntity<List<EmployeeDTO>> getAll() {
+    List<EmployeeDTO> employees = employeeService.getAllEmployees();
+    return ResponseEntity.ok(employees);
+  }
 }
