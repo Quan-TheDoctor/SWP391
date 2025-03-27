@@ -27,7 +27,7 @@ public class UserCommandServiceImpl implements UserCommandService {
 
   @Override
   public void createUserAccount(Employee employee) {
-    Role role = roleRepository.getRoleByName("EMPLOYEE");
+    Role role = roleRepository.getRoleByName("Employee");
 
     userRepository.save(User.builder()
       .username(employee.getCompanyEmail())
