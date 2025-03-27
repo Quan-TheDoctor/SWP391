@@ -181,6 +181,14 @@ public class LeaveController {
             leave.setStartDate(LocalDate.parse(startDate));
             leave.setEndDate(LocalDate.parse(endDate));
             leave.setTotalDays(totalDays);
+            
+            // Lấy leavePolicyId từ leaveType
+            LeavePolicy leavePolicy = leavePolicyService.getAllLeavePolicies().stream()
+                .filter(policy -> policy.getLeavePolicyName().equals(leaveType))
+                .findFirst()
+                .orElseThrow(() -> new RuntimeException("Không tìm thấy chính sách nghỉ phép cho loại: " + leaveType));
+            leave.setLeavePolicyId(leavePolicy.getLeavePolicyId());
+            
             requestDTO.setPayrollIds(Collections.singletonList(employeeId));
             System.out.println("check total day: " + totalDays);
             requestDTO.setLeaveDTO(leave);

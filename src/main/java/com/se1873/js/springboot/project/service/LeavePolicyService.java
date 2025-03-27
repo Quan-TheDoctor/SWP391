@@ -25,9 +25,13 @@ public class LeavePolicyService {
 
     public Integer calculate(Integer leavePolicyId,Integer employeeId, RequestDTO requestDTO){
         LeavePolicy leavePolicy = leavePolicyRepository.findLeavePolicyByLeavePolicyId(leavePolicyId);
+        if (leavePolicy == null) {
+            throw new RuntimeException("Không tìm thấy chính sách nghỉ phép với ID: " + leavePolicyId);
+        }
+        
         List<Leave> allLeave = leaveRepository.findAllByEmployee_EmployeeId(employeeId);
         int totalUsedDay = allLeave.stream()
-          .filter(leave -> leave.getReason().equals(leavePolicy.getLeavePolicyName()) && leave.getStatus().equals("Approved"))
+          .filter(leave -> leave.getLeavePolicyId().equals(leavePolicy.getLeavePolicyId()) && leave.getStatus().equals("Approved"))
           .mapToInt(Leave::getTotalDays)
           .sum();
         int remainingDays = 0;

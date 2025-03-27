@@ -131,7 +131,7 @@ public class RequestService {
             .startDate(requestDTO.getLeaveDTO().getStartDate())
             .endDate(requestDTO.getLeaveDTO().getEndDate())
             .totalDays(requestDTO.getLeaveDTO().getTotalDays())
-            .status("pending")
+            .status("Pending")
             .leaveAllowedDay(requestDTO.getLeaveDTO().getLeaveAllowedDay())
             .reason(requestDTO.getLeaveDTO().getReason())
             .createdAt(LocalDateTime.now())
@@ -145,13 +145,13 @@ public class RequestService {
 
     Request request = Request.builder()
             .requesterId(user.getUserId())
-            .requestType("Đơn xin nghỉ")
+            .requestType("Leave Permit")
             .reason(requestDTO.getLeaveDTO().getReason())
-            .startDate(requestDTO.getLeaveDTO().getEndDate())
+            .startDate(requestDTO.getLeaveDTO().getStartDate())
             .endDate(requestDTO.getLeaveDTO().getEndDate())
             .totalDays(requestDTO.getLeaveDTO().getTotalDays())
             .note(requestDTO.getNote())
-            .status("pending")
+            .status("Pending")
             .requestIdList(leaveId.toString())
             .createdAt(LocalDateTime.now())
             .user(user)
@@ -185,7 +185,7 @@ public class RequestService {
     User approval = userRepository.findUserByUsername(requestDTO.getApprovalName())
             .orElse(null);
     if("Leave Permit".equals(type)) {
-      String status = "approve".equals(requestDTO.getRequestStatus()) ? "approve" : "deny";
+      String status = "Approved".equals(requestDTO.getRequestStatus()) ? "Approved" : "Denied";
       Request request = requestRepository.findRequestByRequestId(requestDTO.getRequestId());
       request.setApproval(approval);
       request.setStatus(status);
@@ -241,7 +241,7 @@ public class RequestService {
             .build();
   }
   public Integer countPendingRequests() {
-    return requestRepository.countByStatus("pending");
+    return requestRepository.countByStatus("Pending");
   }
   public Page<RequestDTO> searchRequests(String query, Pageable pageable) {
     String requesterName = query;

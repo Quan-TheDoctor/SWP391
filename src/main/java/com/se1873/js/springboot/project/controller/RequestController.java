@@ -296,27 +296,27 @@ public class RequestController {
 
         if ("Salary Calculation".equals(type)) {
             switch (field) {
-                case "approve":
-                    if ("pending".equals(requestDTO.getRequestStatus())) {
-                        requestDTO.setRequestStatus("approve");
+                case "Approved":
+                    if ("Pending".equals(requestDTO.getRequestStatus())) {
+                        requestDTO.setRequestStatus("Approved");
                         requestDTO.setApprovalName(user.getUsername());
                         requestService.updateStatus(requestDTO, type);
                         notificationMessage = "yêu cầu hạch toán lương được phê duyệt bởi " + user.getUsername();
                     }
                     break;
-                case "deny":
-                    if ("pending".equals(requestDTO.getRequestStatus())) {
-                        requestDTO.setRequestStatus("deny");
+                case "Denied":
+                    if ("Pending".equals(requestDTO.getRequestStatus())) {
+                        requestDTO.setRequestStatus("Denied");
                         requestService.updateStatus(requestDTO, type);
                         notificationMessage = "yêu cầu hạch toán lương bị từ chối bởi " + user.getUsername();
                     }
                     break;
             }
-        } else if ("Đơn xin nghỉ".equals(type)) {
+        } else if ("Leave Permit".equals(type)) {
             switch (field) {
-                case "approve":
-                    if ("pending".equals(requestDTO.getRequestStatus())) {
-                        requestDTO.setRequestStatus("approve");
+                case "Approved":
+                    if ("Pending".equals(requestDTO.getRequestStatus())) {
+                        requestDTO.setRequestStatus("Approved");
                         requestDTO.setApprovalName(user.getUsername());
                         requestService.updateStatus(requestDTO,type);
                         int remainingDays = leavePolicyService.calculate(requestDTO.getLeaveDTO().getLeavePolicyId(), employeeId,requestDTO);
@@ -325,9 +325,9 @@ public class RequestController {
                         notificationMessage = "đơn xin nghỉ được phê duyệt bởi " + user.getUsername();
                     }
                     break;
-                case "deny":
-                    if ("pending".equals(requestDTO.getRequestStatus())) {
-                        requestDTO.setRequestStatus("deny");
+                case "Denied":
+                    if ("Pending".equals(requestDTO.getRequestStatus())) {
+                        requestDTO.setRequestStatus("Denied");
                         requestDTO.setApprovalName(user.getUsername());
                         requestService.updateStatus(requestDTO, type);
                         requestService.save(requestDTO,requestUser,employee);
