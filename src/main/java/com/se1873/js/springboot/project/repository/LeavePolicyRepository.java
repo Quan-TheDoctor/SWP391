@@ -8,4 +8,6 @@ import org.springframework.stereotype.Repository;
 @Repository
 public interface LeavePolicyRepository extends JpaRepository<LeavePolicy, Integer> {
     LeavePolicy findLeavePolicyByLeavePolicyId(Integer leavePolicyId);
+
+  LeavePolicy findLeavePolicyByLeavePolicyName(String leavePolicyName);
 }

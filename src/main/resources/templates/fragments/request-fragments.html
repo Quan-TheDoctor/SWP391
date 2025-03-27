@@ -387,55 +387,43 @@
                         <div class="hidden sm:flex-1 sm:flex sm:items-center sm:justify-between">
                             <div>
                                 <p class="text-sm text-gray-700">
-                                    Page <span class="font-medium" th:text="${requests.number + 1}">1</span>
-                                    of <span class="font-medium" th:text="${requests.totalPages}">10</span>
+                                    Trang <span class="font-medium" th:text="${requests.number + 1}">1</span>
+                                    trên <span class="font-medium" th:text="${requests.totalPages}">10</span>
                                 </p>
                             </div>
                             <div>
                                 <nav class="relative z-0 inline-flex rounded-md shadow-sm -space-x-px"
                                      aria-label="Pagination">
-                                    <!-- First page -->
-                                    <a th:href="@{/request/multi-filter(page=0, type=${param.type}, status=${param.status}, dateRange=${param.dateRange}, requester=${param.requester})}"
+                                    <!-- First Page -->
+                                    <a th:href="@{/request/multi-filter(page=0, type=${param.type != null ? param.type[0] : 'all'}, status=${param.status != null ? param.status[0] : 'all'}, dateRange=${param.dateRange != null ? param.dateRange[0] : ''}, requester=${param.requester != null ? param.requester[0] : 'all'}, department=${param.department != null ? param.department[0] : 'all'})}"
                                        class="relative inline-flex items-center px-2 py-2 rounded-l-md border border-gray-300 bg-white text-sm font-medium text-gray-500 hover:bg-gray-50">
                                         <i class="fas fa-angle-double-left"></i>
                                     </a>
 
-                                    <!-- Previous page -->
-                                    <a th:if="${requests.hasPrevious()}"
-                                       th:href="@{/request/multi-filter(page=${requests.number - 1}, type=${param.type}, status=${param.status}, dateRange=${param.dateRange}, requester=${param.requester})}"
+                                    <!-- Previous Page -->
+                                    <a th:href="@{/request/multi-filter(page=${requests.number - 1}, type=${param.type != null ? param.type[0] : 'all'}, status=${param.status != null ? param.status[0] : 'all'}, dateRange=${param.dateRange != null ? param.dateRange[0] : ''}, requester=${param.requester != null ? param.requester[0] : 'all'}, department=${param.department != null ? param.department[0] : 'all'})}"
+                                       th:if="${requests.number > 0}"
                                        class="relative inline-flex items-center px-2 py-2 border border-gray-300 bg-white text-sm font-medium text-gray-500 hover:bg-gray-50">
                                         <i class="fas fa-angle-left"></i>
                                     </a>
-                                    <span th:unless="${requests.hasPrevious()}"
-                                          class="relative inline-flex items-center px-2 py-2 border border-gray-300 bg-white text-sm font-medium text-gray-300 cursor-not-allowed">
-                                        <i class="fas fa-angle-left"></i>
-                                    </span>
 
-                                    <!-- Page numbers -->
-                                    <span th:each="i : ${#numbers.sequence(1, requests.totalPages)}"
-                                          th:if="${i <= 5 || i > requests.totalPages - 3 || (i >= requests.number - 1 && i <= requests.number + 3)}">
-                                        <a th:if="${i != requests.number + 1}"
-                                           th:href="@{/request/multi-filter(page=${i - 1}, type=${param.type}, status=${param.status}, dateRange=${param.dateRange}, requester=${param.requester})}"
-                                           class="relative inline-flex items-center px-4 py-2 border border-gray-300 bg-white text-sm font-medium text-gray-700 hover:bg-gray-50"
-                                           th:text="${i}">1</a>
-                                        <span th:if="${i == requests.number + 1}"
-                                              class="relative inline-flex items-center px-4 py-2 border border-primary-500 bg-primary-50 text-sm font-medium text-primary-600"
-                                              th:text="${i}">1</span>
-                                    </span>
+                                    <!-- Page Numbers -->
+                                    <template th:each="pageNum : ${#numbers.sequence(0, requests.totalPages - 1)}">
+                                        <a th:href="@{/request/multi-filter(page=${pageNum}, type=${param.type != null ? param.type[0] : 'all'}, status=${param.status != null ? param.status[0] : 'all'}, dateRange=${param.dateRange != null ? param.dateRange[0] : ''}, requester=${param.requester != null ? param.requester[0] : 'all'}, department=${param.department != null ? param.department[0] : 'all'})}"
+                                           th:text="${pageNum + 1}"
+                                           th:class="${pageNum == requests.number ? 'relative inline-flex items-center px-4 py-2 border border-primary-500 bg-primary-50 text-sm font-medium text-primary-600' : 'relative inline-flex items-center px-4 py-2 border border-gray-300 bg-white text-sm font-medium text-gray-700 hover:bg-gray-50'}">
+                                        </a>
+                                    </template>
 
-                                    <!-- Next page -->
-                                    <a th:if="${requests.hasNext()}"
-                                       th:href="@{/request/multi-filter(page=${requests.number + 1}, type=${param.type}, status=${param.status}, dateRange=${param.dateRange}, requester=${param.requester})}"
+                                    <!-- Next Page -->
+                                    <a th:href="@{/request/multi-filter(page=${requests.number + 1}, type=${param.type != null ? param.type[0] : 'all'}, status=${param.status != null ? param.status[0] : 'all'}, dateRange=${param.dateRange != null ? param.dateRange[0] : ''}, requester=${param.requester != null ? param.requester[0] : 'all'}, department=${param.department != null ? param.department[0] : 'all'})}"
+                                       th:if="${requests.number < requests.totalPages - 1}"
                                        class="relative inline-flex items-center px-2 py-2 border border-gray-300 bg-white text-sm font-medium text-gray-500 hover:bg-gray-50">
                                         <i class="fas fa-angle-right"></i>
                                     </a>
-                                    <span th:unless="${requests.hasNext()}"
-                                          class="relative inline-flex items-center px-2 py-2 border border-gray-300 bg-white text-sm font-medium text-gray-300 cursor-not-allowed">
-                                        <i class="fas fa-angle-right"></i>
-                                    </span>
 
-                                    <!-- Last page -->
-                                    <a th:href="@{/request/multi-filter(page=${requests.totalPages - 1}, type=${param.type}, status=${param.status}, dateRange=${param.dateRange}, requester=${param.requester})}"
+                                    <!-- Last Page -->
+                                    <a th:href="@{/request/multi-filter(page=${requests.totalPages - 1}, type=${param.type != null ? param.type[0] : 'all'}, status=${param.status != null ? param.status[0] : 'all'}, dateRange=${param.dateRange != null ? param.dateRange[0] : ''}, requester=${param.requester != null ? param.requester[0] : 'all'}, department=${param.department != null ? param.department[0] : 'all'})}"
                                        class="relative inline-flex items-center px-2 py-2 rounded-r-md border border-gray-300 bg-white text-sm font-medium text-gray-500 hover:bg-gray-50">
                                         <i class="fas fa-angle-double-right"></i>
                                     </a>

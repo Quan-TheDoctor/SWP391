@@ -18,4 +18,6 @@ public interface LeaveRepository extends JpaRepository<Leave,Long> {
   List<Leave> findLeaveByEmployee_EmployeeIdAndStartDateAndEndDate(Integer employeeEmployeeId, LocalDate startDate, LocalDate endDate);
 
     Page<Leave> getLeaveByLeaveType(String leaveType, Pageable pageable);
+
+  Leave findByLeaveId(Integer leaveId);
 }

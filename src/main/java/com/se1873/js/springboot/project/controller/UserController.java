@@ -16,6 +16,7 @@ import jakarta.validation.Valid;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
@@ -86,6 +87,7 @@ public class UserController {
   }
 
   @GetMapping("/detail")
+  @PreAuthorize("hasPermission('USER', 'VISIBLE')")
   public String viewUserProfile(Model model) {
     EmployeeDTO employee = employeeService.getEmployeeByEmployeeId(getEmployeeId());
 
@@ -98,13 +100,13 @@ public class UserController {
   }
 
   @RequestMapping("/save")
+  @PreAuthorize("hasPermission('USER', 'UPDATE')")
   public String saveUserProfile(
     @Valid @ModelAttribute("employeeDTO") EmployeeDTO employeeDTO,
     @RequestParam(value = "avatarFile", required = false) MultipartFile avatarFile,
     BindingResult result,
     Model model) throws IOException {
     if (avatarFile != null && !avatarFile.isEmpty()) {
-      log.info("test");
       employeeDTO.setPicture(avatarFile.getBytes());
     }
 
@@ -117,7 +119,6 @@ public class UserController {
     }
 
     try {
-      log.info(employeeDTO.toString());
       employeeService.saveEmployee(employeeDTO);
     } catch (Exception e) {
       model.addAttribute("message", e.getMessage());
@@ -158,6 +159,7 @@ public class UserController {
   }
 
   @RequestMapping("/attendance")
+  @PreAuthorize("hasPermission('USER', 'UPDATE')")
   public String attendance(Model model,
                            @RequestParam(value = "page", defaultValue = "0") int page,
                            @RequestParam(value = "size", defaultValue = "5") int size) {
@@ -172,6 +174,7 @@ public class UserController {
   }
 
   @RequestMapping("/payroll")
+  @PreAuthorize("hasPermission('USER', 'UPDATE')")
   public String payroll(Model model,
                         @RequestParam(value = "page", defaultValue = "0") int page,
                         @RequestParam(value = "size", defaultValue = "5") int size) {
@@ -190,6 +193,7 @@ public class UserController {
   }
 
   @RequestMapping("/filterAttendance")
+  @PreAuthorize("hasPermission('USER', 'UPDATE')")
   public String filterAttendance(Model model,
                                  @RequestParam(value = "status", required = false) String status,
                                  @RequestParam(value = "month", required = false) YearMonth month,
@@ -216,6 +220,7 @@ public class UserController {
   }
 
   @RequestMapping("/filterPayroll")
+  @PreAuthorize("hasPermission('USER', 'UPDATE')")
   public String filterPayroll(Model model,
                               @RequestParam(value = "month", required = false) YearMonth month,
                               @RequestParam(value = "page", defaultValue = "0") int page,
@@ -233,6 +238,7 @@ public class UserController {
 
 
   @GetMapping("/download/{id}")
+  @PreAuthorize("hasPermission('USER', 'UPDATE')")
   public String downloadPayslip(Model model,
                                 @PathVariable("id") int id) {
     PayrollDTO payroll = salaryRecordService.payrollDTO(id);
@@ -241,6 +247,7 @@ public class UserController {
   }
 
   @RequestMapping("/notification")
+  @PreAuthorize("hasPermission('USER', 'UPDATE')")
   public String notification(Model model){
     List<Notification> notifications = notificationRepository.getNotificationsByUser_UserId(getUserId());
     long unreadCount = notifications.stream().filter(n -> "unread".equals(n.getStatus())).count();
@@ -251,6 +258,7 @@ public class UserController {
   }
 
   @RequestMapping("/mark")
+  @PreAuthorize("hasPermission('USER', 'UPDATE')")
   public String mark(Model model,
                      @RequestParam("notificationId") Integer notificationId){
     Notification notification = notificationRepository.getNotificationByNotificationId(notificationId);
@@ -268,6 +276,7 @@ public class UserController {
   }
 
   @GetMapping("/view/{notificationId}")
+  @PreAuthorize("hasPermission('USER', 'UPDATE')")
   public String view(Model model,
                      @PathVariable("notificationId") Integer notificationId){
     Notification notification = notificationRepository.getNotificationByNotificationId(notificationId);
@@ -279,6 +288,7 @@ public class UserController {
   }
 
   @RequestMapping("/backNotification")
+  @PreAuthorize("hasPermission('USER', 'UPDATE')")
   public String backNotification(Model model){
     List<Notification> notifications = notificationRepository.getNotificationsByUser_UserId(getUserId());
     long unreadCount = notifications.stream().filter(n -> "unread".equals(n.getStatus())).count();

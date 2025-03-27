@@ -4,6 +4,8 @@ import com.se1873.js.springboot.project.dto.AuditLogDTO;
 import com.se1873.js.springboot.project.dto.RoleDTO;
 import com.se1873.js.springboot.project.dto.UserDTO;
 import com.se1873.js.springboot.project.entity.Employee;
+import com.se1873.js.springboot.project.entity.Role;
+import com.se1873.js.springboot.project.repository.RoleRepository;
 import com.se1873.js.springboot.project.entity.User;
 import com.se1873.js.springboot.project.mapper.AuditLogDTOMapper;
 import com.se1873.js.springboot.project.mapper.UserDTOMapper;
@@ -19,7 +21,6 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.io.IOException;
@@ -42,6 +43,7 @@ public class UserService {
   private final BCryptPasswordEncoder bCryptPasswordEncoder;
   private final UserCommandService userCommandService;
   private final UserQueryService userQueryService;
+  private final RoleRepository roleRepository;
 
   public void createUserAccount(Employee employee) {
     userCommandService.createUserAccount(employee);
@@ -103,9 +105,10 @@ public class UserService {
     return userQueryService.findByStatus(status, pageable).map(userDTOMapper::toDTO);
   }
   public void updateUser(UserDTO userDTO) {
+    Role role = roleRepository.getRoleByName(userDTO.getRole());
     User user = userQueryService.findUserByUserId(userDTO.getUserId());
     user.setUsername(userDTO.getUsername());
-    user.setRole(userDTO.getRole());
+    user.setRole(role.getName());
 
     userCommandService.saveUser(user);
   }

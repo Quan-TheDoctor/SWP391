@@ -64,7 +64,8 @@ public class LeaveController {
         model.addAttribute("size", size);
         model.addAttribute("leaves", leaves);
         model.addAttribute("leavePolicies", leavePolicies);
-        return "leave";
+        model.addAttribute("contentFragment", "fragments/leave-fragments");
+        return "index";
     }
 
     @RequestMapping("/leave-policies")
@@ -147,6 +148,12 @@ public class LeaveController {
         leaveRequestDTO.setEndDate(endDate);
         leaveRequestDTO.setTotalDays((int) daysBetween);
         leaveRequestDTO.setReason(reason);
+
+        if (employee != null && leaveType != null) {
+            Map<String, Integer> leaveBalance = leavePolicyService.getLeaveBalance(employee.getEmployeeId(), leaveType);
+            model.addAttribute("leaveBalance", leaveBalance);
+        }
+
         model.addAttribute("leavePolicies", leavePolicies);
         model.addAttribute("employeeList", employeeList);
         model.addAttribute("positionList", positionList);
@@ -185,7 +192,6 @@ public class LeaveController {
             requestService.save(requestDTO, user, employee);
 
             Optional<User> getUser = userService.getManagerByDepartmentId(departmentId);
-            //requestService.
             redirectAttributes.addFlashAttribute("successMessage", "Đơn xin nghỉ phép đã được tạo thành công!");
             return "redirect:/leave";
         } catch (Exception e) {

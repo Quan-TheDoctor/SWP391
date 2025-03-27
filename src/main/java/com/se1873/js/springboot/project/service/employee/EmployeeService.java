@@ -65,7 +65,7 @@ public class EmployeeService {
   public List<EmployeeDTO> getEmployeesByDepartmentId(Integer departmentId) {
     return employeeQueryService.getEmployeesByDepartmentId(departmentId)
       .stream().map(employeeDTOMapper::toDTO)
-      .filter(e -> e.getDepartmentId().equals(departmentId))
+      .filter(e -> e.getDepartmentId() != null && e.getDepartmentId().equals(departmentId))
       .collect(Collectors.toList());
   }
 

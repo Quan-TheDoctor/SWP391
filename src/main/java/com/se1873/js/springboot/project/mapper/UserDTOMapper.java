@@ -1,6 +1,8 @@
 package com.se1873.js.springboot.project.mapper;
 
+import com.se1873.js.springboot.project.dto.RoleDTO;
 import com.se1873.js.springboot.project.dto.UserDTO;
+import com.se1873.js.springboot.project.entity.Role;
 import com.se1873.js.springboot.project.entity.User;
 import org.mapstruct.*;
 

@@ -119,7 +119,6 @@ public class JobApplicationService {
         JobApplication application = jobApplicationRepository.findById(id)
                 .orElseThrow(() -> new RuntimeException("Application not found"));
         
-        // Validate status transition
         String currentStatus = application.getStatus();
         if (!isValidStatusTransition(currentStatus, newStatus)) {
             throw new RuntimeException("Invalid status transition from " + currentStatus + " to " + newStatus);
@@ -134,12 +133,11 @@ public class JobApplicationService {
     }
 
     private boolean isValidStatusTransition(String currentStatus, String newStatus) {
-        // Define valid status transitions
         return switch (currentStatus) {
             case "Pending" -> newStatus.equals("Reviewing") || newStatus.equals("Rejected");
             case "Reviewing" -> newStatus.equals("Interviewing") || newStatus.equals("Rejected");
             case "Interviewing" -> newStatus.equals("Hired") || newStatus.equals("Rejected");
-            case "Hired", "Rejected" -> false; // Terminal states
+            case "Hired", "Rejected" -> false;
             default -> false;
         };
     }

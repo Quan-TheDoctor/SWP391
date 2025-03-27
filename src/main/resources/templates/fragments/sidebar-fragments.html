@@ -1,0 +1,96 @@
+                <!-- Employee Management -->
+                <div sec:authorize="hasPermission('EMPLOYEE', 'VISIBLE')" class="space-y-1">
+                    <a th:href="@{/employee}"
+                       class="flex items-center px-4 py-2 text-gray-700 hover:bg-gray-100 rounded-lg transition-colors">
+                        <i class="fas fa-users mr-3 text-gray-500"></i>
+                        <span>Employee Management</span>
+                    </a>
+                </div>
+
+                <!-- User Management -->
+                <div sec:authorize="hasPermission('USER', 'VISIBLE')" class="space-y-1">
+                    <a th:href="@{/user}"
+                       class="flex items-center px-4 py-2 text-gray-700 hover:bg-gray-100 rounded-lg transition-colors">
+                        <i class="fas fa-user-cog mr-3 text-gray-500"></i>
+                        <span>User Management</span>
+                    </a>
+                </div>
+
+                <!-- Leave Management -->
+                <div sec:authorize="hasPermission('LEAVE', 'VISIBLE')" class="space-y-1">
+                    <a th:href="@{/leave}"
+                       class="flex items-center px-4 py-2 text-gray-700 hover:bg-gray-100 rounded-lg transition-colors">
+                        <i class="fas fa-calendar-alt mr-3 text-gray-500"></i>
+                        <span>Leave Management</span>
+                    </a>
+                    <a th:href="@{/create-leave}"
+                       class="flex items-center px-4 py-2 text-gray-700 hover:bg-gray-100 rounded-lg transition-colors">
+                        <i class="fas fa-plus-circle mr-3 text-gray-500"></i>
+                        <span>Create Leave</span>
+                    </a>
+                </div>
+
+                <!-- Attendance Management -->
+                <div sec:authorize="hasPermission('ATTENDANCE', 'VISIBLE')" class="space-y-1">
+                    <a th:href="@{/attendance}"
+                       class="flex items-center px-4 py-2 text-gray-700 hover:bg-gray-100 rounded-lg transition-colors">
+                        <i class="fas fa-clock mr-3 text-gray-500"></i>
+                        <span>Attendance Management</span>
+                    </a>
+                </div>
+
+                <!-- Payroll Management -->
+                <div sec:authorize="hasPermission('PAYROLL', 'VISIBLE')" class="space-y-1">
+                    <a th:href="@{/payroll}"
+                       class="flex items-center px-4 py-2 text-gray-700 hover:bg-gray-100 rounded-lg transition-colors">
+                        <i class="fas fa-money-bill-wave mr-3 text-gray-500"></i>
+                        <span>Payroll Management</span>
+                    </a>
+                    <a th:href="@{/payroll/policies}"
+                       class="flex items-center px-4 py-2 text-gray-700 hover:bg-gray-100 rounded-lg transition-colors">
+                        <i class="fas fa-file-invoice-dollar mr-3 text-gray-500"></i>
+                        <span>Financial Policy</span>
+                    </a>
+                </div>
+
+                <!-- Request Management -->
+                <div sec:authorize="hasPermission('REQUEST', 'VISIBLE')" class="space-y-1">
+                    <a th:href="@{/request}"
+                       class="flex items-center px-4 py-2 text-gray-700 hover:bg-gray-100 rounded-lg transition-colors">
+                        <i class="fas fa-clipboard-list mr-3 text-gray-500"></i>
+                        <span>Request Management</span>
+                    </a>
+                    <a th:href="@{/request/create/form}"
+                       class="flex items-center px-4 py-2 text-gray-700 hover:bg-gray-100 rounded-lg transition-colors">
+                        <i class="fas fa-plus-circle mr-3 text-gray-500"></i>
+                        <span>Create Request</span>
+                    </a>
+                </div>
+
+                <!-- Recruitment Management -->
+                <div sec:authorize="hasPermission('RECRUITMENT', 'VISIBLE')" class="space-y-1">
+                    <a th:href="@{/recruitment}"
+                       class="flex items-center px-4 py-2 text-gray-700 hover:bg-gray-100 rounded-lg transition-colors">
+                        <i class="fas fa-briefcase mr-3 text-gray-500"></i>
+                        <span>Recruitment Management</span>
+                    </a>
+                    <a th:href="@{/recruitment/positions}"
+                       class="flex items-center px-4 py-2 text-gray-700 hover:bg-gray-100 rounded-lg transition-colors">
+                        <i class="fas fa-list mr-3 text-gray-500"></i>
+                        <span>Positions List</span>
+                    </a>
+                    <a th:href="@{/recruitment/applications}"
+                       class="flex items-center px-4 py-2 text-gray-700 hover:bg-gray-100 rounded-lg transition-colors">
+                        <i class="fas fa-file-alt mr-3 text-gray-500"></i>
+                        <span>Applications List</span>
+                    </a>
+                </div>
+
+                <!-- System Management -->
+                <div sec:authorize="hasPermission('SYSTEM', 'VISIBLE')" class="space-y-1">
+                    <a th:href="@{/role}"
+                       class="flex items-center px-4 py-2 text-gray-700 hover:bg-gray-100 rounded-lg transition-colors">
+                        <i class="fas fa-user-shield mr-3 text-gray-500"></i>
+                        <span>Role Management</span>
+                    </a>
+                </div> 

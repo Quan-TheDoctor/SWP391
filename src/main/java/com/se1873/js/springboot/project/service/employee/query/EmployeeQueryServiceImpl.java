@@ -66,7 +66,7 @@ public class EmployeeQueryServiceImpl implements EmployeeQueryService {
     List<EmployeeDTO> employees = employeeRepository.findAll(pageable)
       .stream()
       .map(employeeDTOMapper::toDTO)
-      .filter(e -> !e.getIsDeleted() && e.getDepartmentId().equals(departmentId))
+      .filter(e -> !e.getIsDeleted() && e.getDepartmentId() != null && e.getDepartmentId().equals(departmentId))
       .collect(Collectors.toList());
 
     return new PageImpl<>(employees, pageable, employees.size());

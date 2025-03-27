@@ -35,7 +35,7 @@ public class JobApplication {
     private LocalDateTime appliedDate;
 
     @Column(nullable = false)
-    private String status; // PENDING, REVIEWING, SHORTLISTED, REJECTED, HIRED
+    private String status;
 
     @Column
     private String notes;

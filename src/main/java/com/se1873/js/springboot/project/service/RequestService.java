@@ -29,6 +29,7 @@ import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.*;
 import java.util.stream.Collectors;
+import java.time.format.DateTimeFormatter;
 
 /**
  * Service xử lý logic cho request từ Controller
@@ -54,6 +55,8 @@ public class RequestService {
   private final EmploymentHistoryRepository employmentHistoryRepository;
   private final EmployeeRepository employeeRepository;
   private final ReponseRepo responsRepository;
+  private final LeavePolicyRepository leavePolicyRepository;
+
   /**
    * Lấy danh sách requests đi kèm pagination
    * @param pageable Pagination information
@@ -98,6 +101,15 @@ public class RequestService {
     leave.setReason(requestDTO.getLeaveDTO().getReason());
     leave.setCreatedAt(LocalDateTime.now());
     leave.setEmployee(employee);
+
+    LeavePolicy leavePolicy = leavePolicyRepository.findLeavePolicyByLeavePolicyName(requestDTO.getLeaveDTO().getLeaveType());
+    if (leavePolicy != null) {
+      Leave lastLeave = leaveRepository.findTopByEmployee_EmployeeIdAndReasonOrderByLeaveIdDesc(employee.getEmployeeId(), leavePolicy.getLeavePolicyName());
+      int remainingDays = lastLeave != null ? lastLeave.getLeaveAllowedDay() : leavePolicy.getLeavePolicyAmount();
+      leave.setLeaveAllowedDay(remainingDays);
+      leave.setLeavePolicyId(leavePolicy.getLeavePolicyId());
+    }
+
     leaveRepository.save(leave);
     Integer leaveId = leave.getLeaveId();
 
@@ -455,80 +467,77 @@ public class RequestService {
             .build();
   }
 
-  public Page<RequestDTO> multiFilter(String type, String status, String dateRange, 
-                                    String requester, String department, Pageable pageable) {
+  public Page<RequestDTO> multiFilter(String type, String status, String dateRange, String requester, String department, Pageable pageable) {
     try {
-      // Lấy tất cả requests
       List<Request> allRequests = requestRepository.findAll();
-      List<Request> filteredRequests = new ArrayList<>(allRequests);
+      log.info("Tổng số requests ban đầu: {}", allRequests.size());
+      List<RequestDTO> filteredRequests = new ArrayList<>();
 
-      // Lọc theo loại yêu cầu
-      if (type != null && !"all".equals(type)) {
-        filteredRequests = filteredRequests.stream()
-                .filter(r -> r.getRequestType() != null && r.getRequestType().equalsIgnoreCase(type))
+      if (type != null && !type.equals("all")) {
+        allRequests = allRequests.stream()
+                .filter(r -> r.getRequestType().equals(type))
                 .collect(Collectors.toList());
+        log.info("Số requests sau lọc theo type: {}", allRequests.size());
       }
 
-      if (status != null && !"all".equals(status)) {
-        filteredRequests = filteredRequests.stream()
-                .filter(r -> r.getStatus() != null && r.getStatus().equalsIgnoreCase(status))
+      if (status != null && !status.equals("all")) {
+        allRequests = allRequests.stream()
+                .filter(r -> r.getStatus().equals(status))
                 .collect(Collectors.toList());
+        log.info("Số requests sau lọc theo status: {}", allRequests.size());
       }
 
       if (dateRange != null && !dateRange.isEmpty()) {
-        try {
-          String[] dates = dateRange.split(" - ");
-          if (dates.length == 2) {
-            LocalDate startDate = LocalDate.parse(dates[0], java.time.format.DateTimeFormatter.ofPattern("dd/MM/yyyy"));
-            LocalDate endDate = LocalDate.parse(dates[1], java.time.format.DateTimeFormatter.ofPattern("dd/MM/yyyy"));
-            filteredRequests = filteredRequests.stream()
-                    .filter(r -> {
-                      if (r.getCreatedAt() == null) return false;
-                      LocalDate requestDate = r.getCreatedAt().toLocalDate();
-                      return !requestDate.isBefore(startDate) && !requestDate.isAfter(endDate);
-                    })
-                    .collect(Collectors.toList());
-          }
-        } catch (Exception e) {
-          log.error("Error parsing date range: {}", e.getMessage());
+        String[] dates = dateRange.split(" - ");
+        if (dates.length == 2) {
+          LocalDate startDate = LocalDate.parse(dates[0], DateTimeFormatter.ofPattern("dd/MM/yyyy"));
+          LocalDate endDate = LocalDate.parse(dates[1], DateTimeFormatter.ofPattern("dd/MM/yyyy"));
+          allRequests = allRequests.stream()
+                  .filter(r -> !r.getStartDate().isBefore(startDate) && !r.getEndDate().isAfter(endDate))
+                  .collect(Collectors.toList());
+          log.info("Số requests sau lọc theo dateRange: {}", allRequests.size());
         }
       }
 
-      if (requester != null && !"all".equals(requester)) {
-        filteredRequests = filteredRequests.stream()
-                .filter(r -> r.getUser() != null && r.getUser().getUserId() != null && 
-                           r.getUser().getUserId().toString().equals(requester))
+      if (requester != null && !requester.equals("all")) {
+        allRequests = allRequests.stream()
+                .filter(r -> r.getUser().getUserId().toString().equals(requester))
                 .collect(Collectors.toList());
+        log.info("Số requests sau lọc theo requester: {}", allRequests.size());
       }
 
-      if (department != null && !"all".equals(department)) {
-        filteredRequests = filteredRequests.stream()
+      if (department != null && !department.equals("all")) {
+        allRequests = allRequests.stream()
                 .filter(r -> {
-                  try {
-                    if (r.getUser() == null || r.getUser().getEmployee() == null) return false;
-                    EmployeeDTO dto = employeeService.getEmployeeByEmployeeId(r.getUser().getEmployee().getEmployeeId());
-                    return dto != null && dto.getDepartmentId() != null && 
-                           dto.getDepartmentId().equals(department);
-                  } catch (Exception e) {
-                    log.error("Error filtering by department: {}", e.getMessage());
-                    return false;
-                  }
+                  EmployeeDTO employeeDTO = employeeService.getEmployeeByEmployeeId(r.getUser().getEmployee().getEmployeeId());
+                  return employeeDTO.getDepartmentId().toString().equals(department);
                 })
                 .collect(Collectors.toList());
+        log.info("Số requests sau lọc theo department: {}", allRequests.size());
       }
+
+      filteredRequests = allRequests.stream()
+              .map(this::convertRequestToDTO)
+              .collect(Collectors.toList());
+      log.info("Số requests sau chuyển đổi sang DTO: {}", filteredRequests.size());
 
       int start = (int) pageable.getOffset();
       int end = Math.min((start + pageable.getPageSize()), filteredRequests.size());
-      List<Request> pageContent = filteredRequests.subList(start, end);
+      log.info("Phân trang - start: {}, end: {}, pageSize: {}, totalSize: {}", 
+               start, end, pageable.getPageSize(), filteredRequests.size());
 
-      List<RequestDTO> filteredDTOs = pageContent.stream()
-              .map(this::convertRequestToDTO)
-              .collect(Collectors.toList());
+      if (filteredRequests.isEmpty()) {
+        log.info("Không có dữ liệu sau khi lọc");
+        return new PageImpl<>(Collections.emptyList(), pageable, 0);
+      }
 
-      return new PageImpl<>(filteredDTOs, pageable, filteredRequests.size());
+      List<RequestDTO> pageContent = filteredRequests.subList(start, end);
+      log.info("Số lượng items trong trang hiện tại: {}", pageContent.size());
+
+      return new PageImpl<>(pageContent, pageable, filteredRequests.size());
     } catch (Exception e) {
-      log.error("Error in multiFilter: {}", e.getMessage());
-      return new PageImpl<>(Collections.emptyList(), pageable, 0);
+      log.error("Error in multiFilter: {}", e.getMessage(), e);
+      throw e;
     }
   }
 }

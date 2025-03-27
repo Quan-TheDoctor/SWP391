@@ -8,12 +8,13 @@ import lombok.AllArgsConstructor;
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
-public class RoleDTO {
-    private Long id;
-    private String name;
-    private String description;
+public class RolePermissionDTO {
+    private String roleName;
     private PermissionLevel employeePermission;
-    private PermissionLevel departmentPermission;
+    private PermissionLevel userPermission;
+    private PermissionLevel attendancePermission;
+    private PermissionLevel payrollPermission;
+    private PermissionLevel requestPermission;
     private PermissionLevel recruitmentPermission;
     private PermissionLevel systemPermission;
-}
+} 

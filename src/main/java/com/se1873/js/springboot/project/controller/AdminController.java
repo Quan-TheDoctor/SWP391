@@ -3,13 +3,17 @@ package com.se1873.js.springboot.project.controller;
 import com.se1873.js.springboot.project.dto.AuditLogDTO;
 import com.se1873.js.springboot.project.dto.UserDTO;
 import com.se1873.js.springboot.project.entity.AuditLog;
+import com.se1873.js.springboot.project.entity.Role;
+import com.se1873.js.springboot.project.repository.RoleRepository;
 import com.se1873.js.springboot.project.entity.User;
 import com.se1873.js.springboot.project.mapper.UserDTOMapper;
 import com.se1873.js.springboot.project.repository.AuditLogRepository;
 import com.se1873.js.springboot.project.repository.UserRepository;
 import com.se1873.js.springboot.project.service.AuditLogService;
+import com.se1873.js.springboot.project.service.role.RoleService;
 import com.se1873.js.springboot.project.service.user.UserService;
 import com.se1873.js.springboot.project.utils.StringUtils;
+import jakarta.annotation.PostConstruct;
 import jakarta.persistence.EntityManager;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -38,6 +42,8 @@ import java.util.stream.Collectors;
 @RequiredArgsConstructor
 @RequestMapping("/admin")
 public class AdminController {
+  @Autowired
+  private RoleRepository roleRepository;
   private final UserDTOMapper userDTOMapper;
   private final UserService userService;
   private final AuditLogService auditLogService;
@@ -48,6 +54,19 @@ public class AdminController {
 
   @Autowired
   private EntityManager entityManager;
+  @Autowired
+  private RoleService roleService;
+
+  @GetMapping("/roles")
+  public String roles(Model model, @RequestParam(required = false) String message) {
+    if (message != null) {
+      model.addAttribute("message", message);
+      model.addAttribute("messageType", "success");
+    }
+    model.addAttribute("roles", roleService.findAll());
+    model.addAttribute("contentFragment", "fragments/role-management-fragments");
+    return "index";
+  }
 
   @GetMapping("/users")
   public String listUsers(Model model,
@@ -308,8 +327,9 @@ public class AdminController {
 
       User userToUpdate = userRepository.findUserByUserId(userId);
       String oldRole = userToUpdate.getRole();
-      
-      userToUpdate.setRole(role);
+
+      Role newRole = roleRepository.getRoleByName(role);
+      userToUpdate.setRole(newRole.getName());
       userRepository.save(userToUpdate);
 
       User detachedUserRef = new User();

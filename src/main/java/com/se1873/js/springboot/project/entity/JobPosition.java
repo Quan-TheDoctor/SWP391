@@ -40,7 +40,7 @@ public class JobPosition {
     private LocalDateTime deadline;
 
     @Column(name = "status")
-    private String status; // OPEN, CLOSED, ON_HOLD
+    private String status;
 
     @Column(name = "is_deleted")
     private boolean isDeleted = false;

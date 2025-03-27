@@ -19,6 +19,7 @@ import org.springframework.data.web.PageableDefault;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.validation.BindingResult;
@@ -60,6 +61,7 @@ public class EmployeeController {
   }
 
   @RequestMapping
+  @PreAuthorize("hasPermission('EMPLOYEE', 'VISIBLE')")
   public String employee(
     @PageableDefault(size = 10, sort = "employeeId", direction = Sort.Direction.ASC) Pageable pageable,
     Model model,
@@ -82,6 +84,7 @@ public class EmployeeController {
   }
 
   @RequestMapping("/view")
+  @PreAuthorize("hasPermission('EMPLOYEE', 'VISIBLE')")
   public String view(Model model,
                      @RequestParam("employeeId") Integer employeeId,
                      @ModelAttribute("loggedInUser") User loggedInUser) {
@@ -97,6 +100,7 @@ public class EmployeeController {
   }
 
   @RequestMapping("/create/form")
+  @PreAuthorize("hasPermission('EMPLOYEE', 'ADD')")
   public String createForm(Model model, @RequestParam(value = "applicationId", required = false) Long applicationId) {
     addCommonAttributes(model);
     
@@ -127,7 +131,9 @@ public class EmployeeController {
     model.addAttribute("contentFragment", "fragments/employee-create-fragments");
     return "index";
   }
+
   @PostMapping("/create/save")
+  @PreAuthorize("hasPermission('EMPLOYEE', 'ADD')")
   public String saveEmployee(@Valid @ModelAttribute EmployeeDTO employeeDTO,
                              @RequestParam(value = "avatarFile", required = false) MultipartFile avatarFile,
                              RedirectAttributes redirectAttributes,
@@ -163,6 +169,7 @@ public class EmployeeController {
 
 
   @PostMapping("/create/update")
+  @PreAuthorize("hasPermission('EMPLOYEE', 'UPDATE')")
   public String updateEmployee(@Valid @ModelAttribute("employeeDTO") EmployeeDTO employeeDTO,
                                BindingResult bindingResult,
                                Model model,
@@ -182,6 +189,7 @@ public class EmployeeController {
   }
 
   @RequestMapping("/filter")
+  @PreAuthorize("hasPermission('EMPLOYEE', 'VISIBLE')")
   public String filter(Model model,
                        @RequestParam("field") String field,
                        @RequestParam("value") String value,
@@ -210,6 +218,7 @@ public class EmployeeController {
   }
 
   @RequestMapping("/search")
+  @PreAuthorize("hasPermission('EMPLOYEE', 'VISIBLE')")
   public String search(Model model,
                        @RequestParam("query") String query,
                        @RequestParam(value = "page", defaultValue = "0") int page,
@@ -244,6 +253,7 @@ public class EmployeeController {
   }
 
   @RequestMapping("/sort")
+  @PreAuthorize("hasPermission('EMPLOYEE', 'VISIBLE')")
   public String sort(Model model,
                      @RequestParam("field") String field,
                      @RequestParam("direction") String direction,
@@ -275,6 +285,7 @@ public class EmployeeController {
   }
 
   @RequestMapping("/export/view")
+  @PreAuthorize("hasPermission('EMPLOYEE', 'MANAGE')")
   public String exportView(Model model,
                            @RequestParam(value = "department", required = false, defaultValue = "all") String department,
                            @RequestParam(value = "position", required = false, defaultValue = "all") String position,
@@ -299,6 +310,7 @@ public class EmployeeController {
 
 
   @PostMapping("/export")
+  @PreAuthorize("hasPermission('EMPLOYEE', 'MANAGE')")
   public ResponseEntity<Resource> exportEmployees(
     @RequestParam(value = "selectedEmployees", required = false) String selectedEmployees,
     @RequestParam(value = "department", required = false, defaultValue = "all") String department,
