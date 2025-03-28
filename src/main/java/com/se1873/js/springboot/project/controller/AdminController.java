@@ -1,16 +1,19 @@
 package com.se1873.js.springboot.project.controller;
 
-//import com.se1873.js.springboot.project.dto.AuditLogDTO;
 import com.se1873.js.springboot.project.dto.AuditLogDTO;
 import com.se1873.js.springboot.project.dto.UserDTO;
 import com.se1873.js.springboot.project.entity.AuditLog;
+import com.se1873.js.springboot.project.entity.Role;
+import com.se1873.js.springboot.project.repository.RoleRepository;
 import com.se1873.js.springboot.project.entity.User;
 import com.se1873.js.springboot.project.mapper.UserDTOMapper;
 import com.se1873.js.springboot.project.repository.AuditLogRepository;
 import com.se1873.js.springboot.project.repository.UserRepository;
 import com.se1873.js.springboot.project.service.AuditLogService;
+import com.se1873.js.springboot.project.service.role.RoleService;
 import com.se1873.js.springboot.project.service.user.UserService;
 import com.se1873.js.springboot.project.utils.StringUtils;
+import jakarta.annotation.PostConstruct;
 import jakarta.persistence.EntityManager;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -39,16 +42,25 @@ import java.util.stream.Collectors;
 @RequiredArgsConstructor
 @RequestMapping("/admin")
 public class AdminController {
-  private final UserDTOMapper userDTOMapper;
+  private final RoleRepository roleRepository;
   private final UserService userService;
   private final AuditLogService auditLogService;
   private final GlobalController globalController;
   private final UserRepository userRepository;
   private final AuditLogRepository auditLogRepository;
-  Map<String, Integer> quantity = new HashMap<>();
+  private final EntityManager entityManager;
+  private final RoleService roleService;
 
-  @Autowired
-  private EntityManager entityManager;
+  @GetMapping("/roles")
+  public String roles(Model model, @RequestParam(required = false) String message) {
+    if (message != null) {
+      model.addAttribute("message", message);
+      model.addAttribute("messageType", "success");
+    }
+    model.addAttribute("roles", roleService.findAll());
+    model.addAttribute("contentFragment", "fragments/role-management-fragments");
+    return "index";
+  }
 
   @GetMapping("/users")
   public String listUsers(Model model,
@@ -80,10 +92,12 @@ public class AdminController {
       users = userService.getAll(customPageable);
     }
 
+    log.error(users.getContent().toString());
+
     int totalUsers = userService.countAllUsers();
     int activeUsers = userService.countByStatus("Active");
     int lockedUsers = userService.countByStatus("locked");
-    var roles = userService.getAllRoles();
+    var roles = roleService.findAll().values();
     int totalRoles = roles.size();
 
     Map<Integer, String> userInitials = users.stream()
@@ -294,6 +308,49 @@ public class AdminController {
       auditLogRepository.save(errorLog);
 
       redirectAttributes.addFlashAttribute("errorMessage", "Error deleting user: " + e.getMessage());
+    }
+
+    return "redirect:/admin/users";
+  }
+
+  @PostMapping("/users/change-role")
+  public String changeUserRole(@RequestParam Integer userId,
+                             @RequestParam String role,
+                             @ModelAttribute("loggedInUser") User loggedInUser,
+                             RedirectAttributes redirectAttributes) {
+    try {
+      entityManager.detach(loggedInUser);
+
+      User userToUpdate = userRepository.findUserByUserId(userId);
+      String oldRole = userToUpdate.getRole();
+
+      Role newRole = roleRepository.getRoleByName(role);
+      userToUpdate.setRole(newRole.getName());
+      userRepository.save(userToUpdate);
+
+      User detachedUserRef = new User();
+      detachedUserRef.setUserId(loggedInUser.getUserId());
+
+      AuditLog auditLog = new AuditLog();
+      auditLog.setUser(detachedUserRef);
+      auditLog.setActionInfo("Changed role for user: " + userToUpdate.getUsername() + " from " + oldRole + " to " + role);
+      auditLog.setActionType("Update");
+      auditLog.setActionLevel("High");
+      auditLogRepository.save(auditLog);
+
+      redirectAttributes.addFlashAttribute("successMessage", "User role changed successfully");
+    } catch (Exception e) {
+      User detachedUserRef = new User();
+      detachedUserRef.setUserId(loggedInUser.getUserId());
+
+      AuditLog errorLog = new AuditLog();
+      errorLog.setUser(detachedUserRef);
+      errorLog.setActionInfo("Error changing user role: " + e.getMessage());
+      errorLog.setActionType("Error");
+      errorLog.setActionLevel("High");
+      auditLogRepository.save(errorLog);
+
+      redirectAttributes.addFlashAttribute("errorMessage", "Error changing user role: " + e.getMessage());
     }
 
     return "redirect:/admin/users";

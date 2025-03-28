@@ -16,4 +16,8 @@ public class StringUtils {
       firstName != null ? firstName : "",
       lastName != null ? lastName : "");
   }
+
+  public String getRedirectMapping(String url) {
+    return "redirect:" + url;
+  }
 }

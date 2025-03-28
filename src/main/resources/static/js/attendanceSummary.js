@@ -53,7 +53,7 @@ const AttendanceManager = {
 
         createCard: (record, index) => {
             const isRecentlyEdited = (index === AttendanceManager.data.lastEditedIndex);
-            const isAbsent = record.status.includes('Nghỉ') || (record.start === '00:00' && record.end === '00:00');
+            const isAbsent = record.status.includes('Absent') || (record.start === '00:00' && record.end === '00:00');
 
             const card = document.createElement('div');
             card.className = `relative ${isRecentlyEdited ? 'bg-gradient-to-r from-yellow-50 to-amber-50 ring-2 ring-yellow-300 highlight-flash' : 'bg-gradient-to-r from-blue-50 to-purple-50'} rounded-2xl p-4 hover:shadow-lg transition-all`;
@@ -87,11 +87,11 @@ ${isAbsent ?
                             <div class="absolute h-3 bg-gradient-to-r from-green-400 to-blue-400 rounded-full shadow-lg"
                                  style="left: ${AttendanceManager.utils.calcPosition(record.start)}%; width: ${AttendanceManager.utils.calcWidth(record.start, record.end)}%">
                                 <div class="absolute -top-8 left-0 bg-white/95 backdrop-blur-sm px-2 py-1 rounded-md shadow-md border border-gray-100">
-                                    <div class="text-[9px] text-gray-500">Bắt đầu</div>
+                                    <div class="text-[9px] text-gray-500">Start</div>
                                     <span class="text-xs font-semibold text-green-600">${record.start}</span>
                                 </div>
                                 <div class="absolute -top-8 right-0 bg-white/95 backdrop-blur-sm px-2 py-1 rounded-md shadow-md border border-gray-100">
-                                    <div class="text-[9px] text-gray-500">Kết thúc</div>
+                                    <div class="text-[9px] text-gray-500">End</div>
                                     <span class="text-xs font-semibold text-blue-600">${record.end}</span>
                                 </div>
                             </div>
@@ -177,12 +177,13 @@ ${isAbsent ?
 
             const mainSummaryCards = document.querySelectorAll('.animate__fadeIn .bg-white.p-4.rounded-lg.shadow-lg.flex.flex-col.items-center');
             if (mainSummaryCards.length >= 4) {
-                mainSummaryCards[0].querySelector('h2').textContent = workingDaysInMonth;
+                const workingDays = allRecords.filter(r => r.status.includes('On time')).length;
+                mainSummaryCards[0].querySelector('h2').textContent = workingDays;
 
-                const lateDays = allRecords.filter(r => r.status.includes('Đi muộn')).length;
+                const lateDays = allRecords.filter(r => r.status.includes('Late')).length;
                 mainSummaryCards[1].querySelector('h2').textContent = lateDays;
 
-                const absentDays = allRecords.filter(r => r.status.includes('Nghỉ')).length;
+                const absentDays = allRecords.filter(r => r.status.includes('Absent')).length;
                 mainSummaryCards[2].querySelector('h2').textContent = absentDays;
 
                 const totalOTHours = allRecords.reduce((sum, record) => sum + (record.overtimeHours || 0), 0);
@@ -191,9 +192,9 @@ ${isAbsent ?
         },
 
         updateStats: function (data) {
-            const workDays = data.filter(r => r.status.includes('Đúng giờ')).length;
-            const lateDays = data.filter(r => r.status.includes('Đi muộn')).length;
-            const absentDays = data.filter(r => r.status.includes('Nghỉ')).length;
+            const workDays = data.filter(r => r.status.includes('On time')).length;
+            const lateDays = data.filter(r => r.status.includes('Late')).length;
+            const absentDays = data.filter(r => r.status.includes('Absent')).length;
 
             const totalOTHours = data.reduce((total, record) => {
                 if (typeof record.overtimeHours === 'number') {
@@ -299,10 +300,10 @@ ${isAbsent ?
         },
 
         getRecordStatusType: function (record) {
-            if (record.status.includes('Đúng giờ')) return 'ontime';
-            if (record.status.includes('Đi muộn')) return 'late';
+            if (record.status.includes('On time')) return 'ontime';
+            if (record.status.includes('Late')) return 'late';
             if (record.status.includes('OT')) return 'overtime';
-            if (record.status.includes('Nghỉ')) return 'absent';
+            if (record.status.includes('Absent')) return 'absent';
             return 'unknown';
         },
 
@@ -351,7 +352,7 @@ ${isAbsent ?
 
         if (calculatedOT > 0) {
             const currentStatus = document.getElementById('editStatus').value;
-            if (currentStatus !== 'Đi muộn' && currentStatus !== 'Nghỉ phép') {
+            if (currentStatus !== 'Late' && currentStatus !== 'Absent') {
                 document.getElementById('editStatus').value = 'OT';
                 document.getElementById('otHoursContainer').classList.remove('hidden');
                 document.getElementById('editOTHours').value = calculatedOT.toFixed(1);
@@ -391,8 +392,8 @@ ${isAbsent ?
                 end: data.attendanceCheckOut.substring(0, 5),
                 status: data.attendanceStatus,
                 overtimeHours: overtimeHours,
-                statusClass: data.attendanceStatus == 'Đúng giờ' ? 'bg-green-100 text-green-800' :
-                    data.attendanceStatus.includes('Đi muộn') ? 'bg-yellow-100 text-yellow-800' :
+                statusClass: data.attendanceStatus == 'On time' ? 'bg-green-100 text-green-800' :
+                    data.attendanceStatus.includes('Late') ? 'bg-yellow-100 text-yellow-800' :
                         data.attendanceStatus.includes('OT') ? 'bg-blue-100 text-blue-800' :
                             'bg-red-100 text-red-800'
             });
@@ -408,16 +409,16 @@ ${isAbsent ?
         let filteredData = this.data.attendanceRecords;
         if (status !== 'all') {
             filteredData = this.data.attendanceRecords.filter(record => {
-                if (status === 'ontime') return record.status.includes('Đúng giờ');
-                if (status === 'late') return record.status.includes('Đi muộn');
+                if (status === 'On time') return record.status.includes('On time');
+                if (status === 'late') return record.status.includes('Late');
                 if (status === 'overtime') return record.status.includes('OT');
-                if (status === 'absent') return record.status.includes('Nghỉ');
+                if (status === 'absent') return record.status.includes('Absent');
                 return true;
             });
         }
 
         this.ui.updateCards(filteredData);
-        this.ui.updateStats(this.data.attendanceRecords); // Always update stats based on all records
+        this.ui.updateStats(this.data.attendanceRecords);
     },
 
     editRecord: function (index) {
@@ -429,23 +430,22 @@ ${isAbsent ?
         document.getElementById('editEndTime').value = record.end;
 
         const calculatedOT = this.utils.calculateOvertimeHours(record.start, record.end);
-        let status = 'Đúng giờ';
-        if (record.status.includes('Đi muộn')) {
-            status = 'Đi muộn';
+        let status = 'On time';
+        if (record.status.includes('Late')) {
+            status = 'Late';
             const minutes = record.status.match(/\d+/) || ['0'];
             document.getElementById('editLateMinutes').value = minutes[0];
             document.getElementById('lateMinutesContainer').classList.remove('hidden');
             document.getElementById('otHoursContainer').classList.add('hidden');
         } else if (record.status.includes('OT')) {
             status = 'OT';
-            // Use the stored overtimeHours property if available
             const hours = record.overtimeHours ||
                 (record.status.match(/\d+(\.\d+)?/) || [calculatedOT.toFixed(1)])[0];
             document.getElementById('editOTHours').value = parseFloat(hours).toFixed(1);
             document.getElementById('otHoursContainer').classList.remove('hidden');
             document.getElementById('lateMinutesContainer').classList.add('hidden');
-        } else if (record.status.includes('Nghỉ')) {
-            status = 'Nghỉ phép';
+        } else if (record.status.includes('Absent')) {
+            status = 'Absent';
             document.getElementById('lateMinutesContainer').classList.add('hidden');
             document.getElementById('otHoursContainer').classList.add('hidden');
         } else {
@@ -468,14 +468,14 @@ ${isAbsent ?
         document.getElementById('lateMinutesContainer').classList.add('hidden');
         document.getElementById('otHoursContainer').classList.add('hidden');
 
-        if (status === 'Đi muộn') {
+        if (status === 'Late') {
             document.getElementById('lateMinutesContainer').classList.remove('hidden');
         } else if (status === 'OT') {
             document.getElementById('otHoursContainer').classList.remove('hidden');
             document.getElementById('editOTHours').value = calculatedOT.toFixed(1);
         }
 
-        if (status === 'Nghỉ phép') {
+        if (status === 'Absent') {
             document.getElementById('editStartTime').value = '00:00';
             document.getElementById('editEndTime').value = '00:00';
         }
@@ -498,11 +498,11 @@ ${isAbsent ?
         let statusClass = 'bg-green-100 text-green-800';
         let overtimeHours = 0;
 
-        if (calculatedOT > 0 && statusType !== 'Nghỉ phép' && statusType !== 'Đi muộn') {
+        if (calculatedOT > 0 && statusType !== 'Absent' && statusType !== 'Late') {
             statusType = 'OT';
         }
 
-        if (statusType === 'Nghỉ phép') {
+        if (statusType === 'Absent') {
             record.start = '00:00';
             record.end = '00:00';
             statusClass = 'bg-red-100 text-red-800';
@@ -510,9 +510,9 @@ ${isAbsent ?
             record.start = newStartTime;
             record.end = newEndTime;
 
-            if (statusType === 'Đi muộn') {
+            if (statusType === 'Late') {
                 const minutes = document.getElementById('editLateMinutes').value;
-                statusText = `Đi muộn ${minutes}p`;
+                statusText = `Late ${minutes}p`;
                 statusClass = 'bg-yellow-100 text-yellow-800';
             } else if (statusType === 'OT') {
                 overtimeHours = document.getElementById('otHoursContainer').classList.contains('hidden')
@@ -557,7 +557,6 @@ ${isAbsent ?
                 if (data.success) {
                     this.ui.showToast('Đã lưu thành công!');
 
-                    // Update all summaries
                     this.ui.updateStats(this.data.attendanceRecords);
                     this.ui.updateMonthlySummary();
                     this.ui.updateMainSummary();

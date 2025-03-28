@@ -11,6 +11,7 @@ import java.util.List;
 public interface SalaryRecordQueryService {
   SalaryRecord findSalaryRecordBySalaryId(Integer salaryId);
   Page<SalaryRecord> getAll(Pageable pageable);
+  List<SalaryRecord> findAll();
   List<PayrollDTO> filterPayrolls(List<PayrollDTO> payrolls, String[] field, String[] dates, String[] value);
   double calculateTotalNetSalary(List<PayrollDTO> payrolls);
   double calculateUnpaidSalary(List<PayrollDTO> payrolls);

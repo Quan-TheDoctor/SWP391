@@ -1,0 +1,267 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Leave Management</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        primary: {
+                            50: '#f5f3ff',
+                            100: '#ede9fe',
+                            200: '#ddd6fe',
+                            300: '#c4b5fd',
+                            400: '#a78bfa',
+                            500: '#8b5cf6',
+                            600: '#7c3aed',
+                            700: '#6d28d9',
+                            800: '#5b21b6',
+                            900: '#4c1d95',
+                        },
+                        secondary: {
+                            50: '#eef2ff',
+                            100: '#e0e7ff',
+                            200: '#c7d2fe',
+                            300: '#a5b4fc',
+                            400: '#818cf8',
+                            500: '#6366f1',
+                            600: '#4f46e5',
+                            700: '#4338ca',
+                            800: '#3730a3',
+                            900: '#312e81',
+                        }
+                    }
+                }
+            }
+        }
+    </script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/animate.css/4.1.1/animate.min.css" />
+</head>
+<body class="bg-gray-50">
+
+<div th:fragment="main-content" class="p-4 md:p-8">
+    <div class="max-w-7xl mx-auto space-y-6 animate__animated animate__fadeIn">
+        <!-- Header -->
+        <div class="bg-gradient-to-r from-primary-600 to-secondary-600 rounded-xl shadow-lg p-6 mb-6 text-white">
+            <div class="flex flex-col md:flex-row md:items-center md:justify-between">
+                <div>
+                    <h1 class="text-2xl font-bold">Leave Management</h1>
+                    <p class="text-primary-100">View and manage employee leave requests</p>
+                </div>
+                <div class="mt-4 md:mt-0">
+                    <a href="/dashboard" class="px-4 py-2 bg-white text-primary-700 rounded-md hover:bg-primary-50 transition-colors text-sm font-medium flex items-center inline-flex">
+                        <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 19l-7-7m0 0l7-7m-7 7h18" />
+                        </svg>
+                        Back to Dashboard
+                    </a>
+                </div>
+            </div>
+        </div>
+
+        <!-- Main Content -->
+        <div class="bg-white rounded-xl shadow-md overflow-hidden">
+            <div class="bg-gradient-to-r from-primary-50 to-secondary-50 px-6 py-4 border-b border-gray-200">
+                <div class="flex items-center">
+                    <div class="p-2 rounded-md bg-primary-100 text-primary-600 mr-3">
+                        <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
+                        </svg>
+                    </div>
+                    <h2 class="text-lg font-semibold text-gray-800">Leave Requests</h2>
+                </div>
+            </div>
+
+            <div class="p-6">
+                <!-- Filters and Actions -->
+                <div class="flex flex-col md:flex-row md:items-center md:justify-between gap-4 mb-6">
+                    <!-- Search -->
+                    <div class="w-full md:w-1/3">
+                        <div class="relative">
+                            <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                                <svg class="h-5 w-5 text-gray-400" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+                                </svg>
+                            </div>
+                            <input type="text" id="search" placeholder="Search employee..."
+                                   class="w-full h-10 pl-10 pr-3 py-2 border border-gray-300 rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-primary-500">
+                        </div>
+                    </div>
+
+                    <!-- Leave Type Filter -->
+                    <form th:action="@{/leave/leavefilter}" method="GET" id="leaveForm" class="w-full md:w-1/3">
+                        <select name="value"
+                                class="w-full h-10 pl-3 pr-10 py-2 border border-gray-300 rounded-lg shadow-sm bg-white focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-primary-500 cursor-pointer appearance-none"
+                                onchange="document.getElementById('leaveForm').submit();">
+                            <option value="all" class="text-gray-600">All Leave Types</option>
+                            <option th:each="leave : ${leavePolicies}"
+                                    th:value="${leave.getLeavePolicyName()}"
+                                    th:text="${leave.getLeavePolicyName()}"
+                                    th:selected="${param.value != null && param.value[0] == leave.getLeavePolicyName()}">
+                            </option>
+                        </select>
+                        <div class="absolute inset-y-0 right-0 flex items-center px-2 pointer-events-none">
+                            <svg class="h-5 w-5 text-gray-400" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor">
+                                <path fill-rule="evenodd" d="M5.293 7.293a1 1 0 011.414 0L10 10.586l3.293-3.293a1 1 0 111.414 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414z" clip-rule="evenodd" />
+                            </svg>
+                        </div>
+                    </form>
+
+                    <!-- Create Button -->
+                    <div class="w-full md:w-auto">
+                        <form th:action="@{/leave/create-leave}" method="GET">
+                            <button type="submit" class="w-full md:w-auto px-5 py-2.5 bg-primary-600 text-white rounded-lg shadow-md hover:bg-primary-700 transition-colors flex items-center justify-center">
+                                <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4" />
+                                </svg>
+                                Create Leave Request
+                            </button>
+                        </form>
+                    </div>
+                </div>
+
+                <!-- Table -->
+                <div class="overflow-x-auto">
+                    <table class="w-full border-collapse border border-gray-300 rounded-lg overflow-hidden">
+                        <thead>
+                        <tr class="bg-gradient-to-r from-primary-600 to-secondary-600 text-white">
+                            <th class="p-3 border border-gray-300 text-left">
+                                <a th:href="@{/leave/sort(field='employeeName', direction=${direction == 'asc' ? 'desc' : 'asc'})}"
+                                   class="flex items-center gap-2 group">
+                                    <span>Employee Name</span>
+                                    <svg th:if="${currentSortField == 'employeeName'}"
+                                         class="w-4 h-4 text-white group-hover:text-gray-300 transition-colors"
+                                         th:classappend="${direction == 'asc'} ? 'rotate-180' : ''"
+                                         fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                              d="M5 15l7-7 7 7"/>
+                                    </svg>
+                                </a>
+                            </th>
+                            <th class="p-3 border border-gray-300 text-left">Leave Type</th>
+                            <th class="p-3 border border-gray-300 text-left">
+                                <a th:href="@{/leave/sort(field='startDate', direction=${direction == 'asc' ? 'desc' : 'asc'})}"
+                                   class="flex items-center gap-2 group">
+                                    <span>Start Date</span>
+                                    <svg th:if="${currentSortField == 'startDate'}"
+                                         class="w-4 h-4 text-white group-hover:text-gray-300 transition-colors"
+                                         th:classappend="${direction == 'asc'} ? 'rotate-180' : ''"
+                                         fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                              d="M5 15l7-7 7 7"/>
+                                    </svg>
+                                </a>
+                            </th>
+                            <th class="p-3 border border-gray-300 text-left">
+                                <a th:href="@{/leave/sort(field='endDate', direction=${direction == 'asc' ? 'desc' : 'asc'})}"
+                                   class="flex items-center gap-2 group">
+                                    <span>End Date</span>
+                                    <svg th:if="${currentSortField == 'endDate'}"
+                                         class="w-4 h-4 text-white group-hover:text-gray-300 transition-colors"
+                                         th:classappend="${direction == 'asc'} ? 'rotate-180' : ''"
+                                         fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                              d="M5 15l7-7 7 7"/>
+                                    </svg>
+                                </a>
+                            </th>
+                            <th class="p-3 border border-gray-300 text-left">Reason</th>
+                            <th class="p-3 border border-gray-300 text-left">Status</th>
+                            <th class="p-3 border border-gray-300 text-left">
+                                <a th:href="@{/leave/sort(field='totalDays', direction=${direction == 'asc' ? 'desc' : 'asc'})}"
+                                   class="flex items-center gap-2 group">
+                                    <span>Days</span>
+                                    <svg th:if="${currentSortField == 'totalDays'}"
+                                         class="w-4 h-4 text-white group-hover:text-gray-300 transition-colors"
+                                         th:classappend="${direction == 'asc'} ? 'rotate-180' : ''"
+                                         fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                              d="M5 15l7-7 7 7"/>
+                                    </svg>
+                                </a>
+                            </th>
+                            <th class="p-3 border border-gray-300 text-left">Actions</th>
+                        </tr>
+                        </thead>
+                        <tbody>
+                        <tr th:each="leave, iter : ${leaves.getContent()}"
+                            th:class="${iter.odd} ? 'bg-white hover:bg-gray-50' : 'bg-gray-50 hover:bg-gray-100'"
+                            class="transition-colors">
+                            <td class="p-3 border border-gray-300" th:text="${leave.getEmployee().getFirstName() +' '+ leave.getEmployee().getLastName()}"></td>
+                            <td class="p-3 border border-gray-300">
+                                    <span class="px-2.5 py-0.5 rounded-full text-xs font-medium"
+                                          th:text="${leave.getLeaveType()}"
+                                          th:class="${
+                                              leave.getLeaveType() == 'Annual Leave' ? 'bg-blue-100 text-blue-800' :
+                                              leave.getLeaveType() == 'Sick Leave' ? 'bg-red-100 text-red-800' :
+                                              leave.getLeaveType() == 'Maternity Leave' ? 'bg-pink-100 text-pink-800' :
+                                              leave.getLeaveType() == 'Paternity Leave' ? 'bg-indigo-100 text-indigo-800' :
+                                              'bg-gray-100 text-gray-800'
+                                          }">
+                                    </span>
+                            </td>
+                            <td class="p-3 border border-gray-300" th:text="${leave.getStartDate()}"></td>
+                            <td class="p-3 border border-gray-300" th:text="${leave.getEndDate()}"></td>
+                            <td class="p-3 border border-gray-300 max-w-xs truncate" th:text="${leave.getReason()}"></td>
+                            <td class="p-3 border border-gray-300">
+                                    <span class="px-2.5 py-0.5 rounded-full text-xs font-medium"
+                                          th:text="${leave.getStatus()}"
+                                          th:class="${
+                                              leave.getStatus() == 'APPROVED' ? 'bg-green-100 text-green-800' :
+                                              leave.getStatus() == 'PENDING' ? 'bg-yellow-100 text-yellow-800' :
+                                              leave.getStatus() == 'REJECTED' ? 'bg-red-100 text-red-800' :
+                                              'bg-gray-100 text-gray-800'
+                                          }">
+                                    </span>
+                            </td>
+                            <td class="p-3 border border-gray-300 text-center" th:text="${leave.getTotalDays()}"></td>
+                            <td class="p-3 border border-gray-300">
+                                <div class="flex space-x-2">
+                                    <button class="p-1.5 text-blue-600 hover:text-blue-800 hover:bg-blue-50 rounded-md transition-colors">
+                                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/>
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"/>
+                                        </svg>
+                                    </button>
+                                    <button class="p-1.5 text-green-600 hover:text-green-800 hover:bg-green-50 rounded-md transition-colors">
+                                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/>
+                                        </svg>
+                                    </button>
+                                    <button class="p-1.5 text-red-600 hover:text-red-800 hover:bg-red-50 rounded-md transition-colors">
+                                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/>
+                                        </svg>
+                                    </button>
+                                </div>
+                            </td>
+                        </tr>
+                        <!-- Empty state -->
+                        <tr th:if="${leaves.getContent().empty}">
+                            <td colspan="8" class="p-6 text-center text-gray-500">
+                                <div class="flex flex-col items-center justify-center py-6">
+                                    <svg class="w-12 h-12 text-gray-400 mb-3" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
+                                    </svg>
+                                    <p class="text-lg font-medium">No leave requests found</p>
+                                    <p class="text-sm text-gray-500 mt-1">Try adjusting your search or filter to find what you're looking for.</p>
+                                </div>
+                            </td>
+                        </tr>
+                        </tbody>
+                    </table>
+                </div>
+
+                <!-- Pagination -->
+                <div th:replace="~{fragments/pagination :: pagination(${leaves}, '/leave', null, null)}"></div>
+            </div>
+        </div>
+    </div>
+</div>
+
+</body>
+</html>

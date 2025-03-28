@@ -6,7 +6,9 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 
+import java.util.Comparator;
 import java.util.List;
+import java.util.stream.Collectors;
 
 @Service
 @Slf4j
@@ -16,7 +18,8 @@ public class FinancialPolicyService {
   private final FinancialPolicyRepository financialPolicyRepository;
 
   public List<FinancialPolicy> getAll() {
-    return financialPolicyRepository.findAll();
+    return financialPolicyRepository.findAll().stream()
+      .sorted(Comparator.comparing(financialPolicy -> financialPolicy.getFinancialPolicyId(), Comparator.naturalOrder())).collect(Collectors.toList());
   }
 
   public Double getFinancialPolicyAmount(int id) {

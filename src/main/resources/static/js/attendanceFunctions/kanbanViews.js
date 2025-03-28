@@ -213,13 +213,11 @@ function checkInitialKanbanDisplay(allAttendances) {
     const urlParams = new URLSearchParams(window.location.search);
     const viewParam = urlParams.get('view');
 
-    // If Kanban view is requested in the URL
     if (viewParam === 'kanban' && allAttendances && allAttendances.length > 0) {
         const viewToggles = document.querySelectorAll('.view-toggle');
         const tableFilters = document.getElementById('tableFilters');
         const kanbanFilters = document.getElementById('kanbanFilters');
 
-        // Update toggle buttons
         viewToggles.forEach(btn => {
             if (btn.dataset.view === 'kanban') {
                 btn.classList.add('active', 'bg-primary-50', 'text-primary-600');
@@ -230,15 +228,12 @@ function checkInitialKanbanDisplay(allAttendances) {
             }
         });
 
-        // Show Kanban view and hide Table view
         document.getElementById('kanbanView').classList.remove('hidden');
         document.getElementById('tableView').classList.add('hidden');
 
-        // Show Kanban filters and hide Table filters
         if (tableFilters) tableFilters.classList.add('hidden');
         if (kanbanFilters) kanbanFilters.classList.remove('hidden');
 
-        // Apply any URL filters to the Kanban view
         const filters = {
             date: urlParams.get('startDate') || null,
             status: urlParams.get('status') || null,
@@ -260,17 +255,13 @@ function populateKanbanView(attendances, filters = {}) {
     kanbanContainer.innerHTML = '';
     kanbanContainer.className = 'flex gap-4 min-w-max pb-4 pt-2';
 
-    // Apply filters
-    let filteredAttendances = [...attendances]; // Create a copy to avoid modifying the original
-
-    // Date filter
+    let filteredAttendances = [...attendances];
     if (filters.date) {
         filteredAttendances = filteredAttendances.filter(record => {
             const recordDate = record.attendanceDate.substring(0, 10);
             return recordDate === filters.date;
         });
     } else {
-        // If no date filter specified, use the kanban date filter input
         const dateFilter = document.getElementById('kanbanDateFilter');
         if (dateFilter && dateFilter.value) {
             filteredAttendances = filteredAttendances.filter(record => {
@@ -280,7 +271,6 @@ function populateKanbanView(attendances, filters = {}) {
         }
     }
 
-    // Status filter
     if (filters.status) {
         filteredAttendances = filteredAttendances.filter(record => {
             if (!record.attendanceStatus) return false;
@@ -288,7 +278,6 @@ function populateKanbanView(attendances, filters = {}) {
             const status = record.attendanceStatus.toLowerCase();
             const filterStatus = filters.status.toLowerCase();
 
-            // Map status values for comparison
             if (filterStatus === 'đúng giờ' || filterStatus === 'on time') {
                 return status === 'đúng giờ' || status === 'on time';
             } else if (filterStatus === 'đi muộn' || filterStatus === 'late') {
@@ -303,14 +292,12 @@ function populateKanbanView(attendances, filters = {}) {
         });
     }
 
-    // Department filter
     if (filters.department) {
         filteredAttendances = filteredAttendances.filter(record => {
             return record.departmentId == filters.department;
         });
     }
 
-    // Search query filter
     if (filters.query) {
         const query = filters.query.toLowerCase();
         filteredAttendances = filteredAttendances.filter(record => {
@@ -323,7 +310,6 @@ function populateKanbanView(attendances, filters = {}) {
         });
     }
 
-    // Group by employee
     const employeeMap = new Map();
     filteredAttendances.forEach(record => {
         const employeeId = record.employeeId;
@@ -338,13 +324,11 @@ function populateKanbanView(attendances, filters = {}) {
         employeeMap.get(employeeId).records.push(record);
     });
 
-    // Display message if no records found after filtering
     if (employeeMap.size === 0) {
         kanbanContainer.innerHTML = '<div class="text-center text-gray-500 py-4 w-full" id="kanbanEmpty">No records found for the selected filters</div>';
         return;
     }
 
-    // Create employee columns
     employeeMap.forEach((data, employeeId) => {
         const column = createEmployeeColumn(data);
         kanbanContainer.appendChild(column);

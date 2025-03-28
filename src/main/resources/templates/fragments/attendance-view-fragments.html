@@ -1,206 +1,984 @@
 <!DOCTYPE html>
-<html lang="vi" xmlns:th="http://www.thymeleaf.org">
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Chấm công - Modern Dashboard</title>
+    <title>Attendance Details</title>
     <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        primary: {
+                            50: '#f5f3ff',
+                            100: '#ede9fe',
+                            200: '#ddd6fe',
+                            300: '#c4b5fd',
+                            400: '#a78bfa',
+                            500: '#8b5cf6',
+                            600: '#7c3aed',
+                            700: '#6d28d9',
+                            800: '#5b21b6',
+                            900: '#4c1d95',
+                        },
+                        secondary: {
+                            50: '#eef2ff',
+                            100: '#e0e7ff',
+                            200: '#c7d2fe',
+                            300: '#a5b4fc',
+                            400: '#818cf8',
+                            500: '#6366f1',
+                            600: '#4f46e5',
+                            700: '#4338ca',
+                            800: '#3730a3',
+                            900: '#312e81',
+                        }
+                    }
+                }
+            }
+        }
+    </script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/all.min.css">
+    <script src="https://cdn.jsdelivr.net/npm/echarts@5.4.3/dist/echarts.min.js"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/animate.css/4.1.1/animate.min.css"/>
     <style>
+        .highlight-pulse {
+            animation: pulse 2s ease-in-out;
+            box-shadow: 0 0 15px rgba(124, 58, 237, 0.6);
+            position: relative;
+            z-index: 1;
+        }
+
+        @keyframes pulse {
+            0% { box-shadow: 0 0 0 0 rgba(124, 58, 237, 0.7); }
+            70% { box-shadow: 0 0 15px 10px rgba(124, 58, 237, 0); }
+            100% { box-shadow: 0 0 0 0 rgba(124, 58, 237, 0); }
+        }
+
+        .attendance-card {
+            position: relative;
+            background-color: white;
+            border-radius: 0.75rem;
+            padding: 0.75rem;
+            box-shadow: 0 1px 2px rgba(0, 0, 0, 0.05);
+            transition: all 0.3s;
+            border: 1px solid #f3f4f6;
+            margin-bottom: 1rem;
+        }
+
+        .attendance-card:hover {
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+            transform: translateY(-2px);
+        }
+
+        .attendance-card-highlighted {
+            background: linear-gradient(to right, #ede9fe, #f5f3ff);
+            border: 2px solid #a78bfa;
+        }
+
+        .attendance-date-badge {
+            position: absolute;
+            top: -0.5rem;
+            left: -0.25rem;
+            background-color: white;
+            padding: 0.125rem 0.5rem;
+            border-radius: 9999px;
+            box-shadow: 0 1px 2px rgba(0, 0, 0, 0.05);
+            border: 1px solid #e5e7eb;
+            font-size: 0.75rem;
+            font-weight: 600;
+        }
+
+        .attendance-status-indicator {
+            position: absolute;
+            top: 0.75rem;
+            right: 0.75rem;
+            width: 0.5rem;
+            height: 0.5rem;
+            border-radius: 9999px;
+        }
+
+        .status-present { background-color: #10b981; }
+        .status-late { background-color: #f59e0b; }
+        .status-absent { background-color: #ef4444; }
+
+        .time-info-container {
+            display: flex;
+            justify-content: space-between;
+            margin-top: 0.75rem;
+            background-color: #f9fafb;
+            border-radius: 0.5rem;
+            padding: 0.5rem;
+            font-size: 0.75rem;
+        }
+
+        .tab-button {
+            padding: 0.5rem 1rem;
+            border-radius: 0.5rem;
+            font-size: 0.875rem;
+            font-weight: 500;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .tab-active {
+            background-color: #7c3aed;
+            color: white;
+        }
+
+        .tab-inactive {
+            background-color: #e5e7eb;
+            color: #4b5563;
+        }
+
+        .tab-inactive:hover {
+            background-color: #d1d5db;
+        }
+
+        .kanban-scroll {
+            display: block;
+            width: 100%;
+        }
+
+        .kanban-column {
+            background-color: #f9fafb;
+            border-radius: 0.75rem;
+            padding: 0.75rem;
+            display: none;
+            flex-direction: column;
+            min-height: 400px;
+            width: 100%;
+            margin-bottom: 1rem;
+        }
+
+        .kanban-column-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding-bottom: 0.5rem;
+            margin-bottom: 0.75rem;
+            border-bottom: 1px solid #e5e7eb;
+        }
+
+        .kanban-column-title {
+            font-weight: 500;
+            color: #374151;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .kanban-column-count {
+            background-color: white;
+            color: #4b5563;
+            font-size: 0.75rem;
+            padding: 0.125rem 0.5rem;
+            border-radius: 9999px;
+        }
+
+        .kanban-cards {
+            display: flex;
+            flex-direction: column;
+            gap: 0.75rem;
+            flex-grow: 1;
+            overflow-y: auto;
+            max-height: 500px;
+        }
+
+        .column-all {
+            background-color: #f9fafb;
+            border-left: 4px solid #6b7280;
+            display: flex;
+        }
+
+        .column-present {
+            background-color: #ecfdf5;
+            border-left: 4px solid #10b981;
+        }
+
+        .column-late {
+            background-color: #fffbeb;
+            border-left: 4px solid #f59e0b;
+        }
+
+        .column-absent {
+            background-color: #fef2f2;
+            border-left: 4px solid #ef4444;
+        }
+
+        .column-ot {
+            background-color: #eff6ff;
+            border-left: 4px solid #3b82f6;
+        }
+
+        .btn {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            gap: 0.5rem;
+            padding: 0.5rem 1rem;
+            border-radius: 0.5rem;
+            transition: all 0.2s;
+            font-weight: 500;
+        }
+
+        .btn-primary {
+            background-color: #7c3aed;
+            color: white;
+        }
+
+        .btn-primary:hover {
+            background-color: #6d28d9;
+        }
+
+        .btn-secondary {
+            background-color: #e5e7eb;
+            color: #1f2937;
+        }
+
+        .btn-secondary:hover {
+            background-color: #d1d5db;
+        }
+
+        .btn-edit {
+            background-color: #f59e0b;
+            color: white;
+            padding: 0.25rem 0.75rem;
+            font-size: 0.875rem;
+        }
+
+        .btn-edit:hover {
+            background-color: #d97706;
+        }
+
+        .badge {
+            padding: 0.25rem 0.75rem;
+            border-radius: 9999px;
+            font-size: 0.75rem;
+            font-weight: 500;
+        }
+
+        .badge-success {
+            background-color: #d1fae5;
+            color: #065f46;
+        }
+
+        .badge-warning {
+            background-color: #fef3c7;
+            color: #92400e;
+        }
+
+        .badge-danger {
+            background-color: #fee2e2;
+            color: #b91c1c;
+        }
+
+        .badge-info {
+            background-color: #dbeafe;
+            color: #1e40af;
+        }
+
         .custom-scrollbar::-webkit-scrollbar {
-            width: 8px;
+            width: 6px;
+            height: 6px;
         }
 
         .custom-scrollbar::-webkit-scrollbar-track {
             background: #f1f1f1;
+            border-radius: 3px;
         }
 
         .custom-scrollbar::-webkit-scrollbar-thumb {
-            background: #888;
-            border-radius: 4px;
+            background: #ddd;
+            border-radius: 3px;
         }
 
-        .compact-table {
-            table-layout: fixed;
+        .custom-scrollbar::-webkit-scrollbar-thumb:hover {
+            background: #bbb;
         }
 
-        .compact-table td, .compact-table th {
-            padding: 0.75rem;
-            vertical-align: middle;
+        @media (max-width: 1024px) {
+            .tab-button {
+                font-size: 0.75rem;
+                padding: 0.375rem 0.75rem;
+            }
+        }
+
+        @media (max-width: 640px) {
+            .tab-button {
+                padding: 0.25rem 0.5rem;
+            }
         }
     </style>
-    <script>
-        document.addEventListener("DOMContentLoaded", async () => {
-            const departmentFilter = document.getElementById("departmentFilter");
-            const departments = await fetch('/api/department/getAll')
-                .then(res => res.json())
-                .then(data => data);
+</head>
+<body class="bg-gray-50">
+<div class="max-w-7xl mx-auto py-6 px-4 sm:px-6 lg:px-8">
+    <!-- Header Section with gradient background -->
+    <div class="flex flex-col md:flex-row justify-between items-start md:items-center mb-6 p-4 bg-gradient-to-r from-primary-600 to-secondary-600 rounded-lg text-white shadow-lg animate__animated animate__fadeIn">
+        <div>
+            <div class="flex items-center gap-3">
+                <h1 class="text-2xl font-bold">Attendance Details</h1>
+                <span th:class="${'badge ' + (attendance.attendanceStatus == 'On time' ? 'badge-success' :
+                                             attendance.attendanceStatus == 'Late' ? 'badge-warning' :
+                                             attendance.attendanceStatus == 'Absent' ? 'badge-danger' : 'badge-info')}"
+                      th:text="${attendance.attendanceStatus}">On time</span>
+            </div>
+            <p class="text-primary-100" th:text="'ID: ' + ${attendance.attendanceId} + ' • Date: ' + ${#temporals.format(attendance.attendanceDate, 'MM/dd/yyyy')}">ID: 2 • Date: 04/03/2025</p>
+        </div>
 
-            departments.forEach(department => {
-                const option = document.createElement('option');
-                option.value = department.departmentId;
-                option.textContent = department.departmentName;
-                departmentFilter.appendChild(option);
-            });
+        <div class="flex gap-3 mt-4 md:mt-0">
+            <a href="/attendance" class="btn btn-secondary bg-white text-primary-600 hover:bg-primary-50">
+                <i class="fas fa-arrow-left"></i>
+                <span>Back</span>
+            </a>
+            <button type="button" onclick="openEditModal()" class="btn btn-primary">
+                <i class="fas fa-edit"></i>
+                <span>Edit</span>
+            </button>
+            <button type="button" onclick="confirmDelete()" class="btn btn-danger bg-red-600 text-white hover:bg-red-700">
+                <i class="fas fa-trash"></i>
+                <span>Delete</span>
+            </button>
+        </div>
+    </div>
+
+    <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+        <div class="lg:col-span-2 space-y-6">
+            <div class="bg-white rounded-xl shadow-lg p-4 animate__animated animate__fadeIn">
+                <h2 class="text-lg font-semibold mb-4 text-gray-800 flex items-center">
+                    <i class="fas fa-info-circle mr-2 text-primary-500"></i>
+                    Attendance Information
+                </h2>
+
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    <div>
+                        <div class="mb-4">
+                            <p class="text-sm text-gray-500">Employee</p>
+                            <div class="flex items-center mt-1">
+                                <div class="w-10 h-10 rounded-full bg-primary-100 flex items-center justify-center text-primary-600 font-semibold mr-3">
+                                    <span th:text="${#strings.substring(attendance.employeeFirstName, 0, 1)}">N</span>
+                                </div>
+                                <div>
+                                    <p class="font-medium" th:text="${attendance.employeeFirstName + ' ' + attendance.employeeLastName}">Nguyen Van An</p>
+                                    <p class="text-sm text-gray-500" th:text="${attendance.departmentName}">IT Department</p>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="mb-4">
+                            <p class="text-sm text-gray-500">Attendance Date</p>
+                            <p class="font-medium text-lg" th:text="${#temporals.format(attendance.attendanceDate, 'EEEE, MM/dd/yyyy')}">Tuesday, 04/03/2025</p>
+                        </div>
+                    </div>
+
+                    <div>
+                        <div class="grid grid-cols-2 gap-4">
+                            <div class="bg-gray-50 p-3 rounded-lg">
+                                <p class="text-sm text-gray-500">Check-in Time</p>
+                                <p class="font-medium text-lg" th:text="${attendance.attendanceCheckIn != null ? #temporals.format(attendance.attendanceCheckIn, 'HH:mm') : 'N/A'}">08:00</p>
+                            </div>
+
+                            <div class="bg-gray-50 p-3 rounded-lg">
+                                <p class="text-sm text-gray-500">Check-out Time</p>
+                                <p class="font-medium text-lg" th:text="${attendance.attendanceCheckOut != null ? #temporals.format(attendance.attendanceCheckOut, 'HH:mm') : 'N/A'}">18:30</p>
+                            </div>
+
+                            <div class="bg-green-50 p-3 rounded-lg">
+                                <p class="text-sm text-gray-500">Overtime Hours</p>
+                                <p class="font-medium text-lg text-green-700" th:text="${attendance.attendanceOvertimeHours + ' hour' + (attendance.attendanceOvertimeHours != 1 ? 's' : '')}">1.0 hour</p>
+                            </div>
+
+                            <div th:class="${'p-3 rounded-lg ' + (attendance.attendanceStatus == 'On time' ? 'bg-green-50' :
+                                                                attendance.attendanceStatus == 'Late' ? 'bg-yellow-50' :
+                                                                attendance.attendanceStatus == 'Absent' ? 'bg-red-50' : 'bg-blue-50')}">
+                                <p class="text-sm text-gray-500">Status</p>
+                                <p th:class="${'font-medium text-lg ' + (attendance.attendanceStatus == 'On time' ? 'text-green-700' :
+                                                                      attendance.attendanceStatus == 'Late' ? 'text-yellow-700' :
+                                                                      attendance.attendanceStatus == 'Absent' ? 'text-red-700' : 'text-blue-700')}"
+                                   th:text="${attendance.attendanceStatus}">On time</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="bg-white rounded-xl shadow-lg p-4 animate__animated animate__fadeIn">
+                <div class="flex flex-col gap-4 mb-4">
+                    <div class="flex justify-between items-center">
+                        <h2 class="text-lg font-semibold text-gray-800 flex items-center">
+                            <i class="fas fa-calendar-alt mr-2 text-primary-500"></i>
+                            Monthly Attendance Details
+                        </h2>
+                    </div>
+
+                    <div class="flex flex-wrap gap-2">
+                        <button id="tabAll" class="tab-button tab-active" onclick="switchTab('all')">
+                            <i class="fas fa-list mr-1"></i> All
+                        </button>
+                        <button id="tabOnTime" class="tab-button tab-inactive" onclick="switchTab('onTime')">
+                            <i class="fas fa-check-circle text-green-500 mr-1"></i> On Time
+                            <span class="ml-1 bg-white text-xs px-2 py-0.5 rounded-full" th:text="${monthlyStats.onTimeDays}">15</span>
+                        </button>
+                        <button id="tabLate" class="tab-button tab-inactive" onclick="switchTab('late')">
+                            <i class="fas fa-clock text-yellow-500 mr-1"></i> Late
+                            <span class="ml-1 bg-white text-xs px-2 py-0.5 rounded-full" th:text="${monthlyStats.lateDays}">3</span>
+                        </button>
+                        <button id="tabOT" class="tab-button tab-inactive" onclick="switchTab('ot')">
+                            <i class="fas fa-business-time text-blue-500 mr-1"></i> OT
+                            <span class="ml-1 bg-white text-xs px-2 py-0.5 rounded-full" th:text="${monthlyAttendance.?[attendanceOvertimeHours > 0].size()}">11</span>
+                        </button>
+                        <button id="tabAbsent" class="tab-button tab-inactive" onclick="switchTab('absent')">
+                            <i class="fas fa-user-slash text-red-500 mr-1"></i> Absent
+                            <span class="ml-1 bg-white text-xs px-2 py-0.5 rounded-full" th:text="${monthlyStats.absentDays}">1</span>
+                        </button>
+                    </div>
+                </div>
+
+                <div class="kanban-scroll">
+                    <div id="allColumn" class="kanban-column column-all">
+                        <div class="kanban-column-header">
+                            <div class="kanban-column-title">
+                                <i class="fas fa-list text-gray-500"></i>
+                                <span>All Attendance</span>
+                            </div>
+                            <div class="kanban-column-count" th:text="${monthlyAttendance.size()}">30</div>
+                        </div>
+                        <div class="kanban-cards custom-scrollbar">
+                            <div th:each="att : ${monthlyAttendance}"
+                                 th:class="${'attendance-card ' + (att.attendanceId == attendance.attendanceId ? 'attendance-card-highlighted highlight-pulse' : '')}">
+                                <div class="attendance-date-badge" th:text="${#temporals.format(att.attendanceDate, 'MM/dd')}">03/07</div>
+                                <div th:class="${'attendance-status-indicator ' +
+                                    (att.attendanceStatus == 'On time' ? 'status-present' :
+                                    att.attendanceStatus == 'Late' ? 'status-late' :
+                                    att.attendanceStatus == 'Absent' ? 'status-absent' : 'status-present')}"></div>
+                                <div class="mt-2">
+                                    <div class="flex justify-between">
+                                        <div class="font-medium" th:text="${#temporals.format(att.attendanceDate, 'EEEE')}">Friday</div>
+                                        <div th:class="${'badge ' +
+                                            (att.attendanceStatus == 'On time' ? 'badge-success' :
+                                            att.attendanceStatus == 'Late' ? 'badge-warning' :
+                                            att.attendanceStatus == 'Absent' ? 'badge-danger' : 'badge-info')}"
+                                             th:text="${att.attendanceStatus}">On time</div>
+                                    </div>
+                                    <div class="time-info-container">
+                                        <div><span class="font-medium">In:</span> <span th:text="${att.attendanceCheckIn != null ? #temporals.format(att.attendanceCheckIn, 'HH:mm') : 'N/A'}">08:00</span></div>
+                                        <div><span class="font-medium">Out:</span> <span th:text="${att.attendanceCheckOut != null ? #temporals.format(att.attendanceCheckOut, 'HH:mm') : 'N/A'}">18:30</span></div>
+                                    </div>
+                                    <div th:if="${att.attendanceOvertimeHours > 0}" class="mt-2 text-sm text-blue-600">
+                                        <i class="fas fa-business-time mr-1"></i> OT: <span th:text="${att.attendanceOvertimeHours}">1.5</span>h
+                                    </div>
+                                    <div class="flex justify-between mt-3">
+                                        <a th:href="@{/attendance/view(attendanceId=${att.attendanceId})}" class="btn btn-secondary text-xs py-1 px-2 flex-1 mr-1">Details</a>
+                                        <button
+                                                th:data-date="${#temporals.format(att.attendanceDate, 'MM/dd/yyyy')}"
+                                                th:data-status="${att.attendanceStatus}"
+                                                th:data-check-in="${att.attendanceCheckIn != null ? #temporals.format(att.attendanceCheckIn, 'HH:mm') : ''}"
+                                                th:data-check-out="${att.attendanceCheckOut != null ? #temporals.format(att.attendanceCheckOut, 'HH:mm') : ''}"
+                                                th:data-overtime="${att.attendanceOvertimeHours}"
+                                                th:data-id="${att.attendanceId}"
+                                                onclick="openEditModalFromButton(this)"
+                                                class="btn btn-edit text-xs py-1 px-2 flex-1 ml-1">
+                                            <i class="fas fa-pencil-alt"></i> Edit
+                                        </button>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="kanban-column column-present">
+                        <div class="kanban-column-header">
+                            <div class="kanban-column-title">
+                                <i class="fas fa-check-circle text-green-500"></i>
+                                <span>On Time</span>
+                            </div>
+                            <div class="kanban-column-count" th:text="${monthlyStats.onTimeDays}">8</div>
+                        </div>
+                        <div class="kanban-cards custom-scrollbar">
+                            <div th:each="att : ${monthlyAttendance}" th:if="${att.attendanceStatus == 'On time'}"
+                                 th:class="${'attendance-card ' + (att.attendanceId == attendance.attendanceId ? 'attendance-card-highlighted highlight-pulse' : '')}">
+                                <div class="attendance-date-badge" th:text="${#temporals.format(att.attendanceDate, 'MM/dd')}">03/07</div>
+                                <div class="attendance-status-indicator status-present"></div>
+                                <div class="mt-2">
+                                    <div class="font-medium" th:text="${#temporals.format(att.attendanceDate, 'EEEE')}">Friday</div>
+                                    <div class="time-info-container">
+                                        <div><span class="font-medium">In:</span> <span th:text="${att.attendanceCheckIn != null ? #temporals.format(att.attendanceCheckIn, 'HH:mm') : 'N/A'}">08:00</span></div>
+                                        <div><span class="font-medium">Out:</span> <span th:text="${att.attendanceCheckOut != null ? #temporals.format(att.attendanceCheckOut, 'HH:mm') : 'N/A'}">18:30</span></div>
+                                    </div>
+                                    <div class="flex justify-between mt-3">
+                                        <a th:href="@{/attendance/view(attendanceId=${att.attendanceId})}" class="btn btn-secondary text-xs py-1 px-2 flex-1 mr-1">Details</a>
+                                        <button
+                                                th:data-date="${#temporals.format(att.attendanceDate, 'MM/dd/yyyy')}"
+                                                th:data-status="${att.attendanceStatus}"
+                                                th:data-check-in="${att.attendanceCheckIn != null ? #temporals.format(att.attendanceCheckIn, 'HH:mm') : ''}"
+                                                th:data-check-out="${att.attendanceCheckOut != null ? #temporals.format(att.attendanceCheckOut, 'HH:mm') : ''}"
+                                                th:data-overtime="${att.attendanceOvertimeHours}"
+                                                th:data-id="${att.attendanceId}"
+                                                onclick="openEditModalFromButton(this)"
+                                                class="btn btn-edit text-xs py-1 px-2 flex-1 ml-1">
+                                            <i class="fas fa-pencil-alt"></i> Edit
+                                        </button>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div th:if="${monthlyStats.onTimeDays == 0}" class="flex flex-col items-center justify-center py-8 text-gray-400">
+                                <i class="fas fa-check-circle text-2xl mb-2"></i>
+                                <p class="text-sm">No on-time attendance records</p>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="kanban-column column-late">
+                        <div class="kanban-column-header">
+                            <div class="kanban-column-title">
+                                <i class="fas fa-clock text-yellow-500"></i>
+                                <span>Late</span>
+                            </div>
+                            <div class="kanban-column-count" th:text="${monthlyStats.lateDays}">0</div>
+                        </div>
+                        <div class="kanban-cards custom-scrollbar">
+                            <div th:each="att : ${monthlyAttendance}" th:if="${att.attendanceStatus == 'Late'}"
+                                 th:class="${'attendance-card ' + (att.attendanceId == attendance.attendanceId ? 'attendance-card-highlighted highlight-pulse' : '')}">
+                                <div class="attendance-date-badge" th:text="${#temporals.format(att.attendanceDate, 'MM/dd')}">03/07</div>
+                                <div class="attendance-status-indicator status-late"></div>
+                                <div class="mt-2">
+                                    <div class="font-medium" th:text="${#temporals.format(att.attendanceDate, 'EEEE')}">Friday</div>
+                                    <div class="time-info-container">
+                                        <div><span class="font-medium">In:</span> <span th:text="${att.attendanceCheckIn != null ? #temporals.format(att.attendanceCheckIn, 'HH:mm') : 'N/A'}">08:00</span></div>
+                                        <div><span class="font-medium">Out:</span> <span th:text="${att.attendanceCheckOut != null ? #temporals.format(att.attendanceCheckOut, 'HH:mm') : 'N/A'}">18:30</span></div>
+                                    </div>
+                                    <div class="flex justify-between mt-3">
+                                        <a th:href="@{/attendance/view(attendanceId=${att.attendanceId})}" class="btn btn-secondary text-xs py-1 px-2 flex-1 mr-1">Details</a>
+                                        <button
+                                                th:data-date="${#temporals.format(att.attendanceDate, 'MM/dd/yyyy')}"
+                                                th:data-status="${att.attendanceStatus}"
+                                                th:data-check-in="${att.attendanceCheckIn != null ? #temporals.format(att.attendanceCheckIn, 'HH:mm') : ''}"
+                                                th:data-check-out="${att.attendanceCheckOut != null ? #temporals.format(att.attendanceCheckOut, 'HH:mm') : ''}"
+                                                th:data-overtime="${att.attendanceOvertimeHours}"
+                                                th:data-id="${att.attendanceId}"
+                                                onclick="openEditModalFromButton(this)"
+                                                class="btn btn-edit text-xs py-1 px-2 flex-1 ml-1">
+                                            <i class="fas fa-pencil-alt"></i> Edit
+                                        </button>
+                                    </div>
+                                </div>
+                            </div>
+                            <div th:if="${monthlyStats.lateDays == 0}" class="flex flex-col items-center justify-center py-8 text-gray-400">
+                                <i class="fas fa-clock text-2xl mb-2"></i>
+                                <p class="text-sm">No late attendance records</p>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="kanban-column column-ot">
+                        <div class="kanban-column-header">
+                            <div class="kanban-column-title">
+                                <i class="fas fa-business-time text-blue-500"></i>
+                                <span>Overtime</span>
+                            </div>
+                            <div class="kanban-column-count" th:text="${monthlyAttendance.?[attendanceOvertimeHours > 0].size()}">13</div>
+                        </div>
+                        <div class="kanban-cards custom-scrollbar">
+                            <div th:each="att : ${monthlyAttendance}" th:if="${att.attendanceOvertimeHours > 0}"
+                                 th:class="${'attendance-card ' + (att.attendanceId == attendance.attendanceId ? 'attendance-card-highlighted highlight-pulse' : '')}">
+                                <div class="attendance-date-badge" th:text="${#temporals.format(att.attendanceDate, 'MM/dd')}">03/04</div>
+                                <div th:class="${'attendance-status-indicator ' + (att.attendanceStatus == 'On time' ? 'status-present' :
+                                                                                att.attendanceStatus == 'Late' ? 'status-late' : 'status-absent')}"></div>
+                                <div class="mt-2">
+                                    <div class="font-medium" th:text="${#temporals.format(att.attendanceDate, 'EEEE')}">Tuesday</div>
+                                    <div class="time-info-container">
+                                        <div><span class="font-medium">In:</span> <span th:text="${att.attendanceCheckIn != null ? #temporals.format(att.attendanceCheckIn, 'HH:mm') : 'N/A'}">08:00</span></div>
+                                        <div><span class="font-medium">Out:</span> <span th:text="${att.attendanceCheckOut != null ? #temporals.format(att.attendanceCheckOut, 'HH:mm') : 'N/A'}">18:30</span></div>
+                                    </div>
+                                    <div class="mt-2 text-sm text-blue-600">
+                                        <i class="fas fa-business-time mr-1"></i> OT: <span th:text="${att.attendanceOvertimeHours}">1.5</span>h
+                                    </div>
+                                    <div class="flex justify-between mt-3">
+                                        <a th:href="@{/attendance/view(attendanceId=${att.attendanceId})}" class="btn btn-secondary text-xs py-1 px-2 flex-1 mr-1">Details</a>
+                                        <button
+                                                th:data-date="${#temporals.format(att.attendanceDate, 'MM/dd/yyyy')}"
+                                                th:data-status="${att.attendanceStatus}"
+                                                th:data-check-in="${att.attendanceCheckIn != null ? #temporals.format(att.attendanceCheckIn, 'HH:mm') : ''}"
+                                                th:data-check-out="${att.attendanceCheckOut != null ? #temporals.format(att.attendanceCheckOut, 'HH:mm') : ''}"
+                                                th:data-overtime="${att.attendanceOvertimeHours}"
+                                                th:data-id="${att.attendanceId}"
+                                                onclick="openEditModalFromButton(this)"
+                                                class="btn btn-edit text-xs py-1 px-2 flex-1 ml-1">
+                                            <i class="fas fa-pencil-alt"></i> Edit
+                                        </button>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div th:if="${monthlyAttendance.?[attendanceOvertimeHours > 0].size() == 0}" class="flex flex-col items-center justify-center py-8 text-gray-400">
+                                <i class="fas fa-business-time text-2xl mb-2"></i>
+                                <p class="text-sm">No overtime records</p>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="kanban-column column-absent">
+                        <div class="kanban-column-header">
+                            <div class="kanban-column-title">
+                                <i class="fas fa-user-slash text-red-500"></i>
+                                <span>Absent</span>
+                            </div>
+                            <div class="kanban-column-count" th:text="${monthlyStats.absentDays}">0</div>
+                        </div>
+                        <div class="kanban-cards custom-scrollbar">
+                            <div th:each="att : ${monthlyAttendance}" th:if="${att.attendanceStatus == 'Absent'}"
+                                 th:class="${'attendance-card ' + (att.attendanceId == attendance.attendanceId ? 'attendance-card-highlighted highlight-pulse' : '')}">
+                                <div class="attendance-date-badge" th:text="${#temporals.format(att.attendanceDate, 'MM/dd')}">03/07</div>
+                                <div class="attendance-status-indicator status-absent"></div>
+                                <div class="mt-2">
+                                    <div class="font-medium" th:text="${#temporals.format(att.attendanceDate, 'EEEE')}">Friday</div>
+                                    <div class="time-info-container">
+                                        <div><span class="font-medium">In:</span> <span th:text="${att.attendanceCheckIn != null ? #temporals.format(att.attendanceCheckIn, 'HH:mm') : 'N/A'}">N/A</span></div>
+                                        <div><span class="font-medium">Out:</span> <span th:text="${att.attendanceCheckOut != null ? #temporals.format(att.attendanceCheckOut, 'HH:mm') : 'N/A'}">N/A</span></div>
+                                    </div>
+                                    <div class="flex justify-between mt-3">
+                                        <a th:href="@{/attendance/view(attendanceId=${att.attendanceId})}" class="btn btn-secondary text-xs py-1 px-2 flex-1 mr-1">Details</a>
+                                        <button
+                                                th:data-date="${#temporals.format(att.attendanceDate, 'MM/dd/yyyy')}"
+                                                th:data-status="${att.attendanceStatus}"
+                                                th:data-check-in="${att.attendanceCheckIn != null ? #temporals.format(att.attendanceCheckIn, 'HH:mm') : ''}"
+                                                th:data-check-out="${att.attendanceCheckOut != null ? #temporals.format(att.attendanceCheckOut, 'HH:mm') : ''}"
+                                                th:data-overtime="${att.attendanceOvertimeHours}"
+                                                th:data-id="${att.attendanceId}"
+                                                onclick="openEditModalFromButton(this)"
+                                                class="btn btn-edit text-xs py-1 px-2 flex-1 ml-1">
+                                            <i class="fas fa-pencil-alt"></i> Edit
+                                        </button>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div th:if="${monthlyStats.absentDays == 0}" class="flex flex-col items-center justify-center py-8 text-gray-400">
+                                <i class="fas fa-user-slash text-2xl mb-2"></i>
+                                <p class="text-sm">No absent records</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="space-y-6">
+            <div class="bg-white rounded-xl shadow-lg p-4 animate__animated animate__fadeIn">
+                <h2 class="text-lg font-semibold mb-4 text-gray-800 flex items-center">
+                    <i class="fas fa-chart-pie mr-2 text-primary-500"></i>
+                    Monthly Statistics
+                </h2>
+
+                <div id="monthlyStats" style="width: 100%; height: 200px;"></div>
+                <div class="grid grid-cols-2 gap-4 mt-4">
+                    <div class="bg-gray-50 p-3 rounded-lg text-center">
+                        <p class="text-sm text-gray-500">On Time Days</p>
+                        <p class="font-medium text-lg" id="totalWorkDays" th:text="${monthlyStats.onTimeDays}">8</p>
+                    </div>
+
+                    <div class="bg-gray-50 p-3 rounded-lg text-center">
+                        <p class="text-sm text-gray-500">Absent Days</p>
+                        <p class="font-medium text-lg" id="totalAbsentDays" th:text="${monthlyStats.absentDays}">0</p>
+                    </div>
+
+                    <div class="bg-gray-50 p-3 rounded-lg text-center">
+                        <p class="text-sm text-gray-500">Total OT Hours</p>
+                        <p class="font-medium text-lg text-green-600" id="totalOTHours" th:text="${monthlyStats.totalOTHours} + ' hours'">30.0 hours</p>
+                    </div>
+
+                    <div class="bg-gray-50 p-3 rounded-lg text-center">
+                        <p class="text-sm text-gray-500">Late Days</p>
+                        <p class="font-medium text-lg text-yellow-600" id="totalLateDays" th:text="${monthlyStats.lateDays}">3</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div id="editModal" class="fixed inset-0 bg-gray-900 bg-opacity-50 hidden flex items-center justify-center z-50">
+    <div class="bg-white rounded-lg shadow-xl max-w-md w-full mx-4 animate__animated animate__fadeInDown">
+        <div class="flex justify-between items-center border-b px-6 py-4">
+            <h3 class="text-lg font-semibold text-gray-800">Edit Attendance</h3>
+            <button onclick="closeEditModal()" class="text-gray-500 hover:text-gray-700 focus:outline-none">
+                <i class="fas fa-times"></i>
+            </button>
+        </div>
+
+        <div class="px-6 py-4">
+            <form id="editAttendanceForm" th:action="@{/attendance/view/update}" method="post">
+                <input type="hidden" id="editAttendanceId" name="attendanceId">
+                <div class="mb-4">
+                    <label class="block text-sm font-medium text-gray-700 mb-1">Date</label>
+                    <input type="text" id="editDate" class="w-full px-3 py-2 border border-gray-300 rounded-md" readonly>
+                </div>
+
+                <div class="grid grid-cols-2 gap-4 mb-4">
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-1">Check-in Time</label>
+                        <input type="time" id="editCheckIn" name="attendanceCheckIn" class="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-primary-500 focus:border-primary-500">
+                    </div>
+
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-1">Check-out Time</label>
+                        <input type="time" id="editCheckOut" name="attendanceCheckOut" class="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-primary-500 focus:border-primary-500">
+                    </div>
+                </div>
+
+                <div class="mb-4">
+                    <label class="block text-sm font-medium text-gray-700 mb-1">Status</label>
+                    <select id="editStatus" name="attendanceStatus" class="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-primary-500 focus:border-primary-500">
+                        <option value="On time">On time</option>
+                        <option value="Late">Late</option>
+                        <option value="Absent">Absent</option>
+                        <option value="OT">OT</option>
+                    </select>
+                </div>
+
+                <div class="mb-4">
+                    <label class="block text-sm font-medium text-gray-700 mb-1">Overtime Hours</label>
+                    <input type="number" id="editOvertimeHours" name="attendanceOvertimeHours" class="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-primary-500 focus:border-primary-500" step="0.1" min="0">
+                </div>
+
+                <div class="mb-4">
+                    <label class="block text-sm font-medium text-gray-700 mb-1">Notes</label>
+                    <textarea id="editNotes" name="attendanceNotes" class="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-primary-500 focus:border-primary-500" rows="2"></textarea>
+                </div>
+            </form>
+        </div>
+
+        <div class="border-t px-6 py-4 flex justify-end">
+            <button onclick="closeEditModal()" class="btn btn-secondary mr-2">Cancel</button>
+            <button onclick="saveAttendanceChanges()" class="btn btn-primary">Save Changes</button>
+        </div>
+    </div>
+</div>
+
+<div id="deleteModal" class="fixed inset-0 bg-gray-900 bg-opacity-50 hidden flex items-center justify-center z-50">
+    <div class="bg-white rounded-lg shadow-xl max-w-md w-full mx-4 animate__animated animate__fadeInDown">
+        <div class="flex justify-between items-center border-b px-6 py-4">
+            <h3 class="text-lg font-semibold text-gray-800">Confirm Delete</h3>
+            <button onclick="closeDeleteModal()" class="text-gray-500 hover:text-gray-700 focus:outline-none">
+                <i class="fas fa-times"></i>
+            </button>
+        </div>
+
+        <div class="px-6 py-4">
+            <p class="text-gray-700">Are you sure you want to delete this attendance record? This action cannot be undone.</p>
+        </div>
+
+        <div class="border-t px-6 py-4 flex justify-end">
+            <button onclick="closeDeleteModal()" class="btn btn-secondary mr-2">Cancel</button>
+            <button onclick="deleteAttendance()" class="btn btn-danger bg-red-600 text-white hover:bg-red-700">Delete</button>
+        </div>
+    </div>
+</div>
+
+<script th:inline="javascript">
+    document.addEventListener('DOMContentLoaded', function() {
+        const chart = echarts.init(document.getElementById('monthlyStats'));
+
+        const onTimeDays = [[${monthlyStats.onTimeDays}]];
+        const lateDays = [[${monthlyStats.lateDays}]];
+        const absentDays = [[${monthlyStats.absentDays}]];
+        const overtimeDays = [[${monthlyAttendance.?[attendanceOvertimeHours > 0].size()}]];
+
+        const option = {
+            tooltip: {
+                trigger: 'item'
+            },
+            legend: {
+                bottom: '0%',
+                left: 'center'
+            },
+            series: [
+                {
+                    name: 'Attendance Status',
+                    type: 'pie',
+                    radius: ['40%', '70%'],
+                    center: ['50%', '45%'],
+                    avoidLabelOverlap: false,
+                    itemStyle: {
+                        borderRadius: 10,
+                        borderColor: '#fff',
+                        borderWidth: 2
+                    },
+                    label: {
+                        show: false,
+                        position: 'center'
+                    },
+                    emphasis: {
+                        label: {
+                            show: true,
+                            fontSize: '16',
+                            fontWeight: 'bold'
+                        }
+                    },
+                    labelLine: {
+                        show: false
+                    },
+                    data: [
+                        { value: onTimeDays, name: 'On Time', itemStyle: { color: '#10b981' } },
+                        { value: lateDays, name: 'Late', itemStyle: { color: '#f59e0b' } },
+                        { value: absentDays, name: 'Absent', itemStyle: { color: '#ef4444' } },
+                        { value: overtimeDays, name: 'Overtime', itemStyle: { color: '#3b82f6' } },
+                    ]
+                }
+            ]
+        };
+
+        chart.setOption(option);
+
+        window.addEventListener('resize', function() {
+            chart.resize();
         });
 
-        function parseTime(timeString) {
-            const [hours, minutes] = timeString.split(':');
-            return {hours: parseInt(hours), minutes: parseInt(minutes)};
+        document.querySelectorAll('.kanban-column:not(#allColumn)').forEach(col => {
+            col.style.display = 'none';
+        });
+        document.getElementById('allColumn').style.display = 'flex';
+    });
+
+    const currentAttendanceId = [[${attendance.attendanceId}]];
+
+    function switchTab(tabName) {
+        document.querySelectorAll('.kanban-column').forEach(col => {
+            col.style.display = 'none';
+        });
+
+        document.querySelectorAll('.tab-button').forEach(btn => {
+            btn.classList.remove('tab-active');
+            btn.classList.add('tab-inactive');
+        });
+
+        if (tabName === 'all') {
+            document.getElementById('allColumn').style.display = 'flex';
+            document.getElementById('tabAll').classList.remove('tab-inactive');
+            document.getElementById('tabAll').classList.add('tab-active');
+        } else if (tabName === 'onTime') {
+            document.querySelector('.column-present').style.display = 'flex';
+            document.getElementById('tabOnTime').classList.remove('tab-inactive');
+            document.getElementById('tabOnTime').classList.add('tab-active');
+        } else if (tabName === 'late') {
+            document.querySelector('.column-late').style.display = 'flex';
+            document.getElementById('tabLate').classList.remove('tab-inactive');
+            document.getElementById('tabLate').classList.add('tab-active');
+        } else if (tabName === 'ot') {
+            document.querySelector('.column-ot').style.display = 'flex';
+            document.getElementById('tabOT').classList.remove('tab-inactive');
+            document.getElementById('tabOT').classList.add('tab-active');
+        } else if (tabName === 'absent') {
+            document.querySelector('.column-absent').style.display = 'flex';
+            document.getElementById('tabAbsent').classList.remove('tab-inactive');
+            document.getElementById('tabAbsent').classList.add('tab-active');
         }
+    }
 
-        function calculateOvertime(checkIn, checkOut) {
-            const standardEndTime = parseTime("17:00");
-            const checkOutTime = parseTime(checkOut);
+    function calculateOvertimeHours() {
+        const checkIn = document.getElementById('editCheckIn').value;
+        const checkOut = document.getElementById('editCheckOut').value;
+        const statusSelect = document.getElementById('editStatus');
+        const overtimeField = document.getElementById('editOvertimeHours');
 
-            let overtime = 0;
+        if (checkIn && checkOut) {
+            const checkInTime = new Date(`2000-01-01T${checkIn}`);
+            const checkOutTime = new Date(`2000-01-01T${checkOut}`);
 
-            if (checkOutTime.hours > standardEndTime.hours ||
-                (checkOutTime.hours === standardEndTime.hours && checkOutTime.minutes > standardEndTime.minutes)) {
+            const standardHours = 8;
 
-                const endMinutes = standardEndTime.hours * 60 + standardEndTime.minutes;
-                const checkoutMinutes = checkOutTime.hours * 60 + checkOutTime.minutes;
-                overtime = (checkoutMinutes - endMinutes) / 60;
+            let diffMinutes = (checkOutTime - checkInTime) / (1000 * 60);
+
+            diffMinutes -= 60;
+
+            const workHours = diffMinutes / 60;
+
+            let overtimeHours = Math.max(0, workHours - standardHours);
+
+            overtimeHours = Math.round(overtimeHours * 10) / 10;
+
+            overtimeField.value = overtimeHours;
+
+            if (overtimeHours > 0) {
+                statusSelect.value = 'OT';
             }
-            return parseFloat(overtime.toFixed(2));
         }
+    }
 
-        function updateOvertime(row) {
-            const checkIn = row.querySelector('input[type="time"]').value;
-            const checkOut = row.querySelectorAll('input[type="time"]')[1].value;
+    function openEditModal(date, status, checkIn, checkOut, notes, overtimeHours, attendanceId) {
+        document.getElementById('editAttendanceId').value = attendanceId || currentAttendanceId;
+        document.getElementById('editDate').value = date || [[${#temporals.format(attendance.attendanceDate, 'MM/dd/yyyy')}]];
+        document.getElementById('editCheckIn').value = checkIn || [[${attendance.attendanceCheckIn != null ? #temporals.format(attendance.attendanceCheckIn, 'HH:mm') : ''}]];
+        document.getElementById('editCheckOut').value = checkOut || [[${attendance.attendanceCheckOut != null ? #temporals.format(attendance.attendanceCheckOut, 'HH:mm') : ''}]];
+        document.getElementById('editStatus').value = status || [[${attendance.attendanceStatus}]];
+        document.getElementById('editOvertimeHours').value = overtimeHours !== undefined ? overtimeHours : [[${attendance.attendanceOvertimeHours}]];
+        document.getElementById('editNotes').value = notes || '';
 
-            if (checkIn && checkOut) {
-                row.querySelector('input[type="number"]').value = calculateOvertime(checkIn, checkOut);
-            }
-        }
+        document.getElementById('editModal').classList.remove('hidden');
+        document.getElementById('editModal').classList.add('flex');
 
-        function reindexRows() {
-            const rows = document.querySelectorAll('#attendanceTable tbody tr');
-            rows.forEach((row, index) => {
-                row.querySelectorAll('input, select').forEach(input => {
-                    input.name = input.name.replace(/\[\d+\]/, `[${index}]`);
-                });
-                const hiddenInput = row.querySelector('input[type="hidden"]');
-                if (hiddenInput) {
-                    hiddenInput.name = `attendances[${index}].employeeId`;
+        setTimeout(calculateOvertimeHours, 100);
+    }
+
+    function closeEditModal() {
+        document.getElementById('editModal').classList.add('hidden');
+        document.getElementById('editModal').classList.remove('flex');
+    }
+
+    function saveAttendanceChanges() {
+        document.getElementById('editAttendanceForm').submit();
+    }
+
+    function confirmDelete() {
+        document.getElementById('deleteModal').classList.remove('hidden');
+        document.getElementById('deleteModal').classList.add('flex');
+    }
+
+    function closeDeleteModal() {
+        document.getElementById('deleteModal').classList.add('hidden');
+        document.getElementById('deleteModal').classList.remove('flex');
+    }
+
+    function deleteAttendance() {
+        window.location.href = '/attendance/view/delete?attendanceId=' + currentAttendanceId;
+    }
+
+    function emailReport() {
+        alert('Email report functionality will be implemented soon.');
+    }
+
+    function openEditModalFromButton(button) {
+        const date = button.getAttribute('data-date');
+        const status = button.getAttribute('data-status');
+        const checkIn = button.getAttribute('data-check-in');
+        const checkOut = button.getAttribute('data-check-out');
+        const notes = '';
+        const overtimeHours = button.getAttribute('data-overtime');
+        const attendanceId = button.getAttribute('data-id');
+
+        openEditModal(date, status, checkIn, checkOut, notes, overtimeHours, attendanceId);
+    }
+
+    document.addEventListener('DOMContentLoaded', function() {
+        const checkInInput = document.getElementById('editCheckIn');
+        const checkOutInput = document.getElementById('editCheckOut');
+        const statusSelect = document.getElementById('editStatus');
+
+        if (checkInInput && checkOutInput) {
+            checkInInput.addEventListener('change', calculateOvertimeHours);
+            checkOutInput.addEventListener('change', calculateOvertimeHours);
+
+            statusSelect.addEventListener('change', function() {
+                if (this.value === 'On time') {
+                    document.getElementById('editOvertimeHours').value = 0;
+                } else if (this.value === 'OT') {
+                    calculateOvertimeHours();
                 }
             });
         }
-
-        function deleteRow(button) {
-            button.closest('tr').remove();
-            reindexRows();
-        }
-
-        function addEmployeeToTable(employeeId, employeeName) {
-            const tableBody = document.querySelector('#attendanceTable tbody');
-            const newRow = document.createElement('tr');
-            newRow.className = 'hover:bg-gray-50';
-
-            newRow.innerHTML = `
-        <td class="w-48 px-4 truncate">${employeeName}</td>
-        <td class="w-32"><input type="date" name="attendances[0].attendanceDate" required></td>
-        <td class="w-24"><input type="time"
-       pattern="[0-9]{2}:[0-9]{2}" name="attendances[0].attendanceCheckIn" onchange="updateOvertime(this.parentElement.parentElement)" required></td>
-        <td class="w-24"><input type="time"
-       pattern="[0-9]{2}:[0-9]{2}" name="attendances[0].attendanceCheckOut" onchange="updateOvertime(this.parentElement.parentElement)" required></td>
-        <td class="w-32"><input type="number" step="0.01" name="attendances[0].attendanceOvertimeHours" readonly></td>
-        <td class="w-36">
-            <select name="attendances[0].attendanceStatus">
-                <option value="PRESENT">Có mặt</option>
-                <option value="ABSENT">Vắng mặt</option>
-            </select>
-        </td>
-        <td class="w-24">
-            <button type="button" onclick="deleteRow(this)">Xóa</button>
-        </td>
-        <input type="hidden" name="attendances[0].employeeId" value="${employeeId}">
-    `;
-
-            tableBody.appendChild(newRow);
-            reindexRows();
-        }
-
-        async function filterEmployees() {
-            const departmentId = document.getElementById('departmentFilter').value;
-            const employeeList = document.getElementById('employeeList');
-            employeeList.innerHTML = '';
-
-            if (!departmentId) return;
-
-            const employees = await fetch(`/api/employee/getAllByDepartmentId?departmentId=${departmentId}`)
-                .then(res => res.json())
-                .then(data => data);
-
-            console.log(employees)
-
-            employees.forEach(employee => {
-                const employeeDiv = document.createElement('div');
-                employeeDiv.className = 'p-2 mb-2 flex justify-between items-center bg-white rounded shadow-sm hover:shadow-md transition-shadow';
-                employeeDiv.innerHTML = `
-                    <span class="truncate">${employee.employeeFirstName} ${employee.employeeLastName}</span>
-                    <button type="button"
-                        class="px-3 py-1 bg-blue-600 text-white rounded hover:bg-blue-700"
-                        onclick="addEmployeeToTable(${employee.employeeId}, '${employee.employeeFirstName} ${employee.employeeLastName}')">+</button>
-                `;
-                employeeList.appendChild(employeeDiv);
-            });
-        }
-    </script>
-</head>
-<div th:fragment="main-content" xmlns:sec="http://www.w3.org/1999/xhtml">
-<div class="max-w-7xl mx-auto">
-    <div class="mb-6">
-        <h1 class="text-2xl font-bold text-gray-800">📅 Quản lý chấm công</h1>
-        <p class="text-gray-600">Chọn phòng ban và thêm nhân viên vào bảng chấm công</p>
-    </div>
-
-    <div class="grid grid-cols-1 lg:grid-cols-4 gap-6">
-
-        <div class="lg:col-span-1">
-            <div class="bg-white rounded-xl shadow-sm p-4">
-                <div class="mb-4">
-                    <label class="block text-sm font-medium text-gray-700 mb-2">Phòng ban</label>
-                    <select id="departmentFilter" onchange="filterEmployees()"
-                            class="w-full p-2 border rounded-lg focus:ring-2 focus:ring-blue-500">
-                        <option value="">-- Chọn phòng ban --</option>
-                    </select>
-                </div>
-                <div id="employeeList" class="h-96 overflow-y-auto custom-scrollbar space-y-2">
-
-                </div>
-            </div>
-        </div>
-
-
-        <div class="lg:col-span-3">
-            <div class="bg-white rounded-xl shadow-sm p-4">
-                <form th:action="@{/attendance/create/save}" method="post" th:object="${attendanceDTOList}">
-                    <div class="mt-4 flex justify-end">
-                        <button type="submit"
-                                class="px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors">
-                            💾 Lưu chấm công
-                        </button>
-                    </div>
-                    <table id="attendanceTable" class="compact-table w-full">
-                        <thead class="bg-gray-50">
-                        <tr>
-                            <th class="w-48 text-left">Tên NV</th>
-                            <th class="w-32">Ngày</th>
-                            <th class="w-24">Check-in</th>
-                            <th class="w-24">Check-out</th>
-                            <th class="w-32">Overtime</th>
-                            <th class="w-36">Trạng thái</th>
-                            <th class="w-24">Thao tác</th>
-                        </tr>
-                        </thead>
-                        <tbody class="divide-y divide-gray-200">
-
-                        </tbody>
-                    </table>
-                </form>
-            </div>
-        </div>
-    </div>
-</div>
-</div>
+    });
+</script>
+</body>
 </html>

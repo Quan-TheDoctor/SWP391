@@ -37,4 +37,6 @@ public class DepartmentService {
   public Department findDepartmentByDepartmentId(Integer departmentId) {
     return departmentQueryService.findDepartmentByDepartmentId(departmentId);
   }
+
+
 }

@@ -36,16 +36,6 @@
                     </div>
                 </div>
 
-                <!-- Performance -->
-                <div class="bg-white p-2 sm:p-3 rounded-lg shadow flex flex-col sm:flex-row items-center gap-2 sm:gap-3">
-                    <div class="bg-purple-50 p-2 rounded-full text-purple-500">
-                        <i class="fas fa-chart-line text-lg sm:text-xl"></i>
-                    </div>
-                    <div class="text-center sm:text-left">
-                        <p class="text-xs sm:text-sm text-gray-500">Hiệu suất</p>
-                        <h2 class="text-lg sm:text-xl font-bold">92%</h2>
-                    </div>
-                </div>
 
                 <!-- Pending Requests -->
                 <div class="bg-white p-2 sm:p-3 rounded-lg shadow flex flex-col sm:flex-row items-center gap-2 sm:gap-3">
@@ -54,7 +44,7 @@
                     </div>
                     <div class="text-center sm:text-left">
                         <p class="text-xs sm:text-sm text-gray-500">Yêu cầu chờ</p>
-                        <h2 class="text-lg sm:text-xl font-bold">12</h2>
+                        <h2 class="text-lg sm:text-xl font-bold"><span th:text="${countPendingRequest}"></span></h2>
                     </div>
                 </div>
             </div>
@@ -177,34 +167,27 @@
 
     <script>
         document.addEventListener("DOMContentLoaded", function() {
-            // Initialize all charts
             initDashboard();
         });
 
         function initDashboard() {
             try {
-                // Get current date in YYYY-MM format for monthPicker
                 const today = new Date();
                 const monthInput = document.getElementById("monthPicker");
                 if (monthInput) {
                     monthInput.value = `${today.getFullYear()}-${String(today.getMonth() + 1).padStart(2, '0')}`;
                 }
 
-                // Initialize all charts
                 const charts = initializeCharts();
 
-                // Set up event listeners
                 setupEventListeners(charts);
 
-                // Load initial data
                 loadDashboardData(charts);
 
-                // Handle window resize for charts
                 window.addEventListener('resize', function() {
                     resizeCharts(charts);
                 });
 
-                // Resize once to ensure proper display
                 setTimeout(() => resizeCharts(charts), 100);
             } catch (error) {
                 console.error("Dashboard initialization error:", error);
@@ -212,7 +195,6 @@
         }
 
         function initializeCharts() {
-            // Initialize all chart instances
             const charts = {};
 
             const employeeChartEl = document.getElementById('employeeChart');
@@ -235,17 +217,14 @@
         }
 
         function resizeCharts(charts) {
-            // Resize all charts for responsive layout
             Object.values(charts).forEach(chart => {
                 if (chart) chart.resize();
             });
         }
 
         function setupEventListeners(charts) {
-            // Set up date picker for attendance chart
             setupDatePicker(charts);
 
-            // Set up month picker for payroll data
             setupMonthPicker(charts);
         }
 
@@ -255,22 +234,18 @@
 
             if (!openDatePicker || !datePicker) return;
 
-            // Set initial date picker value to today
             const today = new Date();
             datePicker.value = today.toISOString().split('T')[0];
 
-            // Open date picker when button is clicked
             openDatePicker.addEventListener("click", function(event) {
                 event.preventDefault();
                 datePicker.showPicker();
             });
 
-            // Update attendance chart when date changes
             datePicker.addEventListener("change", function() {
                 const selectedDate = datePicker.value;
 
                 if (selectedDate) {
-                    // Update button text
                     const date = new Date(selectedDate);
                     const formattedDisplayDate = date.toLocaleDateString('en-US', {
                         month: 'short',
@@ -278,7 +253,6 @@
                     });
                     openDatePicker.innerHTML = `<i class="fas fa-calendar-day"></i> ${formattedDisplayDate}`;
 
-                    // Fetch attendance data for selected date
                     fetchAttendanceData(charts.attendance, selectedDate);
                 }
             });
@@ -293,21 +267,17 @@
                 const selectedMonth = this.value.split("-")[1];
                 const selectedYear = this.value.split("-")[0];
 
-                // Update payroll chart with new year data
                 fetchPayrollData(charts.payroll, selectedYear);
 
-                // Fetch top salary employees for selected month
                 fetchTopSalaryEmployees(selectedYear, selectedMonth);
             });
         }
 
         function loadDashboardData(charts) {
-            // Get current date
             const today = new Date();
             const formattedToday = today.toISOString().split('T')[0];
             const currentYear = today.getFullYear().toString();
 
-            // Load all dashboard data
             fetchEmployeeData(charts.employee);
             fetchAttendanceData(charts.attendance, formattedToday);
             fetchPayrollData(charts.payroll, currentYear);
@@ -317,7 +287,6 @@
             if (!chart) return;
 
             try {
-                // Fallback data in case API fails
                 const fallbackData = {
                     totalAvailableEmployees: 85,
                     totalUnavailableEmployees: 15
@@ -338,15 +307,12 @@
                     employeeData = fallbackData;
                 }
 
-                // Calculate percentages
                 const totalEmployees = (employeeData.totalAvailableEmployees + employeeData.totalUnavailableEmployees) || 100;
                 const availablePercent = Math.round((employeeData.totalAvailableEmployees / totalEmployees) * 100);
                 const unavailablePercent = 100 - availablePercent;
 
-                // Update UI
                 updateEmployeeStats(availablePercent, unavailablePercent);
 
-                // Create chart
                 const option = createEmployeeChartOption(employeeData);
                 chart.setOption(option);
 
@@ -401,7 +367,6 @@
             if (!chart || !date) return;
 
             try {
-                // Fallback data in case API fails
                 const fallbackData = {
                     workedEmployee: 59,
                     lateEmployee: 21,
@@ -424,10 +389,8 @@
                     attendanceData = fallbackData;
                 }
 
-                // Update UI
                 updateAttendanceStats(attendanceData);
 
-                // Create chart
                 const option = createAttendanceChartOption(attendanceData);
                 chart.setOption(option);
 
@@ -436,15 +399,18 @@
             }
         }
 
-        function updateAttendanceStats(data) {
-            const presentEl = document.getElementById('present-percent');
-            const lateEl = document.getElementById('late-percent');
-            const absentEl = document.getElementById('absent-percent');
-
-            if (presentEl) presentEl.textContent = data.workedEmployee;
-            if (lateEl) lateEl.textContent = data.lateEmployee;
-            if (absentEl) absentEl.textContent = data.absentEmployee;
-        }
+            function updateAttendanceStats(data) {
+                const presentEl = document.getElementById('present-percent');
+                const lateEl = document.getElementById('late-percent');
+                const absentEl = document.getElementById('absent-percent');
+                console.log(absentEl)
+                if (presentEl) presentEl.textContent = data.workedEmployee;
+                if (lateEl) lateEl.textContent = data.lateEmployee;
+                if (absentEl) absentEl.textContent = data.absentEmployee;
+                console.log(lateEl.textContent)
+                console.log(absentEl.textContent)
+                console.log(data)
+            }
 
         function createAttendanceChartOption(data) {
             const totalEmployees = data.totalEmployee || 100;
@@ -510,7 +476,6 @@
             if (!chart || !year) return;
 
             try {
-                // Fallback data in case API fails
                 const fallbackData = [
                     { month: 'Jan', total: 120000000 },
                     { month: 'Feb', total: 132000000 },
@@ -545,7 +510,6 @@
                     payrollData = fallbackData;
                 }
 
-                // Create chart
                 const option = createPayrollChartOption(payrollData);
                 chart.setOption(option);
 
@@ -558,7 +522,6 @@
             const months = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
             const totals = [];
 
-            // Extract totals from data
             if (Array.isArray(data)) {
                 data.forEach(item => {
                     totals.push(item.total);
@@ -626,10 +589,8 @@
                 const salaryContainer = document.getElementById("top-highest-salary");
                 if (!salaryContainer) return;
 
-                // Clear current content
                 salaryContainer.innerHTML = "";
 
-                // Fallback data
                 const fallbackData = [
                     { firstName: "John", lastName: "Doe", position: "Director", netSalary: 35000000 },
                     { firstName: "Jane", lastName: "Smith", position: "Manager", netSalary: 28000000 },
@@ -655,13 +616,10 @@
                     employeeData = fallbackData;
                 }
 
-                // Render employee cards
                 employeeData.forEach(emp => {
-                    // Get initials for the employee avatar
                     const initials = (emp.firstName ? emp.firstName.charAt(0) : '') +
                         (emp.lastName ? emp.lastName.charAt(0) : '');
 
-                    // Create employee card HTML
                     const employeeCard = `
                         <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-1">
                             <div class="flex items-center">
@@ -677,7 +635,6 @@
                         </div>
                     `;
 
-                    // Add to container
                     salaryContainer.innerHTML += employeeCard;
                 });
 

@@ -48,7 +48,7 @@ public class AttendanceAPI {
     @RequestParam("date") LocalDate date) {
 
     AttendanceCountDTO attendanceCountDTO = attendanceService.countAvailableAttendance(String.valueOf(date));
-    System.out.println("absent: " +attendanceCountDTO.getAbsenceEmployee());
+    System.out.println("absent: " +attendanceCountDTO.getAbsentEmployee());
     log.info(attendanceCountDTO.toString());
     return ResponseEntity.ok(attendanceCountDTO);
   }

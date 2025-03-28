@@ -15,12 +15,12 @@ import lombok.NoArgsConstructor;
 public class LeavePolicy {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    @Column(name = "leave_policies_id")
+    @Column(name = "leave_policy_id")
     private int leavePolicyId;
 
-    @Column(name="leave_policies_name")
+    @Column(name="leave_policy_name")
     private String leavePolicyName;
 
-    @Column(name = "leave_policies_amount")
+    @Column(name = "leave_policy_amount")
     private Integer leavePolicyAmount;
 }

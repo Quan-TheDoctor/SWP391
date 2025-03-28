@@ -1,22 +1,25 @@
 package com.se1873.js.springboot.project.controller;
 
 import com.se1873.js.springboot.project.dto.EmployeeDTO;
+import com.se1873.js.springboot.project.dto.JobApplicationDTO;
+import com.se1873.js.springboot.project.entity.Department;
 import com.se1873.js.springboot.project.entity.User;
+import com.se1873.js.springboot.project.repository.DepartmentRepository;
 import com.se1873.js.springboot.project.repository.EmployeeRepository;
+import com.se1873.js.springboot.project.repository.JobApplicationRepository;
+import com.se1873.js.springboot.project.service.JobApplicationService;
 import com.se1873.js.springboot.project.service.department.DepartmentService;
 import com.se1873.js.springboot.project.service.employee.EmployeeService;
 import com.se1873.js.springboot.project.service.position.PositionService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.data.domain.Page;
-import org.springframework.data.domain.PageRequest;
-import org.springframework.data.domain.Pageable;
-import org.springframework.data.domain.Sort;
+import org.springframework.data.domain.*;
 import org.springframework.data.web.PageableDefault;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.validation.BindingResult;
@@ -27,6 +30,7 @@ import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 
 import java.util.Arrays;
 import java.util.List;
+import java.util.stream.Collectors;
 
 @Controller
 @Slf4j
@@ -40,6 +44,10 @@ public class EmployeeController {
   private final DepartmentService departmentService;
   private final PositionService positionService;
   private final GlobalController globalController;
+  private final JobApplicationService jobApplicationService;
+  private final JobApplicationRepository jobApplicationRepository;
+  private final DepartmentRepository departmentRepository;
+
   @ModelAttribute("employees")
   public Page<EmployeeDTO> initDataPage() {
     return Page.empty();
@@ -53,6 +61,7 @@ public class EmployeeController {
   }
 
   @RequestMapping
+  @PreAuthorize("hasPermission('EMPLOYEE', 'VISIBLE')")
   public String employee(
     @PageableDefault(size = 10, sort = "employeeId", direction = Sort.Direction.ASC) Pageable pageable,
     Model model,
@@ -60,17 +69,22 @@ public class EmployeeController {
     Page<EmployeeDTO> employees = employeeService.getAll(pageable);
     var totalEmployees = employees.getTotalElements();
     var avgSalary = employeeService.getAverageSalary(employees.getContent());
+    var activeEmployees = employeeService.countActiveEmployees(employees.getContent());
 
     addCommonAttributes(model);
     model.addAttribute("totalEmployees", totalEmployees);
+    model.addAttribute("activeEmployees", activeEmployees);
     model.addAttribute("avgSalary", avgSalary);
     model.addAttribute("employees", employees);
+    model.addAttribute("currentSortField", "employeeId");
+    model.addAttribute("direction", "asc");
     model.addAttribute("currentRequestURI", "/employee");
     model.addAttribute("contentFragment", "fragments/employee-fragments");
     return "index";
   }
 
   @RequestMapping("/view")
+  @PreAuthorize("hasPermission('EMPLOYEE', 'UPDATE')")
   public String view(Model model,
                      @RequestParam("employeeId") Integer employeeId,
                      @ModelAttribute("loggedInUser") User loggedInUser) {
@@ -86,17 +100,48 @@ public class EmployeeController {
   }
 
   @RequestMapping("/create/form")
-  public String createForm(Model model) {
-
+  @PreAuthorize("hasPermission('EMPLOYEE', 'ADD')")
+  public String createForm(Model model, @RequestParam(value = "applicationId", required = false) Long applicationId) {
     addCommonAttributes(model);
-    model.addAttribute("employeeDTO", new EmployeeDTO());
+    
+    if (applicationId != null) {
+        try {
+            JobApplicationDTO jobApplication = jobApplicationService.getJobApplicationById(applicationId);
+            if (jobApplication != null) {
+                Department department = departmentRepository.getDepartmentByDepartmentName(jobApplication.getJobPositionDepartment());
+                EmployeeDTO employeeDTO = new EmployeeDTO();
+                employeeDTO.setEmployeeFirstName(jobApplication.getCandidateName().split(" ")[0]);
+                employeeDTO.setEmployeeLastName(jobApplication.getCandidateName().split(" ")[1]);
+                employeeDTO.setEmployeePersonalEmail(jobApplication.getEmail());
+                employeeDTO.setEmployeePhone(jobApplication.getPhone());
+                employeeDTO.setDepartmentId(department.getDepartmentId());
+                employeeDTO.setPositionId(Math.toIntExact(jobApplication.getJobPositionId()));
+                
+                model.addAttribute("employeeDTO", employeeDTO);
+            } else {
+                model.addAttribute("employeeDTO", new EmployeeDTO());
+            }
+        } catch (Exception e) {
+            model.addAttribute("employeeDTO", new EmployeeDTO());
+        }
+    } else {
+        model.addAttribute("employeeDTO", new EmployeeDTO());
+    }
+    
     model.addAttribute("contentFragment", "fragments/employee-create-fragments");
     return "index";
   }
+
   @PostMapping("/create/save")
-  public String saveEmployee(@ModelAttribute EmployeeDTO employeeDTO,
+  @PreAuthorize("hasPermission('EMPLOYEE', 'ADD')")
+  public String saveEmployee(@Valid @ModelAttribute EmployeeDTO employeeDTO,
                              @RequestParam(value = "avatarFile", required = false) MultipartFile avatarFile,
-                             RedirectAttributes redirectAttributes) {
+                             RedirectAttributes redirectAttributes,
+                             BindingResult bindingResult) {
+    if(bindingResult.hasErrors()) {
+
+      return "redirect:/employee/create/form";
+    }
     try {
       if (avatarFile != null && !avatarFile.isEmpty()) {
         employeeDTO.setPicture(avatarFile.getBytes());
@@ -124,6 +169,7 @@ public class EmployeeController {
 
 
   @PostMapping("/create/update")
+  @PreAuthorize("hasPermission('EMPLOYEE', 'UPDATE')")
   public String updateEmployee(@Valid @ModelAttribute("employeeDTO") EmployeeDTO employeeDTO,
                                BindingResult bindingResult,
                                Model model,
@@ -143,6 +189,7 @@ public class EmployeeController {
   }
 
   @RequestMapping("/filter")
+  @PreAuthorize("hasPermission('EMPLOYEE', 'VISIBLE')")
   public String filter(Model model,
                        @RequestParam("field") String field,
                        @RequestParam("value") String value,
@@ -156,48 +203,80 @@ public class EmployeeController {
     }
     var totalEmployees = employees.getTotalElements();
     var avgSalary = employees.getContent().stream().mapToDouble(EmployeeDTO::getContractBaseSalary).average().orElse(0.0);
+    var activeEmployees = employeeService.countActiveEmployees(employees.getContent());
 
     globalController.createAuditLog(loggedInUser, "Filter list Employee by " + field , "View", "Normal");
     addCommonAttributes(model);
     model.addAttribute("totalEmployees", totalEmployees);
+    model.addAttribute("activeEmployees", activeEmployees);
     model.addAttribute("avgSalary", avgSalary);
     model.addAttribute("employees", employees);
+    model.addAttribute("currentSortField", "employeeId");
+    model.addAttribute("direction", "asc");
     model.addAttribute("contentFragment", "fragments/employee-fragments");
     return "index";
   }
 
   @RequestMapping("/search")
+  @PreAuthorize("hasPermission('EMPLOYEE', 'VISIBLE')")
   public String search(Model model,
                        @RequestParam("query") String query,
                        @RequestParam(value = "page", defaultValue = "0") int page,
                        @RequestParam(value = "size", defaultValue = "10") int size,
                        @ModelAttribute("loggedInUser") User loggedInUser) {
     Pageable pageable = PageRequest.of(page, size);
-    var employees = employeeService.search(pageable, query);
-    var totalEmployees = employees.getTotalElements();
-    var avgSalary = employees.getContent().stream().mapToDouble(EmployeeDTO::getContractBaseSalary).average().orElse(0.0);
+    
+    List<EmployeeDTO> allEmployees = employeeService.getAllEmployees();
+    
+    List<EmployeeDTO> searchEmployees = allEmployees.stream()
+      .filter(e -> (e.getEmployeeFirstName() + " " + e.getEmployeeLastName()).toLowerCase().contains(query.toLowerCase()))
+      .collect(Collectors.toList());
+    
+    long totalSearchResults = searchEmployees.size();
+    
+    int start = (int) Math.min(page * size, totalSearchResults);
+    int end = (int) Math.min(start + size, totalSearchResults);
+    
+    List<EmployeeDTO> paginatedResults = searchEmployees.subList(start, end);
+    
+    Page<EmployeeDTO> employeePage = new PageImpl<>(paginatedResults, pageable, totalSearchResults);
+    
+    double avgSalary = searchEmployees.stream().mapToDouble(EmployeeDTO::getContractBaseSalary).average().orElse(0.0);
 
     globalController.createAuditLog(loggedInUser, "Search Employee by " + query , "View", "Normal");
     addCommonAttributes(model);
-    model.addAttribute("employees", employees);
-    model.addAttribute("totalEmployees", totalEmployees);
+    model.addAttribute("employees", employeePage);
+    model.addAttribute("totalEmployees", totalSearchResults);
     model.addAttribute("avgSalary", avgSalary);
     model.addAttribute("contentFragment", "fragments/employee-fragments");
     return "index";
   }
 
   @RequestMapping("/sort")
+  @PreAuthorize("hasPermission('EMPLOYEE', 'VISIBLE')")
   public String sort(Model model,
                      @RequestParam("field") String field,
                      @RequestParam("direction") String direction,
                      @RequestParam(value = "page", defaultValue = "0") int page,
                      @RequestParam(value = "size", defaultValue = "10") int size,
-                     @ModelAttribute("loggedInUser") User loggedInUser,
-                     @ModelAttribute("employees") Page<EmployeeDTO> filteredEmployeePage) {
-    Pageable pageable = PageRequest.of(page, size);
-    var employees = employeeService.sort(filteredEmployeePage, direction, field);
+                     @ModelAttribute("loggedInUser") User loggedInUser) {
+    
+    Sort sort = "asc".equals(direction) ?
+        Sort.by(field).ascending() : 
+        Sort.by(field).descending();
+    Pageable pageable = PageRequest.of(page, size, sort);
+    
+    Page<EmployeeDTO> employees = employeeService.getAll(pageable);
+    var totalEmployees = employees.getTotalElements();
+    var avgSalary = employees.getContent().stream().mapToDouble(EmployeeDTO::getContractBaseSalary).average().orElse(0.0);
+    var activeEmployees = employeeService.countActiveEmployees(employees.getContent());
 
     globalController.createAuditLog(loggedInUser, "Sort Employee by " + field + " in " + direction + " order", "View", "Normal");
+    
+    addCommonAttributes(model);
+    model.addAttribute("totalEmployees", totalEmployees);
+    model.addAttribute("activeEmployees", activeEmployees);
+    model.addAttribute("avgSalary", avgSalary);
     model.addAttribute("employees", employees);
     model.addAttribute("direction", direction);
     model.addAttribute("currentSortField", field);
@@ -206,6 +285,7 @@ public class EmployeeController {
   }
 
   @RequestMapping("/export/view")
+  @PreAuthorize("hasPermission('EMPLOYEE', 'UPDATE')")
   public String exportView(Model model,
                            @RequestParam(value = "department", required = false, defaultValue = "all") String department,
                            @RequestParam(value = "position", required = false, defaultValue = "all") String position,
@@ -230,6 +310,7 @@ public class EmployeeController {
 
 
   @PostMapping("/export")
+  @PreAuthorize("hasPermission('EMPLOYEE', 'UPDATE')")
   public ResponseEntity<Resource> exportEmployees(
     @RequestParam(value = "selectedEmployees", required = false) String selectedEmployees,
     @RequestParam(value = "department", required = false, defaultValue = "all") String department,

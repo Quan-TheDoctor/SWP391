@@ -33,12 +33,30 @@ public interface EmployeeRepository extends JpaRepository<Employee, Long> {
           "where p.positionName = :positionName and eh.isCurrent = true")
   Page<Employee> findEmployeesByPositionName(@Param("positionName") String position, Pageable pageable);
 
-  Page<Employee> findAll(Pageable pageable);
 
   @Query("select e from Employee e " +
-          "where e.isDeleted = false AND (lower(e.firstName) like concat('%',:firstName,'%') or " +
-          "lower(e.lastName) like concat('%',:lastName,'%'))")
-  Page<Employee> searchEmployee(@Param("firstName") String firstName,@Param("lastName") String lastName,Pageable pageable);
+          "join e.employmentHistories eh " +
+          "join eh.position p " +
+          "where p.positionName = :positionName and eh.isCurrent = true")
+  List<Employee> findEmployeesByPositionNames(@Param("positionName") String position);
+
+  Page<Employee> findAll(Pageable pageable);
+  @Query(value = "SELECT e.* FROM employees e WHERE " +
+    "(LOWER(unaccent(e.first_name)) LIKE LOWER(unaccent(CONCAT('%', :searchTerm, '%'))) OR " +
+    "LOWER(unaccent(e.last_name)) LIKE LOWER(unaccent(CONCAT('%', :searchTerm, '%'))) OR " +
+    "LOWER(unaccent(CONCAT(e.first_name, ' ', e.last_name))) LIKE LOWER(unaccent(CONCAT('%', :searchTerm, '%'))) OR " +
+    "LOWER(unaccent(CONCAT(e.last_name, ' ', e.first_name))) LIKE LOWER(unaccent(CONCAT('%', :searchTerm, '%')))) " +
+    "AND e.is_deleted = false",
+    countQuery = "SELECT COUNT(*) FROM employees e WHERE " +
+      "(LOWER(unaccent(e.first_name)) LIKE LOWER(unaccent(CONCAT('%', :searchTerm, '%'))) OR " +
+      "LOWER(unaccent(e.last_name)) LIKE LOWER(unaccent(CONCAT('%', :searchTerm, '%'))) OR " +
+      "LOWER(unaccent(CONCAT(e.first_name, ' ', e.last_name))) LIKE LOWER(unaccent(CONCAT('%', :searchTerm, '%'))) OR " +
+      "LOWER(unaccent(CONCAT(e.last_name, ' ', e.first_name))) LIKE LOWER(unaccent(CONCAT('%', :searchTerm, '%')))) " +
+      "AND e.is_deleted = false",
+    nativeQuery = true)
+  Page<Employee> searchEmployee(@Param("searchTerm") String searchTerm, Pageable pageable);
+
+
 
   @Query("SELECT e FROM Employee e " +
           "WHERE (:firstName IS NULL OR lower(e.firstName) LIKE concat('%', :firstName, '%')) " +
@@ -59,4 +77,10 @@ public interface EmployeeRepository extends JpaRepository<Employee, Long> {
   Employee getEmployeeByUser(User user);
 
   Employee getEmployeeByUser_UserId(Integer userUserId);
+
+  List<Employee> findEmployeesByIsDeleted(Boolean isDeleted);
+
+  Optional<Employee> findByEmployeeCode (String employeeCode);
+
+
 }

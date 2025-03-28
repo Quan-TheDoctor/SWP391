@@ -69,11 +69,6 @@
                 </div>
 
                 <div class="flex gap-2">
-                    <a th:href="@{/attendance/create/form}"
-                       class="px-4 py-2 bg-white text-primary-600 rounded-lg shadow-md hover:bg-gray-100 transition-all duration-200 flex items-center">
-                        <i class="fas fa-plus mr-2"></i>
-                        New Record
-                    </a>
                     <a th:href="@{/attendance}"
                        class="px-4 py-2 bg-gray-700 text-white rounded-lg shadow-md hover:bg-gray-800 transition-all duration-200">
                         Back
@@ -81,27 +76,84 @@
                 </div>
             </div>
 
-            <!-- Department Selection & Statistics -->
-            <div class="grid grid-cols-1 lg:grid-cols-4 gap-6 animate__animated animate__fadeIn">
-                <!-- Department Selection -->
+            <form th:action="@{/attendance/summary/filter}" method="get" id="filterForm" class="grid grid-cols-1 lg:grid-cols-4 gap-6 animate__animated animate__fadeIn">
                 <div class="lg:col-span-1 bg-white p-4 rounded-lg shadow-lg">
                     <h2 class="text-lg font-semibold mb-3 text-gray-700">Department</h2>
-                    <form th:action="@{/attendance/summary}" th:object="${payrollCalculationForm}" method="get">
-                        <select name="selectedDepartmentId"
-                                th:onchange="this.form.submit()"
-                                class="w-full p-2 border rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500">
-                            <option value="">Select Department</option>
-                            <option th:each="d : ${departments}"
-                                    th:value="${d.departmentId}"
-                                    th:text="${d.departmentName}"
-                                    th:selected="${payrollCalculationForm.selectedDepartmentId == d.departmentId}">
-                            </option>
-                        </select>
-                    </form>
+                    <select name="selectedDepartmentId"
+                            class="w-full p-2 border rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500">
+                        <option value="0" th:selected="${payrollCalculationForm.selectedDepartmentId == null || payrollCalculationForm.selectedDepartmentId == 0}">Select Department</option>
+                        <option th:each="d : ${departments}"
+                                th:value="${d.departmentId}"
+                                th:text="${d.departmentName}"
+                                th:selected="${payrollCalculationForm.selectedDepartmentId == d.departmentId}">
+                        </option>
+                    </select>
                 </div>
+
+                <div class="lg:col-span-1 bg-white p-4 rounded-lg shadow-lg">
+                    <h2 class="text-lg font-semibold mb-3 text-gray-700">Month</h2>
+                    <select id="monthFilter" name="selectedMonth" class="w-full p-2 border rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500">
+                        <option value="1" th:selected="${selectedMonth == 1}">January</option>
+                        <option value="2" th:selected="${selectedMonth == 2}">February</option>
+                        <option value="3" th:selected="${selectedMonth == 3 || selectedMonth == null}">March</option>
+                        <option value="4" th:selected="${selectedMonth == 4}">April</option>
+                        <option value="5" th:selected="${selectedMonth == 5}">May</option>
+                        <option value="6" th:selected="${selectedMonth == 6}">June</option>
+                        <option value="7" th:selected="${selectedMonth == 7}">July</option>
+                        <option value="8" th:selected="${selectedMonth == 8}">August</option>
+                        <option value="9" th:selected="${selectedMonth == 9}">September</option>
+                        <option value="10" th:selected="${selectedMonth == 10}">October</option>
+                        <option value="11" th:selected="${selectedMonth == 11}">November</option>
+                        <option value="12" th:selected="${selectedMonth == 12}">December</option>
+                    </select>
+                </div>
+
+                <div class="lg:col-span-1 bg-white p-4 rounded-lg shadow-lg">
+                    <h2 class="text-lg font-semibold mb-3 text-gray-700">Year</h2>
+                    <select id="yearFilter" name="selectedYear" class="w-full p-2 border rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500">
+                        <option value="2022" th:selected="${selectedYear == 2022}">2022</option>
+                        <option value="2023" th:selected="${selectedYear == 2023}">2023</option>
+                        <option value="2024" th:selected="${selectedYear == 2024}">2024</option>
+                        <option value="2025" th:selected="${selectedYear == 2025 || selectedYear == null}">2025</option>
+                    </select>
+                </div>
+
+                <div class="lg:col-span-1 bg-white p-4 rounded-lg shadow-lg">
+                    <h2 class="text-lg font-semibold mb-3 text-gray-700">Display</h2>
+                    <select name="pageSize" id="recordsPerPage" class="w-full p-2 border rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500">
+                        <option value="1" th:selected="${pageSize == 1 || pageSize == null}">1 records</option>
+                        <option value="10" th:selected="${pageSize == 10}">10 records</option>
+                        <option value="25" th:selected="${pageSize == 20}">20 records</option>
+                    </select>
+                </div>
+
+                <div class="lg:col-span-4 flex justify-end">
+                    <button type="submit" class="px-4 py-2 bg-primary-600 text-white rounded-lg hover:bg-primary-700 transition-colors">
+                        <i class="fas fa-filter mr-1"></i> Apply Filters
+                    </button>
+                </div>
+            </form>
+
+            <div class="bg-white rounded-lg shadow-lg p-4 mb-4">
+                <form th:action="@{/attendance/summary}" method="get" class="flex items-center">
+                    <input type="hidden" name="selectedDepartmentId" th:value="${payrollCalculationForm.selectedDepartmentId}">
+                    <input type="hidden" name="month" th:value="${selectedMonth}">
+                    <input type="hidden" name="year" th:value="${selectedYear}">
+                    <input type="hidden" name="pageSize" th:value="${pageSize}">
+
+                    <div class="relative w-full">
+                        <div class="absolute inset-y-0 left-0 flex items-center pl-3 pointer-events-none">
+                            <i class="fas fa-search text-gray-400"></i>
+                        </div>
+                        <input type="text" name="search" th:value="${searchQuery}" placeholder="Search employee name..."
+                               class="w-full p-2 pl-10 border rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500">
+                    </div>
+                    <button type="submit" class="ml-2 px-4 py-2 bg-primary-600 text-white rounded-lg hover:bg-primary-700 transition-colors">
+                        Search
+                    </button>
+                </form>
             </div>
 
-            <!-- Payroll Calculation Form -->
             <div class="bg-white rounded-lg shadow-lg p-4 space-y-4 animate__animated animate__fadeInUp">
                 <form th:action="@{/attendance/summary/calculate}" th:object="${payrollCalculationForm}" method="post">
                     <input type="hidden" th:field="*{selectedDepartmentId}">
@@ -167,8 +219,8 @@
                                            th:field="*{payrollCalculations[__${stat.index}__].employeeId}">
                                     <div class="flex items-center">
                                         <div class="w-8 h-8 rounded-full bg-primary-100 flex items-center justify-center text-xs font-semibold text-primary-700 mr-2"
-                                             th:text="${dto.employeeFistName().substring(0,1).toUpperCase()}"></div>
-                                        <span th:text="${dto.employeeFistName() + ' ' + dto.employeeLastName()}"
+                                             th:text="${dto.getEmployeeFistName().substring(0,1).toUpperCase()}"></div>
+                                        <span th:text="${dto.getEmployeeFistName() + ' ' + dto.getEmployeeLastName()}"
                                               class="font-medium text-gray-900"></span>
                                     </div>
                                 </td>
@@ -195,8 +247,8 @@
                                 </td>
                                 <td class="px-6 py-4">
                                     <button type="button"
-                                            th:data-employee-id="${dto.employeeId()}"
-                                            th:data-employee-name="${dto.employeeFistName() + ' ' + dto.employeeLastName()}"
+                                            th:data-employee-id="${dto.getEmployeeId()}"
+                                            th:data-employee-name="${dto.getEmployeeFistName() + ' ' + dto.getEmployeeLastName()}"
                                             onclick="showAttendanceDetails(this.getAttribute('data-employee-id'), this.getAttribute('data-employee-name'))"
                                             class="px-3 py-1 bg-primary-500 text-white rounded hover:bg-primary-600 transition-colors flex items-center">
                                         <i class="fas fa-eye mr-1"></i> View
@@ -216,12 +268,12 @@
 
                             <div class="flex items-center mb-4">
                                 <div class="w-10 h-10 rounded-full bg-primary-100 flex items-center justify-center text-sm font-semibold text-primary-700 mr-3"
-                                     th:text="${dto.employeeFistName().substring(0,1).toUpperCase()}"></div>
+                                     th:text="${dto.getEmployeeFistName().substring(0,1).toUpperCase()}"></div>
                                 <div>
                                     <h3 class="font-medium text-gray-900"
-                                        th:text="${dto.employeeFistName() + ' ' + dto.employeeLastName()}"></h3>
+                                        th:text="${dto.getEmployeeFistName() + ' ' + dto.getEmployeeLastName()}"></h3>
                                     <p class="text-sm text-gray-500">Employee ID: <span
-                                            th:text="${dto.employeeId()}"></span></p>
+                                            th:text="${dto.getEmployeeId()}"></span></p>
                                 </div>
                             </div>
 
@@ -252,8 +304,8 @@
 
                             <div class="flex justify-end">
                                 <button type="button"
-                                        th:data-employee-id="${dto.employeeId()}"
-                                        th:data-employee-name="${dto.employeeFistName() + ' ' + dto.employeeLastName()}"
+                                        th:data-employee-id="${dto.getEmployeeId()}"
+                                        th:data-employee-name="${dto.getEmployeeFistName() + ' ' + dto.getEmployeeLastName()}"
                                         onclick="showAttendanceDetails(this.getAttribute('data-employee-id'), this.getAttribute('data-employee-name'))"
                                         class="px-3 py-1 bg-primary-500 text-white rounded hover:bg-primary-600 transition-colors flex items-center text-sm">
                                     <i class="fas fa-eye mr-1"></i> View Details
@@ -261,6 +313,105 @@
                             </div>
                         </div>
                     </div>
+
+                    <!-- Improved Pagination Component with Consistent Button Sizes -->
+                    <div class="mt-6 border-t border-gray-200 pt-4" th:if="${totalPages != null && totalPages > 0}">
+                        <!-- Mobile Pagination (Simplified) -->
+                        <div class="flex justify-between items-center sm:hidden">
+                            <a th:href="@{/attendance/summary(page=${currentPage - 1}, selectedDepartmentId=${payrollCalculationForm.selectedDepartmentId}, selectedMonth=${selectedMonth}, selectedYear=${selectedYear}, pageSize=${pageSize}, search=${searchQuery}, view=${param.view != null ? param.view[0] : 'table'})}"
+                               th:class="${currentPage == 0 ? 'pointer-events-none opacity-50' : ''}"
+                               class="px-3 py-1 border rounded text-sm bg-white text-gray-700 flex items-center">
+                                <i class="fas fa-angle-left mr-1"></i> Prev
+                            </a>
+
+                            <span class="text-sm text-gray-700">
+            Page [[${currentPage + 1}]] of [[${totalPages}]]
+        </span>
+
+                            <a th:href="@{/attendance/summary(page=${currentPage + 1}, selectedDepartmentId=${payrollCalculationForm.selectedDepartmentId}, selectedMonth=${selectedMonth}, selectedYear=${selectedYear}, pageSize=${pageSize}, search=${searchQuery}, view=${param.view != null ? param.view[0] : 'table'})}"
+                               th:class="${currentPage >= totalPages - 1 ? 'pointer-events-none opacity-50' : ''}"
+                               class="px-3 py-1 border rounded text-sm bg-white text-gray-700 flex items-center">
+                                Next <i class="fas fa-angle-right ml-1"></i>
+                            </a>
+                        </div>
+
+                        <!-- Desktop Pagination (Redesigned with consistent sizing) -->
+                        <div class="hidden sm:flex sm:items-center sm:justify-between">
+                            <div>
+                                <p class="text-sm text-gray-700">
+                                    Showing
+                                    <span class="font-medium">[[${currentPage * pageSize + 1}]]</span>
+                                    to
+                                    <span class="font-medium">[[${currentPage * pageSize + payrollCalculationForm.payrollCalculations.size()}]]</span>
+                                    of
+                                    <span class="font-medium">[[${totalItems != null ? totalItems : (totalPages * pageSize)}]]</span>
+                                    results
+                                </p>
+                            </div>
+
+                            <div class="flex">
+                                <!-- Pagination buttons - all equal width/height -->
+                                <a th:href="@{/attendance/summary(page=0, selectedDepartmentId=${payrollCalculationForm.selectedDepartmentId}, selectedMonth=${selectedMonth}, selectedYear=${selectedYear}, pageSize=${pageSize}, search=${searchQuery}, view=${param.view != null ? param.view[0] : 'table'})}"
+                                   th:class="${currentPage == 0 ? 'pointer-events-none opacity-50' : ''}"
+                                   class="flex items-center justify-center w-10 h-10 border border-gray-300 rounded-l-md bg-white text-gray-500 hover:bg-gray-100">
+                                    <i class="fas fa-angle-double-left"></i>
+                                </a>
+
+                                <a th:href="@{/attendance/summary(page=${currentPage - 1}, selectedDepartmentId=${payrollCalculationForm.selectedDepartmentId}, selectedMonth=${selectedMonth}, selectedYear=${selectedYear}, pageSize=${pageSize}, search=${searchQuery}, view=${param.view != null ? param.view[0] : 'table'})}"
+                                   th:class="${currentPage == 0 ? 'pointer-events-none opacity-50' : ''}"
+                                   class="flex items-center justify-center w-10 h-10 border-t border-b border-r border-gray-300 bg-white text-gray-500 hover:bg-gray-100">
+                                    <i class="fas fa-angle-left"></i>
+                                </a>
+
+                                <!-- Page Numbers with consistent sizing -->
+                                <th:block th:with="start=${(currentPage - 1) > 0 ? (currentPage - 1) : 0},
+                          end=${(currentPage + 1) < totalPages ? (currentPage + 1) : (totalPages - 1)}">
+
+                                    <th:block th:if="${start > 0}">
+                                        <a th:href="@{/attendance/summary(page=0, selectedDepartmentId=${payrollCalculationForm.selectedDepartmentId}, selectedMonth=${selectedMonth}, selectedYear=${selectedYear}, pageSize=${pageSize}, search=${searchQuery}, view=${param.view != null ? param.view[0] : 'table'})}"
+                                           class="flex items-center justify-center w-10 h-10 border-t border-b border-r border-gray-300 bg-white text-gray-700 hover:bg-gray-100">
+                                            1
+                                        </a>
+
+                                        <div th:if="${start > 1}" class="flex items-center justify-center w-10 h-10 border-t border-b border-r border-gray-300 bg-white text-gray-500">
+                                            ...
+                                        </div>
+                                    </th:block>
+
+                                    <th:block th:each="i: ${#numbers.sequence(start, end)}">
+                                        <a th:href="@{/attendance/summary(page=${i}, selectedDepartmentId=${payrollCalculationForm.selectedDepartmentId}, selectedMonth=${selectedMonth}, selectedYear=${selectedYear}, pageSize=${pageSize}, search=${searchQuery}, view=${param.view != null ? param.view[0] : 'table'})}"
+                                           th:class="${i == currentPage} ? 'flex items-center justify-center w-10 h-10 border-t border-b border-r border-gray-300 bg-primary-50 text-primary-600 font-medium' : 'flex items-center justify-center w-10 h-10 border-t border-b border-r border-gray-300 bg-white text-gray-700 hover:bg-gray-100'"
+                                           th:text="${i + 1}">
+                                        </a>
+                                    </th:block>
+
+                                    <th:block th:if="${end < totalPages - 1}">
+                                        <div th:if="${end < totalPages - 2}" class="flex items-center justify-center w-10 h-10 border-t border-b border-r border-gray-300 bg-white text-gray-500">
+                                            ...
+                                        </div>
+
+                                        <a th:href="@{/attendance/summary(page=${totalPages - 1}, selectedDepartmentId=${payrollCalculationForm.selectedDepartmentId}, selectedMonth=${selectedMonth}, selectedYear=${selectedYear}, pageSize=${pageSize}, search=${searchQuery}, view=${param.view != null ? param.view[0] : 'table'})}"
+                                           class="flex items-center justify-center w-10 h-10 border-t border-b border-r border-gray-300 bg-white text-gray-700 hover:bg-gray-100"
+                                           th:text="${totalPages}">
+                                        </a>
+                                    </th:block>
+                                </th:block>
+
+                                <a th:href="@{/attendance/summary(page=${currentPage + 1}, selectedDepartmentId=${payrollCalculationForm.selectedDepartmentId}, selectedMonth=${selectedMonth}, selectedYear=${selectedYear}, pageSize=${pageSize}, search=${searchQuery}, view=${param.view != null ? param.view[0] : 'table'})}"
+                                   th:class="${currentPage >= totalPages - 1 ? 'pointer-events-none opacity-50' : ''}"
+                                   class="flex items-center justify-center w-10 h-10 border-t border-b border-r border-gray-300 bg-white text-gray-500 hover:bg-gray-100">
+                                    <i class="fas fa-angle-right"></i>
+                                </a>
+
+                                <a th:href="@{/attendance/summary(page=${totalPages - 1}, selectedDepartmentId=${payrollCalculationForm.selectedDepartmentId}, selectedMonth=${selectedMonth}, selectedYear=${selectedYear}, pageSize=${pageSize}, search=${searchQuery}, view=${param.view != null ? param.view[0] : 'table'})}"
+                                   th:class="${currentPage >= totalPages - 1 ? 'pointer-events-none opacity-50' : ''}"
+                                   class="flex items-center justify-center w-10 h-10 border border-gray-300 rounded-r-md bg-white text-gray-500 hover:bg-gray-100">
+                                    <i class="fas fa-angle-double-right"></i>
+                                </a>
+                            </div>
+                        </div>
+                    </div>
+
                 </form>
             </div>
         </div>
@@ -362,10 +513,10 @@
                         <select id="editStatus"
                                 class="w-full p-2 border rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500"
                                 onchange="toggleStatusFields()">
-                            <option value="Đúng giờ">On Time</option>
-                            <option value="Đi muộn">Late</option>
+                            <option value="On time">On Time</option>
+                            <option value="Late">Late</option>
                             <option value="OT">Overtime</option>
-                            <option value="Nghỉ phép">Absent</option>
+                            <option value="Absent">Absent</option>
                         </select>
                     </div>
 

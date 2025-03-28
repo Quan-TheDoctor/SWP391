@@ -38,4 +38,9 @@ public class ChannelQueryServiceImpl implements ChannelQueryService {
   public Channel getChannelByChannelName(String channelName) {
     return channelRepository.getChannelByChannelName(channelName);
   }
+
+  @Override
+  public Channel saveChannel(Channel channel) {
+    return channelRepository.save(channel);
+  }
 }

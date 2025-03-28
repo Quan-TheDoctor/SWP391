@@ -1,15 +1,19 @@
 package com.se1873.js.springboot.project.dto;
 
-import lombok.AllArgsConstructor;
-import lombok.Builder;
+import com.se1873.js.springboot.project.entity.PermissionLevel;
 import lombok.Data;
 import lombok.NoArgsConstructor;
+import lombok.AllArgsConstructor;
 
 @Data
-@Builder
-@AllArgsConstructor
 @NoArgsConstructor
+@AllArgsConstructor
 public class RoleDTO {
-  private String name;
-
+    private Long id;
+    private String name;
+    private String description;
+    private PermissionLevel employeePermission;
+    private PermissionLevel departmentPermission;
+    private PermissionLevel recruitmentPermission;
+    private PermissionLevel systemPermission;
 }

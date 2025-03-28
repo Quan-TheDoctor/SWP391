@@ -253,6 +253,12 @@ const ChatModule = {
             const messageInput = document.getElementById('messageInput');
             const message = messageInput.value.trim();
 
+            if (!ChatModule.data.stompClient || !ChatModule.data.stompClient.connected) {
+                console.error('WebSocket not connected, attempting to reconnect...');
+                ChatModule.websocket.connect();
+                return;
+            }
+
             const currentChannel = ChatModule.data.chatRooms.find(c => c.channelId === ChatModule.data.currentChannelId);
 
             if (currentChannel && ChatModule.utils.isSystemChannel(currentChannel.channelName)) {
@@ -278,7 +284,13 @@ const ChatModule = {
                 ChatModule.data.sentMessages.add(messageKey);
                 setTimeout(() => ChatModule.data.sentMessages.delete(messageKey), 5000);
 
-                ChatModule.data.stompClient.send(`/app/chat.sendMessage/${ChatModule.data.currentChannelId}`, {}, JSON.stringify(chatMessage));
+                try {
+                    ChatModule.data.stompClient.send(`/app/chat.sendMessage/${ChatModule.data.currentChannelId}`, {}, JSON.stringify(chatMessage));
+                    console.log('Message sent:', chatMessage);
+                } catch (error) {
+                    console.error('Error sending message:', error);
+                    ChatModule.websocket.connect();
+                }
 
                 messageInput.value = '';
                 messageInput.style.height = 'auto';
@@ -398,8 +410,13 @@ const ChatModule = {
         connect: () => {
             const socket = new SockJS('/ws');
             ChatModule.data.stompClient = Stomp.over(socket);
+            
+            ChatModule.data.stompClient.reconnect_delay = 5000;
+            ChatModule.data.stompClient.heartbeat.outgoing = 4000;
+            ChatModule.data.stompClient.heartbeat.incoming = 4000;
 
             ChatModule.data.stompClient.connect({}, function () {
+                console.log('Connected to WebSocket');
                 ChatModule.websocket.subscribeToChatRoom(ChatModule.data.currentChannelId);
 
                 ChatModule.data.stompClient.subscribe('/topic/test', function (response) {
@@ -421,14 +438,25 @@ const ChatModule = {
                         }
 
                         ChatModule.api.loadChatRooms();
-                        ChatModule.init.setupChatForm();
                     }
                 });
 
                 ChatModule.data.stompClient.send("/app/test.checkSession", {}, "Check my session");
+            }, function(error) {
+                console.error('WebSocket connection error:', error);
+                setTimeout(() => {
+                    console.log('Attempting to reconnect...');
+                    ChatModule.websocket.connect();
+                }, 5000);
             });
         },
         subscribeToChatRoom: (channelId) => {
+            if (!ChatModule.data.stompClient || !ChatModule.data.stompClient.connected) {
+                console.error('WebSocket not connected, attempting to reconnect...');
+                ChatModule.websocket.connect();
+                return;
+            }
+
             if (ChatModule.data.currentChannelSubscription) {
                 ChatModule.data.currentChannelSubscription.unsubscribe();
             }
@@ -438,9 +466,9 @@ const ChatModule = {
             ChatModule.data.currentChannelSubscription = ChatModule.data.stompClient.subscribe(`/topic/chat/${channelId}`, function (message) {
                 try {
                     const messageData = JSON.parse(message.body);
+                    console.log('Received message:', messageData);
 
                     const isSystemMessage = messageData.userId === 0 || messageData.username === "System Notification";
-
                     const isMyMessage = !isSystemMessage && parseInt(messageData.userId, 10) === ChatModule.data.currentUserId;
 
                     if (messageData.channelId === ChatModule.data.currentChannelId) {
@@ -451,10 +479,35 @@ const ChatModule = {
                 }
             });
         }
-
     },
 
     init: {
+        initialize: () => {
+            ChatModule.data.processedMessageIds = new Set();
+            if (typeof currentUserInfo !== 'undefined') {
+                ChatModule.data.currentUserId = parseInt(currentUserInfo.userId, 10);
+                ChatModule.data.currentUsername = currentUserInfo.username;
+            } else {
+                console.error("User info not available");
+                document.getElementById('chatMessages').innerHTML = `
+                    <div class="text-center p-4 text-red-400">
+                        <span>Failed to identify user. Please refresh the page.</span>
+                    </div>
+                `;
+            }
+
+            ChatModule.websocket.connect();
+            ChatModule.init.setupTextareaAutosize();
+            ChatModule.init.setupChatForm();
+            ChatModule.init.setupAddChannelModal();
+            
+            setTimeout(() => {
+                ChatModule.init.setupActionButtons();
+            }, 1000);
+
+            document.getElementById('messageInput').focus();
+        },
+
         setupChatForm: () => {
             const chatForm = document.getElementById('chatForm');
             const messageInput = document.getElementById('messageInput');
@@ -474,6 +527,62 @@ const ChatModule = {
             });
         },
 
+        setupAddChannelModal: () => {
+            const addChannelBtn = document.getElementById('addChannelBtn');
+            const addChannelModal = document.getElementById('addChannelModal');
+            const closeAddChannelModal = document.getElementById('closeAddChannelModal');
+            const cancelAddChannel = document.getElementById('cancelAddChannel');
+            const addChannelForm = document.getElementById('addChannelForm');
+
+            const showModal = () => {
+                addChannelModal.classList.remove('hidden');
+                addChannelModal.classList.add('flex');
+            };
+
+            const hideModal = () => {
+                addChannelModal.classList.remove('flex');
+                addChannelModal.classList.add('hidden');
+                addChannelForm.reset();
+            };
+
+            addChannelBtn.addEventListener('click', showModal);
+            closeAddChannelModal.addEventListener('click', hideModal);
+            cancelAddChannel.addEventListener('click', hideModal);
+
+            addChannelForm.addEventListener('submit', async (e) => {
+                e.preventDefault();
+                const channelName = document.getElementById('channelName').value;
+                const channelDescription = document.getElementById('channelDescription').value;
+
+                try {
+                    const response = await fetch('/api/chat/createChannel', {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json',
+                        },
+                        body: JSON.stringify({
+                            channelName: channelName,
+                            description: channelDescription
+                        })
+                    });
+
+                    if (!response.ok) {
+                        throw new Error('Failed to create channel');
+                    }
+
+                    const newChannel = await response.json();
+                    ChatModule.data.chatRooms.push(newChannel);
+                    ChatModule.ui.renderChatRooms(ChatModule.data.chatRooms);
+                    hideModal();
+                    
+                    ChatModule.actions.switchChatRoom(newChannel.channelId);
+                } catch (error) {
+                    console.error('Error creating channel:', error);
+                    alert('Failed to create channel. Please try again.');
+                }
+            });
+        },
+
         setupTextareaAutosize: () => {
             const messageInput = document.getElementById('messageInput');
             messageInput.addEventListener('input', function () {
@@ -486,27 +595,6 @@ const ChatModule = {
                     this.style.overflowY = 'hidden';
                 }
             });
-        },
-
-        initialize: () => {
-            ChatModule.data.processedMessageIds = new Set();
-            if (typeof currentUserInfo !== 'undefined') {
-                ChatModule.data.currentUserId = parseInt(currentUserInfo.userId, 10);
-                ChatModule.data.currentUsername = currentUserInfo.username;
-            } else {
-                console.error("User info not available");
-                document.getElementById('chatMessages').innerHTML = `
-                    <div class="text-center p-4 text-red-400">
-                        <span>Failed to identify user. Please refresh the page.</span>
-                    </div>
-                `;
-            }
-
-            ChatModule.websocket.connect();
-
-            ChatModule.init.setupTextareaAutosize();
-
-            document.getElementById('messageInput').focus();
         }
     }
 };

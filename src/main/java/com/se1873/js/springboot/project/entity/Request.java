@@ -60,4 +60,7 @@ public class Request {
 
   @Column(name = "note")
   private String note;
+
+  @Column(name = "priority")
+  private String priority;
 }

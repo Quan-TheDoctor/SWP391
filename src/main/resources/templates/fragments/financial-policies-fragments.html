@@ -4,82 +4,388 @@
     <meta charset="UTF-8">
     <title>Salary Policy Settings</title>
     <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        primary: {
+                            50: '#f5f3ff',
+                            100: '#ede9fe',
+                            200: '#ddd6fe',
+                            300: '#c4b5fd',
+                            400: '#a78bfa',
+                            500: '#8b5cf6',
+                            600: '#7c3aed',
+                            700: '#6d28d9',
+                            800: '#5b21b6',
+                            900: '#4c1d95',
+                        },
+                        secondary: {
+                            50: '#eef2ff',
+                            100: '#e0e7ff',
+                            200: '#c7d2fe',
+                            300: '#a5b4fc',
+                            400: '#818cf8',
+                            500: '#6366f1',
+                            600: '#4f46e5',
+                            700: '#4338ca',
+                            800: '#3730a3',
+                            900: '#312e81',
+                        }
+                    }
+                }
+            }
+        }
+    </script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/animate.css/4.1.1/animate.min.css"/>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/all.min.css"/>
 </head>
 <div th:fragment="main-content" xmlns:sec="http://www.w3.org/1999/xhtml">
-<div class="max-w-4xl mx-auto space-y-6">
-    <!-- Header Section -->
-    <div class="flex flex-col md:flex-row gap-4 items-center justify-between">
-        <h1 class="text-2xl font-bold text-gray-800">Salary Policy Settings</h1>
-    </div>
+    <main class="flex-1">
+        <div class="max-w-7xl mx-auto">
+            <!-- Header Section -->
+            <div class="flex flex-col md:flex-row gap-4 items-center justify-between p-4 bg-gradient-to-r from-primary-600 to-secondary-600 rounded-lg text-white shadow-lg animate__animated animate__fadeIn mb-6">
+                <div>
+                    <h1 class="text-2xl font-bold">Salary Policy Settings</h1>
+                    <p class="text-primary-100">Configure financial parameters that affect company-wide salary calculations</p>
+                </div>
+                <div class="flex gap-2">
+                    <a th:href="@{/payroll}" class="px-4 py-2 bg-white text-primary-700 rounded-md hover:bg-gray-100 transition-colors flex items-center gap-2 font-medium">
+                        <i class="fas fa-arrow-left"></i>
+                        Back to Payroll
+                    </a>
+                    <button type="button" id="helpButton" class="px-4 py-2 bg-secondary-500 text-white rounded-md hover:bg-secondary-600 transition-colors flex items-center gap-2 font-medium">
+                        <i class="fas fa-question-circle"></i>
+                        Help
+                    </button>
+                </div>
+            </div>
 
-    <!-- Policy Settings Form -->
-    <form th:action="@{/payroll/policies/save}" method="POST" class="bg-white rounded-lg shadow-sm p-6 space-y-6" th:object="${financialPolicyDTOList}">
-        <div class="space-y-4">
-            <div th:each="policy, policyStat : *{financialPolicies}" class="grid grid-cols-1 md:grid-cols-3 gap-4 items-center">
-                <input type="hidden" th:field="*{financialPolicies[__${policyStat.index}__].financialPolicyId}">
-                <input type="hidden" th:field="*{financialPolicies[__${policyStat.index}__].financialPolicyName}">
-                <input type="hidden" th:field="*{financialPolicies[__${policyStat.index}__].financialPolicyType}">
-                <!-- Policy Name -->
-                <div class="col-span-1">
-                    <label class="block text-sm font-medium text-gray-700"
-                           th:text="${financialPolicyDTOList.financialPolicies[__${policyStat.index}__].financialPolicyName}"></label>
+            <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+                <!-- Main Content Area -->
+                <div class="lg:col-span-2">
+                    <!-- Policy Settings Card -->
+                    <div class="bg-white rounded-lg shadow-md overflow-hidden animate__animated animate__fadeIn">
+                        <div class="p-6 border-b border-gray-200 bg-gray-50">
+                            <h2 class="text-lg font-semibold text-gray-800 flex items-center">
+                                <i class="fas fa-cog mr-2 text-primary-500"></i>
+                                Policy Configuration
+                            </h2>
+                            <p class="text-sm text-gray-500 mt-1">Adjust financial policies that affect salary calculations</p>
+                        </div>
+
+                        <!-- Policy Settings Form -->
+                        <form th:action="@{/payroll/policies/save}" method="POST" class="p-6" th:object="${financialPolicyDTOList}" id="policyForm">
+                            <!-- Rate-based Policies Section -->
+                            <div class="mb-6">
+                                <h3 class="text-md font-medium text-primary-700 mb-3 flex items-center">
+                                    <i class="fas fa-percentage mr-2"></i>
+                                    Rate-based Policies
+                                </h3>
+                                <div class="space-y-4 bg-primary-50 p-4 rounded-lg">
+                                    <div th:each="policy, policyStat : *{financialPolicies}" th:if="${policy.getFinancialPolicyType().equals('RATE')}"
+                                         class="grid grid-cols-1 md:grid-cols-3 gap-4 items-center p-3 bg-white rounded-lg border-l-4 border-primary-400 shadow-sm hover:shadow-md transition-all">
+                                        <input type="hidden" th:field="*{financialPolicies[__${policyStat.index}__].financialPolicyId}">
+                                        <input type="hidden" th:field="*{financialPolicies[__${policyStat.index}__].financialPolicyName}">
+                                        <input type="hidden" th:field="*{financialPolicies[__${policyStat.index}__].financialPolicyType}">
+
+                                        <!-- Policy Name -->
+                                        <div class="col-span-1">
+                                            <label class="block text-sm font-medium text-gray-700"
+                                                   th:text="${financialPolicyDTOList.financialPolicies[__${policyStat.index}__].financialPolicyName}"></label>
+                                            <p class="text-xs text-gray-500 mt-1">Percentage rate</p>
+                                        </div>
+
+                                        <!-- Policy Input -->
+                                        <div class="col-span-2">
+                                            <div class="relative rounded-md shadow-sm">
+                                                <input type="text"
+                                                       th:field="*{financialPolicies[__${policyStat.index}__].financialPolicyAmount}"
+                                                       class="block w-full pr-10 sm:text-sm rounded-md border-gray-300 focus:ring-primary-500 focus:border-primary-500"
+                                                       th:attr="data-type='rate'"
+                                                       th:value="${policy.getFinancialPolicyAmount() != null ? policy.getFinancialPolicyAmount() : '0'}"
+                                                       required>
+                                                <div class="absolute inset-y-0 right-0 pr-3 flex items-center pointer-events-none">
+                                                    <span class="text-gray-500 sm:text-sm">%</span>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- Fixed Amount Policies Section -->
+                            <div class="mb-6">
+                                <h3 class="text-md font-medium text-secondary-700 mb-3 flex items-center">
+                                    <i class="fas fa-money-bill-wave mr-2"></i>
+                                    Fixed Amount Policies
+                                </h3>
+                                <div class="space-y-4 bg-secondary-50 p-4 rounded-lg">
+                                    <div th:each="policy, policyStat : *{financialPolicies}" th:if="${policy.getFinancialPolicyType().equals('FIXED')}"
+                                         class="grid grid-cols-1 md:grid-cols-3 gap-4 items-center p-3 bg-white rounded-lg border-l-4 border-secondary-400 shadow-sm hover:shadow-md transition-all">
+                                        <input type="hidden" th:field="*{financialPolicies[__${policyStat.index}__].financialPolicyId}">
+                                        <input type="hidden" th:field="*{financialPolicies[__${policyStat.index}__].financialPolicyName}">
+                                        <input type="hidden" th:field="*{financialPolicies[__${policyStat.index}__].financialPolicyType}">
+
+                                        <!-- Policy Name -->
+                                        <div class="col-span-1">
+                                            <label class="block text-sm font-medium text-gray-700"
+                                                   th:text="${financialPolicyDTOList.financialPolicies[__${policyStat.index}__].financialPolicyName}"></label>
+                                            <p class="text-xs text-gray-500 mt-1">Fixed amount</p>
+                                        </div>
+
+                                        <!-- Policy Input -->
+                                        <div class="col-span-2">
+                                            <div class="relative rounded-md shadow-sm">
+                                                <input type="text"
+                                                       th:field="*{financialPolicies[__${policyStat.index}__].financialPolicyAmount}"
+                                                       class="block w-full pr-10 sm:text-sm rounded-md border-gray-300 focus:ring-secondary-500 focus:border-secondary-500"
+                                                       th:attr="data-type='fixed'"
+                                                       th:value="${policy.getFinancialPolicyAmount() != null ? policy.getFinancialPolicyAmount() : '0'}"
+                                                       required>
+                                                <div class="absolute inset-y-0 right-0 pr-3 flex items-center pointer-events-none">
+                                                    <span class="text-gray-500 sm:text-sm">VND</span>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- Form Actions -->
+                            <div class="flex justify-between items-center pt-4 border-t border-gray-200">
+                                <div class="text-green-500 flex items-center gap-2 animate__animated animate__fadeIn" id="successMessage" th:if="${message}">
+                                    <i class="fas fa-check-circle"></i>
+                                    <span th:text="${message}"></span>
+                                </div>
+                                <div class="flex justify-end gap-3">
+                                    <button type="submit" name="service" value="cancel"
+                                            class="inline-flex items-center px-4 py-2 border border-gray-300 rounded-md shadow-sm text-sm font-medium text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary-500">
+                                        <i class="fas fa-times mr-2"></i>
+                                        Cancel
+                                    </button>
+                                    <button type="submit" name="service" value="save" id="saveButton"
+                                            class="inline-flex items-center px-4 py-2 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-primary-600 hover:bg-primary-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary-500">
+                                        <i class="fas fa-save mr-2"></i>
+                                        Save Changes
+                                    </button>
+                                </div>
+                            </div>
+                        </form>
+                    </div>
                 </div>
 
-                <!-- Policy Input -->
-                <div class="col-span-2">
-                    <div class="relative rounded-md shadow-sm">
-                        <input th:if="${policy.getFinancialPolicyType().equals('RATE')}"
-                               type="text"
-                               th:field="*{financialPolicies[__${policyStat.index}__].financialPolicyAmount}"
-                               class="block w-full pr-10 sm:text-sm rounded-md border-gray-300 focus:ring-blue-500 focus:border-blue-500"
-                               th:attr="data-type='rate'">
-                        <input th:if="${policy.getFinancialPolicyType().equals('FIXED')}"
-                               type="text"
-                               th:field="*{financialPolicies[__${policyStat.index}__].financialPolicyAmount}"
-                               class="block w-full pr-10 sm:text-sm rounded-md border-gray-300 focus:ring-blue-500 focus:border-blue-500"
-                               th:attr="data-type='fixed'">
-                        <div class="absolute inset-y-0 right-0 pr-3 flex items-center pointer-events-none">
-                            <span class="text-gray-500 sm:text-sm"
-                                  th:text="${policy.getFinancialPolicyType().equals('RATE')} ? '%' : 'VND'"></span>
+                <!-- Sidebar -->
+                <div class="lg:col-span-1 space-y-6">
+                    <!-- Quick Reference Card -->
+                    <div class="bg-white rounded-lg shadow-md overflow-hidden animate__animated animate__fadeIn">
+                        <div class="bg-gradient-to-r from-blue-600 to-blue-800 p-4 text-white">
+                            <h3 class="font-semibold flex items-center">
+                                <i class="fas fa-info-circle mr-2"></i>
+                                Quick Reference
+                            </h3>
+                        </div>
+                        <div class="p-4 space-y-4">
+                            <div class="flex items-start gap-3">
+                                <div class="bg-blue-100 p-2 rounded-full text-blue-600">
+                                    <i class="fas fa-percentage"></i>
+                                </div>
+                                <div>
+                                    <h4 class="text-sm font-medium">Rate-based Policies</h4>
+                                    <p class="text-xs text-gray-600">Applied as a percentage of base amounts</p>
+                                </div>
+                            </div>
+                            <div class="flex items-start gap-3">
+                                <div class="bg-purple-100 p-2 rounded-full text-purple-600">
+                                    <i class="fas fa-money-bill-wave"></i>
+                                </div>
+                                <div>
+                                    <h4 class="text-sm font-medium">Fixed Amount Policies</h4>
+                                    <p class="text-xs text-gray-600">Applied as specific monetary values</p>
+                                </div>
+                            </div>
                         </div>
                     </div>
                 </div>
             </div>
         </div>
+    </main>
 
-        <div class="flex justify-between gap-3">
-                <div class="text-green-500" th:text="${message}"/>
-            <div class="flex justify-end gap-3">
-                <button type="submit" name="service" value="save"
-                        class="inline-flex items-center px-4 py-2 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500">
-                    Save Changes
+    <!-- Help Modal -->
+    <div id="helpModal" class="fixed inset-0 bg-black bg-opacity-50 z-50 hidden flex items-center justify-center animate__animated animate__fadeIn">
+        <div class="bg-white rounded-lg max-w-2xl w-full mx-4 animate__animated animate__fadeInUp">
+            <div class="bg-gradient-to-r from-primary-600 to-secondary-600 text-white p-4 rounded-t-lg flex justify-between items-center">
+                <h3 class="text-lg font-semibold flex items-center">
+                    <i class="fas fa-question-circle mr-2"></i>
+                    Salary Policy Help
+                </h3>
+                <button id="closeHelpModal" class="text-white hover:text-gray-200 transition-colors">
+                    <i class="fas fa-times"></i>
                 </button>
-                <button type="submit" name="service" value="cancel"
-                        class="inline-flex items-center px-4 py-2 border border-gray-300 rounded-md shadow-sm text-sm font-medium text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500">
-                    Back
+            </div>
+            <div class="p-6 max-h-[70vh] overflow-y-auto">
+                <div class="space-y-6">
+                    <div>
+                        <h4 class="text-lg font-medium text-primary-700 mb-2">Understanding Policies</h4>
+                        <p class="text-gray-600 mb-3">
+                            Salary policies determine how various deductions and contributions are calculated for employee payroll.
+                        </p>
+                        <div class="bg-gray-50 p-4 rounded-lg">
+                            <h5 class="font-medium mb-2">Types of Policies:</h5>
+                            <ul class="list-disc list-inside space-y-2 text-gray-700">
+                                <li><span class="font-medium">Rate-based Policies:</span> Calculated as a percentage of the base salary</li>
+                                <li><span class="font-medium">Fixed Amount Policies:</span> Applied as a specific monetary value regardless of salary</li>
+                            </ul>
+                        </div>
+                    </div>
+
+                    <div>
+                        <h4 class="text-lg font-medium text-primary-700 mb-2">Common Policies</h4>
+                        <div class="space-y-3">
+                            <div class="bg-blue-50 p-3 rounded-lg">
+                                <h5 class="font-medium text-blue-700">Social Insurance</h5>
+                                <p class="text-sm text-gray-600">Mandatory contribution based on salary, typically 8% of gross salary.</p>
+                            </div>
+                            <div class="bg-green-50 p-3 rounded-lg">
+                                <h5 class="font-medium text-green-700">Health Insurance</h5>
+                                <p class="text-sm text-gray-600">Covers medical expenses, typically 1.5% of gross salary.</p>
+                            </div>
+                            <div class="bg-purple-50 p-3 rounded-lg">
+                                <h5 class="font-medium text-purple-700">Unemployment Insurance</h5>
+                                <p class="text-sm text-gray-600">Provides benefits if employment ends, typically 1% of gross salary.</p>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div>
+                        <h4 class="text-lg font-medium text-primary-700 mb-2">Tips for Setting Policies</h4>
+                        <ul class="space-y-2 text-gray-600">
+                            <li class="flex items-start gap-2">
+                                <i class="fas fa-check-circle text-green-500 mt-1"></i>
+                                <span>Ensure rates comply with current labor laws and regulations</span>
+                            </li>
+                            <li class="flex items-start gap-2">
+                                <i class="fas fa-check-circle text-green-500 mt-1"></i>
+                                <span>Review policies periodically to account for legal changes</span>
+                            </li>
+                            <li class="flex items-start gap-2">
+                                <i class="fas fa-check-circle text-green-500 mt-1"></i>
+                                <span>Consider the impact on both employee take-home pay and company costs</span>
+                            </li>
+                            <li class="flex items-start gap-2">
+                                <i class="fas fa-check-circle text-green-500 mt-1"></i>
+                                <span>Document any policy changes for compliance and transparency</span>
+                            </li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+            <div class="border-t border-gray-200 p-4 bg-gray-50 rounded-b-lg flex justify-end">
+                <button id="closeHelpBtn" class="px-4 py-2 bg-primary-600 text-white rounded-md hover:bg-primary-700 transition-colors">
+                    Got it
                 </button>
             </div>
         </div>
-    </form>
-</div>
-<script>
-    document.querySelectorAll('input[data-type="rate"]').forEach(input => {
-        input.addEventListener('blur', function() {
-            const value = parseFloat(this.value.replace(/,/g, ''));
-            if (!isNaN(value)) {
-                this.value = value.toLocaleString('en-US');
-            }
-        });
-    });
+    </div>
 
-    document.querySelectorAll('input[data-type="fixed"]').forEach(input => {
-        input.addEventListener('blur', function() {
-            const value = parseFloat(this.value.replace(/,/g, ''));
-            if (!isNaN(value)) {
-                this.value = value.toLocaleString('en-US');
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            document.querySelectorAll('input[data-type="rate"]').forEach(input => {
+                input.addEventListener('blur', function() {
+                    const value = parseFloat(this.value.replace(/,/g, ''));
+                    if (!isNaN(value)) {
+                        this.value = value.toLocaleString('en-US');
+                    } else {
+                        this.value = '0';
+                    }
+                });
+
+                const initialValue = parseFloat(input.value.replace(/,/g, ''));
+                if (!isNaN(initialValue)) {
+                    input.value = initialValue.toLocaleString('en-US');
+                } else {
+                    input.value = '0';
+                }
+            });
+
+            document.querySelectorAll('input[data-type="fixed"]').forEach(input => {
+                input.addEventListener('blur', function() {
+                    const value = parseFloat(this.value.replace(/,/g, ''));
+                    if (!isNaN(value)) {
+                        this.value = value.toLocaleString('en-US');
+                    } else {
+                        this.value = '0';
+                    }
+                });
+
+                const initialValue = parseFloat(input.value.replace(/,/g, ''));
+                if (!isNaN(initialValue)) {
+                    input.value = initialValue.toLocaleString('en-US');
+                } else {
+                    input.value = '0';
+                }
+            });
+
+            document.getElementById('saveButton').addEventListener('click', function(e) {
+                document.querySelectorAll('input[data-type]').forEach(input => {
+                    input.value = input.value.replace(/,/g, '');
+                });
+            });
+
+            const message = document.getElementById('successMessage');
+            if (message && message.textContent.trim() !== '') {
+                setTimeout(() => {
+                    message.classList.add('animate__fadeOut');
+                    setTimeout(() => {
+                        message.style.display = 'none';
+                    }, 1000);
+                }, 5000);
             }
+
+            const helpButton = document.getElementById('helpButton');
+            const helpModal = document.getElementById('helpModal');
+            const closeHelpModal = document.getElementById('closeHelpModal');
+            const closeHelpBtn = document.getElementById('closeHelpBtn');
+
+            if (helpButton && helpModal) {
+                helpButton.addEventListener('click', function() {
+                    helpModal.classList.remove('hidden');
+                    document.body.style.overflow = 'hidden';
+                });
+            }
+
+            if (closeHelpModal && helpModal) {
+                closeHelpModal.addEventListener('click', function() {
+                    helpModal.classList.add('hidden');
+                    document.body.style.overflow = 'auto';
+                });
+            }
+
+            if (closeHelpBtn && helpModal) {
+                closeHelpBtn.addEventListener('click', function() {
+                    helpModal.classList.add('hidden');
+                    document.body.style.overflow = 'auto';
+                });
+            }
+
+            window.addEventListener('click', function(event) {
+                if (event.target === helpModal) {
+                    helpModal.classList.add('hidden');
+                    document.body.style.overflow = 'auto';
+                }
+            });
+
+            document.querySelectorAll('.border-l-4').forEach(item => {
+                item.addEventListener('mouseenter', function() {
+                    this.classList.add('bg-gray-50');
+                });
+
+                item.addEventListener('mouseleave', function() {
+                    this.classList.remove('bg-gray-50');
+                });
+            });
         });
-    });
-</script>
+    </script>
 </div>
 </html>

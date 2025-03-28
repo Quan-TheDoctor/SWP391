@@ -1,145 +1,162 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Payslip</title>
-    <style>
-        body {
-            font-family: Arial, sans-serif;
-            margin: 20px;
-            padding: 20px;
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        primary: {
+                            50: '#f5f3ff',
+                            100: '#ede9fe',
+                            200: '#ddd6fe',
+                            300: '#c4b5fd',
+                            400: '#a78bfa',
+                            500: '#8b5cf6',
+                            600: '#7c3aed',
+                            700: '#6d28d9',
+                            800: '#5b21b6',
+                            900: '#4c1d95',
+                        },
+                        secondary: {
+                            50: '#eef2ff',
+                            100: '#e0e7ff',
+                            200: '#c7d2fe',
+                            300: '#a5b4fc',
+                            400: '#818cf8',
+                            500: '#6366f1',
+                            600: '#4f46e5',
+                            700: '#4338ca',
+                            800: '#3730a3',
+                            900: '#312e81',
+                        }
+                    }
+                }
+            }
         }
-
-        .container {
-            max-width: 800px;
-            margin: auto;
-            border: 1px solid #ccc;
-            padding: 20px;
-        }
-
-        .header {
-            text-align: center;
-            font-size: 24px;
-            font-weight: bold;
-            margin-bottom: 10px;
-        }
-
-        .company-name {
-            text-align: center;
-            font-size: 18px;
-            font-weight: bold;
-            text-transform: uppercase;
-            margin-bottom: 20px;
-        }
-
-        .employee-details {
-            margin-bottom: 20px;
-        }
-
-        .employee-details p {
-            margin: 5px 0;
-        }
-
-        .table-container {
-            width: 100%;
-            border-collapse: collapse;
-        }
-
-        .table-container th, .table-container td {
-            border: 1px solid #ccc;
-            padding: 8px;
-            text-align: left;
-        }
-
-        .table-container th {
-            background-color: #f4f4f4;
-        }
-
-        .total-pay {
-            font-size: 18px;
-            font-weight: bold;
-            text-align: right;
-            margin-top: 20px;
-        }
-
-        .footer {
-            margin-top: 40px;
-            text-align: right;
-            font-size: 14px;
-        }
-    </style>
+    </script>
 </head>
-<div th:fragment="main-content" xmlns:sec="http://www.w3.org/1999/xhtml">
-    <div class="container" th:if="${payroll != null}">
-        <div class="header">PAYSLIP</div>
-        <div class="company-name">Công ty 1 mình tao</div>
-
-        <div class="employee-details" th:if="${payroll != null}">
-            <p><strong>Employee’s Name:</strong><a
-                    th:text="${payroll.getEmployeeFirstName() + ' ' + payroll.getEmployeeLastName()}"></a></p>
-            <p><strong>Pay Period:</strong><a
-                    th:text="${payroll.getSalaryRecordMonth()}+ '/'+ ${payroll.getSalaryRecordYear()}"></a></p>
+<body class="bg-gray-50">
+<div th:fragment="main-content" class="max-w-4xl mx-auto p-6">
+    <div th:if="${payroll != null}" class="bg-white rounded-xl shadow-md overflow-hidden">
+        <!-- Header -->
+        <div class="bg-gradient-to-r from-primary-600 to-secondary-600 p-6 text-white text-center">
+            <h1 class="text-2xl font-bold">PAYSLIP</h1>
+            <p class="text-lg font-semibold uppercase">Công ty ABCE</p>
         </div>
 
-        <table class="table-container">
-            <tr>
-                <th>Description</th>
-                <th>Amount (VND)</th>
-            </tr>
-            <tr>
-                <td>Basic salary (1)</td>
-                <td th:text="${T(java.lang.String).format('%,.0f VND',payroll.getSalaryRecordBaseSalary())}"></td>
-            </tr>
-            <tr>
-                <td>Overtime pay (2)</td>
-                <td th:text="${T(java.lang.String).format('%,.0f VND',payroll.getSalaryRecordOvertimePay())}"></td>
-            </tr>
-
-            <tr>
-                <td>SHUI (3)</td>
-                <td th:text="${T(java.lang.String).format('%,.0f VND',payroll.getCalculatedPersonalInsuranceDeduction())}"></td>
-            </tr>
-            <tr>
-                <td>Total gross salary (4) = (1 + 2 - 3)</td>
-                <td th:text="${T(java.lang.String).format('%,.0f VND',payroll.getSalaryRecordBaseSalary() + payroll.getSalaryRecordOvertimePay() - payroll.getCalculatedPersonalInsuranceDeduction())}"></td>
-            </tr>
-            <tr>
-                <td>Taxed income(5) = (4 - 9)</td>
-                <td th:text="${T(java.lang.String).format('%,.0f VND',payroll.getTotalGrossSalary())}"></td>
-            </tr>
-
-            <tr>
-                <td>PIT (6)</td>
-                <td th:text="${T(java.lang.String).format('%,.0f VND',payroll.getTotalTaxAmount())}"></td>
-            </tr>
-            <tr>
-                <td>Family Circumstance Deduction (7)</td>
-                <td th:text="${T(java.lang.String).format('%,.0f VND',payroll.getCalculatedPersonalDependentDeduction())}"></td>
-            </tr>
-            <tr>
-                <td>Personal deductions (8)</td>
-                <td th:text="${T(java.lang.String).format('%,.0f VND',payroll.getCalculatedPersonalDeduction())}"></td>
-            </tr>
-            <tr>
-                <td>Total deductions (9) = (7 + 8)</td>
-                <td th:text="${T(java.lang.String).format('%,.0f VND',payroll.getCalculatedPersonalDeduction() + payroll.getCalculatedPersonalDependentDeduction())}"></td>
-            </tr>
-            <tr>
-                <td>Allowance (9)</td>
-                <td th:text="${T(java.lang.String).format('%,.0f VND',payroll.getSalaryRecordTotalAllowance())}"></td>
-            </tr>
-        </table>
-
-        <div class="total-pay">
-            Take home pay (10)= (4 - 6 + 9): <a
-                th:text="${T(java.lang.String).format('%,.0f VND',payroll.getSalaryRecordTotalAllowance() + payroll.getSalaryRecordBaseSalary() + payroll.getSalaryRecordOvertimePay() - payroll.getTotalTaxAmount() - payroll.getCalculatedPersonalInsuranceDeduction())}"></a>
+        <!-- Employee Details -->
+        <div class="p-6 border-b border-gray-200" th:if="${payroll != null}">
+            <div class="bg-gradient-to-r from-primary-50 to-secondary-50 rounded-lg p-4">
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div>
+                        <p class="text-sm text-gray-600">Employee's Name</p>
+                        <p class="font-medium text-gray-900" th:text="${payroll.getEmployeeFirstName() + ' ' + payroll.getEmployeeLastName()}">John Doe</p>
+                    </div>
+                    <div>
+                        <p class="text-sm text-gray-600">Pay Period</p>
+                        <p class="font-medium text-gray-900" th:text="${payroll.getSalaryRecordMonth()}+ '/'+ ${payroll.getSalaryRecordYear()}">11/2024</p>
+                    </div>
+                </div>
+            </div>
         </div>
 
-        <div class="footer">
-            HCMC, 30 Nov 2024 <br>
-            Prepared by: ___________ &nbsp;&nbsp;&nbsp;&nbsp; Approved by: ___________
+        <!-- Salary Details -->
+        <div class="p-6">
+            <div class="overflow-x-auto">
+                <table class="min-w-full divide-y divide-gray-200">
+                    <thead>
+                    <tr>
+                        <th class="px-6 py-3 bg-gray-50 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Description</th>
+                        <th class="px-6 py-3 bg-gray-50 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">Amount (VND)</th>
+                    </tr>
+                    </thead>
+                    <tbody class="bg-white divide-y divide-gray-200">
+                    <tr>
+                        <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">Basic salary (1)</td>
+                        <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900 text-right font-medium" th:text="${T(java.lang.String).format('%,.0f VND',payroll.getSalaryRecordBaseSalary())}">10,000,000 VND</td>
+                    </tr>
+                    <tr>
+                        <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">Overtime pay (2)</td>
+                        <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900 text-right font-medium" th:text="${T(java.lang.String).format('%,.0f VND',payroll.getSalaryRecordOvertimePay())}">1,500,000 VND</td>
+                    </tr>
+                    <tr>
+                        <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">SHUI (3)</td>
+                        <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900 text-right font-medium" th:text="${T(java.lang.String).format('%,.0f VND',payroll.getCalculatedPersonalInsuranceDeduction())}">800,000 VND</td>
+                    </tr>
+                    <tr class="bg-primary-50">
+                        <td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">Total gross salary (4) = (1 + 2 - 3)</td>
+                        <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900 text-right font-medium" th:text="${T(java.lang.String).format('%,.0f VND',payroll.getSalaryRecordBaseSalary() + payroll.getSalaryRecordOvertimePay() - payroll.getCalculatedPersonalInsuranceDeduction())}">10,700,000 VND</td>
+                    </tr>
+                    <tr>
+                        <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">Taxed income(5) = (4 - 9)</td>
+                        <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900 text-right font-medium" th:text="${T(java.lang.String).format('%,.0f VND',payroll.getTotalGrossSalary())}">9,700,000 VND</td>
+                    </tr>
+                    <tr>
+                        <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">PIT (6)</td>
+                        <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900 text-right font-medium" th:text="${T(java.lang.String).format('%,.0f VND',payroll.getTotalTaxAmount())}">500,000 VND</td>
+                    </tr>
+                    <tr>
+                        <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">Family Circumstance Deduction (7)</td>
+                        <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900 text-right font-medium" th:text="${T(java.lang.String).format('%,.0f VND',payroll.getCalculatedPersonalDependentDeduction())}">3,600,000 VND</td>
+                    </tr>
+                    <tr>
+                        <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">Personal deductions (8)</td>
+                        <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900 text-right font-medium" th:text="${T(java.lang.String).format('%,.0f VND',payroll.getCalculatedPersonalDeduction())}">11,000,000 VND</td>
+                    </tr>
+                    <tr>
+                        <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">Total deductions (9) = (7 + 8)</td>
+                        <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900 text-right font-medium" th:text="${T(java.lang.String).format('%,.0f VND',payroll.getCalculatedPersonalDeduction() + payroll.getCalculatedPersonalDependentDeduction())}">14,600,000 VND</td>
+                    </tr>
+                    <tr>
+                        <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">Allowance (9)</td>
+                        <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900 text-right font-medium" th:text="${T(java.lang.String).format('%,.0f VND',payroll.getSalaryRecordTotalAllowance())}">1,000,000 VND</td>
+                    </tr>
+                    </tbody>
+                </table>
+            </div>
+
+            <!-- Total Pay -->
+            <div class="mt-6 bg-gradient-to-r from-primary-50 to-secondary-50 rounded-lg p-4">
+                <div class="flex justify-between items-center">
+                    <p class="text-lg font-bold text-gray-900">Take home pay (10) = (4 - 6 + 9):</p>
+                    <p class="text-xl font-bold text-primary-700" th:text="${T(java.lang.String).format('%,.0f VND',payroll.getSalaryRecordTotalAllowance() + payroll.getSalaryRecordBaseSalary() + payroll.getSalaryRecordOvertimePay() - payroll.getTotalTaxAmount() - payroll.getCalculatedPersonalInsuranceDeduction())}">11,200,000 VND</p>
+                </div>
+            </div>
+        </div>
+
+        <!-- Footer -->
+        <div class="p-6 border-t border-gray-200">
+            <div class="flex flex-col items-end">
+                <p class="text-gray-600">HCMC, 30 Nov 2024</p>
+                <div class="mt-4 flex space-x-16">
+                    <div class="text-center">
+                        <div class="border-b border-gray-300 w-32 h-8"></div>
+                        <p class="mt-1 text-sm text-gray-600">Prepared by</p>
+                    </div>
+                    <div class="text-center">
+                        <div class="border-b border-gray-300 w-32 h-8"></div>
+                        <p class="mt-1 text-sm text-gray-600">Approved by</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- No Payroll Data Message -->
+    <div th:unless="${payroll != null}" class="bg-white rounded-xl shadow-md p-6 text-center">
+        <div class="p-6">
+            <svg xmlns="http://www.w3.org/2000/svg" class="h-12 w-12 mx-auto text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+            </svg>
+            <h3 class="mt-4 text-lg font-medium text-gray-900">No payslip data available</h3>
+            <p class="mt-1 text-sm text-gray-500">Please select a valid pay period or employee.</p>
         </div>
     </div>
 </div>
+</body>
 </html>

@@ -29,6 +29,15 @@ public class EmployeeQueryServiceImpl implements EmployeeQueryService {
   }
 
   @Override
+  public List<EmployeeDTO> getAll() {
+     return employeeRepository.findAll()
+        .stream()
+        .filter(e -> !e.getIsDeleted())
+        .map(employeeDTOMapper::toDTO)
+        .collect(Collectors.toList());
+  }
+
+  @Override
   public Double getAverageSalary(List<EmployeeDTO> employees) {
     return employees
       .stream()
@@ -38,8 +47,8 @@ public class EmployeeQueryServiceImpl implements EmployeeQueryService {
   }
 
   @Override
-  public Page<Employee> search(String firstName, String lastName, Pageable pageable) {
-    return employeeRepository.searchEmployee(firstName, lastName, pageable);
+  public Page<Employee> search(String query, Pageable pageable) {
+    return employeeRepository.searchEmployee(query, pageable);
   }
 
   @Override
@@ -48,11 +57,16 @@ public class EmployeeQueryServiceImpl implements EmployeeQueryService {
   }
 
   @Override
+  public List<Employee> getEmployeesByDepartmentId(Integer departmentId) {
+    return employeeRepository.findEmployeesByIsDeleted(false);
+  }
+
+  @Override
   public Page<EmployeeDTO> getEmployeesByDepartmentId(Integer departmentId, Pageable pageable) {
     List<EmployeeDTO> employees = employeeRepository.findAll(pageable)
       .stream()
       .map(employeeDTOMapper::toDTO)
-      .filter(e -> !e.getIsDeleted() && e.getDepartmentId().equals(departmentId))
+      .filter(e -> !e.getIsDeleted() && e.getDepartmentId() != null && e.getDepartmentId().equals(departmentId))
       .collect(Collectors.toList());
 
     return new PageImpl<>(employees, pageable, employees.size());
@@ -74,7 +88,19 @@ public class EmployeeQueryServiceImpl implements EmployeeQueryService {
     return switch (field.toLowerCase()) {
       case "department" -> employeeRepository.findEmployeesByDepartmentName(value, pageable).map(employeeDTOMapper::toDTO);
       case "position" -> employeeRepository.findEmployeesByPositionName(value, pageable).map(employeeDTOMapper::toDTO);
-      case "all" -> employeeRepository.findAll(pageable).map(employeeDTOMapper::toDTO);
+      case "salaryrange" -> {
+        var employee = employeeRepository.findAll(pageable)
+          .getContent()
+          .stream()
+          .filter(e -> e.getContracts().stream()
+            .anyMatch(c -> (Long.parseLong(value) == 10000000 && c.getBaseSalary() <= Long.parseLong(value)) ||
+              (Long.parseLong(value) == 20000000 && c.getBaseSalary() > 10000000 && c.getBaseSalary() <= Long.parseLong(value)) ||
+              (Long.parseLong(value) == 50000000 && c.getBaseSalary() > 20000000 && c.getBaseSalary() <= Long.parseLong(value))))
+          .map(employeeDTOMapper::toDTO)
+          .toList();
+
+        yield new PageImpl<>(employee, pageable, employee.size());
+      }
       default -> throw new IllegalArgumentException("Invalid field: " + field);
     };
   }

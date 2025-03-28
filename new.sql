@@ -3,6 +3,8 @@ DROP SCHEMA public CASCADE;
 -- Tạo lại schema public sau khi đã xoá
 Create SCHEMA public;
 
+create extension if not exists unaccent;
+
 -- Bảng thông tin nhân viên cơ bản
 Create TABLE employees
 (
@@ -109,19 +111,31 @@ Create TABLE attendance
 );
 
 -- Bảng nghỉ phép
-Create TABLE leaves
+
+CREATE TABLE leave_policies
 (
-    leave_id    SERIAL PRIMARY KEY,
-    employee_id INTEGER REFERENCES employees (employee_id),
-    leave_type  VARCHAR(50) NOT NULL,
-    start_date  DATE        NOT NULL,
-    end_date    DATE        NOT NULL,
-    total_days  INTEGER     NOT NULL,
-    status      VARCHAR(20) NOT NULL,
-    reason      TEXT,
-    approved_by INTEGER REFERENCES employees (employee_id),
-    Created_at  TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+    leave_policy_id     SERIAL PRIMARY KEY,
+    leave_policy_name   text,
+    leave_policy_amount INTEGER
 );
+
+-- Bảng nghỉ phép
+CREATE TABLE leaves
+(
+    leave_id          SERIAL PRIMARY KEY,
+    employee_id       INTEGER REFERENCES employees (employee_id),
+    leave_type        VARCHAR(50) NOT NULL,
+    start_date        DATE        NOT NULL,
+    end_date          DATE        NOT NULL,
+    total_days        INTEGER     NOT NULL,
+    status            VARCHAR(20) NOT NULL,
+    reason            TEXT,
+    leave_allowed_day INTEGER     NOT NULL,
+    leave_policy_id   INTEGER REFERENCES leave_policies (leave_policy_id),
+    approved_by       INTEGER REFERENCES employees (employee_id),
+    created_at        TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);
+
 
 -- Bảng lương tháng
 Create TABLE salary_records
@@ -138,7 +152,8 @@ Create TABLE salary_records
     tax_amount          DECIMAL(15, 2) NOT NULL,
     net_salary          DECIMAL(15, 2) NOT NULL,
     payment_status      VARCHAR(20)    NOT NULL,
-    Created_at          TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+    Created_at          TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    is_deleted          bool      default false
 );
 
 -- Bảng người phụ thuộc
@@ -162,7 +177,7 @@ Create TABLE users
     username            text NOT NULL,
     password_hash       text NOT NULL,
     email               text,
-    role                text      default 'USER',
+    role                text      default 'Administrator',
     status              text      default 'Active',
     last_Authentication TIMESTAMP DEFAULT NULL,
     updated_at          TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
@@ -199,6 +214,18 @@ Create TABLE requests
     note            TEXT
 );
 
+CREATE TABLE notifications
+(
+    notification_id SERIAL PRIMARY KEY,
+    create_at       TIMESTAMP,
+    message         TEXT,
+    type            VARCHAR(50) NOT NULL,
+    status          VARCHAR(50),
+    user_id         INTEGER REFERENCES users (user_id),
+    request_id      INTEGER REFERENCES requests (request_id)
+);
+
+
 -- Bảng chính sách tài chính
 Create TABLE financial_policies
 (
@@ -207,6 +234,7 @@ Create TABLE financial_policies
     financial_policy_type   text,
     financial_policy_amount DECIMAL
 );
+
 
 -- Indexes
 Create INDEX idx_employee_code ON employees (employee_code);
@@ -338,11 +366,11 @@ VALUES (1, 'annguyen', '$2a$10$cUtg8nvDC7PnZLe5eZGVDO4fwD5yvRhemp/vFXDG67OxDMSv7
 INSERT INTO employees (employee_code, first_name, last_name, birth_date, gender,
                        id_number, permanent_address, temporary_address,
                        personal_email, company_email, phone_number,
-                       marital_status, bank_account, bank_name, tax_code)
+                       marital_status, bank_account, bank_name, tax_code, is_deleted)
 VALUES ('SYSTEM', 'System', 'Notification', '2000-01-01', 'Other',
         'SYSTEM123456', 'System Address', 'System Address',
         'system@system.com', 'system@company.com', '0000000000',
-        'N/A', 'N/A', 'N/A', 'N/A');
+        'N/A', 'N/A', 'N/A', 'N/A', true);
 
 INSERT INTO users (employee_id, username, password_hash, role)
 SELECT employee_id, 'system', '$2a$10$cUtg8nvDC7PnZLe5eZGVDO4fwD5yvRhemp/vFXDG67OxDMSv7fHbm', 'SYSTEM'
@@ -429,9 +457,7 @@ VALUES
     ('Trưởng phòng Phát triển Sản phẩm', 15, 'PROD_POS001', 3, 'Quản lý phòng phát triển sản phẩm'),
     ('Chuyên viên Phát triển Sản phẩm', 15, 'PROD_POS002', 2, 'Chuyên viên phát triển sản phẩm');
 
---Dưới đây là phần còn lại của script tạo dữ liệu mẫu:
 
-```sql
 -- Tiếp tục thêm hợp đồng
 INSERT INTO contracts (employee_id, contract_type, contract_code,
                        start_date, end_date, base_salary,
@@ -600,30 +626,6 @@ VALUES
     (15, 'Phụ cấp ăn trưa', 800000, '2022-07-01', NULL, 'Phụ cấp ăn trưa hàng tháng'),
     (15, 'Phụ cấp chuyên môn', 1300000, '2022-07-01', NULL, 'Phụ cấp cho kỹ năng bảo mật');
 
--- Thêm nghỉ phép
-INSERT INTO leaves (employee_id, leave_type, start_date, end_date, total_days, status, reason, approved_by)
-VALUES (1, 'Nghỉ phép năm', '2023-07-10', '2023-07-14', 5, 'Đã duyệt', 'Nghỉ mát cùng gia đình', 2),
-
-       (3, 'Nghỉ phép năm', '2023-05-15', '2023-05-19', 5, 'Đã duyệt', 'Nghỉ du lịch', 1),
-       (3, 'Nghỉ ốm', '2023-08-10', '2023-08-11', 2, 'Đã duyệt', 'Bị cảm cúm', 1),
-
-       (5, 'Nghỉ phép năm', '2023-07-03', '2023-07-07', 5, 'Đã duyệt', 'Nghỉ mát cùng gia đình', 1),
-
-       (6, 'Nghỉ không lương', '2023-09-18', '2023-09-22', 5, 'Đã duyệt', 'Việc gia đình', 1),
-
-       (7, 'Nghỉ phép năm', '2023-04-24', '2023-04-28', 5, 'Đã duyệt', 'Nghỉ du lịch', 1),
-
-       (8, 'Nghỉ phép năm', '2023-06-19', '2023-06-23', 5, 'Đã duyệt', 'Nghỉ du lịch', 3),
-
-       (10, 'Nghỉ ốm', '2023-10-05', '2023-10-06', 2, 'Đã duyệt', 'Bị sốt', 7),
-
-       (11, 'Nghỉ phép năm', '2023-08-21', '2023-08-25', 5, 'Đã duyệt', 'Nghỉ du lịch', 3),
-
-       (13, 'Nghỉ không lương', '2023-11-13', '2023-11-17', 5, 'Đã duyệt', 'Việc gia đình', 2),
-
-       (14, 'Nghỉ ốm', '2023-09-07', '2023-09-08', 2, 'Đã duyệt', 'Bị cảm cúm', 4),
-
-       (15, 'Nghỉ phép năm', '2023-10-16', '2023-10-20', 5, 'Đã duyệt', 'Nghỉ du lịch', 5);
 -- Generate attendance records for all employees (20 days each)
 WITH date_range AS (SELECT generate_series(
                                    (date_trunc('month',
@@ -645,8 +647,8 @@ SELECT e.employee_id,
            ELSE '18:30:00'::time
            END AS check_out,
        CASE
-           WHEN random() < 0.9 THEN 'Đúng giờ'
-           ELSE 'Đi muộn' || (5 + (random() * 25)::integer)::text || 'p'
+           WHEN random() < 0.9 THEN 'On time'
+           ELSE 'Late'
            END AS status,
        CASE
            WHEN random() < 0.3 THEN round((random() * 2)::numeric, 1)
@@ -663,23 +665,22 @@ INSERT INTO salary_records (employee_id, month, year, base_salary, total_allowan
                             overtime_pay, deductions, insurance_deduction, tax_amount, net_salary, payment_status)
 VALUES
     -- Tiếp tục từ nhân viên 15
-    (15, 1, 2023, 17000000, 2100000, 1700000, 0, 1700000, 2100000, 17000000, 'Đã thanh toán'),
-    (15, 2, 2023, 17000000, 2100000, 1500000, 0, 1700000, 2000000, 16900000, 'Đã thanh toán'),
-    (14, 1, 2023, 12500000, 2100000, 12500000, 0, 12500000, 2100000, 12500000, 'Đã thanh toán'),
-    (13, 1, 2023, 16500000, 2100000, 16500000, 0, 16500000, 2100000, 16500000, 'Đã thanh toán'),
-    (12, 1, 2023, 15000000, 2100000, 15000000, 0, 15000000, 2100000, 15000000, 'Đã thanh toán'),
-    (11, 1, 2023, 16000000, 2100000, 16000000, 0, 16000000, 2100000, 16000000, 'Đã thanh toán'),
-    (10, 1, 2023, 14000000, 2100000, 14000000, 0, 14000000, 2100000, 14000000, 'Đã thanh toán'),
-    (9, 1, 2023, 18000000, 2100000, 18000000, 0, 18000000, 2100000, 18000000, 'Đã thanh toán'),
-    (8, 1, 2023, 15000000, 2100000, 15000000, 0, 15000000, 2100000, 15000000, 'Đã thanh toán'),
-    (7, 1, 2023, 30000000, 2100000, 30000000, 0, 30000000, 2100000, 30000000, 'Đã thanh toán'),
-    (6, 1, 2023, 30000000, 2100000, 30000000, 0, 30000000, 2100000, 30000000, 'Đã thanh toán'),
-    (5, 1, 2023, 30000000, 2100000, 30000000, 0, 30000000, 2100000, 30000000, 'Đã thanh toán'),
-    (4, 1, 2023, 30000000, 2100000, 30000000, 0, 30000000, 2100000, 30000000, 'Đã thanh toán'),
-    (3, 1, 2023, 30000000, 2100000, 30000000, 0, 30000000, 2100000, 30000000, 'Đã thanh toán'),
-    (2, 1, 2023, 40000000, 2100000, 40000000, 0, 40000000, 2100000, 40000000, 'Đã thanh toán'),
-    (1, 1, 2023, 50000000, 2100000, 50000000, 0, 50000000, 2100000, 50000000, 'Đã thanh toán');
-
+    (15, 1, 2023, 17000000, 2100000, 1700000, 0, 1700000, 2100000, 17000000, 'Paid'),
+    (15, 2, 2023, 17000000, 2100000, 1500000, 0, 1700000, 2000000, 16900000, 'Paid'),
+    (14, 1, 2023, 12500000, 2100000, 12500000, 0, 12500000, 2100000, 12500000, 'Paid'),
+    (13, 1, 2023, 16500000, 2100000, 16500000, 0, 16500000, 2100000, 16500000, 'Paid'),
+    (12, 1, 2023, 15000000, 2100000, 15000000, 0, 15000000, 2100000, 15000000, 'Paid'),
+    (11, 1, 2023, 16000000, 2100000, 16000000, 0, 16000000, 2100000, 16000000, 'Paid'),
+    (10, 1, 2023, 14000000, 2100000, 14000000, 0, 14000000, 2100000, 14000000, 'Paid'),
+    (9, 1, 2023, 18000000, 2100000, 18000000, 0, 18000000, 2100000, 18000000, 'Paid'),
+    (8, 1, 2023, 15000000, 2100000, 15000000, 0, 15000000, 2100000, 15000000, 'Paid'),
+    (7, 1, 2023, 30000000, 2100000, 30000000, 0, 30000000, 2100000, 30000000, 'Paid'),
+    (6, 1, 2023, 30000000, 2100000, 30000000, 0, 30000000, 2100000, 30000000, 'Paid'),
+    (5, 1, 2023, 30000000, 2100000, 30000000, 0, 30000000, 2100000, 30000000, 'Paid'),
+    (4, 1, 2023, 30000000, 2100000, 30000000, 0, 30000000, 2100000, 30000000, 'Paid'),
+    (3, 1, 2023, 30000000, 2100000, 30000000, 0, 30000000, 2100000, 30000000, 'Paid'),
+    (2, 1, 2023, 40000000, 2100000, 40000000, 0, 40000000, 2100000, 40000000, 'Paid'),
+    (1, 1, 2023, 50000000, 2100000, 50000000, 0, 50000000, 2100000, 50000000, 'Paid');
 ;
 
 -- Thêm nhật ký hệ thống
@@ -753,3 +754,135 @@ create table messages
     message_content TEXT,
     created_at      TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
+
+INSERT INTO leave_policies(leave_policy_id, leave_policy_name, leave_policy_amount)
+VALUES (1, 'annual leave', 12),
+       (2, 'sick leave', 10),
+       (3, 'maternity leave', 180),
+       (4, 'wedding leave', 3),
+       (5, 'funeral leave', 4),
+       (6, 'no pay leave', 1000);
+
+-- Thêm dữ liệu lương cho tháng 1, 2, 3 năm 2025
+-- Tháng 1/2025
+INSERT INTO salary_records (employee_id, month, year, base_salary, total_allowance,
+                            overtime_pay, deductions, insurance_deduction, tax_amount, net_salary, payment_status)
+VALUES
+    -- Ban lãnh đạo
+    (1, 1, 2025, 55000000, 14000000, 0, 11000000, 6325000, 5470000, 46205000, 'Paid'),
+    (2, 1, 2025, 45000000, 11300000, 0, 11000000, 5175000, 3862500, 36262500, 'Paid'),
+
+    -- Trưởng phòng
+    (3, 1, 2025, 33000000, 7000000, 1500000, 11000000, 3795000, 1955500, 25749500, 'Paid'),
+    (4, 1, 2025, 33000000, 7000000, 0, 11000000, 3795000, 1805500, 24399500, 'Paid'),
+    (5, 1, 2025, 33000000, 7000000, 2000000, 15000000, 3795000, 1630500, 21574500, 'Paid'),
+    (6, 1, 2025, 33000000, 7000000, 1200000, 11000000, 3795000, 1925500, 25679500, 'Paid'),
+    (7, 1, 2025, 33000000, 7000000, 800000, 11000000, 3795000, 1865500, 25139500, 'Paid'),
+
+    -- Nhân viên
+    (8, 1, 2025, 16500000, 1100000, 1200000, 11000000, 1897500, 0, 15902500, 'Paid'),
+    (9, 1, 2025, 19800000, 2100000, 0, 15000000, 2277000, 0, 19623000, 'Paid'),
+    (10, 1, 2025, 15400000, 800000, 1500000, 11000000, 1771000, 0, 14929000, 'Paid'),
+    (11, 1, 2025, 17600000, 2300000, 800000, 15000000, 2024000, 0, 18676000, 'Paid'),
+    (12, 1, 2025, 16500000, 2000000, 0, 11000000, 1897500, 0, 15602500, 'Paid'),
+    (13, 1, 2025, 18150000, 1800000, 1200000, 11000000, 2087250, 0, 18062750, 'Paid'),
+    (14, 1, 2025, 13750000, 800000, 0, 11000000, 1581250, 0, 11968750, 'Paid'),
+    (15, 1, 2025, 18700000, 2100000, 1500000, 15000000, 2150500, 0, 20149500, 'Paid');
+
+-- Tháng 2/2025
+INSERT INTO salary_records (employee_id, month, year, base_salary, total_allowance,
+                            overtime_pay, deductions, insurance_deduction, tax_amount, net_salary, payment_status)
+VALUES
+    -- Ban lãnh đạo
+    (1, 2, 2025, 55000000, 14000000, 0, 11000000, 6325000, 5470000, 46205000, 'Paid'),
+    (2, 2, 2025, 45000000, 11300000, 0, 11000000, 5175000, 3862500, 36262500, 'Paid'),
+
+    -- Trưởng phòng
+    (3, 2, 2025, 33000000, 7000000, 2000000, 11000000, 3795000, 2005500, 26199500, 'Paid'),
+    (4, 2, 2025, 33000000, 7000000, 1500000, 11000000, 3795000, 1955500, 25749500, 'Paid'),
+    (5, 2, 2025, 33000000, 7000000, 0, 15000000, 3795000, 1505500, 19699500, 'Paid'),
+    (6, 2, 2025, 33000000, 7000000, 1800000, 11000000, 3795000, 1985500, 26019500, 'Paid'),
+    (7, 2, 2025, 33000000, 7000000, 1200000, 11000000, 3795000, 1925500, 25679500, 'Paid'),
+
+    -- Nhân viên
+    (8, 2, 2025, 16500000, 1100000, 1800000, 11000000, 1897500, 0, 16502500, 'Paid'),
+    (9, 2, 2025, 19800000, 2100000, 1200000, 15000000, 2277000, 0, 20823000, 'Paid'),
+    (10, 2, 2025, 15400000, 800000, 2000000, 11000000, 1771000, 0, 15429000, 'Paid'),
+    (11, 2, 2025, 17600000, 2300000, 1500000, 15000000, 2024000, 0, 19376000, 'Paid'),
+    (12, 2, 2025, 16500000, 2000000, 1200000, 11000000, 1897500, 0, 16802500, 'Paid'),
+    (13, 2, 2025, 18150000, 1800000, 900000, 11000000, 2087250, 0, 17762750, 'Paid'),
+    (14, 2, 2025, 13750000, 800000, 1500000, 11000000, 1581250, 0, 13468750, 'Paid'),
+    (15, 2, 2025, 18700000, 2100000, 0, 15000000, 2150500, 0, 18649500, 'Paid');
+
+-- Tháng 3/2025
+INSERT INTO salary_records (employee_id, month, year, base_salary, total_allowance,
+                            overtime_pay, deductions, insurance_deduction, tax_amount, net_salary, payment_status)
+VALUES
+    -- Ban lãnh đạo
+    (1, 3, 2025, 55000000, 14000000, 0, 11000000, 6325000, 5470000, 46205000, 'Pending'),
+    (2, 3, 2025, 45000000, 11300000, 0, 11000000, 5175000, 3862500, 36262500, 'Pending'),
+
+    -- Trưởng phòng
+    (3, 3, 2025, 33000000, 7000000, 2500000, 11000000, 3795000, 2055500, 26649500, 'Pending'),
+    (4, 3, 2025, 33000000, 7000000, 1800000, 11000000, 3795000, 1985500, 26019500, 'Pending'),
+    (5, 3, 2025, 33000000, 7000000, 1000000, 15000000, 3795000, 1605500, 20599500, 'Pending'),
+    (6, 3, 2025, 33000000, 7000000, 2000000, 11000000, 3795000, 2005500, 26199500, 'Pending'),
+    (7, 3, 2025, 33000000, 7000000, 1500000, 11000000, 3795000, 1955500, 25749500, 'Pending'),
+
+    -- Nhân viên
+    (8, 3, 2025, 16500000, 1100000, 2000000, 11000000, 1897500, 0, 16702500, 'Pending'),
+    (9, 3, 2025, 19800000, 2100000, 1500000, 15000000, 2277000, 0, 21123000, 'Pending'),
+    (10, 3, 2025, 15400000, 800000, 1800000, 11000000, 1771000, 0, 15229000, 'Pending'),
+    (11, 3, 2025, 17600000, 2300000, 2000000, 15000000, 2024000, 0, 19876000, 'Pending'),
+    (12, 3, 2025, 16500000, 2000000, 1500000, 11000000, 1897500, 0, 17102500, 'Pending'),
+    (13, 3, 2025, 18150000, 1800000, 1200000, 11000000, 2087250, 0, 18062750, 'Pending'),
+    (14, 3, 2025, 13750000, 800000, 1800000, 11000000, 1581250, 0, 13768750, 'Pending'),
+    (15, 3, 2025, 18700000, 2100000, 1200000, 15000000, 2150500, 0, 19849500, 'Pending');
+
+create table roles
+(
+    id                                bigint generated by default as identity
+        primary key,
+    attendance_permission             varchar(255)
+        constraint roles_attendance_permission_check
+            check ((attendance_permission)::text = ANY
+                   ((ARRAY ['MANAGE'::character varying, 'UPDATE'::character varying, 'ADD'::character varying, 'VISIBLE'::character varying, 'NONE'::character varying])::text[])),
+    description                       varchar(255),
+    employee_management_permission    varchar(255)
+        constraint roles_employee_management_permission_check
+            check ((employee_management_permission)::text = ANY
+                   ((ARRAY ['MANAGE'::character varying, 'UPDATE'::character varying, 'ADD'::character varying, 'VISIBLE'::character varying, 'NONE'::character varying])::text[])),
+    name                              varchar(255) not null
+        constraint ukofx66keruapi6vyqpv6f2or37
+            unique,
+    payroll_permission                varchar(255)
+        constraint roles_payroll_permission_check
+            check ((payroll_permission)::text = ANY
+                   ((ARRAY ['MANAGE'::character varying, 'UPDATE'::character varying, 'ADD'::character varying, 'VISIBLE'::character varying, 'NONE'::character varying])::text[])),
+    recruitment_management_permission varchar(255)
+        constraint roles_recruitment_management_permission_check
+            check ((recruitment_management_permission)::text = ANY
+                   ((ARRAY ['MANAGE'::character varying, 'UPDATE'::character varying, 'ADD'::character varying, 'VISIBLE'::character varying, 'NONE'::character varying])::text[])),
+    request_permission                varchar(255)
+        constraint roles_request_permission_check
+            check ((request_permission)::text = ANY
+                   ((ARRAY ['MANAGE'::character varying, 'UPDATE'::character varying, 'ADD'::character varying, 'VISIBLE'::character varying, 'NONE'::character varying])::text[])),
+    system_settings_permission        varchar(255)
+        constraint roles_system_settings_permission_check
+            check ((system_settings_permission)::text = ANY
+                   ((ARRAY ['MANAGE'::character varying, 'UPDATE'::character varying, 'ADD'::character varying, 'VISIBLE'::character varying, 'NONE'::character varying])::text[])),
+    user_permission                   varchar(255)
+        constraint roles_user_permission_check
+            check ((user_permission)::text = ANY
+                   ((ARRAY ['MANAGE'::character varying, 'UPDATE'::character varying, 'ADD'::character varying, 'VISIBLE'::character varying, 'NONE'::character varying])::text[]))
+);
+
+alter table roles
+    owner to postgres;
+
+insert into roles(attendance_permission, description, employee_management_permission, name, payroll_permission,
+                  recruitment_management_permission, request_permission, system_settings_permission, user_permission)
+VALUES ('MANAGE', 'Admin ne', 'MANAGE', 'Administrator', 'MANAGE',
+        'MANAGE', 'MANAGE', 'MANAGE', 'MANAGE'),
+       ('NONE', 'Employee ne', 'NONE', 'Employee', 'NONE',
+        'NONE', 'NONE', 'NONE', 'MANAGE')

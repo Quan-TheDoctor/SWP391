@@ -4,6 +4,8 @@ import com.se1873.js.springboot.project.dto.*;
 import com.se1873.js.springboot.project.entity.Department;
 import com.se1873.js.springboot.project.entity.Position;
 import com.se1873.js.springboot.project.entity.User;
+import com.se1873.js.springboot.project.mapper.AttendanceDTOMapper;
+import com.se1873.js.springboot.project.repository.AttendanceRepository;
 import com.se1873.js.springboot.project.repository.DepartmentRepository;
 import com.se1873.js.springboot.project.repository.UserRepository;
 import com.se1873.js.springboot.project.service.*;
@@ -24,6 +26,7 @@ import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
@@ -34,8 +37,7 @@ import org.springframework.web.bind.annotation.*;
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 
 import java.time.LocalDate;
-import java.time.YearMonth;
-import java.time.format.DateTimeFormatter;
+import java.time.LocalTime;
 import java.util.*;
 import java.util.stream.Collectors;
 
@@ -50,7 +52,6 @@ public class AttendanceController {
   private final EmployeeService employeeService;
   private final DepartmentService departmentService;
   private final PositionService positionService;
-  private final SalaryRecordService salaryRecordService;
   private AttendanceDTOList attendanceDTOList = new AttendanceDTOList();
 
   @ModelAttribute("payrollCalculationForm")
@@ -62,6 +63,7 @@ public class AttendanceController {
 
 
   @GetMapping("/search")
+  @PreAuthorize("hasPermission('ATTENDANCE', 'VIEW')")
   public String search(@RequestParam("query") String query,
                        @RequestParam(value = "page", defaultValue = "0") Integer page,
                        @RequestParam(value = "size", defaultValue = "10") Integer size,
@@ -88,6 +90,7 @@ public class AttendanceController {
   }
 
   @GetMapping("/filter")
+  @PreAuthorize("hasPermission('ATTENDANCE', 'VIEW')")
   public String filterStatus(@RequestParam(value = "status", required = false) String status,
                              @RequestParam(value = "page", defaultValue = "0") Integer page,
                              @RequestParam(value = "size", defaultValue = "10") Integer size,
@@ -119,6 +122,7 @@ public class AttendanceController {
   }
 
   @GetMapping("/sort")
+  @PreAuthorize("hasPermission('ATTENDANCE', 'VIEW')")
   public String sort(@RequestParam(value = "field", required = true) String field,
                      @RequestParam(value = "direction", defaultValue = "asc") String direction,
                      @RequestParam(value = "page", defaultValue = "0") Integer page,
@@ -158,6 +162,7 @@ public class AttendanceController {
 
 
   @GetMapping
+  @PreAuthorize("hasPermission('ATTENDANCE', 'VIEW')")
   public String index(Model model,
                       @RequestParam(value = "query", required = false) String query,
                       @RequestParam(value = "view", required = false) String view,
@@ -227,63 +232,8 @@ public class AttendanceController {
     };
   }
 
-  @RequestMapping("/demo")
-  public String attendance(Model model,
-                           @RequestParam(value = "query", required = false) String query,
-                           @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate startDate,
-                           @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate endDate,
-                           @RequestParam(value = "page", defaultValue = "0") Integer page,
-                           @RequestParam(value = "size", defaultValue = "10") Integer size,
-                           @RequestParam(value = "view", required = false) String view) {
-    if("kanban".equals(view)) {
-      List<AttendanceDTO> allAttendances = attendanceService.getAllAttendances();
-      model.addAttribute("allAttendances", allAttendances);
-    }
-    if (startDate == null || endDate == null) {
-      startDate = LocalDate.now();
-      endDate = LocalDate.now();
-    }
-    attendances = (Page<AttendanceDTO>) model.asMap().get("attendances");
-    Map<String,Integer> quantity = attendanceService.getQuantity();
-    if(attendances == null)
-      attendances = attendanceService.getAll(startDate, endDate, PageRequest.of(page, size));
-
-    model.addAttribute("startDate", startDate);
-    model.addAttribute("endDate", endDate);
-    model.addAttribute("page", page);
-    model.addAttribute("size", size);
-    model.addAttribute("quantity",quantity);
-    model.addAttribute("attendances", attendances);
-    model.addAttribute("contentFragment", "fragments/attendance-fragments");
-    return "index";
-  }
-
-//  @RequestMapping("/filter")
-//  public String filterStatus(Model model,
-//                             @RequestParam(value = "status", required = false) String status,
-//                             @RequestParam(value = "page", defaultValue = "0") Integer page,
-//                             @RequestParam(value = "size", defaultValue = "10") Integer size,
-//                             @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate startDate,
-//                             @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate endDate){
-//    if (startDate == null || endDate == null) {
-//      startDate = LocalDate.now();
-//      endDate = LocalDate.now();
-//    }
-//    attendances = attendanceService.filterByStatus(startDate, endDate, PageRequest.of(page,size), status);
-//
-//    Map<String,Integer> quantity = attendanceService.getQuantity();
-//
-//    model.addAttribute("quantity",quantity);
-//    model.addAttribute("attendances",attendances);
-//    model.addAttribute("startDate", startDate);
-//    model.addAttribute("endDate", endDate);
-//    model.addAttribute("page", page);
-//    model.addAttribute("size", size);
-//    model.addAttribute("contentFragment", "fragments/attendance-fragments");
-//    return "index";
-//  }
-
   @RequestMapping("/create/form")
+  @PreAuthorize("hasPermission('ATTENDANCE', 'ADD')")
   public String createForm(Model model,
                            @RequestParam(value = "employeeIds", required = false) Integer[] employeeIds,
                            @RequestParam(value = "dates", required = false) String[] dates,
@@ -303,11 +253,12 @@ public class AttendanceController {
     model.addAttribute("page", page);
     model.addAttribute("size", size);
     model.addAttribute("attendanceDTOList", attendanceDTOList);
-    model.addAttribute("contentFragment", "fragments/attendance-view-fragments");
+    model.addAttribute("contentFragment", "fragments/attendance-create-fragments");
     return "index";
   }
 
   @PostMapping("/create/save")
+  @PreAuthorize("hasPermission('ATTENDANCE', 'ADD')")
   public String saveAttendance(@Valid @ModelAttribute("attendanceDTOList") AttendanceDTOList attendanceDTOList,
                                BindingResult result) {
     if (result.hasErrors()) {
@@ -318,93 +269,8 @@ public class AttendanceController {
     return "redirect:/attendance";
   }
 
-
-  @RequestMapping("/summary")
-  public String showPage(@ModelAttribute PayrollCalculationForm form,
-                         Model model,
-                         @ModelAttribute("loggedInUser") User loggedInUser) {
-    if (loggedInUser == null) {
-      return "redirect:/login";
-    }
-
-    if (form.getSelectedDepartmentId() != null) {
-      form.getPayrollCalculations().clear();
-      Page<EmployeeDTO> employees = employeeService.getEmployeesByDepartmentId(form.getSelectedDepartmentId(), PageRequest.of(0, 10));
-      model.addAttribute("employees", employees.getContent());
-
-      for (var employee : employees.getContent()) {
-        List<AttendanceDTO> attendanceDTOS = attendanceService.getAttendancesByEmployeeIdAndDate(employee.getEmployeeId(), LocalDate.now());
-        int workDays = Math.toIntExact(
-          attendanceDTOS.stream()
-            .filter(a -> "Đúng giờ".equals(a.getAttendanceStatus()))
-            .count()
-        );
-        int lateDays = Math.toIntExact(
-          attendanceDTOS.stream()
-            .filter(a -> "Đi muộn".equals(a.getAttendanceStatus()))
-            .count()
-        );
-        int absentDays = Math.toIntExact(
-          attendanceDTOS.stream()
-            .filter(a -> "Nghỉ".equals(a.getAttendanceStatus()))
-            .count()
-        );
-        double overtimeHours = attendanceDTOS.stream()
-          .filter(a -> a != null)
-          .mapToDouble(a -> a.getAttendanceOvertimeHours() != null ?
-            a.getAttendanceOvertimeHours() : 0.0)
-          .sum();
-        PayrollCalculationDTO dto = new PayrollCalculationDTO(
-          employee.getEmployeeId(),
-          employee.getEmployeeFirstName(),
-          employee.getEmployeeLastName(),
-          workDays, lateDays, absentDays, Math.floor(overtimeHours)
-        );
-        form.getPayrollCalculations().add(dto);
-      }
-    }
-    model.addAttribute("departments", departmentService.getAllDepartments());
-    model.addAttribute("user", loggedInUser);
-    model.addAttribute("payrollCalculationForm", form);
-    model.addAttribute("contentFragment", "fragments/attendance-summary-fragments");
-    return "index";
-  }
-
-  @PostMapping("/summary/removeEmployee")
-  public String removeEmployee(@RequestParam Integer employeeId,
-                               @ModelAttribute PayrollCalculationForm form,
-                               RedirectAttributes redirectAttributes) {
-    log.info("Attempting to remove employee: {}", employeeId);
-
-    boolean removed = form.getPayrollCalculations().removeIf(dto -> dto.employeeId().equals(employeeId));
-
-    if (removed) {
-      redirectAttributes.addFlashAttribute("success", "Đã xóa nhân viên thành công!");
-    } else {
-      redirectAttributes.addFlashAttribute("error", "Không tìm thấy nhân viên để xóa");
-    }
-
-    return "redirect:/attendance/summary";
-  }
-
-  @PostMapping("/summary/calculate")
-  public String calculatePayroll(@Valid @ModelAttribute PayrollCalculationForm form,
-                                 BindingResult result,
-                                 RedirectAttributes redirectAttributes,
-                                 @ModelAttribute("loggedInUser") User loggedInUser) {
-    if (result.hasErrors()) {
-      redirectAttributes.addFlashAttribute("error", "Cần chọn ít nhất 1 người để tổng hợp công");
-      redirectAttributes.addFlashAttribute("payrollCalculationForm", form);
-      return "redirect:/attendance/summary";
-    }
-
-    form.setRequesterId(loggedInUser.getUserId());
-    salaryRecordService.savePayroll(form);
-    return "redirect:/request";
-  }
-
-
   @RequestMapping("/export")
+  @PreAuthorize("hasPermission('ATTENDANCE', 'UPDATE')")
   public ResponseEntity<Resource> exportAttendance(
           @RequestParam(value = "selectedEmployees", required = false) String selectedEmployees,
           @RequestParam(value = "startDate", required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate startDate,
@@ -430,6 +296,7 @@ public class AttendanceController {
   }
 
   @RequestMapping("/export/view")
+  @PreAuthorize("hasPermission('ATTENDANCE', 'UPDATE')")
   public String viewExportAttendance(
           @RequestParam(value = "startDate", required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate startDate,
           @RequestParam(value = "endDate", required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate endDate,
@@ -462,6 +329,7 @@ public class AttendanceController {
 
 
   @RequestMapping("/status")
+  @PreAuthorize("hasPermission('ATTENDANCE', 'VISIBLE')")
   public String status(@RequestParam(value = "month", required = false) String month,
                        @RequestParam(value = "year", required = false) String year,
                        @RequestParam(value = "action" ,required = false) String action,
@@ -469,7 +337,6 @@ public class AttendanceController {
                        Model model, Pageable pageable) {
 
     String formattedDate = (String) model.getAttribute("formattedDate");
-
 
     if (formattedDate == null || month != null || year != null) {
       if (month == null) month = "01";
@@ -489,19 +356,23 @@ public class AttendanceController {
     List<Position> positions = positionService.getAllPositions();
     List<Department> departments = departmentService.getAllDepartments();
     List<EmployeeAttendanceStatusDTO> employeeAttendanceStatusDTOS = new ArrayList<>();
-    System.out.println("4" + action);
     if("search".equals(action) && query != null && !query.trim().isEmpty()){
         employeeAttendanceStatusDTOS = attendanceService.findEmployeeAttendanceStatusbyEmployeeName(query, pageable, formattedDate);
-      System.out.println(2);
-      System.out.println("check date: " + formattedDate);
-      System.out.println(employeeAttendanceStatusDTOS);
+
     }else if( "departmentfilter".equals(action) && query != null && !query.trim().isEmpty()){
       employeeAttendanceStatusDTOS = attendanceService.departmentFilter(query, pageable, formattedDate);
     }else {
       employeeAttendanceStatusDTOS = attendanceService.getEmployeeAttendanceStatus(formattedDate, pageable);
-      System.out.println(3);
-    }
 
+    }
+    Map<String, EmployeeAttendanceStatusDTO> mostLateAndAbsent = attendanceService.findEmployeesWithMostLateAndAbsent(employeeAttendanceStatusDTOS);
+
+    EmployeeAttendanceStatusDTO mostLate = mostLateAndAbsent.get("MostLate");
+    EmployeeAttendanceStatusDTO mostAbsent = mostLateAndAbsent.get("MostAbsent");
+    int employeeCount = employeeService.countEmployees();
+    model.addAttribute("employeeCount", employeeCount);
+    model.addAttribute("mostLate", mostLate);
+    model.addAttribute("mostAbsent", mostAbsent);
     model.addAttribute("employeeAttendanceStatusDTOS", employeeAttendanceStatusDTOS);
     model.addAttribute("positions", positions);
     model.addAttribute("departments", departments);
@@ -510,6 +381,7 @@ public class AttendanceController {
 
 
   @GetMapping("/searchstatus")
+  @PreAuthorize("hasPermission('ATTENDANCE', 'VISIBLE')")
   public String searchstatus(@RequestParam("query") String search,
                               RedirectAttributes redirectAttributes) {
     redirectAttributes.addFlashAttribute("action", "search");
@@ -518,6 +390,7 @@ public class AttendanceController {
 
   }
   @GetMapping("/departmentfilter")
+  @PreAuthorize("hasPermission('ATTENDANCE', 'VISIBLE')")
   public String departmentFilter(@RequestParam("value") String filter,
                                  RedirectAttributes redirectAttributes) {
     redirectAttributes.addFlashAttribute("action", "departmentfilter");

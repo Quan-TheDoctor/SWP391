@@ -11,4 +11,5 @@ public interface ChannelQueryService {
   List<MessageDTO> getChannelMessages(Integer channelId);
   Channel getChannelByChannelId(Integer channelId);
   Channel getChannelByChannelName(String channelName);
+  Channel saveChannel(Channel channel);
 }

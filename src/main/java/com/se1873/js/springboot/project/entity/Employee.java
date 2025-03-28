@@ -107,7 +107,7 @@ public class Employee {
   private User user;
 
   @Column(name = "is_deleted")
-  private Boolean isDeleted;
+  private Boolean isDeleted = false;
 
   @PrePersist
   protected void onCreate() {

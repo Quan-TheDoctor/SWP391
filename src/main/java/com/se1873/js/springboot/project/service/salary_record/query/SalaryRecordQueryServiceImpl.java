@@ -26,6 +26,11 @@ public class SalaryRecordQueryServiceImpl implements SalaryRecordQueryService {
   }
 
   @Override
+  public List<SalaryRecord> findAll() {
+    return salaryRecordRepository.findAll();
+  }
+
+  @Override
   public Page<SalaryRecord> getAll(Pageable pageable) {
     return salaryRecordRepository.findAllByIsDeleted(false, pageable);
   }
@@ -54,7 +59,7 @@ public class SalaryRecordQueryServiceImpl implements SalaryRecordQueryService {
   @Override
   public double calculateUnpaidSalary(List<PayrollDTO> payrolls) {
     return payrolls.stream()
-      .filter(payroll -> Boolean.parseBoolean(payroll.getSalaryRecordPaymentStatus()))
+      .filter(payroll -> "Pending".equals(payroll.getSalaryRecordPaymentStatus()))
       .mapToDouble(PayrollDTO::getSalaryRecordNetSalary)
       .sum();
   }

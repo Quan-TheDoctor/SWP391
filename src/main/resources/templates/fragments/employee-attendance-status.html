@@ -113,7 +113,7 @@
                         </div>
                         <div>
                             <p class="text-sm text-gray-500">Total Employees</p>
-                            <p class="text-xl font-bold"></p>
+                            <p class="text-xl font-bold" th:text="${employeeCount}"></p>
                         </div>
                     </div>
                 </div>
@@ -126,10 +126,11 @@
                                       d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/>
                             </svg>
                         </div>
-                        <div>
+                        <div >
                             <p class="text-sm text-gray-500">Most frequently late employee</p>
-                            <p class="text-xl font-bold"></p>
-                        </div>
+                            <div th:if="${mostLate != null}">
+                            <p class="text-xl font-bold" th:text="${mostLate.getEmployee().getEmployeeFirstName() + ' '+mostLate.getEmployee().getEmployeeLastName() }"></p>
+                        </div></div>
                     </div>
                 </div>
 
@@ -143,9 +144,11 @@
                         </div>
                         <div>
                             <p class="text-sm text-gray-500">Most frequently absent employee</p>
-                            <p class="text-xl font-bold"
-                               ></p>
+                            <div th:if="${mostAbsent != null}">
+                            <p class="text-xl font-bold" th:text="${mostAbsent.getEmployee().getEmployeeFirstName() + ' ' + mostAbsent.getEmployee().getEmployeeLastName()}"></p>
+                            </div>
                         </div>
+
                     </div>
                 </div>
             </div>
@@ -254,13 +257,12 @@
 <script>
     document.addEventListener("DOMContentLoaded", function () {
         let today = new Date();
-        let currentMonth = String(today.getMonth() + 1).padStart(2, "0"); // Đảm bảo định dạng 2 chữ số
+        let currentMonth = String(today.getMonth() + 1).padStart(2, "0");
         let currentYear = today.getFullYear();
 
-        // Đặt giá trị mặc định
+
         document.getElementById("monthSelect").value = currentMonth;
 
-        // Thêm các năm vào dropdown
         let yearSelect = document.getElementById("yearSelect");
         for (let year = currentYear - 5; year <= currentYear + 5; year++) {
             let option = document.createElement("option");
@@ -272,14 +274,13 @@
             yearSelect.appendChild(option);
         }
 
-        // Kiểm tra URL
         let urlParams = new URLSearchParams(window.location.search);
         let hasMonth = urlParams.has("month");
         let hasYear = urlParams.has("year");
 
-        // Kiểm tra xem form đã submit trước đó chưa
+
         if ((!hasMonth || !hasYear) && !sessionStorage.getItem("formSubmitted")) {
-            sessionStorage.setItem("formSubmitted", "true"); // Đánh dấu đã submit
+            sessionStorage.setItem("formSubmitted", "true");
             document.getElementById("filterForm").submit();
         }
     });

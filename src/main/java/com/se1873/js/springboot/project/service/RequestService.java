@@ -27,8 +27,10 @@ import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
+import java.time.LocalTime;
 import java.util.*;
 import java.util.stream.Collectors;
+import java.time.format.DateTimeFormatter;
 
 /**
  * Service xử lý logic cho request từ Controller
@@ -38,8 +40,8 @@ import java.util.stream.Collectors;
 @Transactional
 @RequiredArgsConstructor
 public class RequestService {
-  private static final String DEFAULT_STATUS = "pending";
-  private static final String LEAVE_REQUEST_TYPE = "Đơn xin nghỉ";
+  private static final String DEFAULT_STATUS = "Pending";
+  private static final String LEAVE_REQUEST_TYPE = "Leave Permit";
 
   private final RequestRepository requestRepository;
   private final LeaveRepository leaveRepository;
@@ -50,6 +52,11 @@ public class RequestService {
   private final EmployeeService employeeService;
   private final DepartmentService departmentService;
   private final EmploymentHistoryService employmentHistoryService;
+  private final DepartmentRepository departmentRepository;
+  private final EmploymentHistoryRepository employmentHistoryRepository;
+  private final EmployeeRepository employeeRepository;
+  private final ReponseRepo responsRepository;
+  private final LeavePolicyRepository leavePolicyRepository;
 
   /**
    * Lấy danh sách requests đi kèm pagination
@@ -72,8 +79,8 @@ public class RequestService {
   }
   private Page<RequestDTO> filterByType(String value, Pageable pageable) {
     return "all".equalsIgnoreCase(value)
-      ? getRequests(pageable)
-      : requestRepository.findByRequestType(value, pageable).map(this::convertRequestToDTO);
+            ? getRequests(pageable)
+            : requestRepository.findByRequestType(value, pageable).map(this::convertRequestToDTO);
   }
 
   public List<String> getAllRequestTypes() {
@@ -84,50 +91,70 @@ public class RequestService {
     if (user == null) {
       throw new RuntimeException("user ko tồn tại");
     }
+    List<Leave> leaves = leaveRepository.findLeaveByEmployee_EmployeeIdAndStartDateAndEndDate(employee.getEmployeeId(),
+            requestDTO.getLeaveDTO().getStartDate(),
+            requestDTO.getLeaveDTO().getEndDate());
+    Leave leave = leaves.getFirst();
+    if(requestDTO.getRequestStatus().equals("Approved")){
+      leave.setStatus("Approved");
+      leave.setLeaveAllowedDay(requestDTO.getLeaveDTO().getLeaveAllowedDay());
+      leaveRepository.save(leave);
 
-    Request request = new Request();
-    Leave leave = new Leave();
-    leave.setLeaveType("Đơn xin nghỉ");
-    leave.setStartDate(requestDTO.getLeaveDTO().getStartDate());
-    leave.setEndDate(requestDTO.getLeaveDTO().getEndDate());
-    leave.setTotalDays(requestDTO.getLeaveDTO().getTotalDays());
-    leave.setStatus("pending");
-    leave.setReason(requestDTO.getLeaveDTO().getReason());
-    leave.setCreatedAt(LocalDateTime.now());
-    leave.setEmployee(employee);
-    leaveRepository.save(leave);
-    Integer leaveId = leave.getLeaveId();
+      for (int i = 0; i < leave.getTotalDays(); i++) {
+        Attendance attendance = Attendance.builder()
+                .date(leave.getStartDate().plusDays(i))
+                .checkIn(LocalTime.of(0, 0, 0))
+                .checkOut(LocalTime.of(0, 0, 0))
+                .overtimeHours(0.0)
+                .status("Nghỉ")
+                .note(leave.getReason())
+                .employee(employee)
+                .build();
 
-    for(int i = 0; i < leave.getTotalDays(); i++) {
-      Attendance attendance = Attendance.builder()
-        .date(leave.getStartDate().plusDays(i))
-        .checkIn(null)
-        .checkOut(null)
-        .overtimeHours(0.0)
-        .status("Nghỉ")
-        .note(leave.getReason())
-        .employee(employee)
-        .build();
-
-      attendanceRepository.save(attendance);
+        attendanceRepository.save(attendance);
+      }
+    }else{
+      leave.setStatus("deny");
+      leaveRepository.save(leave);
     }
 
-    EmployeeDTO employeeDTO = employeeService.getEmployeeByEmployeeId(employee.getEmployeeId());
-    EmployeeDTO managerDTO = employeeService.getEmployeeByEmployeeId(employeeDTO.getManagerId());
-    Optional<User> approval = userRepository.findUserByEmployee_EmployeeId(managerDTO.getEmployeeId());
-    request.setRequestIdList(String.valueOf(leaveId));
-    request.setRequesterId(user.getUserId());
-    request.setReason(requestDTO.getLeaveDTO().getReason());
-    request.setStartDate(requestDTO.getLeaveDTO().getStartDate());
-    request.setEndDate(requestDTO.getLeaveDTO().getEndDate());
-    request.setNote(requestDTO.getNote());
-    request.setTotalDays(requestDTO.getLeaveDTO().getTotalDays());
-    request.setRequestType("Đơn xin nghỉ");
-    request.setStatus("pending");
-    request.setCreatedAt(LocalDateTime.now());
-    request.setApproval(approval.get());
-    request.setUser(user);
+  }
+  public void saveRequestForLeave(RequestDTO requestDTO, User user, User approval) {
+    if (user == null) {
+      throw new RuntimeException("user ko tồn tại");
+    }
+    int employeeId = user.getEmployee().getEmployeeId();
+    Employee employee = employeeRepository.getEmployeeByEmployeeId(employeeId);
+    Leave leave = Leave.builder()
+            .leaveType("Leave Permit")
+            .startDate(requestDTO.getLeaveDTO().getStartDate())
+            .endDate(requestDTO.getLeaveDTO().getEndDate())
+            .totalDays(requestDTO.getLeaveDTO().getTotalDays())
+            .status("Pending")
+            .leaveAllowedDay(requestDTO.getLeaveDTO().getLeaveAllowedDay())
+            .reason(requestDTO.getLeaveDTO().getReason())
+            .createdAt(LocalDateTime.now())
+            .employee(employee)
+            .leavePolicyId(requestDTO.getLeaveDTO().getLeavePolicyId())
+            .build();
+    leaveRepository.save(leave);
 
+    Integer leaveId = leave.getLeaveId();
+
+    Request request = Request.builder()
+            .requesterId(user.getUserId())
+            .requestType("Leave Permit")
+            .reason(requestDTO.getLeaveDTO().getReason())
+            .startDate(requestDTO.getLeaveDTO().getStartDate())
+            .endDate(requestDTO.getLeaveDTO().getEndDate())
+            .totalDays(requestDTO.getLeaveDTO().getTotalDays())
+            .note(requestDTO.getNote())
+            .status("Pending")
+            .requestIdList(leaveId.toString())
+            .createdAt(LocalDateTime.now())
+            .user(user)
+            .approval(approval)
+            .build();
     requestRepository.save(request);
   }
 
@@ -137,14 +164,14 @@ public class RequestService {
     }
 
     Request request = Request.builder()
-      .requesterId(user.getUserId())
-      .requestType(requestDTO.getRequestType())
-      .status("pending")
-      .requestIdList(requestDTO.getPayrollIds().toString())
-      .createdAt(LocalDateTime.now())
-      .user(user)
-      .approval(approval)
-      .build();
+            .requesterId(user.getUserId())
+            .requestType(requestDTO.getRequestType())
+            .status("Pending")
+            .requestIdList(requestDTO.getPayrollIds().toString())
+            .createdAt(LocalDateTime.now())
+            .user(user)
+            .approval(approval)
+            .build();
     requestRepository.save(request);
   }
 
@@ -154,12 +181,16 @@ public class RequestService {
 
   public void updateStatus(RequestDTO requestDTO, String type) {
     User approval = userRepository.findUserByUsername(requestDTO.getApprovalName())
-      .orElse(null);
-    if("Đơn xin nghỉ".equals(type)) {
-
-    } else if("Hạch toán lương".equals(type)) {
+            .orElse(null);
+    if("Leave Permit".equals(type)) {
+      String status = "Approved".equals(requestDTO.getRequestStatus()) ? "Approved" : "Denied";
+      Request request = requestRepository.findRequestByRequestId(requestDTO.getRequestId());
+      request.setApproval(approval);
+      request.setStatus(status);
+      requestRepository.save(request);
+    } else if("Salary Calculation".equals(type)) {
       for(var payrollId : requestDTO.getPayrollIds()) {
-        String status = requestDTO.getRequestStatus().equals("approve") ? "Paid" : "Cancelled";
+        String status = requestDTO.getRequestStatus().equals("Approved") ? "Paid" : "Cancelled";
         SalaryRecord salaryRecord = salaryRecordRepository.findSalaryRecordBySalaryIdAndIsDeleted(payrollId, false);
         salaryRecord.setPaymentStatus(status);
         salaryRecordRepository.save(salaryRecord);
@@ -173,37 +204,45 @@ public class RequestService {
 
 
   private RequestDTO convertRequestToDTO(Request request) {
-    if (request == null) {
-      return null;
+    if (request == null) return null;
+
+    LeaveDTO leaveDTO = null;
+    List<Integer> idList = Arrays.stream(request.getRequestIdList().replace("[", "").replace("]", "").replace(" ", "").split(","))
+            .map(Integer::parseInt)
+            .collect(Collectors.toList());
+
+    if ("Leave Permit".equals(request.getRequestType()) && !idList.isEmpty()) {
+      Leave leave = leaveRepository.findById(Long.valueOf(idList.get(0))).orElse(null);
+
+      if (leave != null) {
+        leaveDTO = LeaveDTO.builder()
+                .leaveId(leave.getLeaveId())
+                .startDate(leave.getStartDate())
+                .endDate(leave.getEndDate())
+                .totalDays(leave.getTotalDays())
+                .reason(leave.getReason())
+                .leavePolicyId(leave.getLeavePolicyId())
+                .leaveAllowedDay(leave.getLeaveAllowedDay())
+                .build();
+      }
     }
-
-    LeaveDTO leaveDTO = LeaveDTO.builder()
-      .reason(request.getReason())
-      .startDate(request.getStartDate())
-      .endDate(request.getEndDate())
-      .totalDays(request.getTotalDays())
-      .build();
-
-    List<Integer> integerList = new ArrayList<>();
-    for(var p : request.getRequestIdList().replace("[", "").replace("]","").replace(" ","").split(",")) {
-      integerList.add(Integer.parseInt(p));
-    }
-
 
     return RequestDTO.builder()
-      .requestId(request.getRequestId())
-      .approvalName(request.getApproval().getUsername())
-      .requestType(request.getRequestType())
-      .requesterId(request.getUser() != null ? request.getUser().getUserId() : null)
-      .requesterName(request.getUser() != null ? request.getUser().getUsername() : null)
-      .requestDate(request.getCreatedAt() != null ? request.getCreatedAt().toLocalDate() : null)
-      .requestStatus(request.getStatus())
-      .note(request.getNote())
-      .leaveDTO(leaveDTO)
-      .payrollIds(integerList)
-      .build();
+            .requestId(request.getRequestId())
+            .approvalName(request.getApproval() != null ? request.getApproval().getUsername() : null)
+            .requestType(request.getRequestType())
+            .requesterId(request.getUser() != null ? request.getUser().getUserId() : null)
+            .requesterName(request.getUser() != null ? request.getUser().getUsername() : null)
+            .requestDate(request.getCreatedAt() != null ? request.getCreatedAt().toLocalDate() : null)
+            .requestStatus(request.getStatus())
+            .note(request.getNote())
+            .leaveDTO(leaveDTO)
+            .payrollIds(idList)
+            .build();
   }
-
+  public Integer countPendingRequests() {
+    return requestRepository.countByStatus("Pending");
+  }
   public Page<RequestDTO> searchRequests(String query, Pageable pageable) {
     String requesterName = query;
 
@@ -222,9 +261,9 @@ public class RequestService {
     }
 
     List<RequestDTO> filteredRequests = requests.getContent().stream()
-      .filter(r -> "all".equals(type) || r.getRequestType().equalsIgnoreCase(type))
-      .map(this::convertRequestToDTO)
-      .collect(Collectors.toList());
+            .filter(r -> "all".equals(type) || r.getRequestType().equalsIgnoreCase(type))
+            .map(this::convertRequestToDTO)
+            .collect(Collectors.toList());
 
     return new PageImpl<>(filteredRequests, pageable, filteredRequests.size());
   }
@@ -242,8 +281,8 @@ public class RequestService {
     }
 
     requests = requests.stream()
-      .filter(r -> "all".equals(typeFilter) || r.getRequestType().equalsIgnoreCase(typeFilter))
-      .collect(Collectors.toList());
+            .filter(r -> "all".equals(typeFilter) || r.getRequestType().equalsIgnoreCase(typeFilter))
+            .collect(Collectors.toList());
 
     if (requests.isEmpty()) {
       log.warn("No requests available for export.");
@@ -278,171 +317,249 @@ public class RequestService {
       throw new RuntimeException("Error exporting to Excel", e);
     }
   }
-  public List<RequestCreationResponseDTO> getAllRequests() {
-    List<Request> requests = requestRepository.findAll();
-
-    return requests.stream()
-      .map(request -> {
-        Employee employee = request.getUser().getEmployee();
-
-        if (employee == null || employee.getEmploymentHistories() == null || employee.getEmploymentHistories().isEmpty()) {
-          return null;
-        }
-
-        Position position = employee.getEmploymentHistories().stream()
-          .max(Comparator.comparing(EmploymentHistory::getStartDate, Comparator.nullsLast(Comparator.naturalOrder())))
-          .map(EmploymentHistory::getPosition)
-          .orElse(null);
-
-        List<SalaryRecord> salaryRecords = employee.getSalaryRecords().stream()
-          .sorted(Comparator.comparing(SalaryRecord::getCreatedAt, Comparator.nullsLast(Comparator.reverseOrder())))
-          .toList();
-
-        log.info("..... {}", salaryRecords);
-        Double newBaseSalary = salaryRecords.isEmpty() ? 0.0 : salaryRecords.get(0).getBaseSalary();
-
-        Double oldBaseSalary = salaryRecords.size() > 1 ? salaryRecords.get(1).getBaseSalary() : 0.0;
-
-        return RequestCreationResponseDTO.builder()
-          .requestId(request.getRequestId())
-          .fullName(employee.getFirstName() + " " + employee.getLastName())
-          .employeeCode(employee.getEmployeeCode())
-          .positionName(position != null ? position.getPositionName() : "Chưa có vị trí")
-          .oldBaseSalary(oldBaseSalary)
-          .newBaseSalary(newBaseSalary)
-          .startedAt(request.getCreatedAt().toLocalDate())
-          .build();
-      })
-      .filter(Objects::nonNull)
-      .collect(Collectors.toMap(
-        RequestCreationResponseDTO::getEmployeeCode,
-        request -> request,
-        (existing, replacement) -> replacement))
-      .values()
-      .stream()
-      .toList();
-  }
-  public RequestCreationResponseDTO createRequest(RequestCreationRequestDTO creationRequest) {
+  public List<RequestCreationResponseDTO> createRequest(RequestCreationRequestDTO creationRequest) {
     String name = SecurityContextHolder.getContext().getAuthentication().getName();
 
-    Department department = departmentService.findDepartmentByDepartmentId(creationRequest.getDepartmentId());
+    Department department = departmentRepository.findById(creationRequest.getDepartmentId().longValue())
+            .orElseThrow(() -> new RuntimeException("Department not found"));
 
     User userCreate = userRepository.findUserByUsername(name)
-      .orElseThrow(() -> new RuntimeException("User not found"));
+            .orElseThrow(() -> new RuntimeException("User not found"));
 
-    User user = userRepository.findUserByUsername(creationRequest.getEmployeeName())
-      .orElseThrow(() -> new RuntimeException("Employee not found"));
+    User approver = userRepository.findUserByUserId(1);
 
-    Employee employee = user.getEmployee();
+    Map<String, Double> employeeIncreases = creationRequest.getEmployeeNamewithSalary();
+    if (employeeIncreases == null || employeeIncreases.isEmpty()) {
+      throw new RuntimeException("No employees selected or no salary increase provided");
+    }
 
-    Double currentSalary = employee.getSalaryRecords().stream()
-      .filter(Objects::nonNull)
-      .max(Comparator.comparing(SalaryRecord::getCreatedAt, Comparator.nullsFirst(Comparator.naturalOrder())))
-      .map(SalaryRecord::getBaseSalary)
-      .orElse(0.0);
+    List<RequestCreationResponseDTO> responseList = new ArrayList<>();
 
-    Double newSalary = 0.0;
-    if ("Tăng lương".equals(creationRequest.getRequestType())) {
-      Double increasePercentage = creationRequest.getSalaryIncreasePercentage();
-      if (increasePercentage == null || increasePercentage <= 0) {
-        throw new RuntimeException("Invalid salary increase percentage");
-      }
+    for (var entry : employeeIncreases.entrySet()) {
+      String employeeCode = entry.getKey();
+      Double increasePercentage = entry.getValue();
 
-      newSalary = currentSalary + (currentSalary * increasePercentage / 100);
+      Employee employee = employeeRepository.findByEmployeeCode(employeeCode)
+              .orElseThrow(() -> new RuntimeException("Employee not found: " + employeeCode));
+
+      Double currentSalary = employee.getSalaryRecords().stream()
+              .filter(Objects::nonNull)
+              .max(Comparator.comparing(SalaryRecord::getCreatedAt, Comparator.nullsFirst(Comparator.naturalOrder())))
+              .map(SalaryRecord::getBaseSalary)
+              .orElse(0.0);
+
+      Double newSalary = currentSalary + (currentSalary * increasePercentage / 100);
 
       SalaryRecord newSalaryRecord = SalaryRecord.builder()
-        .employee(employee)
-        .baseSalary(newSalary)
-        .month(LocalDate.now().getMonthValue())
-        .year(LocalDate.now().getYear())
-        .totalAllowance(0.0)
-        .overtimePay(0.0)
-        .deductions(0.0)
-        .insuranceDeduction(0.0)
-        .taxAmount(0.0)
-        .netSalary(newSalary)
-        .paymentStatus("PENDING")
-        .createdAt(LocalDateTime.now())
-        .build();
+              .employee(employee)
+              .baseSalary(newSalary)
+              .month(LocalDate.now().getMonthValue())
+              .year(LocalDate.now().getYear())
+              .totalAllowance(0.0)
+              .overtimePay(0.0)
+              .deductions(0.0)
+              .insuranceDeduction(0.0)
+              .taxAmount(0.0)
+              .netSalary(newSalary)
+              .paymentStatus("Pending")
+              .createdAt(LocalDateTime.now())
+              .build();
 
       salaryRecordRepository.save(newSalaryRecord);
 
       EmploymentHistory history = EmploymentHistory.builder()
-        .employee(employee)
-        .department(department)
-        .position(employee.getEmploymentHistories().stream()
-          .max(Comparator.comparing(EmploymentHistory::getStartDate))
-          .map(EmploymentHistory::getPosition)
-          .orElseThrow(() -> new RuntimeException("No position found")))
-        .startDate(LocalDate.now())
-        .isCurrent(true)
-        .transferReason("Salary increase")
-        .createdAt(LocalDateTime.now())
-        .build();
-      employmentHistoryService.save(history);
+              .employee(employee)
+              .department(department)
+              .position(employee.getEmploymentHistories().stream()
+                      .max(Comparator.comparing(EmploymentHistory::getStartDate))
+                      .map(EmploymentHistory::getPosition)
+                      .orElseThrow(() -> new RuntimeException("No position found")))
+              .startDate(LocalDate.now())
+              .isCurrent(true)
+              .transferReason("Salary increase")
+              .createdAt(LocalDateTime.now())
+              .build();
 
-    } else if ("Thăng chức".equals(creationRequest.getRequestType())) {
-      Position newPosition = department.getPositions().stream()
-        .filter(position -> position.getDepartment().equals(department))
-        .findFirst()
-        .orElseThrow(() -> new RuntimeException("No position found"));
+      employmentHistoryRepository.save(history);
 
-      EmploymentHistory history = EmploymentHistory.builder()
-        .employee(employee)
-        .department(department)
-        .position(newPosition)
-        .startDate(LocalDate.now())
-        .isCurrent(true)
-        .transferReason("Promotion")
-        .createdAt(LocalDateTime.now())
-        .startDate(LocalDate.now())
-        .build();
-      employmentHistoryService.save(history);
+      Request request = Request.builder()
+              .requesterId(userCreate.getUserId())
+              .requestType("Salary Raise")
+              .approval(approver)
+              .user(userCreate)
+              .status("Pending")
+              .createdAt(LocalDateTime.now())
+              .build();
+
+      requestRepository.save(request);
+
+      responseList.add(RequestCreationResponseDTO.builder()
+              .requestId(request.getRequestId())
+              .fullName(employee.getFirstName() + " " + employee.getLastName())
+              .employeeCode(employee.getEmployeeCode())
+              .positionName(history.getPosition().getPositionName())
+              .oldBaseSalary(currentSalary)
+              .newBaseSalary(newSalary)
+              .startedAt(employee.getCreatedAt().toLocalDate())
+              .build());
     }
 
-    Request request = Request.builder()
-      .requesterId(userCreate.getUserId())
-      .requestType(creationRequest.getRequestType())
-      .user(user)
-      .status("PENDING")
-      .createdAt(LocalDateTime.now())
-      .build();
-    requestRepository.save(request);
 
-    return RequestCreationResponseDTO.builder()
-      .requestId(request.getRequestId())
-      .fullName(employee.getFirstName() + " " + employee.getLastName())
-      .employeeCode(employee.getEmployeeCode())
-      .positionName(department.getPositions().stream()
-        .filter(position -> position.getDepartment().equals(department))
-        .findFirst()
-        .map(Position::getPositionName)
-        .orElse("No position assigned"))
-      .oldBaseSalary(currentSalary)
-      .newBaseSalary(newSalary)
-      .startedAt(employee.getCreatedAt().toLocalDate())
-      .build();
+
+    List<response> entityList = responseList.stream()
+            .map(response::toEntity)
+            .collect(Collectors.toList());
+
+    responsRepository.saveAll(entityList);
+
+
+
+    return responseList;
+  }
+
+
+  public List<RequestCreationResponseDTO> getAllRequests() {
+    List<Request> requests = requestRepository.findAll();
+
+    return requests.stream()
+            .map(request -> {
+              Employee employee = request.getUser().getEmployee();
+
+              if (employee == null || employee.getEmploymentHistories() == null || employee.getEmploymentHistories().isEmpty()) {
+                return null;
+              }
+
+              Position position = employee.getEmploymentHistories().stream()
+                      .max(Comparator.comparing(EmploymentHistory::getStartDate, Comparator.nullsLast(Comparator.naturalOrder())))
+                      .map(EmploymentHistory::getPosition)
+                      .orElse(null);
+
+              List<SalaryRecord> salaryRecords = employee.getSalaryRecords().stream()
+                      .sorted(Comparator.comparing(SalaryRecord::getCreatedAt, Comparator.nullsLast(Comparator.reverseOrder())))
+                      .toList();
+
+              log.info("..... {}", salaryRecords);
+              Double newBaseSalary = salaryRecords.isEmpty() ? 0.0 : salaryRecords.get(0).getBaseSalary();
+
+              Double oldBaseSalary = salaryRecords.size() > 1 ? salaryRecords.get(1).getBaseSalary() : 0.0;
+
+              return RequestCreationResponseDTO.builder()
+                      .requestId(request.getRequestId())
+                      .fullName(employee.getFirstName() + " " + employee.getLastName())
+                      .employeeCode(employee.getEmployeeCode())
+                      .positionName(position != null ? position.getPositionName() : "Chưa có vị trí")
+                      .oldBaseSalary(oldBaseSalary)
+                      .newBaseSalary(newBaseSalary)
+                      .startedAt(request.getCreatedAt().toLocalDate())
+                      .build();
+            })
+            .filter(Objects::nonNull)
+            .collect(Collectors.toMap(
+                    RequestCreationResponseDTO::getEmployeeCode,
+                    request -> request,
+                    (existing, replacement) -> replacement))
+            .values()
+            .stream()
+            .toList();
   }
 
   public com.se1873.js.springboot.project.dto.RequestDetailDTO getDetailRequest(Long requestId) {
     var request = requestRepository.findById(requestId)
-      .orElseThrow(() -> new RuntimeException("No request found"));
+            .orElseThrow(() -> new RuntimeException("No request found"));
     String fullName = request.getUser().getEmployee().getFirstName() + " " + request.getUser().getEmployee().getLastName();
 
     return com.se1873.js.springboot.project.dto.RequestDetailDTO.builder()
-      .requestId(requestId)
-      .fullName(fullName)
-      .employeeCode(request.getUser().getEmployee().getEmployeeCode())
-      .positionName(request.getUser().getEmployee().getEmploymentHistories().stream()
-        .max(Comparator.comparing(EmploymentHistory::getStartDate, Comparator.nullsFirst(Comparator.naturalOrder())))
-        .map(EmploymentHistory::getPosition)
-        .map(Position::getPositionName)
-        .orElse(null))
-      .newsSalary(request.getUser().getEmployee().getSalaryRecords().stream()
-        .max(Comparator.comparing(SalaryRecord::getBaseSalary, Comparator.nullsFirst(Comparator.naturalOrder())))
-        .map(SalaryRecord::getBaseSalary)
-        .orElse(null))
-      .createdDate(request.getCreatedAt().toLocalDate())
-      .build();
+            .requestId(requestId)
+            .fullName(fullName)
+            .employeeCode(request.getUser().getEmployee().getEmployeeCode())
+            .positionName(request.getUser().getEmployee().getEmploymentHistories().stream()
+                    .max(Comparator.comparing(EmploymentHistory::getStartDate, Comparator.nullsFirst(Comparator.naturalOrder())))
+                    .map(EmploymentHistory::getPosition)
+                    .map(Position::getPositionName)
+                    .orElse(null))
+            .newsSalary(request.getUser().getEmployee().getSalaryRecords().stream()
+                    .max(Comparator.comparing(SalaryRecord::getBaseSalary, Comparator.nullsFirst(Comparator.naturalOrder())))
+                    .map(SalaryRecord::getBaseSalary)
+                    .orElse(null))
+            .createdDate(request.getCreatedAt().toLocalDate())
+            .build();
+  }
+
+  public Page<RequestDTO> multiFilter(String type, String status, String dateRange, String approver, String department, Pageable pageable) {
+    try {
+      List<Request> allRequests = requestRepository.findAll();
+      log.info("Tổng số requests ban đầu: {}", allRequests.size());
+      List<RequestDTO> filteredRequests = new ArrayList<>();
+
+      if (type != null && !type.equals("all")) {
+        allRequests = allRequests.stream()
+                .filter(r -> r.getRequestType().equals(type))
+                .collect(Collectors.toList());
+        log.info("Số requests sau lọc theo type: {}", allRequests.size());
+      }
+
+      if (status != null && !status.equals("all")) {
+        allRequests = allRequests.stream()
+                .filter(r -> r.getStatus().equals(status))
+                .collect(Collectors.toList());
+        log.info("Số requests sau lọc theo status: {}", allRequests.size());
+      }
+
+      if (dateRange != null && !dateRange.isEmpty()) {
+        String[] dates = dateRange.split(" - ");
+        if (dates.length == 2) {
+          LocalDate startDate = LocalDate.parse(dates[0], DateTimeFormatter.ofPattern("dd/MM/yyyy"));
+          LocalDate endDate = LocalDate.parse(dates[1], DateTimeFormatter.ofPattern("dd/MM/yyyy"));
+          allRequests = allRequests.stream()
+                  .filter(r -> {
+                    if (r.getCreatedAt() == null) return false;
+                    LocalDate requestDate = r.getCreatedAt().toLocalDate();
+                    return !requestDate.isBefore(startDate) && !requestDate.isAfter(endDate);
+                  })
+                  .collect(Collectors.toList());
+          log.info("Số requests sau lọc theo dateRange: {}", allRequests.size());
+        }
+      }
+
+      if (approver != null && !approver.equals("all")) {
+        allRequests = allRequests.stream()
+                .filter(r -> r.getApproval() != null && r.getApproval().getUserId().toString().equals(approver))
+                .collect(Collectors.toList());
+        log.info("Số requests sau lọc theo approver: {}", allRequests.size());
+      }
+
+      if (department != null && !department.equals("all")) {
+        allRequests = allRequests.stream()
+                .filter(r -> {
+                  EmployeeDTO employeeDTO = employeeService.getEmployeeByEmployeeId(r.getUser().getEmployee().getEmployeeId());
+                  return employeeDTO.getDepartmentId().toString().equals(department);
+                })
+                .collect(Collectors.toList());
+        log.info("Số requests sau lọc theo department: {}", allRequests.size());
+      }
+
+      filteredRequests = allRequests.stream()
+              .map(this::convertRequestToDTO)
+              .collect(Collectors.toList());
+      log.info("Số requests sau chuyển đổi sang DTO: {}", filteredRequests.size());
+
+      int start = (int) pageable.getOffset();
+      int end = Math.min((start + pageable.getPageSize()), filteredRequests.size());
+      log.info("Phân trang - start: {}, end: {}, pageSize: {}, totalSize: {}",
+               start, end, pageable.getPageSize(), filteredRequests.size());
+
+      if (filteredRequests.isEmpty()) {
+        log.info("Không có dữ liệu sau khi lọc");
+        return new PageImpl<>(Collections.emptyList(), pageable, 0);
+      }
+
+      List<RequestDTO> pageContent = filteredRequests.subList(start, end);
+      log.info("Số lượng items trong trang hiện tại: {}", pageContent.size());
+
+      return new PageImpl<>(pageContent, pageable, filteredRequests.size());
+    } catch (Exception e) {
+      log.error("Error in multiFilter: {}", e.getMessage(), e);
+      throw e;
+    }
   }
 }

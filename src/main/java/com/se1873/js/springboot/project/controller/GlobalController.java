@@ -28,6 +28,11 @@ public class GlobalController {
     return request.getServletPath();
   }
 
+  @ModelAttribute("requestURI")
+  String getRequestURI(HttpServletRequest request) {
+    return request.getRequestURI();
+  }
+
   @ModelAttribute("loggedInUser")
   User getUser(@AuthenticationPrincipal UserDetails userDetails) {
     if (userDetails == null) {

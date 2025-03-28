@@ -15,6 +15,9 @@ import java.util.List;
 @Repository
 public interface SalaryRecordRepository extends JpaRepository<SalaryRecord, Long> {
 
+  @Query("SELECT s FROM SalaryRecord s WHERE s.employee.employeeId = :employeeId")
+  SalaryRecord findSalaryRecordsByEmployeeId(Integer employeeId);
+
   SalaryRecord findSalaryRecordBySalaryIdAndIsDeleted(Integer salaryId, boolean isDeleted);
 
   Page<SalaryRecord> getSalaryRecordsByEmployee_EmployeeId(Integer employeeId, Pageable pageable);
@@ -63,10 +66,32 @@ public interface SalaryRecordRepository extends JpaRepository<SalaryRecord, Long
   List<TopSalaryDTO> findTop3Salaries(@Param("month") int month, @Param("year") int year);
 
   SalaryRecord findSalaryRecordBySalaryId(Integer salaryId);
-//
-//  @Query("SELECT s FROM SalaryRecord s WHERE s.month = :month AND s.year = :year")
-//  Page<SalaryRecord> findSalaryRecordsByMonthAndYear(Pageable pageable, @Param("month") Integer month, @Param("year") Integer year);
-//
-//  List<SalaryRecord> findAllBySalaryIdIn(List<Long> salaryIds);
 
+  List<SalaryRecord> findByMonthAndYearAndIsDeleted(Integer month, Integer year, Boolean isDeleted);
+
+
+  SalaryRecord findSalaryRecordByEmployee_EmployeeIdAndMonthAndYearAndIsDeleted(Integer employeeEmployeeId, Integer month, Integer year, Boolean isDeleted);
+
+  List<SalaryRecord> findByYearAndIsDeleted(Integer year, Boolean isDeleted);
+
+  List<SalaryRecord> findSalaryRecordsByIsDeleted(Boolean isDeleted);
+
+  Page<SalaryRecord> findSalaryRecordsByIsDeleted(Boolean isDeleted, Pageable pageable);
+
+  List<AverageSalaryDTO> getAverageSalaryByYear(Integer year);
+
+  @Query("SELECT SUM(s.netSalary) FROM SalaryRecord s WHERE s.isDeleted = false AND s.paymentStatus = 'Paid'")
+  Double getTotalNetSalary();
+
+  @Query("SELECT SUM(s.netSalary) FROM SalaryRecord s WHERE s.isDeleted = false AND s.paymentStatus = 'Pending'")
+  Double getTotalUnpaidSalary();
+
+  @Query("SELECT SUM(s.insuranceDeduction) FROM SalaryRecord s WHERE s.isDeleted = false AND s.paymentStatus = 'Paid'")
+  Double getTotalCompanyTaxContributions();
+
+  @Query("SELECT s.month, SUM(s.netSalary) FROM SalaryRecord s WHERE s.isDeleted = false AND s.paymentStatus = 'Paid' GROUP BY s.month ORDER BY s.month")
+  List<Object[]> getMonthlyNetSalaryData();
+
+  @Query("SELECT s.month, SUM(s.insuranceDeduction) FROM SalaryRecord s WHERE s.isDeleted = false AND s.paymentStatus = 'Paid' GROUP BY s.month ORDER BY s.month")
+  List<Object[]> getMonthlyDeductionsData();
 }

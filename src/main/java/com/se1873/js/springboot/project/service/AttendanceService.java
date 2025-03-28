@@ -12,6 +12,7 @@ import com.se1873.js.springboot.project.service.channel.ChannelService;
 import com.se1873.js.springboot.project.service.department.DepartmentService;
 import com.se1873.js.springboot.project.service.employee.EmployeeService;
 import com.se1873.js.springboot.project.service.message.MessageService;
+import com.se1873.js.springboot.project.service.user.UserService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.poi.ss.usermodel.*;
@@ -36,6 +37,7 @@ import java.time.temporal.TemporalAdjusters;
 import java.util.*;
 import java.util.function.Function;
 import java.util.stream.Collectors;
+import java.util.stream.IntStream;
 
 @Service
 @Transactional
@@ -84,6 +86,7 @@ public class AttendanceService {
 
     return new PageImpl<>(attendanceDTOS.subList(start, end), pageable, total);
   }
+
 
   public Page<AttendanceDTO> getAttendanceByEmployeeId(Integer employeeId, Pageable pageale) {
     Page<Attendance> attendances = attendanceRepository.getAttendanceByEmployee_EmployeeId(employeeId, pageale);
@@ -171,6 +174,28 @@ public class AttendanceService {
     return attendanceDTOS;
   }
 
+  public List<AttendanceDTO> getAttendancesOfEmployeeIdByMonthAndYear(Integer employeeId, Integer month, Integer year) {
+    return attendanceRepository.getEmployeeAttendancesByMonthAndYear(employeeId, month, year)
+      .stream().map(attendanceDTOMapper::toDTO).collect(Collectors.toList());
+  }
+
+
+
+  public Integer countAttendanceByStatus(List<AttendanceDTO> attendances, String status) {
+    return (int) attendances.stream()
+      .filter(a -> a != null)
+      .filter(attendance -> status.equals(attendance.getAttendanceStatus()))
+      .count();
+  }
+
+  public Double countOvertimeHours(List<AttendanceDTO> attendances) {
+    return attendances.stream()
+          .filter(a -> a != null)
+          .mapToDouble(a -> a.getAttendanceOvertimeHours() != null ?
+            a.getAttendanceOvertimeHours() : 0.0)
+          .sum();
+  }
+
   public void updateAttendanceRecord(AttendanceDTO dto) {
     LocalTime checkIn = parseTime(String.valueOf(dto.getAttendanceCheckIn()));
     LocalTime checkOut = parseTime(String.valueOf(dto.getAttendanceCheckOut()));
@@ -225,17 +250,17 @@ public class AttendanceService {
 
   public AttendanceCountDTO countAvailableAttendance(String date) {
     int totalEmployee = employeeService.countEmployees();
-    AttendanceCountDTO attendancecountDTO = AttendanceCountDTO.builder().totalEmployee(totalEmployee).lateEmployee(0).workedEmployee(0).absenceEmployee(0).build();
+    AttendanceCountDTO attendancecountDTO = AttendanceCountDTO.builder().totalEmployee(totalEmployee).lateEmployee(0).workedEmployee(0).absentEmployee(0).build();
     LocalDate dates = LocalDate.parse(date);
     List<AttendanceDTO> attendanceCountDTOList = attendanceRepository.findAttendancesByDate(dates).stream().map(attendanceDTOMapper::toDTO).collect(Collectors.toList());
     for (AttendanceDTO dto : attendanceCountDTOList) {
-      if (dto.getAttendanceStatus().equals("Đi muộn")) {
+      if (dto.getAttendanceStatus().equals("Late")) {
         attendancecountDTO.setLateEmployee(attendancecountDTO.getLateEmployee() + 1);
-      } else {
+      } else if (dto.getAttendanceStatus().equals("On time")){
         attendancecountDTO.setWorkedEmployee(attendancecountDTO.getWorkedEmployee() + 1);
       }
     }
-    attendancecountDTO.setAbsenceEmployee(attendancecountDTO.getTotalEmployee() - attendancecountDTO.getWorkedEmployee() - attendancecountDTO.getLateEmployee());
+    attendancecountDTO.setAbsentEmployee(attendancecountDTO.getTotalEmployee() - attendancecountDTO.getWorkedEmployee() - attendancecountDTO.getLateEmployee());
     return attendancecountDTO;
   }
 
@@ -733,8 +758,7 @@ public class AttendanceService {
       titleCell.setCellValue("Attendance Data Export");
       titleCell.setCellStyle(titleStyle);
 
-      sheet.addMergedRegion(new CellRangeAddress(0, 0, 0, 5));  // Merge columns for title
-
+      sheet.addMergedRegion(new CellRangeAddress(0, 0, 0, 5));
       Font headerFont = workbook.createFont();
       headerFont.setBold(true);
       headerFont.setFontHeightInPoints((short) 12);
@@ -829,9 +853,9 @@ public class AttendanceService {
 
       EmployeeAttendanceStatusDTO employeeAttendanceStatusDTO = employeeStatusMap.getOrDefault(employeeId, EmployeeAttendanceStatusDTO.builder().employee(employeeService.getEmployeeByEmployeeId(employeeId)).countLateDays(0).countAbsentDays(0).monthYear(yearMonth).build());
 
-      if (attendance.getStatus().startsWith("Đi muộn")) {
+      if (attendance.getStatus().startsWith("Late")) {
         employeeAttendanceStatusDTO.setCountLateDays(employeeAttendanceStatusDTO.getCountLateDays() + 1);
-      } else if (attendance.getStatus().equals("Đúng giờ")) {
+      } else if (attendance.getStatus().equals("On time")) {
         employeeAttendanceStatusDTO.setCountAbsentDays(employeeAttendanceStatusDTO.getCountAbsentDays() + 1);
       }
 
@@ -847,6 +871,31 @@ public class AttendanceService {
     List<EmployeeAttendanceStatusDTO> employeeAttendanceStatusDTOS = new ArrayList<>(employeeStatusMap.values());
 
     return employeeAttendanceStatusDTOS;
+  }
+  public Map<String, EmployeeAttendanceStatusDTO> findEmployeesWithMostLateAndAbsent(List<EmployeeAttendanceStatusDTO> employeeAttendanceStatusDTOS) {
+    EmployeeAttendanceStatusDTO mostLateEmployee = null;
+    EmployeeAttendanceStatusDTO mostAbsentEmployee = null;
+
+    int maxLateDays = 0;
+    int maxAbsentDays = 0;
+
+    for (EmployeeAttendanceStatusDTO dto : employeeAttendanceStatusDTOS) {
+      if (dto.getCountLateDays() > maxLateDays) {
+        maxLateDays = dto.getCountLateDays();
+        mostLateEmployee = dto;
+      }
+
+      if (dto.getCountAbsentDays() > maxAbsentDays) {
+        maxAbsentDays = dto.getCountAbsentDays();
+        mostAbsentEmployee = dto;
+      }
+    }
+
+    Map<String, EmployeeAttendanceStatusDTO> result = new HashMap<>();
+    result.put("MostLate", mostLateEmployee);
+    result.put("MostAbsent", mostAbsentEmployee);
+
+    return result;
   }
 
   public List<EmployeeAttendanceStatusDTO> findEmployeeAttendanceStatusbyEmployeeName(String search, Pageable pageable, String date) {
@@ -865,15 +914,10 @@ public class AttendanceService {
       return Collections.emptyList();
     }
     List<EmployeeAttendanceStatusDTO> employeeAttendanceStatusDTOList = getEmployeeAttendanceStatus(date, pageable);
-//    for (EmployeeAttendanceStatusDTO dto : employeeAttendanceStatusDTOList) {
-//      System.out.println("DTO Employee ID Type: " + dto.getEmployee().getEmployeeId().getClass().getName());
-//    }
-//    System.out.println("Set Employee ID Type: " + employeeIds.get(0).getClass().getName());
-
     System.out.println(employeeAttendanceStatusDTOList);
     Set<Long> employeeIdSet = employeeIds.stream().map(Long::valueOf).collect(Collectors.toSet());
 
-    return employeeAttendanceStatusDTOList.stream().filter(dto -> employeeIdSet.contains(dto.getEmployee().getEmployeeId().longValue())) // Ép kiểu về Long trước khi so sánh
+    return employeeAttendanceStatusDTOList.stream().filter(dto -> employeeIdSet.contains(dto.getEmployee().getEmployeeId().longValue()))
       .collect(Collectors.toList());
   }
 
@@ -913,6 +957,4 @@ public class AttendanceService {
 
     return employeeAttendanceStatusDTOList.stream().filter(dto -> employeeIdSet.contains(dto.getEmployee().getEmployeeId().longValue())).collect(Collectors.toList());
   }
-
-
 }

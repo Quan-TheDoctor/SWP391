@@ -7,6 +7,7 @@ import com.se1873.js.springboot.project.mapper.ChannelDTOMapper;
 import com.se1873.js.springboot.project.service.channel.query.ChannelQueryService;
 import org.springframework.stereotype.Service;
 
+import java.time.LocalDateTime;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -30,5 +31,14 @@ public class ChannelService {
 
   public Channel getChannelByChannelName(String channelName) {
     return channelQueryService.getChannelByChannelName(channelName);
+  }
+
+  public ChannelDTO createChannel(ChannelDTO channelDTO) {
+    Channel channel = Channel.builder()
+        .channelName(channelDTO.getChannelName())
+        .createdAt(LocalDateTime.now())
+        .build();
+    
+    return channelDTOMapper.toDTO(channelQueryService.saveChannel(channel));
   }
 }

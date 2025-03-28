@@ -29,6 +29,7 @@ import org.springframework.core.io.Resource;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.util.List;
+import java.util.stream.Collectors;
 
 @Service
 @Transactional
@@ -42,8 +43,7 @@ public class EmployeeService {
   private final PositionRepository positionRepository;
   private final ContractRepository contractRepository;
   private final EmployeeRepository employeeRepository;
-  private final PasswordEncoder passwordEncoder;
-  private final UserRepository userRepository;
+
   private final EmployeeDTOMapper employeeDTOMapper;
   private final EmployeeQueryService employeeQueryService;
   private final DepartmentService departmentService;
@@ -58,15 +58,41 @@ public class EmployeeService {
     return employeeQueryService.getEmployeesByDepartmentId(departmentId, pageable);
   }
 
+  public List<EmployeeDTO> getAllEmployees() {
+    return employeeQueryService.getAll();
+  }
+
+  public List<EmployeeDTO> getEmployeesByDepartmentId(Integer departmentId) {
+    return employeeQueryService.getEmployeesByDepartmentId(departmentId)
+      .stream().map(employeeDTOMapper::toDTO)
+      .filter(e -> e.getDepartmentId() != null && e.getDepartmentId().equals(departmentId))
+      .collect(Collectors.toList());
+  }
+
+  public EmployeeDTO getEmployeeByDepartmentIdAndEmployeeId(Integer departmentId, Integer employeeId) {
+    return employeeQueryService.getEmployeesByDepartmentId(departmentId).stream()
+      .filter(e -> e.getEmployeeId().equals(employeeId))
+      .map(employeeDTOMapper::toDTO)
+      .toList()
+      .getFirst();
+  }
+
   public EmployeeDTO getEmployeeByEmployeeId(Integer employeeId) {
     return employeeQueryService.getEmployeeByEmployeeId(employeeId);
   }
+
+  public List<Employee> getEmployeesByPositionName(String positionName) {
+    return employeeRepository.findEmployeesByPositionNames(positionName);
+
+  }
+
+
 
   public Page<EmployeeDTO> sort(Page<EmployeeDTO> source, String direction, String field) {
     if (source == null) source = employeeQueryService.getAll(source.getPageable());
     List<EmployeeDTO> sorted = employeeQueryService.sort(source, direction, field);
 
-    return new PageImpl<>(sorted, source.getPageable(), sorted.size());
+    return new PageImpl<>(sorted, source.getPageable(), source.getTotalElements());
   }
 
   public Page<EmployeeDTO> filterByField(String field, String value, Pageable pageable) {
@@ -74,11 +100,10 @@ public class EmployeeService {
   }
 
   public Page<EmployeeDTO> search(Pageable pageable, String query) {
-    String[] searchTerms = query.trim().split(" ", 2);
-    String firstName = searchTerms[0];
-    String lastName = searchTerms.length > 1 ? searchTerms[1] : searchTerms[0];
-
-    return employeeQueryService.search(firstName, lastName, pageable).map(employeeDTOMapper::toDTO);
+    log.info(query);
+    String searchTerm = query.trim();
+    log.info(searchTerm);
+    return employeeQueryService.search(searchTerm, pageable).map(employeeDTOMapper::toDTO);
   }
 
   public Resource exportToExcel(List<Integer> employeeIds, String departmentFilter, String positionFilter) {
@@ -124,13 +149,11 @@ public class EmployeeService {
 
       sheet.addMergedRegion(new CellRangeAddress(0, 0, 0, 4));
 
-      // Tạo font cho tiêu đề cột
       Font headerFont = workbook.createFont();
       headerFont.setBold(true);
       headerFont.setFontHeightInPoints((short) 12);
       headerFont.setColor(IndexedColors.WHITE.getIndex());
 
-      // Tạo style cho tiêu đề cột
       CellStyle headerStyle = workbook.createCellStyle();
       headerStyle.setFillForegroundColor(IndexedColors.BLUE_GREY.getIndex());
       headerStyle.setFillPattern(FillPatternType.SOLID_FOREGROUND);
@@ -142,19 +165,16 @@ public class EmployeeService {
       headerStyle.setBorderRight(BorderStyle.THIN);
       headerStyle.setBorderLeft(BorderStyle.THIN);
 
-      // Style cho dữ liệu
       CellStyle dataStyle = workbook.createCellStyle();
       dataStyle.setBorderBottom(BorderStyle.THIN);
       dataStyle.setBorderTop(BorderStyle.THIN);
       dataStyle.setBorderRight(BorderStyle.THIN);
       dataStyle.setBorderLeft(BorderStyle.THIN);
 
-      // Style cho cột lương
       CellStyle salaryStyle = workbook.createCellStyle();
       salaryStyle.cloneStyleFrom(dataStyle);
       salaryStyle.setDataFormat(workbook.createDataFormat().getFormat("#,##0"));
 
-      // Tạo hàng tiêu đề cột
       Row headerRow = sheet.createRow(2);
       String[] columns = {"ID", "Name", "Department", "Position", "Salary"};
       for (int i = 0; i < columns.length; i++) {
@@ -163,7 +183,6 @@ public class EmployeeService {
         cell.setCellStyle(headerStyle);
       }
 
-      // Ghi dữ liệu vào file Excel
       int rowIdx = 3;
       for (Employee emp : employees) {
         EmploymentHistory employmentHistory = employmentHistoryRepository.findEmploymentHistoryByEmployee_EmployeeIdAndIsCurrent(emp.getEmployeeId(), true);
@@ -181,13 +200,11 @@ public class EmployeeService {
         salaryCell.setCellValue(contract.getBaseSalary());
         salaryCell.setCellStyle(salaryStyle);
 
-        // Áp dụng style cho các ô dữ liệu
         for (int i = 0; i < 4; i++) {
           row.getCell(i).setCellStyle(dataStyle);
         }
       }
 
-      // Tự động điều chỉnh độ rộng cột
       for (int i = 0; i < columns.length; i++) {
         sheet.autoSizeColumn(i);
       }
@@ -240,4 +257,12 @@ public class EmployeeService {
     return employeeQueryService.getAverageSalary(employees);
   }
 
+  public long countActiveEmployees(List<EmployeeDTO> employees) {
+    if (employees == null || employees.isEmpty()) {
+      return 0;
+    }
+    return employees.stream()
+      .filter(e -> e.getEmploymentHistoryIsCurrent() != null && e.getEmploymentHistoryIsCurrent())
+      .count();
+  }
 }
