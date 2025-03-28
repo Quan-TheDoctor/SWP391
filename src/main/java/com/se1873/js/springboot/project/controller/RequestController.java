@@ -217,6 +217,7 @@ public class RequestController {
                 new RuntimeException("Không tìm thấy người dùng"));
         requestDTO.getLeaveDTO().setLeavePolicyId(selectedPolicy.getLeavePolicyId());
 
+        log.info(requestDTO.toString());
         requestService.saveRequestForLeave(requestDTO, user.get(), admin);
         redirectAttributes.addFlashAttribute("successMessage", "Yêu cầu nghỉ phép đã được gửi thành công!");
         return "redirect:/user/detail";
@@ -313,7 +314,8 @@ public class RequestController {
                     }
                     break;
             }
-        } else if ("Leave Permit".equals(type)) {
+        }
+        else if ("Leave Permit".equals(type)) {
             switch (field) {
                 case "Approved":
                     if ("Pending".equals(requestDTO.getRequestStatus())) {
