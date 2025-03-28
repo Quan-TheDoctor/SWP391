@@ -21,6 +21,7 @@ import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.validation.BindingResult;
@@ -45,10 +46,9 @@ public class PayrollController {
   private final PositionService positionService;
   private final FinancialPolicyService financialPolicyService;
   private final GlobalController globalController;
-  private final EmployeeRepository employeeRepository;
-  private final SalaryRecordRepository salaryRecordRepository;
 
   @GetMapping
+  @PreAuthorize("hasPermission('PAYROLL', 'VISIBLE')")
   public String payroll(Model model, @RequestParam(defaultValue = "0") int page,
       @RequestParam(defaultValue = "10") int size) {
     Pageable pageable = PageRequest.of(page, size);
@@ -84,6 +84,7 @@ public class PayrollController {
   }
 
   @RequestMapping("/policies")
+  @PreAuthorize("hasPermission('PAYROLL', 'MANAGE')")
   public String policies(Model model) {
     var policies = financialPolicyService.getAll();
     FinancialPolicyDTOList financialPolicyDTOList = new FinancialPolicyDTOList();
@@ -94,6 +95,7 @@ public class PayrollController {
   }
 
   @RequestMapping("/search")
+  @PreAuthorize("hasPermission('PAYROLL', 'VISIBLE')")
   public String search(Model model,
                        @RequestParam("query") String query) {
     var employees = employeeService.search(PageRequest.of(1, 1000), query);
@@ -121,6 +123,7 @@ public class PayrollController {
   }
 
   @RequestMapping("/filter")
+  @PreAuthorize("hasPermission('PAYROLL', 'VISIBLE')")
   public String filter(Model model,
                        @RequestParam(value = "field", required = false) String[] field,
                        @RequestParam(value = "value", required = false) String[] value) {
@@ -149,6 +152,7 @@ public class PayrollController {
     return "index";
   }
   @GetMapping("/multi-filter")
+  @PreAuthorize("hasPermission('PAYROLL', 'VISIBLE')")
   public String multiFilter(
     Model model,
     @RequestParam(value = "year", required = false) String year,
@@ -303,6 +307,7 @@ public class PayrollController {
   }
 
   @RequestMapping("/policies/save")
+  @PreAuthorize("hasPermission('PAYROLL', 'MANAGE')")
   public String policiesSave(Model model,
                              @RequestParam(value = "service", required = false) String service,
                              @ModelAttribute("financialPolicyDTOList") FinancialPolicyDTOList financialPolicyDTOList,
@@ -327,6 +332,7 @@ public class PayrollController {
   }
 
   @GetMapping("/detail")
+  @PreAuthorize("hasPermission('PAYROLL', 'VISIBLE')")
   public String viewPayrollDetail(@RequestParam("salaryId") Integer salaryId, Model model) {
     PayrollDTO payroll = salaryRecordService.findSalaryRecordBySalaryId(salaryId);
 
@@ -340,6 +346,7 @@ public class PayrollController {
   }
 
   @GetMapping("/slip")
+  @PreAuthorize("hasPermission('PAYROLL', 'VISIBLE')")
   public String getPayrollSlip(@RequestParam("salaryId") Integer id, Model model) {
     PayrollDTO payroll = salaryRecordService.payrollDTO(id);
     model.addAttribute("payroll", payroll);
@@ -348,6 +355,7 @@ public class PayrollController {
   }
 
   @RequestMapping("/export/view")
+  @PreAuthorize("hasPermission('PAYROLL', 'UPDATE')")
   public String exportView(Model model,
                            @RequestParam(value = "page", defaultValue = "0") int page,
                            @RequestParam(value = "size", defaultValue = "10") int size) {
@@ -378,6 +386,7 @@ public class PayrollController {
   }
 
   @RequestMapping("/export")
+  @PreAuthorize("hasPermission('PAYROLL', 'UPDATE')")
   public ResponseEntity<Resource> exportPayroll(
     @RequestParam(value = "selectedPayrolls", required = false) String selectedPayrolls,
     @RequestParam(value = "startDate", required = false) @DateTimeFormat(pattern = "yyyy-MM") String startDateStr,
@@ -411,6 +420,7 @@ public class PayrollController {
   }
 
   @GetMapping("/delete")
+  @PreAuthorize("hasPermission('PAYROLL', 'MANAGE')")
   public String deletePayroll(@RequestParam("salaryId") Integer salaryId) {
     try {
       salaryRecordService.deleteSalaryRecord(salaryId);
@@ -422,6 +432,7 @@ public class PayrollController {
   }
 
   @PostMapping("/bulk-delete")
+  @PreAuthorize("hasPermission('PAYROLL', 'MANAGE')")
   public String bulkDeletePayrolls(@RequestParam("selectedIds") String selectedIdsStr) {
     try {
       String[] selectedIdsArray = selectedIdsStr.split(",");
@@ -441,6 +452,7 @@ public class PayrollController {
   }
 
   @GetMapping("/export-pdf")
+  @PreAuthorize("hasPermission('PAYROLL', 'VISIBLE')")
   public ResponseEntity<Resource> exportPdf(@RequestParam("ids") String ids) {
     List<Integer> payrollIds = Arrays.stream(ids.split(","))
       .map(Integer::parseInt)
@@ -455,6 +467,7 @@ public class PayrollController {
   }
 
   @GetMapping("/sort")
+  @PreAuthorize("hasPermission('PAYROLL', 'VISIBLE')")
   public String sort(Model model,
                      @RequestParam("field") String field,
                      @RequestParam(value = "direction", defaultValue = "asc") String direction,

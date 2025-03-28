@@ -64,7 +64,7 @@ public class WebSecurityConfig {
                 .permitAll()
             )
             .csrf(csrf -> csrf
-                .ignoringRequestMatchers("/api/attendance/**", "/api/face-recognition/**", 
+                .ignoringRequestMatchers("/api/roles/**", "/api/attendance/**", "/api/face-recognition/**",
                     "/api/chat/**", "/api/chat", "/resume/**", "/request/bulk-delete", 
                     "/recruitment/**", "/request/bulk-approve", "/request/bulk-deny", "/api/roles/permissions")
                 .csrfTokenRepository(CookieCsrfTokenRepository.withHttpOnlyFalse())

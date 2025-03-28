@@ -16,4 +16,14 @@ public class RoleCommandServiceImpl implements RoleCommandService {
   public void updateRole(Role role) {
     roleRepository.save(role);
   }
+
+  @Override
+  public void createRole(Role role) {
+    roleRepository.save(role);
+  }
+
+  @Override
+  public void deleteRole(Long id) {
+    roleRepository.deleteById(Math.toIntExact(id));
+  }
 }

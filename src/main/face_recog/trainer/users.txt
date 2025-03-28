@@ -1,9 +1,8 @@
 Total users: 3
-Total samples: 151
-User IDs: 1, 2, 17
+Total samples: 149
+User IDs: 2, 17, 18
 
 User Details:
-User 1:
 User 2:
   Name: Q
   ID: 2
@@ -13,4 +12,9 @@ User 17:
   Name: Q
   ID: 17
   Date: 2025-03-25 03:26:27
+  Photos: 50
+User 18:
+  Name: Q u a n
+  ID: 18
+  Date: 2025-03-28 11:00:51
   Photos: 50

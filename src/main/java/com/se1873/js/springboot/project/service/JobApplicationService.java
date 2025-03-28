@@ -1,15 +1,20 @@
 package com.se1873.js.springboot.project.service;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.se1873.js.springboot.project.dto.JobApplicationDTO;
 import com.se1873.js.springboot.project.entity.JobApplication;
 import com.se1873.js.springboot.project.entity.JobPosition;
 import com.se1873.js.springboot.project.repository.JobApplicationRepository;
 import com.se1873.js.springboot.project.repository.JobPositionRepository;
+import com.se1873.js.springboot.project.utils.EmailUtils;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
 import java.util.List;
+import java.util.Map;
 import java.util.stream.Collectors;
 
 @Slf4j
@@ -17,11 +22,16 @@ import java.util.stream.Collectors;
 public class JobApplicationService {
     private final JobApplicationRepository jobApplicationRepository;
     private final JobPositionRepository jobPositionRepository;
+    private final ObjectMapper objectMapper;
+    private final EmailUtils emailUtils;
 
     public JobApplicationService(JobApplicationRepository jobApplicationRepository,
-                               JobPositionRepository jobPositionRepository) {
+                               JobPositionRepository jobPositionRepository,
+                               EmailUtils emailUtils) {
         this.jobApplicationRepository = jobApplicationRepository;
         this.jobPositionRepository = jobPositionRepository;
+        this.objectMapper = new ObjectMapper();
+        this.emailUtils = emailUtils;
     }
 
     public List<JobApplicationDTO> getApplicationsByPosition(Long positionId) {
@@ -79,8 +89,44 @@ public class JobApplicationService {
         jobApplication.setStatus("Pending");
         jobApplication.setNotes(dto.getNotes());
 
-        jobApplication.setExperience(dto.getExperience());
-        jobApplication.setEducation(dto.getEducation());
+        // Parse experience JSON to formatted string
+        if (dto.getExperience() != null) {
+            try {
+                List<Map<String, String>> experiences = objectMapper.readValue(dto.getExperience(), List.class);
+                StringBuilder experienceBuilder = new StringBuilder();
+                for (Map<String, String> exp : experiences) {
+                    experienceBuilder.append("Công ty: ").append(exp.get("company")).append("\n");
+                    experienceBuilder.append("Vị trí: ").append(exp.get("jobTitle")).append("\n");
+                    experienceBuilder.append("Thời gian: ").append(exp.get("duration")).append("\n");
+                    experienceBuilder.append("Mô tả: ").append(exp.get("description")).append("\n");
+                    experienceBuilder.append("-------------------\n");
+                }
+                jobApplication.setExperience(experienceBuilder.toString());
+            } catch (Exception e) {
+                log.error("Error parsing experience JSON: ", e);
+                jobApplication.setExperience(dto.getExperience());
+            }
+        }
+
+        // Parse education JSON to formatted string
+        if (dto.getEducation() != null) {
+            try {
+                List<Map<String, String>> educations = objectMapper.readValue(dto.getEducation(), List.class);
+                StringBuilder educationBuilder = new StringBuilder();
+                for (Map<String, String> edu : educations) {
+                    educationBuilder.append("Bằng cấp: ").append(edu.get("degree")).append("\n");
+                    educationBuilder.append("Trường học: ").append(edu.get("institution")).append("\n");
+                    educationBuilder.append("Năm tốt nghiệp: ").append(edu.get("years")).append("\n");
+                    educationBuilder.append("GPA: ").append(edu.get("gpa")).append("\n");
+                    educationBuilder.append("-------------------\n");
+                }
+                jobApplication.setEducation(educationBuilder.toString());
+            } catch (Exception e) {
+                log.error("Error parsing education JSON: ", e);
+                jobApplication.setEducation(dto.getEducation());
+            }
+        }
+
         jobApplication.setSkills(dto.getSkills());
 
         log.debug("Saving job application to database");
@@ -120,16 +166,43 @@ public class JobApplicationService {
                 .orElseThrow(() -> new RuntimeException("Application not found"));
         
         String currentStatus = application.getStatus();
-        if (!isValidStatusTransition(currentStatus, newStatus)) {
+        log.info("Current status: '{}'", currentStatus);
+        log.info("New status: '{}'", newStatus);
+        log.info("Current status length: {}", currentStatus.length());
+        log.info("New status length: {}", newStatus.length());
+        log.info("Current status bytes: {}", currentStatus.getBytes());
+        log.info("New status bytes: {}", newStatus.getBytes());
+        log.info("Current status trim: '{}'", currentStatus.trim());
+        log.info("New status trim: '{}'", newStatus.trim());
+        
+        if (!isValidStatusTransition(currentStatus.trim(), newStatus.trim())) {
             throw new RuntimeException("Invalid status transition from " + currentStatus + " to " + newStatus);
         }
-        
-        application.setStatus(newStatus);
+
+        application.setStatus(newStatus.trim());
         if (notes != null && !notes.trim().isEmpty()) {
-            application.setNotes(notes);
+            String currentNotes = application.getNotes();
+            String newNoteEntry = String.format("\n[%s] [%s] %s", 
+                LocalDateTime.now().format(DateTimeFormatter.ofPattern("dd-MM-yyyy")),
+                newStatus.trim(),
+                notes.trim());
+            
+            if (currentNotes == null || currentNotes.trim().isEmpty()) {
+                application.setNotes(newNoteEntry);
+            } else {
+                application.setNotes(currentNotes + "\n" + newNoteEntry);
+            }
         }
         
         jobApplicationRepository.save(application);
+
+        // Gửi email thông báo
+        emailUtils.sendStatusUpdateEmail(
+            application.getEmail(),
+            application.getCandidateName(),
+            application.getJobPosition().getTitle(),
+            newStatus.trim()
+        );
     }
 
     private boolean isValidStatusTransition(String currentStatus, String newStatus) {

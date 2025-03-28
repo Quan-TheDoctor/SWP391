@@ -9,14 +9,17 @@ import com.se1873.js.springboot.project.service.JobApplicationService;
 import com.se1873.js.springboot.project.service.JobPositionService;
 import com.se1873.js.springboot.project.service.department.DepartmentService;
 import com.se1873.js.springboot.project.utils.StringUtils;
+import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
+import org.springframework.validation.BindingResult;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 
+import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
@@ -201,10 +204,29 @@ public class RecruitmentController {
   }
 
   @PostMapping("/positions/{id}/edit")
-  public String updatePosition(@PathVariable Long id, @ModelAttribute JobPositionDTO positionDTO) {
+  public String updatePosition(@PathVariable Long id, 
+                             @Valid @ModelAttribute JobPositionDTO positionDTO,
+                             BindingResult bindingResult,
+                             RedirectAttributes redirectAttributes) {
+    if (bindingResult.hasErrors()) {
+      redirectAttributes.addFlashAttribute("messageType", "error");
+      redirectAttributes.addFlashAttribute("message", bindingResult.getFieldErrors().stream()
+          .map(error -> {
+              switch (error.getField()) {
+                  case "deadline":
+                      return "Application deadline must be in the future";
+                  default:
+                      return error.getDefaultMessage();
+              }
+          })
+          .collect(Collectors.joining(", ")));
+      return "redirect:/recruitment/positions/" + id + "/edit";
+    }
+    
     positionDTO.setId(id);
     JobPositionDTO updatedPosition = jobPositionService.updatePosition(positionDTO);
-    log.info(updatedPosition.toString());
+    redirectAttributes.addFlashAttribute("messageType", "success");
+    redirectAttributes.addFlashAttribute("message", "Position updated successfully!");
     return "redirect:/recruitment/positions/" + updatedPosition.getId();
   }
 
@@ -234,11 +256,14 @@ public class RecruitmentController {
     @RequestParam String newStatus,
     @RequestParam(required = false) String notes,
     RedirectAttributes redirectAttributes) {
+    log.info("hahaha");
     try {
       jobApplicationService.updateApplicationStatusAndNotes(id, newStatus, notes);
+      log.info("hahahaa");
       redirectAttributes.addFlashAttribute("success", "Application status updated successfully");
       return stringUtils.getRedirectMapping(RECRUITMENT_APPLICATION_URL + id);
     } catch (Exception e) {
+      log.error(e.getMessage());
       redirectAttributes.addFlashAttribute("error", "Failed to update application status: " + e.getMessage());
       return stringUtils.getRedirectMapping(RECRUITMENT_APPLICATION_URL + id);
     }
@@ -252,10 +277,25 @@ public class RecruitmentController {
     }
 
     EmployeeDTO employeeDTO = new EmployeeDTO();
-    employeeDTO.setEmployeeFirstName(application.getCandidateName());
+    
+    // Xử lý tên
+    String fullName = application.getCandidateName().trim();
+    String[] nameParts = fullName.split("\\s+");
+    if (nameParts.length >= 2) {
+        // Lấy phần tử cuối làm last name
+        String lastName = nameParts[nameParts.length - 1];
+        // Lấy tất cả các phần còn lại làm first name
+        String firstName = String.join(" ", Arrays.copyOfRange(nameParts, 0, nameParts.length - 1));
+        employeeDTO.setEmployeeFirstName(firstName);
+        employeeDTO.setEmployeeLastName(lastName);
+    } else {
+        // Nếu chỉ có 1 từ, đặt làm first name
+        employeeDTO.setEmployeeFirstName(fullName);
+        employeeDTO.setEmployeeLastName("");
+    }
+
     employeeDTO.setEmployeePersonalEmail(application.getEmail());
     employeeDTO.setEmployeePhone(application.getPhone());
-    employeeDTO.setEmployeePersonalEmail(application.getEmail());
     employeeDTO.setDepartmentName(application.getJobPositionDepartment());
     employeeDTO.setPositionName(application.getJobPositionTitle());
 

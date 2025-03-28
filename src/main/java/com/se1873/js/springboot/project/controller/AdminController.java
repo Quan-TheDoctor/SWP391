@@ -42,20 +42,14 @@ import java.util.stream.Collectors;
 @RequiredArgsConstructor
 @RequestMapping("/admin")
 public class AdminController {
-  @Autowired
-  private RoleRepository roleRepository;
-  private final UserDTOMapper userDTOMapper;
+  private final RoleRepository roleRepository;
   private final UserService userService;
   private final AuditLogService auditLogService;
   private final GlobalController globalController;
   private final UserRepository userRepository;
   private final AuditLogRepository auditLogRepository;
-  Map<String, Integer> quantity = new HashMap<>();
-
-  @Autowired
-  private EntityManager entityManager;
-  @Autowired
-  private RoleService roleService;
+  private final EntityManager entityManager;
+  private final RoleService roleService;
 
   @GetMapping("/roles")
   public String roles(Model model, @RequestParam(required = false) String message) {
@@ -98,10 +92,12 @@ public class AdminController {
       users = userService.getAll(customPageable);
     }
 
+    log.error(users.getContent().toString());
+
     int totalUsers = userService.countAllUsers();
     int activeUsers = userService.countByStatus("Active");
     int lockedUsers = userService.countByStatus("locked");
-    var roles = userService.getAllRoles();
+    var roles = roleService.findAll().values();
     int totalRoles = roles.size();
 
     Map<Integer, String> userInitials = users.stream()

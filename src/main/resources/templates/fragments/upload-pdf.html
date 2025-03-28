@@ -388,8 +388,8 @@
                         <!-- Position Tab -->
                         <div id="form-content-position" class="form-tab-content">
                             <div class="form-group">
-                                <label for="jobPositionId" class="form-label">Select Position <span class="text-red-500">*</span></label>
-                                <select id="jobPositionId" name="jobPositionId" class="form-input" required>
+                                <label for="jobPositionId" class="form-label">Select Position</label>
+                                <select id="jobPositionId" name="jobPositionId" class="form-input">
                                     <option value="">Choose a position...</option>
                                     <option th:each="position : ${openPositions}"
                                             th:value="${position.id}"
@@ -413,28 +413,24 @@
                             <h3 class="section-title">Personal Information</h3>
                             <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
                                 <div class="form-group">
-                                    <label for="candidateName" class="form-label">Full Name <span class="text-red-500">*</span></label>
-                                    <input type="text" id="candidateName" name="candidateName" class="form-input" placeholder="John Doe" required>
+                                    <label for="candidateName" class="form-label">Full Name</label>
+                                    <input type="text" id="candidateName" name="candidateName" class="form-input" placeholder="John Doe">
                                 </div>
                                 <div class="form-group">
-                                    <label for="email" class="form-label">Email Address <span class="text-red-500">*</span></label>
-                                    <input type="email" id="email" name="email" class="form-input" placeholder="john@example.com" required>
+                                    <label for="email" class="form-label">Email Address</label>
+                                    <input type="email" id="email" name="email" class="form-input" placeholder="john@example.com">
                                 </div>
                                 <div class="form-group">
-                                    <label for="phone" class="form-label">Phone Number <span class="text-red-500">*</span></label>
-                                    <input type="tel" id="phone" name="phone" class="form-input" placeholder="+1 (555) 123-4567" required>
+                                    <label for="phone" class="form-label">Phone Number</label>
+                                    <input type="tel" id="phone" name="phone" class="form-input" placeholder="+1 (555) 123-4567">
                                 </div>
                                 <div class="form-group">
-                                    <label for="resumeUrl" class="form-label">LinkedIn URL</label>
-                                    <input type="text" id="resumeUrl" name="resumeUrl" class="form-input" placeholder="https://linkedin.com/in/johndoe">
+                                    <label for="resumeUrl" class="form-label">Resume URL</label>
+                                    <input type="text" id="resumeUrl" name="resumeUrl" class="form-input" placeholder="https://example.com/resume.pdf">
                                 </div>
-                                <div class="form-group md:col-span-2">
+                                <div class="form-group">
                                     <label for="coverLetter" class="form-label">Cover Letter</label>
-                                    <textarea id="coverLetter" name="coverLetter" class="form-input" rows="3" placeholder="Your cover letter..."></textarea>
-                                </div>
-                                <div class="form-group md:col-span-2">
-                                    <label for="notes" class="form-label">Additional Notes</label>
-                                    <textarea id="notes" name="notes" class="form-input" rows="3" placeholder="Any additional notes..."></textarea>
+                                    <textarea id="coverLetter" name="coverLetter" class="form-input" rows="4" placeholder="Write your cover letter here..."></textarea>
                                 </div>
                             </div>
 
@@ -833,7 +829,6 @@
                 document.getElementById('phone').value = parsedData.contact_information?.phone || '';
                 document.getElementById('resumeUrl').value = parsedData.contact_information?.linkedin || '';
                 document.getElementById('coverLetter').value = parsedData.cover_letter || '';
-                document.getElementById('notes').value = parsedData.additional_notes || '';
 
                 const educationEntries = educationContainer.querySelectorAll('.education-entry');
                 for (let i = 1; i < educationEntries.length; i++) {
@@ -925,21 +920,6 @@
                 });
                 document.getElementById('education').value = JSON.stringify(educationEntries);
 
-                const jobPositionId = document.getElementById('jobPositionId').value;
-                if (!jobPositionId) {
-                    showErrorMessage('Please select a position to apply for.');
-                    return;
-                }
-
-                const candidateName = document.getElementById('candidateName').value;
-                const email = document.getElementById('email').value;
-                const phone = document.getElementById('phone').value;
-
-                if (!candidateName || !email || !phone) {
-                    showErrorMessage('Please fill in all required fields (Name, Email, Phone).');
-                    return;
-                }
-
                 const formData = new FormData(this);
                 try {
                     console.log('Sending request to server with data:', {
@@ -949,7 +929,6 @@
                         phone: formData.get('phone'),
                         resumeUrl: formData.get('resumeUrl'),
                         coverLetter: formData.get('coverLetter'),
-                        notes: formData.get('notes'),
                         experience: formData.get('experience') || null,
                         education: formData.get('education') || null,
                         skills: formData.get('skills') || null
@@ -967,7 +946,6 @@
                             phone: formData.get('phone'),
                             resumeUrl: formData.get('resumeUrl') || null,
                             coverLetter: formData.get('coverLetter') || null,
-                            notes: formData.get('notes') || null,
                             experience: formData.get('experience') || null,
                             education: formData.get('education') || null,
                             skills: formData.get('skills') || null

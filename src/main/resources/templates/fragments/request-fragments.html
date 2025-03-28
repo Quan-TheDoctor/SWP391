@@ -198,14 +198,14 @@
                     </div>
 
                     <div>
-                        <label class="block text-sm font-medium text-gray-700 mb-1">Requester</label>
-                        <select name="requester" id="requesterFilter"
+                        <label class="block text-sm font-medium text-gray-700 mb-1">Approver</label>
+                        <select name="approver" id="approverFilter"
                                 class="w-full p-2 border rounded-md focus:ring-2 focus:ring-primary-300 transition-colors">
-                            <option value="all">All Requesters</option>
-                            <option th:each="requester : ${requesters}"
-                                    th:value="${requester.userId}"
-                                    th:text="${requester.username}"
-                                    th:selected="${param.requester != null && param.requester[0] == requester.userId}">
+                            <option value="all">All Approvers</option>
+                            <option th:each="approver : ${approvers}"
+                                    th:value="${approver.userId}"
+                                    th:text="${approver.username}"
+                                    th:selected="${param.approver != null && param.approver[0] == approver.userId}">
                             </option>
                         </select>
                     </div>
@@ -224,7 +224,7 @@
                     </div>
 
                     <div class="md:col-span-4 flex justify-end gap-2">
-                        <button type="button" onclick="clearFilters()" class="px-4 py-2 bg-gray-500 text-white rounded-md hover:bg-gray-600 transition-colors">
+                        <button type="button" onclick="resetFilters()" class="px-4 py-2 bg-gray-500 text-white rounded-md hover:bg-gray-600 transition-colors">
                             <i class="fas fa-times mr-2"></i>Clear Filters
                         </button>
                         <button type="submit" class="px-4 py-2 bg-primary-600 text-white rounded-md hover:bg-primary-700 transition-colors">
@@ -395,13 +395,13 @@
                                 <nav class="relative z-0 inline-flex rounded-md shadow-sm -space-x-px"
                                      aria-label="Pagination">
                                     <!-- First Page -->
-                                    <a th:href="@{/request/multi-filter(page=0, type=${param.type != null ? param.type[0] : 'all'}, status=${param.status != null ? param.status[0] : 'all'}, dateRange=${param.dateRange != null ? param.dateRange[0] : ''}, requester=${param.requester != null ? param.requester[0] : 'all'}, department=${param.department != null ? param.department[0] : 'all'})}"
+                                    <a th:href="@{/request/multi-filter(page=0, type=${param.type != null ? param.type[0] : 'all'}, status=${param.status != null ? param.status[0] : 'all'}, dateRange=${param.dateRange != null ? param.dateRange[0] : ''}, approver=${param.approver != null ? param.approver[0] : 'all'}, department=${param.department != null ? param.department[0] : 'all'})}"
                                        class="relative inline-flex items-center px-2 py-2 rounded-l-md border border-gray-300 bg-white text-sm font-medium text-gray-500 hover:bg-gray-50">
                                         <i class="fas fa-angle-double-left"></i>
                                     </a>
 
                                     <!-- Previous Page -->
-                                    <a th:href="@{/request/multi-filter(page=${requests.number - 1}, type=${param.type != null ? param.type[0] : 'all'}, status=${param.status != null ? param.status[0] : 'all'}, dateRange=${param.dateRange != null ? param.dateRange[0] : ''}, requester=${param.requester != null ? param.requester[0] : 'all'}, department=${param.department != null ? param.department[0] : 'all'})}"
+                                    <a th:href="@{/request/multi-filter(page=${requests.number - 1}, type=${param.type != null ? param.type[0] : 'all'}, status=${param.status != null ? param.status[0] : 'all'}, dateRange=${param.dateRange != null ? param.dateRange[0] : ''}, approver=${param.approver != null ? param.approver[0] : 'all'}, department=${param.department != null ? param.department[0] : 'all'})}"
                                        th:if="${requests.number > 0}"
                                        class="relative inline-flex items-center px-2 py-2 border border-gray-300 bg-white text-sm font-medium text-gray-500 hover:bg-gray-50">
                                         <i class="fas fa-angle-left"></i>
@@ -409,21 +409,21 @@
 
                                     <!-- Page Numbers -->
                                     <template th:each="pageNum : ${#numbers.sequence(0, requests.totalPages - 1)}">
-                                        <a th:href="@{/request/multi-filter(page=${pageNum}, type=${param.type != null ? param.type[0] : 'all'}, status=${param.status != null ? param.status[0] : 'all'}, dateRange=${param.dateRange != null ? param.dateRange[0] : ''}, requester=${param.requester != null ? param.requester[0] : 'all'}, department=${param.department != null ? param.department[0] : 'all'})}"
+                                        <a th:href="@{/request/multi-filter(page=${pageNum}, type=${param.type != null ? param.type[0] : 'all'}, status=${param.status != null ? param.status[0] : 'all'}, dateRange=${param.dateRange != null ? param.dateRange[0] : ''}, approver=${param.approver != null ? param.approver[0] : 'all'}, department=${param.department != null ? param.department[0] : 'all'})}"
                                            th:text="${pageNum + 1}"
                                            th:class="${pageNum == requests.number ? 'relative inline-flex items-center px-4 py-2 border border-primary-500 bg-primary-50 text-sm font-medium text-primary-600' : 'relative inline-flex items-center px-4 py-2 border border-gray-300 bg-white text-sm font-medium text-gray-700 hover:bg-gray-50'}">
                                         </a>
                                     </template>
 
                                     <!-- Next Page -->
-                                    <a th:href="@{/request/multi-filter(page=${requests.number + 1}, type=${param.type != null ? param.type[0] : 'all'}, status=${param.status != null ? param.status[0] : 'all'}, dateRange=${param.dateRange != null ? param.dateRange[0] : ''}, requester=${param.requester != null ? param.requester[0] : 'all'}, department=${param.department != null ? param.department[0] : 'all'})}"
+                                    <a th:href="@{/request/multi-filter(page=${requests.number + 1}, type=${param.type != null ? param.type[0] : 'all'}, status=${param.status != null ? param.status[0] : 'all'}, dateRange=${param.dateRange != null ? param.dateRange[0] : ''}, approver=${param.approver != null ? param.approver[0] : 'all'}, department=${param.department != null ? param.department[0] : 'all'})}"
                                        th:if="${requests.number < requests.totalPages - 1}"
                                        class="relative inline-flex items-center px-2 py-2 border border-gray-300 bg-white text-sm font-medium text-gray-500 hover:bg-gray-50">
                                         <i class="fas fa-angle-right"></i>
                                     </a>
 
                                     <!-- Last Page -->
-                                    <a th:href="@{/request/multi-filter(page=${requests.totalPages - 1}, type=${param.type != null ? param.type[0] : 'all'}, status=${param.status != null ? param.status[0] : 'all'}, dateRange=${param.dateRange != null ? param.dateRange[0] : ''}, requester=${param.requester != null ? param.requester[0] : 'all'}, department=${param.department != null ? param.department[0] : 'all'})}"
+                                    <a th:href="@{/request/multi-filter(page=${requests.totalPages - 1}, type=${param.type != null ? param.type[0] : 'all'}, status=${param.status != null ? param.status[0] : 'all'}, dateRange=${param.dateRange != null ? param.dateRange[0] : ''}, approver=${param.approver != null ? param.approver[0] : 'all'}, department=${param.department != null ? param.department[0] : 'all'})}"
                                        class="relative inline-flex items-center px-2 py-2 rounded-r-md border border-gray-300 bg-white text-sm font-medium text-gray-500 hover:bg-gray-50">
                                         <i class="fas fa-angle-double-right"></i>
                                     </a>
@@ -737,44 +737,72 @@
         }
 
         function initializeDateRangePicker() {
-            $('.date-range-picker').daterangepicker({
-                autoUpdateInput: false,
-                locale: {
-                    cancelLabel: 'Clear',
-                    format: 'DD/MM/YYYY'
-                }
-            });
+            if ($.fn.daterangepicker) {
+                $('.date-range-picker').daterangepicker({
+                    autoUpdateInput: false,
+                    locale: {
+                        cancelLabel: 'Clear',
+                        format: 'DD/MM/YYYY'
+                    }
+                });
 
-            $('.date-range-picker').on('apply.daterangepicker', function(ev, picker) {
-                $(this).val(picker.startDate.format('DD/MM/YYYY') + ' - ' + picker.endDate.format('DD/MM/YYYY'));
-                submitMultiFilter();
-            });
+                $('.date-range-picker').on('apply.daterangepicker', function(ev, picker) {
+                    $(this).val(picker.startDate.format('DD/MM/YYYY') + ' - ' + picker.endDate.format('DD/MM/YYYY'));
+                    submitMultiFilter();
+                });
 
-            $('.date-range-picker').on('cancel.daterangepicker', function(ev, picker) {
-                $(this).val('');
-                submitMultiFilter();
-            });
+                $('.date-range-picker').on('cancel.daterangepicker', function(ev, picker) {
+                    $(this).val('');
+                    submitMultiFilter();
+                });
+            }
         }
 
         function submitMultiFilter() {
-            document.getElementById('multiFilterForm').submit();
+            const form = document.getElementById('multiFilterForm');
+            if (form) {
+                form.submit();
+            }
         }
 
-        function clearFilters() {
-            document.getElementById('typeFilter').value = 'all';
-            document.getElementById('statusFilter').value = 'all';
-            document.getElementById('dateRange').value = '';
-            document.getElementById('requesterFilter').value = 'all';
-            document.getElementById('departmentFilter').value = 'all';
-            document.getElementById('multiFilterForm').submit();
+        function resetFilters() {
+            // Reset các select box
+            const typeFilter = document.getElementById('typeFilter');
+            const statusFilter = document.getElementById('statusFilter');
+            const approverFilter = document.getElementById('approverFilter');
+            const departmentFilter = document.getElementById('departmentFilter');
+
+            if (typeFilter) typeFilter.value = 'all';
+            if (statusFilter) statusFilter.value = 'all';
+            if (approverFilter) approverFilter.value = 'all';
+            if (departmentFilter) departmentFilter.value = 'all';
+
+            // Reset date range picker
+            const dateRangeInput = $('.date-range-picker');
+            if (dateRangeInput.length) {
+                dateRangeInput.val('');
+                if ($.fn.daterangepicker) {
+                    const daterangepicker = dateRangeInput.data('daterangepicker');
+                    if (daterangepicker) {
+                        daterangepicker.remove();
+                    }
+                }
+            }
+
+            // Submit form
+            const form = document.getElementById('multiFilterForm');
+            if (form) {
+                form.submit();
+            }
         }
 
         $(document).ready(function() {
-            var savedDateRange = $('.date-range-picker').val();
-            if (savedDateRange) {
-                var dates = savedDateRange.split(' - ');
+            // Khởi tạo daterangepicker nếu có giá trị đã lưu
+            const dateRangeInput = $('.date-range-picker');
+            if (dateRangeInput.length && dateRangeInput.val()) {
+                const dates = dateRangeInput.val().split(' - ');
                 if (dates.length === 2) {
-                    $('.date-range-picker').daterangepicker({
+                    dateRangeInput.daterangepicker({
                         startDate: moment(dates[0], 'DD/MM/YYYY'),
                         endDate: moment(dates[1], 'DD/MM/YYYY'),
                         locale: {

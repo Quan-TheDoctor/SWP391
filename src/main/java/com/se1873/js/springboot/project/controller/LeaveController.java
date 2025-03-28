@@ -181,8 +181,7 @@ public class LeaveController {
             leave.setStartDate(LocalDate.parse(startDate));
             leave.setEndDate(LocalDate.parse(endDate));
             leave.setTotalDays(totalDays);
-            
-            // Lấy leavePolicyId từ leaveType
+
             LeavePolicy leavePolicy = leavePolicyService.getAllLeavePolicies().stream()
                 .filter(policy -> policy.getLeavePolicyName().equals(leaveType))
                 .findFirst()

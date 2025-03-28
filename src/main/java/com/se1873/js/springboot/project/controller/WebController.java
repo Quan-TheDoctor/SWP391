@@ -1601,94 +1601,95 @@ import java.util.List;
 @Slf4j
 @Controller
 public class WebController {
-    @Autowired
-    private EmployeeService employeeService;
-    @Autowired
-    private AttendanceService attendanceService;
-    @Autowired
-    private SalaryRecordService salaryRecordService;
-    @Autowired
-    private RequestService requestService;
+  @Autowired
+  private EmployeeService employeeService;
+  @Autowired
+  private AttendanceService attendanceService;
+  @Autowired
+  private SalaryRecordService salaryRecordService;
+  @Autowired
+  private RequestService requestService;
   @Autowired
   private UserRepository userRepository;
   @Autowired
   private RoleRepository roleRepository;
 
 
-    @GetMapping("/")
-    public String home(Model model, @AuthenticationPrincipal UserDetails userDetails) {
-        if (userDetails == null) {
-            return "redirect:/login";
-        }
-
-        User user = userRepository.findUserByUsername(userDetails.getUsername())
-          .orElseThrow(() -> new UsernameNotFoundException("User not found"));
-
-        Role role = roleRepository.getRoleByName(user.getRole());
-        if (role == null) {
-            return "redirect:/login";
-        }
-
-        if (role.getEmployeePermission() == PermissionLevel.NONE) {
-            return "redirect:/user/detail";
-        } else {
-            model.addAttribute("contentFragment", "fragments/homepage-fragments");
-            return "index";
-        }
+  @GetMapping("/")
+  public String home(Model model, @AuthenticationPrincipal UserDetails userDetails) {
+    if (userDetails == null) {
+      return "redirect:/login";
     }
 
-    @GetMapping("/face-recognition")
-    @PreAuthorize("hasPermission('EMPLOYEE', 'VISIBLE')")
-    public String faceRecognitionPage(Model model) {
-        model.addAttribute("contentFragment", "fragments/face-recognition-fragments");
-        return "index";
+    User user = userRepository.findUserByUsername(userDetails.getUsername())
+      .orElseThrow(() -> new UsernameNotFoundException("User not found"));
+
+    Role role = roleRepository.getRoleByName(user.getRole());
+    if (role == null) {
+      return "redirect:/login";
     }
 
-    @GetMapping("/login")
-    public String loginPage(Model model, String error, String logout) {
-        if (error != null) {
-            model.addAttribute("errorMsg", "Tài khoản hoặc mật khẩu không đúng!");
-        }
-        if (logout != null) {
-            model.addAttribute("logoutMsg", "Bạn đã đăng xuất thành công!");
-        }
-        return "login";
+    if (role.getEmployeePermission() == PermissionLevel.NONE) {
+      return "redirect:/user/detail";
+    } else {
+      model.addAttribute("contentFragment", "fragments/homepage-fragments");
+      return "index";
     }
+  }
 
-    @RequestMapping("/homepage")
-    @PreAuthorize("hasPermission('EMPLOYEE', 'VISIBLE')")
-    public String homepage(Model model, @RequestParam(value = "month", required = false) String MonthAndYear,
-                                        @RequestParam(value = "date", required = false) String date) {
-        int totalemployee = employeeService.countEmployees();
-        LocalDate today = LocalDate.now();
-        LocalDate dateChoosed = (date != null) ? LocalDate.parse(date) : today;
+  @GetMapping("/face-recognition")
+  @PreAuthorize("hasPermission('USER', 'VISIBLE')")
+  public String faceRecognitionPage(Model model) {
+    model.addAttribute("contentFragment", "fragments/face-recognition-fragments");
+    return "index";
+  }
 
-        int year, month;
-        if (MonthAndYear != null) {
-            String[] time = MonthAndYear.split("-");
-            year = Integer.parseInt(time[0]);
-            month = Integer.parseInt(time[1]);
-        } else {
-            year = today.getYear();
-            month = today.getMonthValue();
-        }
-        EmployeeCountDTO employeeCountDTO = employeeService.getAvailableAndUnavailableEmployeeCount();
-        AttendanceCountDTO attendanceCountDTO = attendanceService.countAvailableAttendance(String.valueOf(dateChoosed));
-        double avalableEmployeePercent = (employeeCountDTO.getTotalAvailableEmployees() *100) / totalemployee;
-        double unavalableEmployeePercent = 100 - avalableEmployeePercent;
-
-        List<TopSalaryDTO> Top3salaryDTOS = salaryRecordService.getTop3HighestNetSalary(month, year);
-        int countAttendance = attendanceService.countDailyAttendance(today);
-        int countPendingRequest = requestService.countPendingRequests();
-        model.addAttribute("avalableEmployeePercent", avalableEmployeePercent);
-        model.addAttribute("countPendingRequest", countPendingRequest);
-
-        model.addAttribute("unavalableEmployeePercent", unavalableEmployeePercent);
-        model.addAttribute("Top3salaryDTOS", Top3salaryDTOS);
-        model.addAttribute("attendanceCountDTO", attendanceCountDTO);
-        model.addAttribute("countAttendance", countAttendance);
-        model.addAttribute("totalemployee", totalemployee);
-        model.addAttribute("contentFragment", "fragments/homepage-fragments");
-        return "index";
+  @GetMapping("/login")
+  public String loginPage(Model model, String error, String logout) {
+    if (error != null) {
+      model.addAttribute("errorMsg", "Tài khoản hoặc mật khẩu không đúng!");
     }
+    if (logout != null) {
+      model.addAttribute("logoutMsg", "Bạn đã đăng xuất thành công!");
+    }
+    return "login";
+  }
+
+  @RequestMapping("/homepage")
+  @PreAuthorize("hasPermission('EMPLOYEE', 'VISIBLE')")
+  public String homepage(Model model,
+                         @RequestParam(value = "month", required = false) String MonthAndYear,
+                         @RequestParam(value = "date", required = false) String date) {
+    int totalemployee = employeeService.countEmployees();
+    LocalDate today = LocalDate.now();
+    LocalDate dateChoosed = (date != null) ? LocalDate.parse(date) : today;
+
+    int year, month;
+    if (MonthAndYear != null) {
+      String[] time = MonthAndYear.split("-");
+      year = Integer.parseInt(time[0]);
+      month = Integer.parseInt(time[1]);
+    } else {
+      year = today.getYear();
+      month = today.getMonthValue();
+    }
+    EmployeeCountDTO employeeCountDTO = employeeService.getAvailableAndUnavailableEmployeeCount();
+    AttendanceCountDTO attendanceCountDTO = attendanceService.countAvailableAttendance(String.valueOf(dateChoosed));
+    double avalableEmployeePercent = (employeeCountDTO.getTotalAvailableEmployees() * 100) / totalemployee;
+    double unavalableEmployeePercent = 100 - avalableEmployeePercent;
+
+    List<TopSalaryDTO> Top3salaryDTOS = salaryRecordService.getTop3HighestNetSalary(month, year);
+    int countAttendance = attendanceService.countDailyAttendance(today);
+    int countPendingRequest = requestService.countPendingRequests();
+    model.addAttribute("avalableEmployeePercent", avalableEmployeePercent);
+    model.addAttribute("countPendingRequest", countPendingRequest);
+
+    model.addAttribute("unavalableEmployeePercent", unavalableEmployeePercent);
+    model.addAttribute("Top3salaryDTOS", Top3salaryDTOS);
+    model.addAttribute("attendanceCountDTO", attendanceCountDTO);
+    model.addAttribute("countAttendance", countAttendance);
+    model.addAttribute("totalemployee", totalemployee);
+    model.addAttribute("contentFragment", "fragments/homepage-fragments");
+    return "index";
+  }
 }

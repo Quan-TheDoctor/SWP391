@@ -84,7 +84,7 @@ public class EmployeeController {
   }
 
   @RequestMapping("/view")
-  @PreAuthorize("hasPermission('EMPLOYEE', 'VISIBLE')")
+  @PreAuthorize("hasPermission('EMPLOYEE', 'UPDATE')")
   public String view(Model model,
                      @RequestParam("employeeId") Integer employeeId,
                      @ModelAttribute("loggedInUser") User loggedInUser) {
@@ -285,7 +285,7 @@ public class EmployeeController {
   }
 
   @RequestMapping("/export/view")
-  @PreAuthorize("hasPermission('EMPLOYEE', 'MANAGE')")
+  @PreAuthorize("hasPermission('EMPLOYEE', 'UPDATE')")
   public String exportView(Model model,
                            @RequestParam(value = "department", required = false, defaultValue = "all") String department,
                            @RequestParam(value = "position", required = false, defaultValue = "all") String position,
@@ -310,7 +310,7 @@ public class EmployeeController {
 
 
   @PostMapping("/export")
-  @PreAuthorize("hasPermission('EMPLOYEE', 'MANAGE')")
+  @PreAuthorize("hasPermission('EMPLOYEE', 'UPDATE')")
   public ResponseEntity<Resource> exportEmployees(
     @RequestParam(value = "selectedEmployees", required = false) String selectedEmployees,
     @RequestParam(value = "department", required = false, defaultValue = "all") String department,

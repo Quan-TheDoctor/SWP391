@@ -3,12 +3,14 @@ package com.se1873.js.springboot.project.service.user.query;
 import com.se1873.js.springboot.project.dto.UserDTO;
 import com.se1873.js.springboot.project.entity.User;
 import com.se1873.js.springboot.project.repository.UserRepository;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 
 import java.util.Optional;
 
+@Slf4j
 @Service
 public class UserQueryServiceImpl implements UserQueryService {
   private final UserRepository userRepository;
@@ -34,6 +36,7 @@ public class UserQueryServiceImpl implements UserQueryService {
 
   @Override
   public Page<User> findByRole(String role, Pageable pageable) {
+    log.error(userRepository.findByRole(role, pageable).getContent().toString());
     return userRepository.findByRole(role, pageable);
   }
 

@@ -38,4 +38,7 @@ public interface UserRepository extends JpaRepository<User, Long> {
 
   @Query("SELECT u FROM User u WHERE u.employee.employeeId = (SELECT d.managerId FROM Department d WHERE d.departmentId = :departmentId)")
   Optional<User> findManagerByDepartmentId(@Param("departmentId") Integer departmentId);
+
+  Page<User> findByRoleNot(String role,
+                           Pageable pageable);
 }

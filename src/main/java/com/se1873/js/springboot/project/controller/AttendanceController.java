@@ -26,6 +26,7 @@ import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
@@ -47,14 +48,10 @@ import java.util.stream.Collectors;
 @SessionAttributes({"formattedDate", "payrollCalculationForm", "user"})
 
 public class AttendanceController {
-  private final AttendanceDTOMapper attendanceDTOMapper;
   private final AttendanceService attendanceService;
   private final EmployeeService employeeService;
   private final DepartmentService departmentService;
   private final PositionService positionService;
-  private final SalaryRecordService salaryRecordService;
-  private final AttendanceRepository attendanceRepository;
-  private final DepartmentRepository departmentRepository;
   private AttendanceDTOList attendanceDTOList = new AttendanceDTOList();
 
   @ModelAttribute("payrollCalculationForm")
@@ -66,6 +63,7 @@ public class AttendanceController {
 
 
   @GetMapping("/search")
+  @PreAuthorize("hasPermission('ATTENDANCE', 'VIEW')")
   public String search(@RequestParam("query") String query,
                        @RequestParam(value = "page", defaultValue = "0") Integer page,
                        @RequestParam(value = "size", defaultValue = "10") Integer size,
@@ -92,6 +90,7 @@ public class AttendanceController {
   }
 
   @GetMapping("/filter")
+  @PreAuthorize("hasPermission('ATTENDANCE', 'VIEW')")
   public String filterStatus(@RequestParam(value = "status", required = false) String status,
                              @RequestParam(value = "page", defaultValue = "0") Integer page,
                              @RequestParam(value = "size", defaultValue = "10") Integer size,
@@ -123,6 +122,7 @@ public class AttendanceController {
   }
 
   @GetMapping("/sort")
+  @PreAuthorize("hasPermission('ATTENDANCE', 'VIEW')")
   public String sort(@RequestParam(value = "field", required = true) String field,
                      @RequestParam(value = "direction", defaultValue = "asc") String direction,
                      @RequestParam(value = "page", defaultValue = "0") Integer page,
@@ -162,6 +162,7 @@ public class AttendanceController {
 
 
   @GetMapping
+  @PreAuthorize("hasPermission('ATTENDANCE', 'VIEW')")
   public String index(Model model,
                       @RequestParam(value = "query", required = false) String query,
                       @RequestParam(value = "view", required = false) String view,
@@ -232,6 +233,7 @@ public class AttendanceController {
   }
 
   @RequestMapping("/create/form")
+  @PreAuthorize("hasPermission('ATTENDANCE', 'ADD')")
   public String createForm(Model model,
                            @RequestParam(value = "employeeIds", required = false) Integer[] employeeIds,
                            @RequestParam(value = "dates", required = false) String[] dates,
@@ -256,6 +258,7 @@ public class AttendanceController {
   }
 
   @PostMapping("/create/save")
+  @PreAuthorize("hasPermission('ATTENDANCE', 'ADD')")
   public String saveAttendance(@Valid @ModelAttribute("attendanceDTOList") AttendanceDTOList attendanceDTOList,
                                BindingResult result) {
     if (result.hasErrors()) {
@@ -266,12 +269,8 @@ public class AttendanceController {
     return "redirect:/attendance";
   }
 
-
-
-
-
-
   @RequestMapping("/export")
+  @PreAuthorize("hasPermission('ATTENDANCE', 'UPDATE')")
   public ResponseEntity<Resource> exportAttendance(
           @RequestParam(value = "selectedEmployees", required = false) String selectedEmployees,
           @RequestParam(value = "startDate", required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate startDate,
@@ -297,6 +296,7 @@ public class AttendanceController {
   }
 
   @RequestMapping("/export/view")
+  @PreAuthorize("hasPermission('ATTENDANCE', 'UPDATE')")
   public String viewExportAttendance(
           @RequestParam(value = "startDate", required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate startDate,
           @RequestParam(value = "endDate", required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate endDate,
@@ -329,6 +329,7 @@ public class AttendanceController {
 
 
   @RequestMapping("/status")
+  @PreAuthorize("hasPermission('ATTENDANCE', 'VISIBLE')")
   public String status(@RequestParam(value = "month", required = false) String month,
                        @RequestParam(value = "year", required = false) String year,
                        @RequestParam(value = "action" ,required = false) String action,
@@ -336,7 +337,6 @@ public class AttendanceController {
                        Model model, Pageable pageable) {
 
     String formattedDate = (String) model.getAttribute("formattedDate");
-
 
     if (formattedDate == null || month != null || year != null) {
       if (month == null) month = "01";
@@ -381,6 +381,7 @@ public class AttendanceController {
 
 
   @GetMapping("/searchstatus")
+  @PreAuthorize("hasPermission('ATTENDANCE', 'VISIBLE')")
   public String searchstatus(@RequestParam("query") String search,
                               RedirectAttributes redirectAttributes) {
     redirectAttributes.addFlashAttribute("action", "search");
@@ -389,6 +390,7 @@ public class AttendanceController {
 
   }
   @GetMapping("/departmentfilter")
+  @PreAuthorize("hasPermission('ATTENDANCE', 'VISIBLE')")
   public String departmentFilter(@RequestParam("value") String filter,
                                  RedirectAttributes redirectAttributes) {
     redirectAttributes.addFlashAttribute("action", "departmentfilter");

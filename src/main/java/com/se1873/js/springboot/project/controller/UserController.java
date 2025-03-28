@@ -8,6 +8,7 @@ import com.se1873.js.springboot.project.service.LeavePolicyService;
 import com.se1873.js.springboot.project.service.NotificationService;
 import com.se1873.js.springboot.project.service.RequestService;
 import com.se1873.js.springboot.project.service.employee.EmployeeService;
+import com.se1873.js.springboot.project.service.role.RoleService;
 import com.se1873.js.springboot.project.service.salary_record.SalaryRecordService;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -48,8 +49,9 @@ public class UserController {
   private final UserRepository userRepository;
   private final RequestService requestService;
   private final NotificationService notificationService;
+  private final RoleService roleService;
 
-  public UserController(UserService userService, EmployeeService employeeService, AttendanceService attendanceService, SalaryRecordService salaryRecordService, LeavePolicyService leavePolicyService, LeavePolicyRepository leavePolicyRepository, LeaveRepository leaveRepository, AttendanceRepository attendanceRepository, NotificationRepository notificationRepository, UserRepository userRepository, RequestService requestService, NotificationService notificationService) {
+  public UserController(UserService userService, EmployeeService employeeService, AttendanceService attendanceService, SalaryRecordService salaryRecordService, LeavePolicyService leavePolicyService, LeavePolicyRepository leavePolicyRepository, LeaveRepository leaveRepository, AttendanceRepository attendanceRepository, NotificationRepository notificationRepository, UserRepository userRepository, RequestService requestService, NotificationService notificationService, RoleService roleService) {
     this.userService = userService;
     this.employeeService = employeeService;
     this.attendanceService = attendanceService;
@@ -62,6 +64,7 @@ public class UserController {
     this.userRepository = userRepository;
     this.requestService = requestService;
     this.notificationService = notificationService;
+    this.roleService = roleService;
   }
 
   public Integer getEmployeeId() {
@@ -100,7 +103,7 @@ public class UserController {
   }
 
   @RequestMapping("/save")
-  @PreAuthorize("hasPermission('USER', 'UPDATE')")
+  @PreAuthorize("hasPermission('USER', 'VISIBLE')")
   public String saveUserProfile(
     @Valid @ModelAttribute("employeeDTO") EmployeeDTO employeeDTO,
     @RequestParam(value = "avatarFile", required = false) MultipartFile avatarFile,
@@ -136,6 +139,7 @@ public class UserController {
   }
 
   @RequestMapping("/request/create")
+  @PreAuthorize("hasPermission('USER', 'VISIBLE')")
   public String requestCreateForm(Model model,
                                   @RequestParam(value = "reason", required = false) Integer reason) {
     List<LeavePolicy> leavePolicy = leavePolicyRepository.findAll();
@@ -159,7 +163,7 @@ public class UserController {
   }
 
   @RequestMapping("/attendance")
-  @PreAuthorize("hasPermission('USER', 'UPDATE')")
+  @PreAuthorize("hasPermission('USER', 'VISIBLE')")
   public String attendance(Model model,
                            @RequestParam(value = "page", defaultValue = "0") int page,
                            @RequestParam(value = "size", defaultValue = "5") int size) {
@@ -174,7 +178,7 @@ public class UserController {
   }
 
   @RequestMapping("/payroll")
-  @PreAuthorize("hasPermission('USER', 'UPDATE')")
+  @PreAuthorize("hasPermission('USER', 'VISIBLE')")
   public String payroll(Model model,
                         @RequestParam(value = "page", defaultValue = "0") int page,
                         @RequestParam(value = "size", defaultValue = "5") int size) {
@@ -185,6 +189,7 @@ public class UserController {
   }
 
   @RequestMapping("/back")
+  @PreAuthorize("hasPermission('USER', 'VISIBLE')")
   public String back(Model model) {
     EmployeeDTO employee = employeeService.getEmployeeByEmployeeId(getEmployeeId());
     model.addAttribute("employeeDTO", employee);
@@ -193,7 +198,7 @@ public class UserController {
   }
 
   @RequestMapping("/filterAttendance")
-  @PreAuthorize("hasPermission('USER', 'UPDATE')")
+  @PreAuthorize("hasPermission('USER', 'VISIBLE')")
   public String filterAttendance(Model model,
                                  @RequestParam(value = "status", required = false) String status,
                                  @RequestParam(value = "month", required = false) YearMonth month,
@@ -220,7 +225,7 @@ public class UserController {
   }
 
   @RequestMapping("/filterPayroll")
-  @PreAuthorize("hasPermission('USER', 'UPDATE')")
+  @PreAuthorize("hasPermission('USER', 'VISIBLE')")
   public String filterPayroll(Model model,
                               @RequestParam(value = "month", required = false) YearMonth month,
                               @RequestParam(value = "page", defaultValue = "0") int page,
@@ -238,7 +243,7 @@ public class UserController {
 
 
   @GetMapping("/download/{id}")
-  @PreAuthorize("hasPermission('USER', 'UPDATE')")
+  @PreAuthorize("hasPermission('USER', 'VISIBLE')")
   public String downloadPayslip(Model model,
                                 @PathVariable("id") int id) {
     PayrollDTO payroll = salaryRecordService.payrollDTO(id);
@@ -247,7 +252,7 @@ public class UserController {
   }
 
   @RequestMapping("/notification")
-  @PreAuthorize("hasPermission('USER', 'UPDATE')")
+  @PreAuthorize("hasPermission('USER', 'VISIBLE')")
   public String notification(Model model){
     List<Notification> notifications = notificationRepository.getNotificationsByUser_UserId(getUserId());
     long unreadCount = notifications.stream().filter(n -> "unread".equals(n.getStatus())).count();
@@ -258,7 +263,7 @@ public class UserController {
   }
 
   @RequestMapping("/mark")
-  @PreAuthorize("hasPermission('USER', 'UPDATE')")
+  @PreAuthorize("hasPermission('USER', 'VISIBLE')")
   public String mark(Model model,
                      @RequestParam("notificationId") Integer notificationId){
     Notification notification = notificationRepository.getNotificationByNotificationId(notificationId);
@@ -276,7 +281,7 @@ public class UserController {
   }
 
   @GetMapping("/view/{notificationId}")
-  @PreAuthorize("hasPermission('USER', 'UPDATE')")
+  @PreAuthorize("hasPermission('USER', 'VISIBLE')")
   public String view(Model model,
                      @PathVariable("notificationId") Integer notificationId){
     Notification notification = notificationRepository.getNotificationByNotificationId(notificationId);
@@ -288,7 +293,7 @@ public class UserController {
   }
 
   @RequestMapping("/backNotification")
-  @PreAuthorize("hasPermission('USER', 'UPDATE')")
+  @PreAuthorize("hasPermission('USER', 'VISIBLE')")
   public String backNotification(Model model){
     List<Notification> notifications = notificationRepository.getNotificationsByUser_UserId(getUserId());
     long unreadCount = notifications.stream().filter(n -> "unread".equals(n.getStatus())).count();
@@ -297,6 +302,4 @@ public class UserController {
     model.addAttribute("contentFragment", "fragments/notification");
     return "index";
   }
-
-
 }

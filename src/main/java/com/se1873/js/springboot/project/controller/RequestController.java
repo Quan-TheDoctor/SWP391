@@ -29,6 +29,7 @@ import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Controller;
@@ -65,31 +66,24 @@ public class RequestController {
   private final EmployeeRepository employeeRepository;
   private final SalaryRecordRepository salaryRecordRepository;
   private final ContractRepository contractRepository;
-  private final EmployeeService employeeService;
   private final ReponseRepo reponseRepo;
-  private final AttendanceService attendanceService;
-  private final AttendanceRepository attendanceRepository;
   private final LeavePolicyRepository leavePolicyRepository;
   private final LeaveRepository leaveRepository;
   private final UserService userService;
   private final LeavePolicyService leavePolicyService;
   private final NotificationRepository notificationRepository;
 
-    private Integer totalRequests = 0;
-    private Integer totalPendingRequests = 0;
-    private Integer totalFinishedRequests = 0;
-    private Set<String> requestTypes = new HashSet<>();
+  private Set<String> requestTypes = new HashSet<>();
 
     private Pageable getPageable(Integer page, Integer size) {
         return PageRequest.of(page, size);
     }
-
     private String populateRequestModel(Model model, Page<RequestDTO> requests, String viewName) {
         model.addAttribute("requests", requests);
         addRequestStatistics(requests, model);
         model.addAttribute(REQUEST_TYPE, requestService.getAllRequestTypes());
         model.addAttribute("departments", departmentService.getAllDepartments());
-        model.addAttribute("requesters", userRepository.findAll());
+        model.addAttribute("approvers", userService.findByRoleExcept("Employee", PageRequest.of(0, 10)));
         model.addAttribute(CONTENT_FRAGMENT, REQUEST_FRAGMENTS);
         return INDEX;
     }
@@ -104,6 +98,7 @@ public class RequestController {
     }
 
     @RequestMapping
+    @PreAuthorize("hasPermission('REQUEST', 'VISIBLE')")
     public String request(Model model,
                           @RequestParam(value = "page", defaultValue = "0") int page,
                           @RequestParam(value = "size", defaultValue = "5") int size) {
@@ -111,6 +106,7 @@ public class RequestController {
     }
 
     @RequestMapping("/filter")
+    @PreAuthorize("hasPermission('REQUEST', 'VISIBLE')")
     public String filter(Model model,
                          @RequestParam("field") String field,
                          @RequestParam("value") String value,
@@ -125,6 +121,7 @@ public class RequestController {
     }
 
     @RequestMapping("/search")
+    @PreAuthorize("hasPermission('REQUEST', 'VISIBLE')")
     public String search(Model model,
                          @RequestParam("query") String query,
                          @RequestParam(value = "page", defaultValue = "0") int page,
@@ -139,6 +136,7 @@ public class RequestController {
     }
 
     @RequestMapping("/export/view")
+    @PreAuthorize("hasPermission('REQUEST', 'UPDATE')")
     public String exportView(Model model,
                              @RequestParam(value = "status", required = false, defaultValue = "all") String status,
                              @RequestParam(value = "type", required = false, defaultValue = "all") String type,
@@ -156,6 +154,7 @@ public class RequestController {
     }
 
     @RequestMapping("/export")
+    @PreAuthorize("hasPermission('REQUEST', 'UPDATE')")
     public ResponseEntity<Resource> exportRequests(
             @RequestParam(value = "status", required = false, defaultValue = "all") String status,
             @RequestParam(value = "type", required = false, defaultValue = "all") String type) {
@@ -169,6 +168,7 @@ public class RequestController {
     }
 
     @RequestMapping("/save")
+    @PreAuthorize("hasPermission('REQUEST', 'UPDATE')")
     public String save(@ModelAttribute("requestDTO") RequestDTO requestDTO,
                        @RequestParam("LeavePolicyId") Integer leavePolicyId,
                        BindingResult result,
@@ -223,6 +223,7 @@ public class RequestController {
     }
 
     @RequestMapping("/view")
+    @PreAuthorize("hasPermission('REQUEST', 'VISIBLE')")
     public String view(Model model, @RequestParam("requestId") Integer requestId) {
         RequestDTO requestDTO = requestService.findRequestByRequestId(requestId);
         List<SalaryRecord> salaryRecords = new ArrayList<>();
@@ -349,9 +350,9 @@ public class RequestController {
         }
 
         var requests = requestService.getRequests(PageRequest.of(0, 10));
-        totalRequests = 0;
-        totalPendingRequests = 0;
-        totalFinishedRequests = 0;
+      Integer totalRequests = 0;
+      Integer totalPendingRequests = 0;
+      Integer totalFinishedRequests = 0;
         for (var request : requests) {
             totalRequests++;
             if (request.getRequestStatus().equals("pending")) totalPendingRequests++;
@@ -370,6 +371,7 @@ public class RequestController {
 
 
     @GetMapping("/create/form")
+    @PreAuthorize("hasPermission('REQUEST', 'ADD')")
     public String createRequestForm(Model model) {
         var result = departmentService.getAllDepartments();
         model.addAttribute("departmentList", result);
@@ -478,15 +480,16 @@ public class RequestController {
     }
 
     @RequestMapping("/multi-filter")
+    @PreAuthorize("hasPermission('REQUEST', 'VISIBLE')")
     public String multiFilter(Model model,
                             @RequestParam(value = "type", required = false) String type,
                             @RequestParam(value = "status", required = false) String status,
                             @RequestParam(value = "dateRange", required = false) String dateRange,
-                            @RequestParam(value = "requester", required = false) String requester,
+                            @RequestParam(value = "approver", required = false) String approver,
                             @RequestParam(value = "department", required = false) String department,
                             @RequestParam(value = "page", defaultValue = "0") int page,
                             @RequestParam(value = "size", defaultValue = "5") int size) {
-        Page<RequestDTO> requests = requestService.multiFilter(type, status, dateRange, requester, department, getPageable(page, size));
+        Page<RequestDTO> requests = requestService.multiFilter(type, status, dateRange, approver, department, getPageable(page, size));
         return populateRequestModel(model, requests, "request");
     }
 

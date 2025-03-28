@@ -29,6 +29,17 @@ spring:
       enabled: true
       max-file-size: 10MB
       max-request-size: 10MB
+  mail:
+    host: smtp.gmail.com
+    port: 587
+    username: quantahs180461@fpt.edu.vn
+    password: pyyb nhli rhxj pehh
+    properties:
+      mail:
+        smtp:
+          auth: true
+          starttls:
+            enable: true
 server:
   port: 8081
   address: 0.0.0.0

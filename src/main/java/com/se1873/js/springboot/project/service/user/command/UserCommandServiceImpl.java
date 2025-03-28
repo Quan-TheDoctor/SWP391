@@ -34,6 +34,7 @@ public class UserCommandServiceImpl implements UserCommandService {
       .passwordHash(bCryptPasswordEncoder.encode("1"))
       .role(role.getName())
       .employee(employee)
+        .status("Active")
       .build());
   }
 }

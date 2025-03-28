@@ -45,6 +45,16 @@ public class RoleService {
     roleCommandService.updateRole(role);
   }
 
+  @CacheEvict(value = "allRoles", allEntries = true)
+  public void createRole(Role role) {
+    roleCommandService.createRole(role);
+  }
+
+  @CacheEvict(value = "allRoles", allEntries = true)
+  public void deleteRole(Long id) {
+    roleCommandService.deleteRole(id);
+  }
+
   public Role findByName(String name) {
       return findAll().get(name);
   }

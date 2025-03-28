@@ -485,7 +485,7 @@ public class RequestService {
             .build();
   }
 
-  public Page<RequestDTO> multiFilter(String type, String status, String dateRange, String requester, String department, Pageable pageable) {
+  public Page<RequestDTO> multiFilter(String type, String status, String dateRange, String approver, String department, Pageable pageable) {
     try {
       List<Request> allRequests = requestRepository.findAll();
       log.info("Tổng số requests ban đầu: {}", allRequests.size());
@@ -511,17 +511,21 @@ public class RequestService {
           LocalDate startDate = LocalDate.parse(dates[0], DateTimeFormatter.ofPattern("dd/MM/yyyy"));
           LocalDate endDate = LocalDate.parse(dates[1], DateTimeFormatter.ofPattern("dd/MM/yyyy"));
           allRequests = allRequests.stream()
-                  .filter(r -> !r.getStartDate().isBefore(startDate) && !r.getEndDate().isAfter(endDate))
+                  .filter(r -> {
+                    if (r.getCreatedAt() == null) return false;
+                    LocalDate requestDate = r.getCreatedAt().toLocalDate();
+                    return !requestDate.isBefore(startDate) && !requestDate.isAfter(endDate);
+                  })
                   .collect(Collectors.toList());
           log.info("Số requests sau lọc theo dateRange: {}", allRequests.size());
         }
       }
 
-      if (requester != null && !requester.equals("all")) {
+      if (approver != null && !approver.equals("all")) {
         allRequests = allRequests.stream()
-                .filter(r -> r.getUser().getUserId().toString().equals(requester))
+                .filter(r -> r.getApproval() != null && r.getApproval().getUserId().toString().equals(approver))
                 .collect(Collectors.toList());
-        log.info("Số requests sau lọc theo requester: {}", allRequests.size());
+        log.info("Số requests sau lọc theo approver: {}", allRequests.size());
       }
 
       if (department != null && !department.equals("all")) {

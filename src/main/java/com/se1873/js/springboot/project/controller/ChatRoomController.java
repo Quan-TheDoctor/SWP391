@@ -13,6 +13,7 @@ import org.springframework.messaging.handler.annotation.Payload;
 import org.springframework.messaging.handler.annotation.SendTo;
 import org.springframework.messaging.simp.SimpMessageHeaderAccessor;
 import org.springframework.messaging.simp.SimpMessagingTemplate;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
@@ -44,6 +45,7 @@ public class ChatRoomController {
 
     return "Session info: userId=" + userId + ", username=" + username;
   }
+
   @MessageMapping("/chat.sendMessage/{channelId}")
   @SendTo("/topic/chat/{channelId}")
   public MessageDTO sendMessage(@DestinationVariable Integer channelId,
@@ -82,6 +84,7 @@ public class ChatRoomController {
   }
 
   @GetMapping
+  @PreAuthorize("hasPermission('USER', 'VISIBLE')")
   public String index(Model model,
                       Authentication authentication) {
     String username = ((UserDetails) authentication.getPrincipal()).getUsername();

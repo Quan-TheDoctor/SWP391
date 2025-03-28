@@ -101,6 +101,11 @@ public class UserService {
   public Page<UserDTO> findByRole(String role, Pageable pageable) {
     return userQueryService.findByRole(role, pageable).map(userDTOMapper::toDTO);
   }
+
+  public Page<UserDTO> findByRoleExcept(String role, Pageable pageable) {
+    return userRepository.findByRoleNot(role, pageable).map(userDTOMapper::toDTO);
+  }
+
   public Page<UserDTO> findByStatus(String status, Pageable pageable) {
     return userQueryService.findByStatus(status, pageable).map(userDTOMapper::toDTO);
   }
