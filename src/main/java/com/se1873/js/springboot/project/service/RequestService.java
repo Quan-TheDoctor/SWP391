@@ -95,8 +95,8 @@ public class RequestService {
             requestDTO.getLeaveDTO().getStartDate(),
             requestDTO.getLeaveDTO().getEndDate());
     Leave leave = leaves.getFirst();
-    if(requestDTO.getRequestStatus().equals("approve")){
-      leave.setStatus("approve");
+    if(requestDTO.getRequestStatus().equals("Approved")){
+      leave.setStatus("Approved");
       leave.setLeaveAllowedDay(requestDTO.getLeaveDTO().getLeaveAllowedDay());
       leaveRepository.save(leave);
 
@@ -125,7 +125,6 @@ public class RequestService {
     }
     int employeeId = user.getEmployee().getEmployeeId();
     Employee employee = employeeRepository.getEmployeeByEmployeeId(employeeId);
-
     Leave leave = Leave.builder()
             .leaveType("Leave Permit")
             .startDate(requestDTO.getLeaveDTO().getStartDate())
@@ -139,8 +138,7 @@ public class RequestService {
             .leavePolicyId(requestDTO.getLeaveDTO().getLeavePolicyId())
             .build();
     leaveRepository.save(leave);
-    log.info(String.valueOf(requestDTO.getLeaveDTO().getTotalDays()));
-    log.info(String.valueOf(requestDTO.getLeaveDTO().getLeaveAllowedDay()));
+
     Integer leaveId = leave.getLeaveId();
 
     Request request = Request.builder()
@@ -206,30 +204,32 @@ public class RequestService {
 
 
   private RequestDTO convertRequestToDTO(Request request) {
-    if (request == null) {
-      return null;
-    }
+    if (request == null) return null;
 
-    LeaveDTO leaveDTO = LeaveDTO.builder()
-            .reason(request.getReason())
-            .startDate(request.getStartDate())
-            .endDate(request.getEndDate())
-            .totalDays(request.getTotalDays())
-            .build();
+    LeaveDTO leaveDTO = null;
+    List<Integer> idList = Arrays.stream(request.getRequestIdList().replace("[", "").replace("]", "").replace(" ", "").split(","))
+            .map(Integer::parseInt)
+            .collect(Collectors.toList());
 
-    List<Integer> integerList = new ArrayList<>();
+    if ("Leave Permit".equals(request.getRequestType()) && !idList.isEmpty()) {
+      Leave leave = leaveRepository.findById(Long.valueOf(idList.get(0))).orElse(null);
 
-    String requestIdList = Optional.ofNullable(request.getRequestIdList()).orElse("");
-
-    if (!requestIdList.isEmpty()) {
-      for (var p : requestIdList.replace("[", "").replace("]", "").replace(" ", "").split(",")) {
-        integerList.add(Integer.parseInt(p));
+      if (leave != null) {
+        leaveDTO = LeaveDTO.builder()
+                .leaveId(leave.getLeaveId())
+                .startDate(leave.getStartDate())
+                .endDate(leave.getEndDate())
+                .totalDays(leave.getTotalDays())
+                .reason(leave.getReason())
+                .leavePolicyId(leave.getLeavePolicyId())
+                .leaveAllowedDay(leave.getLeaveAllowedDay())
+                .build();
       }
     }
 
     return RequestDTO.builder()
             .requestId(request.getRequestId())
-            .approvalName(request.getApproval().getUsername())
+            .approvalName(request.getApproval() != null ? request.getApproval().getUsername() : null)
             .requestType(request.getRequestType())
             .requesterId(request.getUser() != null ? request.getUser().getUserId() : null)
             .requesterName(request.getUser() != null ? request.getUser().getUsername() : null)
@@ -237,7 +237,7 @@ public class RequestService {
             .requestStatus(request.getStatus())
             .note(request.getNote())
             .leaveDTO(leaveDTO)
-            .payrollIds(integerList)
+            .payrollIds(idList)
             .build();
   }
   public Integer countPendingRequests() {
