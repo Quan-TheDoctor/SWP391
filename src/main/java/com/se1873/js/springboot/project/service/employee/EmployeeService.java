@@ -25,6 +25,8 @@ import org.apache.poi.ss.usermodel.*;
 import org.apache.poi.xssf.usermodel.XSSFWorkbook;
 import org.springframework.core.io.ByteArrayResource;
 import org.springframework.core.io.Resource;
+import org.springframework.cache.annotation.Cacheable;
+import org.springframework.cache.annotation.CacheEvict;
 
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
@@ -50,6 +52,7 @@ public class EmployeeService {
   private final PositionService positionService;
   private final EmployeeCommandService employeeCommandService;
 
+  @Cacheable(value = "employees", key = "'allEmployees_' + #pageable.pageNumber + '_' + #pageable.pageSize + '_' + #pageable.sort")
   public Page<EmployeeDTO> getAll(Pageable pageable) {
     return employeeQueryService.getAll(pageable);
   }
@@ -58,6 +61,7 @@ public class EmployeeService {
     return employeeQueryService.getEmployeesByDepartmentId(departmentId, pageable);
   }
 
+  @Cacheable(value = "employees", key = "'allEmployeesList'")
   public List<EmployeeDTO> getAllEmployees() {
     return employeeQueryService.getAll();
   }
@@ -100,9 +104,7 @@ public class EmployeeService {
   }
 
   public Page<EmployeeDTO> search(Pageable pageable, String query) {
-    log.info(query);
     String searchTerm = query.trim();
-    log.info(searchTerm);
     return employeeQueryService.search(searchTerm, pageable).map(employeeDTOMapper::toDTO);
   }
 
@@ -239,6 +241,7 @@ public class EmployeeService {
     return employees.map(employeeDTOMapper::toDTO);
   }
 
+  @CacheEvict(value = "employees", allEntries = true)
   public void saveEmployee(EmployeeDTO employeeDTO) {
     Department department = departmentService.findDepartmentByDepartmentId(employeeDTO.getDepartmentId());
     Position position = positionService.findPositionByPositionId(employeeDTO.getPositionId());

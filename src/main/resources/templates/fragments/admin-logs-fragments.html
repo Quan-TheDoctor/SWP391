@@ -44,12 +44,6 @@
     <script src="https://cdn.jsdelivr.net/npm/echarts@5.4.3/dist/echarts.min.js"></script>
 </head>
 <div th:fragment="main-content" xmlns:sec="http://www.w3.org/1999/xhtml">
-    <div class="fixed top-4 left-4 z-50" id="sidebar-toggle">
-        <button class="bg-white p-2 rounded-lg shadow-md hover:bg-gray-100 transition-colors">
-            <i class="fas fa-bars text-gray-600"></i>
-        </button>
-    </div>
-
     <main class="bg-gray-100 min-h-screen p-2 sm:p-4 transition-all duration-300" id="main-content">
         <div class="max-w-7xl mx-auto space-y-6">
             <div class="flex flex-col md:flex-row gap-4 items-center justify-between p-4 bg-gradient-to-r from-primary-600 to-secondary-600 rounded-lg text-white shadow-lg animate__animated animate__fadeIn">
@@ -173,47 +167,44 @@
 
                     <div class="w-full md:w-40">
                         <label class="block text-sm text-gray-500 mb-1">Type</label>
-                        <form th:action="@{/admin/logs}" method="get">
-                            <select name="actionType" onchange="this.form.submit()"
-                                    class="w-full border rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent">
-                                <option value="">Tất cả</option>
-                                <option value="Navigate"
-                                        th:selected="${param.actionType != null && param.actionType[0] == 'Navigate'}">
-                                    Navigate
-                                </option>
-                                <option value="View"
-                                        th:selected="${param.actionType != null && param.actionType[0] == 'View'}">View
-                                </option>
-                                <option value="Create"
-                                        th:selected="${param.actionType != null && param.actionType[0] == 'Create'}">
-                                    Create
-                                </option>
-                                <option value="Update"
-                                        th:selected="${param.actionType != null && param.actionType[0] == 'Update'}">
-                                    Update
-                                </option>
-                                <option value="Error"
-                                        th:selected="${param.actionType != null && param.actionType[0] == 'Error'}">
-                                    Error
-                                </option>
-                            </select>
-                            <input type="hidden" name="query" th:value="${param.query}" th:if="${param.query != null}">
-                            <input type="hidden" name="date" th:value="${param.date}" th:if="${param.date != null}">
-                            <input type="hidden" name="sort" th:value="${param.sort}" th:if="${param.sort != null}">
-                            <input type="hidden" name="dir" th:value="${param.dir}" th:if="${param.dir != null}">
-                        </form>
+                        <select name="actionType" id="actionTypeFilter"
+                                class="w-full border rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent">
+                            <option value="">Tất cả</option>
+                            <option value="Navigate"
+                                    th:selected="${param.actionType != null && param.actionType[0] == 'Navigate'}">
+                                Navigate
+                            </option>
+                            <option value="View"
+                                    th:selected="${param.actionType != null && param.actionType[0] == 'View'}">View
+                            </option>
+                            <option value="Create"
+                                    th:selected="${param.actionType != null && param.actionType[0] == 'Create'}">
+                                Create
+                            </option>
+                            <option value="Update"
+                                    th:selected="${param.actionType != null && param.actionType[0] == 'Update'}">
+                                Update
+                            </option>
+                            <option value="Error"
+                                    th:selected="${param.actionType != null && param.actionType[0] == 'Error'}">
+                                Error
+                            </option>
+                        </select>
                     </div>
 
                     <div class="w-full md:w-44">
                         <label class="block text-sm text-gray-500 mb-1">Time</label>
-                        <form th:action="@{/admin/logs}" method="get">
-                            <input type="date" name="date" th:value="${param.date}" onchange="this.form.submit()"
-                                   class="w-full border rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent">
-                            <input type="hidden" name="query" th:value="${param.query}" th:if="${param.query != null}">
-                            <input type="hidden" name="actionType" th:value="${param.actionType}" th:if="${param.actionType != null}">
-                            <input type="hidden" name="sort" th:value="${param.sort}" th:if="${param.sort != null}">
-                            <input type="hidden" name="dir" th:value="${param.dir}" th:if="${param.dir != null}">
-                        </form>
+                        <input type="date" name="date" id="dateFilter" th:value="${param.date}"
+                               class="w-full border rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent">
+                    </div>
+
+                    <div class="flex items-center gap-2">
+                        <button type="button" onclick="applyFilters()" class="px-4 py-2 bg-primary-600 text-white rounded-md hover:bg-primary-700 transition-colors">
+                            <i class="fas fa-search mr-2"></i>Filter
+                        </button>
+                        <button type="button" onclick="clearFilters()" class="px-4 py-2 bg-gray-500 text-white rounded-md hover:bg-gray-600 transition-colors">
+                            <i class="fas fa-times mr-2"></i>Clear Filters
+                        </button>
                     </div>
                 </div>
             </div>
@@ -693,6 +684,29 @@
                     actionTypesChart.resize();
                     activityTimelineChart.resize();
                 });
+            }
+
+            function applyFilters() {
+                const query = document.querySelector('input[name="query"]').value;
+                const actionType = document.getElementById('actionTypeFilter').value;
+                const date = document.getElementById('dateFilter').value;
+                const sort = document.querySelector('input[name="sort"]')?.value || 'createdAt';
+                const dir = document.querySelector('input[name="dir"]')?.value || 'desc';
+
+                let url = '/admin/logs?';
+                const params = new URLSearchParams();
+
+                if (query) params.append('query', query);
+                if (actionType) params.append('actionType', actionType);
+                if (date) params.append('date', date);
+                if (sort) params.append('sort', sort);
+                if (dir) params.append('dir', dir);
+
+                window.location.href = url + params.toString();
+            }
+
+            function clearFilters() {
+                window.location.href = '/admin/logs';
             }
         </script>
     </main>

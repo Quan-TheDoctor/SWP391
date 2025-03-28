@@ -49,7 +49,6 @@ public class AttendanceAPI {
 
     AttendanceCountDTO attendanceCountDTO = attendanceService.countAvailableAttendance(String.valueOf(date));
     System.out.println("absent: " +attendanceCountDTO.getAbsentEmployee());
-    log.info(attendanceCountDTO.toString());
     return ResponseEntity.ok(attendanceCountDTO);
   }
 
@@ -119,8 +118,6 @@ public class AttendanceAPI {
     }
 
     attendanceService.updateAttendanceRecord(record);
-
-    log.info(record.toString());
 
     return ResponseEntity.ok().body(Map.of(
       "success", true,

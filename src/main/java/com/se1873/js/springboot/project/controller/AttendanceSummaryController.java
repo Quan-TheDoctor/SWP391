@@ -147,8 +147,6 @@ public class AttendanceSummaryController {
   public String removeEmployee(@RequestParam Integer employeeId,
                                @ModelAttribute PayrollCalculationForm form,
                                RedirectAttributes redirectAttributes) {
-    log.info("Attempting to remove employee: {}", employeeId);
-
     boolean removed = form.getPayrollCalculations().removeIf(dto -> dto.getEmployeeId().equals(employeeId));
 
     if (removed) {

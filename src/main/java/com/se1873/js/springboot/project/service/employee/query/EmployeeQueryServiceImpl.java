@@ -3,6 +3,7 @@ package com.se1873.js.springboot.project.service.employee.query;
 import com.se1873.js.springboot.project.dto.EmployeeCountDTO;
 import com.se1873.js.springboot.project.dto.EmployeeDTO;
 import com.se1873.js.springboot.project.entity.Employee;
+import com.se1873.js.springboot.project.entity.Contract;
 import com.se1873.js.springboot.project.mapper.EmployeeDTOMapper;
 import com.se1873.js.springboot.project.repository.EmployeeRepository;
 import lombok.extern.slf4j.Slf4j;
@@ -11,6 +12,7 @@ import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 
+import java.util.Collections;
 import java.util.Comparator;
 import java.util.List;
 import java.util.Objects;
@@ -74,13 +76,12 @@ public class EmployeeQueryServiceImpl implements EmployeeQueryService {
 
   @Override
   public Page<EmployeeDTO> getAll(Pageable pageable) {
-    List<EmployeeDTO> employeePage = employeeRepository.findAll(pageable)
-      .stream()
-      .filter(e -> !e.getIsDeleted())
+    Page<Employee> employeePage = employeeRepository.findAllCurrentEmployees(pageable);
+    List<EmployeeDTO> employeeDTOs = employeePage.getContent().stream()
       .map(employeeDTOMapper::toDTO)
       .collect(Collectors.toList());
 
-    return new PageImpl<>(employeePage, pageable, employeePage.size());
+    return new PageImpl<>(employeeDTOs, pageable, employeePage.getTotalElements());
   }
 
   @Override
@@ -89,17 +90,30 @@ public class EmployeeQueryServiceImpl implements EmployeeQueryService {
       case "department" -> employeeRepository.findEmployeesByDepartmentName(value, pageable).map(employeeDTOMapper::toDTO);
       case "position" -> employeeRepository.findEmployeesByPositionName(value, pageable).map(employeeDTOMapper::toDTO);
       case "salaryrange" -> {
-        var employee = employeeRepository.findAll(pageable)
-          .getContent()
-          .stream()
+        double salaryValue = Double.parseDouble(value);
+        List<Employee> employees = employeeRepository.findAll(pageable).getContent();
+        List<Employee> filteredEmployees = employees.stream()
+          .filter(e -> !e.getIsDeleted())
           .filter(e -> e.getContracts().stream()
-            .anyMatch(c -> (Long.parseLong(value) == 10000000 && c.getBaseSalary() <= Long.parseLong(value)) ||
-              (Long.parseLong(value) == 20000000 && c.getBaseSalary() > 10000000 && c.getBaseSalary() <= Long.parseLong(value)) ||
-              (Long.parseLong(value) == 50000000 && c.getBaseSalary() > 20000000 && c.getBaseSalary() <= Long.parseLong(value))))
-          .map(employeeDTOMapper::toDTO)
-          .toList();
+            .filter(Contract::isPresent)
+            .anyMatch(c -> {
+              double salary = c.getBaseSalary();
+              if (salaryValue == 10000000) {
+                return salary <= 10000000;
+              } else if (salaryValue == 20000000) {
+                return salary > 10000000 && salary <= 20000000;
+              } else if (salaryValue == 50000000) {
+                return salary > 20000000 && salary <= 50000000;
+              }
+              return false;
+            }))
+          .collect(Collectors.toList());
 
-        yield new PageImpl<>(employee, pageable, employee.size());
+        yield new PageImpl<>(
+          filteredEmployees.stream().map(employeeDTOMapper::toDTO).collect(Collectors.toList()),
+          pageable,
+          filteredEmployees.size()
+        );
       }
       default -> throw new IllegalArgumentException("Invalid field: " + field);
     };
@@ -107,9 +121,37 @@ public class EmployeeQueryServiceImpl implements EmployeeQueryService {
 
   @Override
   public List<EmployeeDTO> sort(Page<EmployeeDTO> source, String direction, String field) {
-    List<EmployeeDTO> sorted = source.getContent().stream()
-      .sorted(getComparator(field, direction))
+    Pageable pageable = source.getPageable();
+    Page<Employee> sortedEmployees;
+
+    switch (field) {
+      case "firstName":
+        sortedEmployees = employeeRepository.findAllOrderByFirstName(pageable);
+        break;
+      case "departmentName":
+        sortedEmployees = employeeRepository.findAllOrderByDepartmentName(pageable);
+        break;
+      case "positionName":
+        sortedEmployees = employeeRepository.findAllOrderByPositionName(pageable);
+        break;
+//      case "startDate":
+//        sortedEmployees = employeeRepository.findAllOrderByStartDate(pageable);
+//        break;
+      case "salary":
+        sortedEmployees = employeeRepository.findAllOrderByBaseSalary(pageable);
+        break;
+      default:
+        sortedEmployees = employeeRepository.findAllCurrentEmployees(pageable);
+    }
+
+    List<EmployeeDTO> sorted = sortedEmployees.getContent().stream()
+      .map(employeeDTOMapper::toDTO)
       .collect(Collectors.toList());
+
+    if ("desc".equals(direction)) {
+      Collections.reverse(sorted);
+    }
+
     return sorted;
   }
 

@@ -41,8 +41,6 @@ public class ChatRoomController {
     Integer userId = (Integer) headerAccessor.getSessionAttributes().get("userId");
     String username = (String) headerAccessor.getSessionAttributes().get("username");
 
-    log.info("WebSocket session check: userId={}, username={}", userId, username);
-
     return "Session info: userId=" + userId + ", username=" + username;
   }
 

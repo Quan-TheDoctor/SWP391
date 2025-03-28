@@ -20,9 +20,6 @@ public class RoleController {
     @PostMapping("/permissions")
     public ResponseEntity<?> updateRolePermissions(@RequestBody RolePermissionDTO dto) {
         try {
-            log.info("Received update permissions request for role: {}", dto.getRoleName());
-            log.info("Permissions data: {}", dto);
-            
             Role role = roleService.findByName(dto.getRoleName());
             if (role == null) {
                 log.error("Role not found: {}", dto.getRoleName());
@@ -39,7 +36,6 @@ public class RoleController {
 
             roleService.updateRole(role);
             
-            log.info("Successfully updated permissions for role: {}", dto.getRoleName());
             return ResponseEntity.ok().build();
         } catch (Exception e) {
             log.error("Error updating permissions for role: {}", dto.getRoleName(), e);
@@ -50,9 +46,6 @@ public class RoleController {
     @PostMapping
     public ResponseEntity<?> createRole(@RequestBody Role role) {
         try {
-            log.info("Received create role request: {}", role.getName());
-            
-            // Set default permissions if not provided
             if (role.getEmployeePermission() == null) role.setEmployeePermission(PermissionLevel.NONE);
             if (role.getUserPermission() == null) role.setUserPermission(PermissionLevel.NONE);
             if (role.getAttendancePermission() == null) role.setAttendancePermission(PermissionLevel.NONE);
@@ -62,7 +55,6 @@ public class RoleController {
             if (role.getSystemPermission() == null) role.setSystemPermission(PermissionLevel.NONE);
 
             roleService.createRole(role);
-            log.info("Successfully created role: {}", role.getName());
             return ResponseEntity.ok().build();
         } catch (Exception e) {
             log.error("Error creating role: {}", role.getName(), e);
@@ -73,9 +65,7 @@ public class RoleController {
     @DeleteMapping("/{id}")
     public ResponseEntity<?> deleteRole(@PathVariable Long id) {
         try {
-            log.info("Received delete role request for id: {}", id);
             roleService.deleteRole(id);
-            log.info("Successfully deleted role with id: {}", id);
             return ResponseEntity.ok().build();
         } catch (Exception e) {
             log.error("Error deleting role with id: {}", id, e);

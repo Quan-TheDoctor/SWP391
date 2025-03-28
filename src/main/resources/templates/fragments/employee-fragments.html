@@ -154,7 +154,7 @@
                 </div>
 
                 <div class="space-y-2">
-                    <form th:action="@{/employee/filter(field='position')}">
+                    <form th:action="@{/employee/filter}">
                         <input type="hidden" name="field" value="position"/>
                         <label class="block text-sm font-medium text-gray-700">Position</label>
                         <select name="value" onchange="this.form.submit()"
@@ -170,18 +170,35 @@
                 </div>
 
                 <div class="space-y-2">
-                    <form th:action="@{/employee/filter(field='salaryrange')}">
+                    <form th:action="@{/employee/filter}">
                         <input type="hidden" name="field" value="salaryrange"/>
                         <label class="block text-sm font-medium text-gray-700">Salary Range</label>
                         <select name="value" onchange="this.form.submit()"
                                 class="w-full p-2 border rounded-md focus:ring-2 focus:ring-primary-500">
-                            <option value="all">All Range</option>
-                            <option value="10000000"> < 10.000.000</option>
-                            <option value="20000000">10.000.000 - 20.000.000</option>
-                            <option value="50000000"> > 20.000.000</option>
+                            <option value="all">All Ranges</option>
+                            <option value="10000000" th:selected="${param.value != null && param.value[0] == '10000000'}">
+                                ≤ 10,000,000
+                            </option>
+                            <option value="20000000" th:selected="${param.value != null && param.value[0] == '20000000'}">
+                                10,000,000 - 20,000,000
+                            </option>
+                            <option value="50000000" th:selected="${param.value != null && param.value[0] == '50000000'}">
+                                20,000,000 - 50,000,000
+                            </option>
                         </select>
                     </form>
                 </div>
+            </div>
+            
+            <!-- Clear Filters Button -->
+            <div class="flex justify-end">
+                <a th:href="@{/employee}" 
+                   class="px-4 py-2 bg-gray-100 text-gray-700 rounded-md hover:bg-gray-200 transition-colors flex items-center gap-2">
+                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/>
+                    </svg>
+                    Clear Filters
+                </a>
             </div>
         </div>
 

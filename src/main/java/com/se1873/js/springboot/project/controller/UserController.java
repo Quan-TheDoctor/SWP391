@@ -152,7 +152,6 @@ public class UserController {
         Leave leave = leaveRepository.findTopByEmployee_EmployeeIdAndReasonOrderByLeaveIdDesc(getEmployeeId(), selectedPolicy.getLeavePolicyName());
         int remainingDays = leave != null ? leave.getLeaveAllowedDay() : selectedPolicy.getLeavePolicyAmount();
         requestDTO.getLeaveDTO().setLeaveAllowedDay(remainingDays);
-        log.info(String.valueOf(remainingDays));
       }
     }
     model.addAttribute("leavePolicy", leavePolicy);
@@ -212,7 +211,6 @@ public class UserController {
       attendanceDTO = attendanceService.filterByMonth(PageRequest.of(page, size), getEmployeeId(), months, year);
     } else if (status != null) {
       attendanceDTO = attendanceService.filterByStatusAndEmployeeId(PageRequest.of(page, size), status, getEmployeeId());
-      log.info(String.valueOf(getEmployeeId()));
     }
 
     Map<String, Integer> quantity = attendanceService.getQuantityEmployeeDetail(getEmployeeId());

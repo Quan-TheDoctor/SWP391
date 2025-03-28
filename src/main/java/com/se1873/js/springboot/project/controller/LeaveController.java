@@ -21,6 +21,7 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Controller;
@@ -54,6 +55,7 @@ public class LeaveController {
     }
 
     @RequestMapping
+    @PreAuthorize("hasPermission('ATTENDANCE', 'VIEW')")
     public String leave(Model model,
                         @RequestParam(value = "page", required = false, defaultValue = "0") Integer page,
                         @RequestParam(value = "size", required = false, defaultValue = "10") Integer size) {
@@ -69,6 +71,7 @@ public class LeaveController {
     }
 
     @RequestMapping("/leave-policies")
+    @PreAuthorize("hasPermission('SYSTEM', 'VIEW')")
     public String leavepolicies(Model model) {
         List<LeavePolicy> policies = leavePolicyService.getAllLeavePolicies();
         model.addAttribute("policies", policies);
@@ -76,6 +79,7 @@ public class LeaveController {
     }
 
     @RequestMapping("/leavefilter")
+    @PreAuthorize("hasPermission('ATTENDANCE', 'VIEW')")
     public String leavefilter(@RequestParam("value") String leaveType, Model model, Pageable pageable,
                               @RequestParam(value = "page", required = false, defaultValue = "0") Integer page,
                               @RequestParam(value = "size", required = false, defaultValue = "10") Integer size) {
@@ -95,6 +99,7 @@ public class LeaveController {
     }
 
     @RequestMapping("/sort")
+    @PreAuthorize("hasPermission('ATTENDANCE', 'VIEW')")
     public String sort(@RequestParam("field") String field,
                        @RequestParam("direction") String direction,
                        Model model, Pageable pageable,
@@ -113,6 +118,7 @@ public class LeaveController {
     }
 
     @GetMapping("/create-leave")
+    @PreAuthorize("hasPermission('REQUEST', 'ADD')")
     public String createLeaveRequest(
             @RequestParam(name = "department", required = false) Integer departmentId,
             @RequestParam(name = "position", required = false) String positionName,
@@ -164,6 +170,7 @@ public class LeaveController {
     }
 
     @PostMapping("/submit-leave")
+    @PreAuthorize("hasPermission('REQUEST', 'ADD')")
     public String submitLeave( @RequestParam("employeeId") Integer employeeId,
                                @RequestParam("department") Integer departmentId,
                               @RequestParam("leaveType") String leaveType,

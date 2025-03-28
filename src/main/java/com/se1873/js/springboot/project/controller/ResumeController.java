@@ -104,14 +104,11 @@ public class ResumeController {
   @ResponseBody
   public ResponseEntity<?> saveCandidate(@Valid @RequestBody JobApplicationDTO jobApplicationDTO,
                                        BindingResult bindingResult) {
-    log.info("Received request to save candidate profile: {}", jobApplicationDTO);
-    
     if (bindingResult.hasErrors()) {
       Map<String, Object> response = new HashMap<>();
       response.put("success", false);
       response.put("messageType", "error");
       
-      // Xử lý từng lỗi validation cụ thể
       String errorMessage = bindingResult.getFieldErrors().stream()
           .map(error -> {
               switch (error.getField()) {

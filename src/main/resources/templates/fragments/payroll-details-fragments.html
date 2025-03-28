@@ -22,7 +22,7 @@
                         <span>Back</span>
                     </button>
                 </form>
-                <form th:action="@{/payroll/slip}" method="get">
+                <form th:action="@{/payroll/send-payslip}" method="post">
                     <input type="hidden" name="salaryId" th:value="${payroll.salaryRecordId}" />
                     <button type="submit" class="px-4 py-2 bg-white text-blue-600 rounded-md hover:bg-blue-50 transition-colors flex items-center gap-2 shadow">
                         <i class="fas fa-envelope"></i>

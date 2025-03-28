@@ -90,7 +90,6 @@ public class EmployeeController {
                      @ModelAttribute("loggedInUser") User loggedInUser) {
     var employeeDTO = employeeService.getEmployeeByEmployeeId(employeeId);
 
-    log.info(employeeDTO.toString());
     addCommonAttributes(model);
     globalController.createAuditLog(loggedInUser, "View details of Employee #" + employeeDTO.getEmployeeId() , "View", "Normal");
     model.addAttribute("employeeDTO", employeeDTO);

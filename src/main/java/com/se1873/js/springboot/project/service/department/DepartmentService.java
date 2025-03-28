@@ -25,13 +25,11 @@ public class DepartmentService {
 
   @Cacheable(value = "departments", key = "'allDepartments'")
   public List<Department> getAllDepartments() {
-    log.info("Loading departments from DB...");
     return departmentQueryService.getAllDepartments();
   }
 
   @CacheEvict(value = "departments", allEntries = true)
   public void refreshDepartmentsCache() {
-    log.info("Clearing departments cache...");
   }
 
   public Department findDepartmentByDepartmentId(Integer departmentId) {

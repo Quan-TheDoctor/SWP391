@@ -158,7 +158,6 @@ public class RequestController {
     public ResponseEntity<Resource> exportRequests(
             @RequestParam(value = "status", required = false, defaultValue = "all") String status,
             @RequestParam(value = "type", required = false, defaultValue = "all") String type) {
-        log.info("Exporting request data to Excel. Status: {}, Type: {}", status, type);
         Resource file = requestService.exportToExcel(status, type);
 
         return ResponseEntity.ok()
@@ -217,7 +216,6 @@ public class RequestController {
                 new RuntimeException("Không tìm thấy người dùng"));
         requestDTO.getLeaveDTO().setLeavePolicyId(selectedPolicy.getLeavePolicyId());
 
-        log.info(requestDTO.toString());
         requestService.saveRequestForLeave(requestDTO, user.get(), admin);
         redirectAttributes.addFlashAttribute("successMessage", "Yêu cầu nghỉ phép đã được gửi thành công!");
         return "redirect:/user/detail";

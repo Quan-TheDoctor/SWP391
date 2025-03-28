@@ -150,11 +150,11 @@ public class EmployeeCommandServiceImpl implements EmployeeCommandService {
   private void createInitialContract(Employee employee, EmployeeDTO dto) {
     Contract contract = Contract.builder()
       .employee(employee)
-      .contractCode(dto.getContractCode())
       .contractType(dto.getContractType())
+      .contractCode(dto.getContractCode())
       .startDate(dto.getContractStartDate())
       .endDate(dto.getContractEndDate())
-      .baseSalary(dto.getContractBaseSalary())
+      .baseSalary(dto.getContractBaseSalary() * 1000000)
       .signDate(dto.getContractSignDate())
       .isPresent(true)
       .build();
@@ -191,7 +191,7 @@ public class EmployeeCommandServiceImpl implements EmployeeCommandService {
     contract.setContractType(dto.getContractType());
     contract.setStartDate(dto.getContractStartDate());
     contract.setEndDate(dto.getContractEndDate());
-    contract.setBaseSalary(dto.getContractBaseSalary());
+    contract.setBaseSalary(dto.getContractBaseSalary() * 1000000);
     contract.setSignDate(dto.getContractSignDate());
     contractService.save(contract);
   }
@@ -231,8 +231,6 @@ public class EmployeeCommandServiceImpl implements EmployeeCommandService {
         createNewDependent(employee, dependentDTOMapper.toEntity(dependentDTO));
       }
     }
-
-    log.info("Added {} dependents to employee", employee.getDependents().size());
   }
 
   private void createNewDependent(Employee employee, Dependent dependentDTO) {

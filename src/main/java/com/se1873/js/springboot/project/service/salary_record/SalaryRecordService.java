@@ -460,17 +460,15 @@ public class SalaryRecordService {
 
     try {
       if (payrollIds != null && !payrollIds.isEmpty()) {
-        log.info("Exporting by IDs: {}", payrollIds);
         for (Integer id : payrollIds) {
           SalaryRecord record = salaryRecordRepository.findSalaryRecordBySalaryId(id);
           if (record != null) {
             salaryRecords.add(record);
           } else {
-            log.warn("Salary record not found for ID: {}", id);
+            log.error("Salary record not found for ID: {}", id);
           }
         }
       } else if (startDate != null && endDate != null) {
-        log.info("Exporting by date range: {} to {}", startDate, endDate);
         int startMonth = startDate.getMonthValue();
         int startYear = startDate.getYear();
         int endMonth = endDate.getMonthValue();
@@ -490,14 +488,11 @@ public class SalaryRecordService {
           })
           .collect(Collectors.toList());
 
-        log.info("Found {} records in date range", salaryRecords.size());
       } else {
-        log.info("No filter criteria provided, getting all records");
         salaryRecords = salaryRecordRepository.findAll();
       }
 
       if (salaryRecords.isEmpty()) {
-        log.warn("No salary records found for export");
         return createEmptyExcelFile();
       }
 

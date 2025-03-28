@@ -13,6 +13,7 @@ import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.validation.BindingResult;
@@ -42,11 +43,13 @@ public class RecruitmentController {
 
 
   @GetMapping
+  @PreAuthorize("hasPermission('RECRUITMENT', 'VISIBLE')")
   public String recruitmentPage(Model model) {
     List<JobPositionDTO> openPositions = jobPositionService.getOpenPositions();
-    List<JobApplicationDTO> newApplications = jobApplicationService.getApplicationsByStatus("PENDING");
-    List<JobApplicationDTO> interviewingApplications = jobApplicationService.getApplicationsByStatus("INTERVIEW");
-    List<JobApplicationDTO> hiredApplications = jobApplicationService.getApplicationsByStatus("HIRED");
+    List<JobApplicationDTO> newApplications = jobApplicationService.getApplicationsByStatus("Pending");
+    List<JobApplicationDTO> interviewingApplications = jobApplicationService.getApplicationsByStatus("Interviewing");
+    List<JobApplicationDTO> hiredApplications = jobApplicationService.getApplicationsByStatus("Hired");
+    Map<Long, Long> applicationCounts = jobPositionService.getApplicationCounts();
 
     model.addAttribute("openPositions", openPositions);
     model.addAttribute("newApplications", newApplications);
@@ -54,11 +57,13 @@ public class RecruitmentController {
     model.addAttribute("newApplicationsCount", newApplications.size());
     model.addAttribute("interviewingCount", interviewingApplications.size());
     model.addAttribute("hiredCount", hiredApplications.size());
+    model.addAttribute("applicationCounts", applicationCounts);
     model.addAttribute(CONTENT_FRAGMENT, "fragments/recruitment-index-fragments");
     return INDEX;
   }
 
   @GetMapping("/positions")
+  @PreAuthorize("hasPermission('RECRUITMENT', 'VISIBLE')")
   public String positionsPage(Model model,
                               @RequestParam(required = false) String keyword,
                               @RequestParam(required = false) String status,
@@ -92,6 +97,7 @@ public class RecruitmentController {
   }
 
   @GetMapping("/positions/new")
+  @PreAuthorize("hasPermission('RECRUITMENT', 'ADD')")
   public String showCreatePositionForm(Model model) {
     model.addAttribute("jobPositionDTO", new JobPositionDTO());
     model.addAttribute(DEPARTMENTS, jobPositionService.getAllDepartments());
@@ -100,12 +106,14 @@ public class RecruitmentController {
   }
 
   @PostMapping("/positions/create")
+  @PreAuthorize("hasPermission('RECRUITMENT', 'ADD')")
   public String createPosition(@ModelAttribute JobPositionDTO positionDTO) {
     JobPositionDTO createdPosition = jobPositionService.createPosition(positionDTO);
     return "redirect:/recruitment/positions/" + createdPosition.getId();
   }
 
   @GetMapping("/positions/{id}")
+  @PreAuthorize("hasPermission('RECRUITMENT', 'VISIBLE')")
   public String positionDetailPage(@PathVariable Long id, Model model) {
     JobPositionDTO position = jobPositionService.getPositionById(id);
     List<JobApplicationDTO> applications = jobApplicationService.getApplicationsByPosition(id);
@@ -116,6 +124,7 @@ public class RecruitmentController {
   }
 
   @GetMapping("/applications")
+  @PreAuthorize("hasPermission('RECRUITMENT', 'VISIBLE')")
   public String applicationsPage(Model model,
                                  @RequestParam(required = false) Long positionId,
                                  @RequestParam(required = false) String status) {
@@ -152,6 +161,7 @@ public class RecruitmentController {
   }
 
   @GetMapping("/applications/{id}")
+  @PreAuthorize("hasPermission('RECRUITMENT', 'VISIBLE')")
   public String applicationDetailPage(@PathVariable Long id, Model model) {
     JobApplicationDTO jobApplication = jobApplicationService.getApplicationById(id);
     JobPositionDTO jobPosition = jobPositionService.getPositionById(jobApplication.getJobPositionId());
@@ -162,6 +172,7 @@ public class RecruitmentController {
   }
 
   @PostMapping("/applications/{id}/status")
+  @PreAuthorize("hasPermission('RECRUITMENT', 'UPDATE')")
   public String updateApplicationStatus(
     @PathVariable Long id,
     @RequestParam String status) {
@@ -170,6 +181,7 @@ public class RecruitmentController {
   }
 
   @GetMapping("/applications/{id}/edit")
+  @PreAuthorize("hasPermission('RECRUITMENT', 'UPDATE')")
   public String editApplicationPage(@PathVariable Long id, Model model) {
     JobApplicationDTO application = jobApplicationService.getApplicationById(id);
     model.addAttribute("jobApplication", application);
@@ -177,6 +189,7 @@ public class RecruitmentController {
   }
 
   @PostMapping("/applications/{id}/edit")
+  @PreAuthorize("hasPermission('RECRUITMENT', 'UPDATE')")
   public String updateApplication(@PathVariable Long id,
                                   @ModelAttribute JobApplicationDTO applicationDTO,
                                   RedirectAttributes redirectAttributes) {
@@ -192,6 +205,7 @@ public class RecruitmentController {
   }
 
   @GetMapping("/positions/{id}/edit")
+  @PreAuthorize("hasPermission('RECRUITMENT', 'UPDATE')")
   public String showEditPositionForm(@PathVariable Long id, Model model) {
     JobPositionDTO position = jobPositionService.getPositionById(id);
     if (position == null) {
@@ -204,6 +218,7 @@ public class RecruitmentController {
   }
 
   @PostMapping("/positions/{id}/edit")
+  @PreAuthorize("hasPermission('RECRUITMENT', 'UPDATE')")
   public String updatePosition(@PathVariable Long id, 
                              @Valid @ModelAttribute JobPositionDTO positionDTO,
                              BindingResult bindingResult,
@@ -231,6 +246,7 @@ public class RecruitmentController {
   }
 
   @DeleteMapping("/positions/{id}")
+  @PreAuthorize("hasPermission('RECRUITMENT', 'MANAGE')")
   public ResponseEntity<?> deletePosition(@PathVariable Long id) {
     try {
       jobPositionService.deletePosition(id);
@@ -241,6 +257,7 @@ public class RecruitmentController {
   }
 
   @PostMapping("/positions/{id}/close")
+  @PreAuthorize("hasPermission('RECRUITMENT', 'UPDATE')")
   public ResponseEntity<?> closePosition(@PathVariable Long id) {
     try {
       JobPositionDTO closedPosition = jobPositionService.closePosition(id);
@@ -251,15 +268,14 @@ public class RecruitmentController {
   }
 
   @PostMapping("/applications/{id}/update-status")
+  @PreAuthorize("hasPermission('RECRUITMENT', 'UPDATE')")
   public String updateApplicationStatusAndNotes(
     @PathVariable Long id,
     @RequestParam String newStatus,
     @RequestParam(required = false) String notes,
     RedirectAttributes redirectAttributes) {
-    log.info("hahaha");
     try {
       jobApplicationService.updateApplicationStatusAndNotes(id, newStatus, notes);
-      log.info("hahahaa");
       redirectAttributes.addFlashAttribute("success", "Application status updated successfully");
       return stringUtils.getRedirectMapping(RECRUITMENT_APPLICATION_URL + id);
     } catch (Exception e) {
@@ -270,6 +286,7 @@ public class RecruitmentController {
   }
 
   @GetMapping("/applications/{id}/create-employee")
+  @PreAuthorize("hasPermission('RECRUITMENT', 'ADD')")
   public String createEmployeeFromApplication(@PathVariable Long id, Model model) {
     JobApplicationDTO application = jobApplicationService.getApplicationById(id);
     if (application == null) {
@@ -278,18 +295,14 @@ public class RecruitmentController {
 
     EmployeeDTO employeeDTO = new EmployeeDTO();
     
-    // Xử lý tên
     String fullName = application.getCandidateName().trim();
     String[] nameParts = fullName.split("\\s+");
     if (nameParts.length >= 2) {
-        // Lấy phần tử cuối làm last name
         String lastName = nameParts[nameParts.length - 1];
-        // Lấy tất cả các phần còn lại làm first name
         String firstName = String.join(" ", Arrays.copyOfRange(nameParts, 0, nameParts.length - 1));
         employeeDTO.setEmployeeFirstName(firstName);
         employeeDTO.setEmployeeLastName(lastName);
     } else {
-        // Nếu chỉ có 1 từ, đặt làm first name
         employeeDTO.setEmployeeFirstName(fullName);
         employeeDTO.setEmployeeLastName("");
     }
