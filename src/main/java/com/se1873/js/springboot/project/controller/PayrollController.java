@@ -10,6 +10,7 @@ import com.se1873.js.springboot.project.service.salary_record.SalaryRecordServic
 import com.se1873.js.springboot.project.service.salary_record.query.SalaryRecordQueryService;
 import com.se1873.js.springboot.project.service.department.DepartmentService;
 import com.se1873.js.springboot.project.service.position.PositionService;
+import com.se1873.js.springboot.project.utils.EmailUtils;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.Page;
@@ -26,6 +27,8 @@ import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.validation.BindingResult;
 import org.springframework.web.bind.annotation.*;
+import org.thymeleaf.TemplateEngine;
+import org.thymeleaf.context.Context;
 
 import java.text.SimpleDateFormat;
 import java.time.LocalDate;
@@ -46,6 +49,8 @@ public class PayrollController {
   private final PositionService positionService;
   private final FinancialPolicyService financialPolicyService;
   private final GlobalController globalController;
+  private final EmailUtils emailUtils;
+  private final TemplateEngine templateEngine;
 
   @GetMapping
   @PreAuthorize("hasPermission('PAYROLL', 'VISIBLE')")
@@ -77,8 +82,6 @@ public class PayrollController {
     model.addAttribute("labels", labels);
     model.addAttribute("salaryValues", salaryValues);
     model.addAttribute("deductionValues", deductionValues);
-
-    log.info("Đã tải {} bản ghi lương cho trang hiện tại", payrolls.getContent().size());
     model.addAttribute("contentFragment", "fragments/payroll-fragments");
     return "index";
   }
@@ -312,7 +315,6 @@ public class PayrollController {
                              @RequestParam(value = "service", required = false) String service,
                              @ModelAttribute("financialPolicyDTOList") FinancialPolicyDTOList financialPolicyDTOList,
                              BindingResult bindingResult) {
-    log.info(financialPolicyDTOList.toString());
     if ("cancel".equals(service)) {
       return "redirect:/payroll";
     }
@@ -541,6 +543,29 @@ public class PayrollController {
         return p1.getSalaryRecordPaymentStatus().compareTo(p2.getSalaryRecordPaymentStatus());
       default:
         return 0;
+    }
+  }
+
+  @PostMapping("/send-payslip")
+  @PreAuthorize("hasPermission('PAYROLL', 'MANAGE')")
+  public String sendPayrollSlip(@RequestParam("salaryId") Integer salaryId, Model model) {
+    try {
+      PayrollDTO payroll = salaryRecordService.payrollDTO(salaryId);
+      String month = String.valueOf(payroll.getSalaryRecordMonth());
+      String year = String.valueOf(payroll.getSalaryRecordYear());
+      String employeeName = payroll.getEmployeeFirstName() + " " + payroll.getEmployeeLastName();
+      String employeeEmail = employeeService.getEmployeeByEmployeeId(payroll.getEmployeeId()).getEmployeePersonalEmail();
+
+      Context context = new Context();
+      context.setVariable("payroll", payroll);
+      String payslipContent = templateEngine.process("fragments/payroll-slip-fragments", context);
+
+      emailUtils.sendPayslipEmail(employeeEmail, employeeName, month, year, payslipContent);
+
+      return "redirect:/payroll/detail?salaryId=" + salaryId + "&success=Payslip+sent+successfully";
+    } catch (Exception e) {
+      log.error("Error sending payslip: ", e);
+      return "redirect:/payroll/detail?salaryId=" + salaryId + "&error=Failed+to+send+payslip";
     }
   }
 

@@ -438,7 +438,6 @@ public class RequestService {
                       .sorted(Comparator.comparing(SalaryRecord::getCreatedAt, Comparator.nullsLast(Comparator.reverseOrder())))
                       .toList();
 
-              log.info("..... {}", salaryRecords);
               Double newBaseSalary = salaryRecords.isEmpty() ? 0.0 : salaryRecords.get(0).getBaseSalary();
 
               Double oldBaseSalary = salaryRecords.size() > 1 ? salaryRecords.get(1).getBaseSalary() : 0.0;
@@ -488,21 +487,18 @@ public class RequestService {
   public Page<RequestDTO> multiFilter(String type, String status, String dateRange, String approver, String department, Pageable pageable) {
     try {
       List<Request> allRequests = requestRepository.findAll();
-      log.info("Tổng số requests ban đầu: {}", allRequests.size());
       List<RequestDTO> filteredRequests = new ArrayList<>();
 
       if (type != null && !type.equals("all")) {
         allRequests = allRequests.stream()
                 .filter(r -> r.getRequestType().equals(type))
                 .collect(Collectors.toList());
-        log.info("Số requests sau lọc theo type: {}", allRequests.size());
       }
 
       if (status != null && !status.equals("all")) {
         allRequests = allRequests.stream()
                 .filter(r -> r.getStatus().equals(status))
                 .collect(Collectors.toList());
-        log.info("Số requests sau lọc theo status: {}", allRequests.size());
       }
 
       if (dateRange != null && !dateRange.isEmpty()) {
@@ -517,7 +513,6 @@ public class RequestService {
                     return !requestDate.isBefore(startDate) && !requestDate.isAfter(endDate);
                   })
                   .collect(Collectors.toList());
-          log.info("Số requests sau lọc theo dateRange: {}", allRequests.size());
         }
       }
 
@@ -525,7 +520,6 @@ public class RequestService {
         allRequests = allRequests.stream()
                 .filter(r -> r.getApproval() != null && r.getApproval().getUserId().toString().equals(approver))
                 .collect(Collectors.toList());
-        log.info("Số requests sau lọc theo approver: {}", allRequests.size());
       }
 
       if (department != null && !department.equals("all")) {
@@ -535,26 +529,19 @@ public class RequestService {
                   return employeeDTO.getDepartmentId().toString().equals(department);
                 })
                 .collect(Collectors.toList());
-        log.info("Số requests sau lọc theo department: {}", allRequests.size());
       }
 
       filteredRequests = allRequests.stream()
               .map(this::convertRequestToDTO)
               .collect(Collectors.toList());
-      log.info("Số requests sau chuyển đổi sang DTO: {}", filteredRequests.size());
 
       int start = (int) pageable.getOffset();
       int end = Math.min((start + pageable.getPageSize()), filteredRequests.size());
-      log.info("Phân trang - start: {}, end: {}, pageSize: {}, totalSize: {}",
-               start, end, pageable.getPageSize(), filteredRequests.size());
-
       if (filteredRequests.isEmpty()) {
-        log.info("Không có dữ liệu sau khi lọc");
         return new PageImpl<>(Collections.emptyList(), pageable, 0);
       }
 
       List<RequestDTO> pageContent = filteredRequests.subList(start, end);
-      log.info("Số lượng items trong trang hiện tại: {}", pageContent.size());
 
       return new PageImpl<>(pageContent, pageable, filteredRequests.size());
     } catch (Exception e) {

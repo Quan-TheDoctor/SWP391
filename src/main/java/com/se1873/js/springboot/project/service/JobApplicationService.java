@@ -68,17 +68,11 @@ public class JobApplicationService {
 
     @Transactional
     public JobApplication saveJobApplication(JobApplicationDTO dto) {
-        log.info("Starting to save job application for candidate: {}", dto.getCandidateName());
-        
-        log.debug("Finding job position with ID: {}", dto.getJobPositionId());
         JobPosition jobPosition = jobPositionRepository.findById(dto.getJobPositionId())
             .orElseThrow(() -> {
                 log.error("Job position not found with ID: {}", dto.getJobPositionId());
                 return new RuntimeException("Job position not found");
             });
-        log.debug("Found job position: {}", jobPosition.getTitle());
-
-        log.debug("Creating new job application entity");
         JobApplication jobApplication = new JobApplication();
         jobApplication.setJobPosition(jobPosition);
         jobApplication.setCandidateName(dto.getCandidateName());
@@ -89,7 +83,6 @@ public class JobApplicationService {
         jobApplication.setStatus("Pending");
         jobApplication.setNotes(dto.getNotes());
 
-        // Parse experience JSON to formatted string
         if (dto.getExperience() != null) {
             try {
                 List<Map<String, String>> experiences = objectMapper.readValue(dto.getExperience(), List.class);
@@ -108,7 +101,6 @@ public class JobApplicationService {
             }
         }
 
-        // Parse education JSON to formatted string
         if (dto.getEducation() != null) {
             try {
                 List<Map<String, String>> educations = objectMapper.readValue(dto.getEducation(), List.class);
@@ -129,10 +121,7 @@ public class JobApplicationService {
 
         jobApplication.setSkills(dto.getSkills());
 
-        log.debug("Saving job application to database");
         JobApplication savedApplication = jobApplicationRepository.save(jobApplication);
-        log.info("Successfully saved job application with ID: {}", savedApplication.getId());
-
         return savedApplication;
     }
 
@@ -166,15 +155,6 @@ public class JobApplicationService {
                 .orElseThrow(() -> new RuntimeException("Application not found"));
         
         String currentStatus = application.getStatus();
-        log.info("Current status: '{}'", currentStatus);
-        log.info("New status: '{}'", newStatus);
-        log.info("Current status length: {}", currentStatus.length());
-        log.info("New status length: {}", newStatus.length());
-        log.info("Current status bytes: {}", currentStatus.getBytes());
-        log.info("New status bytes: {}", newStatus.getBytes());
-        log.info("Current status trim: '{}'", currentStatus.trim());
-        log.info("New status trim: '{}'", newStatus.trim());
-        
         if (!isValidStatusTransition(currentStatus.trim(), newStatus.trim())) {
             throw new RuntimeException("Invalid status transition from " + currentStatus + " to " + newStatus);
         }
@@ -196,7 +176,6 @@ public class JobApplicationService {
         
         jobApplicationRepository.save(application);
 
-        // Gửi email thông báo
         emailUtils.sendStatusUpdateEmail(
             application.getEmail(),
             application.getCandidateName(),
@@ -232,7 +211,33 @@ public class JobApplicationService {
         dto.setExperience(jobApplication.getExperience());
         dto.setEducation(jobApplication.getEducation());
         dto.setSkills(jobApplication.getSkills());
+        dto.setMatchRate(calculateMatchRate(jobApplication));
         return dto;
+    }
+
+    private int calculateMatchRate(JobApplication application) {
+        String requirements = application.getJobPosition().getRequirements().toLowerCase();
+        String skills = application.getSkills() != null ? application.getSkills().toLowerCase() : "";
+        String experience = application.getExperience() != null ? application.getExperience().toLowerCase() : "";
+        String education = application.getEducation() != null ? application.getEducation().toLowerCase() : "";
+
+        String[] requirementLines = requirements.split("\n");
+        int totalRequirements = requirementLines.length;
+        int matchedRequirements = 0;
+
+        for (String requirement : requirementLines) {
+            requirement = requirement.trim().toLowerCase();
+            if (requirement.isEmpty()) continue;
+
+            if (skills.contains(requirement) ||
+                experience.contains(requirement) || 
+                education.contains(requirement)) {
+                matchedRequirements++;
+            }
+        }
+
+        if (totalRequirements == 0) return 0;
+        return (int) ((matchedRequirements * 100.0) / totalRequirements);
     }
 
     public JobApplicationDTO getJobApplicationById(Long id) {

@@ -766,7 +766,6 @@
         }
 
         function resetFilters() {
-            // Reset các select box
             const typeFilter = document.getElementById('typeFilter');
             const statusFilter = document.getElementById('statusFilter');
             const approverFilter = document.getElementById('approverFilter');
@@ -777,7 +776,6 @@
             if (approverFilter) approverFilter.value = 'all';
             if (departmentFilter) departmentFilter.value = 'all';
 
-            // Reset date range picker
             const dateRangeInput = $('.date-range-picker');
             if (dateRangeInput.length) {
                 dateRangeInput.val('');
@@ -789,7 +787,6 @@
                 }
             }
 
-            // Submit form
             const form = document.getElementById('multiFilterForm');
             if (form) {
                 form.submit();
@@ -797,7 +794,6 @@
         }
 
         $(document).ready(function() {
-            // Khởi tạo daterangepicker nếu có giá trị đã lưu
             const dateRangeInput = $('.date-range-picker');
             if (dateRangeInput.length && dateRangeInput.val()) {
                 const dates = dateRangeInput.val().split(' - ');

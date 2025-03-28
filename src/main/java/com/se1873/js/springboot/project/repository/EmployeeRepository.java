@@ -82,5 +82,51 @@ public interface EmployeeRepository extends JpaRepository<Employee, Long> {
 
   Optional<Employee> findByEmployeeCode (String employeeCode);
 
+  @Query("SELECT e FROM Employee e " +
+          "JOIN e.employmentHistories eh " +
+          "JOIN eh.department d " +
+          "JOIN eh.position p " +
+          "WHERE eh.isCurrent = true " +
+          "AND e.isDeleted = false " +
+          "ORDER BY e.employeeId")
+  Page<Employee> findAllCurrentEmployees(Pageable pageable);
+
+  @Query("SELECT e FROM Employee e " +
+          "JOIN e.employmentHistories eh " +
+          "JOIN eh.department d " +
+          "JOIN eh.position p " +
+          "WHERE eh.isCurrent = true " +
+          "AND e.isDeleted = false " +
+          "ORDER BY e.firstName")
+  Page<Employee> findAllOrderByFirstName(Pageable pageable);
+
+  @Query("SELECT e FROM Employee e " +
+          "JOIN e.employmentHistories eh " +
+          "JOIN eh.department d " +
+          "JOIN eh.position p " +
+          "WHERE eh.isCurrent = true " +
+          "AND e.isDeleted = false " +
+          "ORDER BY d.departmentName")
+  Page<Employee> findAllOrderByDepartmentName(Pageable pageable);
+
+  @Query("SELECT e FROM Employee e " +
+          "JOIN e.employmentHistories eh " +
+          "JOIN eh.department d " +
+          "JOIN eh.position p " +
+          "WHERE eh.isCurrent = true " +
+          "AND e.isDeleted = false " +
+          "ORDER BY p.positionName")
+  Page<Employee> findAllOrderByPositionName(Pageable pageable);
+
+  @Query("SELECT e FROM Employee e " +
+          "JOIN e.employmentHistories eh " +
+          "JOIN eh.department d " +
+          "JOIN eh.position p " +
+          "JOIN e.contracts c " +
+          "WHERE eh.isCurrent = true " +
+          "AND c.isPresent = true " +
+          "AND e.isDeleted = false " +
+          "ORDER BY c.baseSalary")
+  Page<Employee> findAllOrderByBaseSalary(Pageable pageable);
 
 }

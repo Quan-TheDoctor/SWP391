@@ -394,23 +394,18 @@
     });
 
     function selectRole(element) {
-        // Xóa highlight từ tất cả các role
         document.querySelectorAll('.role-item').forEach(item => {
             item.classList.remove('bg-primary-50', 'border-primary-500');
         });
         
-        // Thêm highlight cho role được chọn
         element.classList.add('bg-primary-50', 'border-primary-500');
         
-        // Cập nhật tên role được chọn
         const roleName = element.getAttribute('data-role-name');
         document.getElementById('selectedRoleName').textContent = roleName;
         
-        // Cập nhật các quyền
         const permissions = element.getAttribute('data-role-permissions').split(',');
         originalPermissions = [...permissions];
         
-        // Cập nhật các select box
         document.getElementById('employeePermission').value = permissions[0];
         document.getElementById('userPermission').value = permissions[1];
         document.getElementById('attendancePermission').value = permissions[2];

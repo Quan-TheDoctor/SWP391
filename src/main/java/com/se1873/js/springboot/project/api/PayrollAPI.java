@@ -42,7 +42,6 @@ public class PayrollAPI {
     @RequestMapping("/averageDepartmentSalary")
     public ResponseEntity<List<AverageSalaryDTO>> averageSalaryDTOS(@RequestParam("year") int year) {
         List<AverageSalaryDTO> averageSalaryDTOList = salaryRecordService.getAverageSalaryByYear(year);
-        log.info(averageSalaryDTOList.toString());
         return ResponseEntity.ok(averageSalaryDTOList);
     }
 

@@ -35,9 +35,33 @@ public class EmailUtils {
 
             helper.setText(content, true);
             mailSender.send(message);
-            log.info("Đã gửi email thông báo cập nhật trạng thái đến {}", to);
         } catch (MessagingException e) {
-            log.error("Lỗi khi gửi email thông báo cập nhật trạng thái: {}", e.getMessage());
+        }
+    }
+
+    public void sendPayslipEmail(String to, String employeeName, String month, String year, String content) {
+        try {
+            MimeMessage message = mailSender.createMimeMessage();
+            MimeMessageHelper helper = new MimeMessageHelper(message, true, "UTF-8");
+
+            helper.setTo(to);
+            helper.setSubject("Payslip - " + month + " " + year);
+
+            String emailContent = String.format("""
+                <html>
+                    <body>
+                        <p>Xin chào %s,</p>
+                        <p>Dưới đây là bảng lương của bạn cho tháng %s năm %s:</p>
+                        %s
+                        <p>Trân trọng,<br>Phòng Nhân sự</p>
+                    </body>
+                </html>
+                """, employeeName, month, year, content);
+
+            helper.setText(emailContent, true);
+            mailSender.send(message);
+        } catch (MessagingException e) {
+            log.error("Error sending payslip email: ", e);
         }
     }
 } 

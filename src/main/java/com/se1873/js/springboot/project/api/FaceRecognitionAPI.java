@@ -135,11 +135,6 @@ public class FaceRecognitionAPI {
   @PostMapping("/recognition-success")
   public ResponseEntity<?> handleRecognitionSuccess(@RequestBody Map<String, Object> recognitionData) {
     try {
-      log.info("Recognition success: User {} (ID: {}) recognized with confidence {}",
-        recognitionData.get("name"),
-        recognitionData.get("id"),
-        recognitionData.get("confidence"));
-
       Integer id = Integer.parseInt(recognitionData.get("id").toString());
       String type = String.valueOf(recognitionData.get("type"));
       try {
@@ -153,7 +148,6 @@ public class FaceRecognitionAPI {
         notificationService.sendWSMessage(id, result, type);
       } catch (Exception e) {
         log.error("Error processing attendance check", e);
-
       }
 
       Map<String, String> response = new HashMap<>();

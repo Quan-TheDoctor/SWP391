@@ -28,8 +28,6 @@ class PythonScript {
 
       processBuilder.redirectErrorStream(true);
 
-      log.info("Starting face recognition script in directory: {}", scriptDir.getAbsolutePath());
-
       Process process = processBuilder.start();
 
       try (BufferedReader reader = new BufferedReader(new InputStreamReader(process.getInputStream()))) {

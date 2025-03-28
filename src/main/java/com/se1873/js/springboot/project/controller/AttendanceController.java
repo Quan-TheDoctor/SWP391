@@ -63,7 +63,7 @@ public class AttendanceController {
 
 
   @GetMapping("/search")
-  @PreAuthorize("hasPermission('ATTENDANCE', 'VIEW')")
+  @PreAuthorize("hasPermission('ATTENDANCE', 'VISIBLE')")
   public String search(@RequestParam("query") String query,
                        @RequestParam(value = "page", defaultValue = "0") Integer page,
                        @RequestParam(value = "size", defaultValue = "10") Integer size,
@@ -90,7 +90,7 @@ public class AttendanceController {
   }
 
   @GetMapping("/filter")
-  @PreAuthorize("hasPermission('ATTENDANCE', 'VIEW')")
+  @PreAuthorize("hasPermission('ATTENDANCE', 'VISIBLE')")
   public String filterStatus(@RequestParam(value = "status", required = false) String status,
                              @RequestParam(value = "page", defaultValue = "0") Integer page,
                              @RequestParam(value = "size", defaultValue = "10") Integer size,
@@ -122,7 +122,7 @@ public class AttendanceController {
   }
 
   @GetMapping("/sort")
-  @PreAuthorize("hasPermission('ATTENDANCE', 'VIEW')")
+  @PreAuthorize("hasPermission('ATTENDANCE', 'VISIBLE')")
   public String sort(@RequestParam(value = "field", required = true) String field,
                      @RequestParam(value = "direction", defaultValue = "asc") String direction,
                      @RequestParam(value = "page", defaultValue = "0") Integer page,
@@ -162,7 +162,7 @@ public class AttendanceController {
 
 
   @GetMapping
-  @PreAuthorize("hasPermission('ATTENDANCE', 'VIEW')")
+  @PreAuthorize("hasPermission('ATTENDANCE', 'VISIBLE')")
   public String index(Model model,
                       @RequestParam(value = "query", required = false) String query,
                       @RequestParam(value = "view", required = false) String view,

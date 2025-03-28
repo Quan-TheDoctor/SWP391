@@ -22,13 +22,11 @@ public class PositionService {
 
   @Cacheable(value = "positions", key = "'allPositions'")
   public List<Position> getAllPositions() {
-    log.info("Loading positions from DB...");
     return positionRepository.findAll();
   }
 
   @CacheEvict(value = "positions", allEntries = true)
   public void refreshPositionsCache() {
-    log.info("Clearing positions cache...");
   }
 
   public Position findPositionByPositionId(Integer positionId) {

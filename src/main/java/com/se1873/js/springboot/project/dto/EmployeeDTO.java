@@ -3,6 +3,8 @@ package com.se1873.js.springboot.project.dto;
 import com.se1873.js.springboot.project.entity.Dependent;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
+import jakarta.validation.constraints.Pattern;
+import jakarta.validation.constraints.Size;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
@@ -26,11 +28,14 @@ public class EmployeeDTO {
   @NotBlank(message = "Last name cannot be blank") private String employeeLastName;
   @NotNull @DateTimeFormat(pattern = "yyyy-MM-dd") private LocalDate employeeBirthDate;
   private String employeeGender;
-  @NotBlank(message = "ID Number cannot be blank") private String employeeIdNumber;
+  @NotBlank(message = "ID Number cannot be blank")
+  @Pattern(regexp = "^\\d{12}$", message = "ID Number must be exactly 12 digits")
+  private String employeeIdNumber;
   @NotBlank(message = "Permanent Address cannot be blank") private String employeePermanentAddress;
   private String employeeTemporaryAddress;
   @NotBlank(message = "Personal Email cannot be blank") private String employeePersonalEmail;
   private String employeeCompanyEmail;
+  @Pattern(regexp = "^\\d{10}$", message = "Phone number must be exactly 10 digits")
   private String employeePhone;
   private String employeeMaritalStatus;
   private String employeeBankAccount;
@@ -68,7 +73,7 @@ public class EmployeeDTO {
   private LocalDateTime contractCreatedAt;
   @DateTimeFormat(pattern = "yyyy-MM-dd") private LocalDate contractStartDate;
   @DateTimeFormat(pattern = "yyyy-MM-dd") private LocalDate contractEndDate;
-  @NumberFormat(style = NumberFormat.Style.NUMBER) private Double contractBaseSalary;
+  @NumberFormat(style = NumberFormat.Style.NUMBER, pattern = "#,##0.00") private Double contractBaseSalary;
   @DateTimeFormat(pattern = "yyyy-MM-dd") private LocalDate contractSignDate;
 
   private List<DependentDTO> dependents = new ArrayList<>();

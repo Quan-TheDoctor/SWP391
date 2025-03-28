@@ -191,7 +191,7 @@
                             </td>
                             <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500" th:text="${#temporals.format(position.deadline, 'dd/MM/yyyy')}">01/01/2023</td>
                             <td class="px-6 py-4 whitespace-nowrap">
-                                <span class="px-2 py-1 inline-flex text-xs leading-5 font-semibold rounded-full bg-primary-100 text-primary-800" th:text="${position.applicationCount}">0</span>
+                                <span class="px-2 py-1 inline-flex text-xs leading-5 font-semibold rounded-full bg-primary-100 text-primary-800" th:text="${applicationCounts.get(position.id) ?: 0}">0</span>
                             </td>
                             <td class="px-6 py-4 whitespace-nowrap text-sm font-medium">
                                 <a th:href="@{/recruitment/positions/{id}(id=${position.id})}" class="text-primary-600 hover:text-primary-900">Details</a>

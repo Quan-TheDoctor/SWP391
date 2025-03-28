@@ -60,7 +60,6 @@ public class AttendanceService {
   public Page<AttendanceDTO> getAll(LocalDate startDate, LocalDate endDate, Pageable pageable) {
     var employees = employeeService.getAll(PageRequest.of(0, 1000));
     List<EmployeeDTO> employeeDTOS = employees.getContent();
-    log.info(employeeDTOS.toString());
     List<AttendanceDTO> attendanceDTOS = new ArrayList<>();
 
     for (EmployeeDTO employee : employeeDTOS) {
@@ -245,7 +244,7 @@ public class AttendanceService {
   }
 
   private AttendanceDTO createDefaultAttendanceDTO(EmployeeDTO employee, LocalDate date) {
-    return AttendanceDTO.builder().employeeId(employee.getEmployeeId()).employeeFirstName(employee.getEmployeeFirstName()).employeeLastName(employee.getEmployeeLastName()).employeeCode(employee.getEmployeeCode()).attendanceDate(date).attendanceStatus("CHƯA CHẤM CÔNG").attendanceCheckIn(null).attendanceCheckOut(null).attendanceOvertimeHours(0.0).build();
+    return AttendanceDTO.builder().employeeId(employee.getEmployeeId()).employeeFirstName(employee.getEmployeeFirstName()).employeeLastName(employee.getEmployeeLastName()).employeeCode(employee.getEmployeeCode()).attendanceDate(date).attendanceStatus("Not check").attendanceCheckIn(null).attendanceCheckOut(null).attendanceOvertimeHours(0.0).build();
   }
 
   public AttendanceCountDTO countAvailableAttendance(String date) {
@@ -271,22 +270,15 @@ public class AttendanceService {
     String normalizedSearchText = employeeName.trim();
 
     Page<AttendanceDTO> attendancesPage = attendanceRepository.searchAttendanceByEmployeeName(normalizedSearchText, pageable).map(attendanceDTOMapper::toDTO);
-    log.info(attendancesPage.getContent().toString());
     if (startDate != null && endDate != null) {
       List<AttendanceDTO> filteredContent = attendancesPage.getContent().stream().filter(a -> {
         return a.getAttendanceDate().isAfter(startDate);
       }).collect(Collectors.toList());
 
-      log.info(filteredContent.toString());
-
       Page<AttendanceDTO> filteredPage = new PageImpl<>(filteredContent, attendancesPage.getPageable(), filteredContent.size());
-
-      log.info("Found {} attendance records matching search text: '{}' in date range {} to {}", filteredContent.size(), normalizedSearchText, startDate, endDate);
 
       return filteredPage;
     }
-
-    log.info("Found {} attendance records matching search text: '{}'", attendancesPage.getTotalElements(), normalizedSearchText);
 
     return attendancesPage;
   }
@@ -672,7 +664,6 @@ public class AttendanceService {
       return "Clock In";
     } else if ("clockout".equals(type)) {
       AttendanceDTO attendance = getAttendanceByEmployeeIdAndDate(employeeId, LocalDate.now());
-      log.info(attendance.toString());
       if (attendance.getAttendanceCheckIn() == null) return "Not yet Clock In";
       if (attendance.getAttendanceCheckOut() != null) return "Already Clock Out";
       attendance.setAttendanceCheckOut(LocalTime.now());
@@ -721,9 +712,7 @@ public class AttendanceService {
 
   public void saveAttendance(Attendance attendance) {
     try {
-      log.info("Saving attendance: {}", attendance);
       Attendance saved = attendanceRepository.save(attendance);
-      log.info("Saved attendance with ID: {}", saved.getAttendanceId());
     } catch (Exception e) {
       log.error("Error saving attendance: ", e);
       throw e;
@@ -817,8 +806,6 @@ public class AttendanceService {
   }
 
   public Page<AttendanceDTO> getAll(LocalDate startDate, LocalDate endDate, String status, Pageable pageable) {
-    log.info("Fetching attendance records from {} to {} with status: {}", startDate, endDate, status);
-
     Page<Attendance> attendances;
     if (status != null && !status.isEmpty()) {
       attendances = attendanceRepository.findAttendancesByStatusAndDateRange(startDate, endDate, status, pageable);
@@ -826,7 +813,6 @@ public class AttendanceService {
       attendances = attendanceRepository.findAttendancesByDateRange(startDate, endDate, pageable);
     }
 
-    log.info("Fetched {} attendance records", attendances.getTotalElements());
     return attendances.map(attendanceDTOMapper::toDTO);
   }
 

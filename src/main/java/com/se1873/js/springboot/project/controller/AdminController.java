@@ -18,12 +18,10 @@ import jakarta.persistence.EntityManager;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.data.domain.Page;
-import org.springframework.data.domain.PageRequest;
-import org.springframework.data.domain.Pageable;
-import org.springframework.data.domain.Sort;
+import org.springframework.data.domain.*;
 import org.springframework.data.web.PageableDefault;
 import org.springframework.format.annotation.DateTimeFormat;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.*;
@@ -52,6 +50,7 @@ public class AdminController {
   private final RoleService roleService;
 
   @GetMapping("/roles")
+  @PreAuthorize("hasPermission('SYSTEM', 'VISIBLE')")
   public String roles(Model model, @RequestParam(required = false) String message) {
     if (message != null) {
       model.addAttribute("message", message);
@@ -63,6 +62,7 @@ public class AdminController {
   }
 
   @GetMapping("/users")
+  @PreAuthorize("hasPermission('SYSTEM', 'VISIBLE')")
   public String listUsers(Model model,
                           @ModelAttribute("loggedInUser") User loggedInUser,
                           @RequestParam(required = false) String query,
@@ -120,6 +120,7 @@ public class AdminController {
   }
 
   @GetMapping("/users/search")
+  @PreAuthorize("hasPermission('SYSTEM', 'VISIBLE')")
   public String searchUsers(@RequestParam String query,
                             @RequestParam(required = false, defaultValue = "username") String sort,
                             @RequestParam(required = false, defaultValue = "asc") String dir,
@@ -128,6 +129,7 @@ public class AdminController {
   }
 
   @GetMapping("/users/{id}/edit")
+  @PreAuthorize("hasPermission('SYSTEM', 'VISIBLE')")
   public String showEditUserForm(@PathVariable Integer id,
                                  Model model,
                                  @ModelAttribute("loggedInUser") User loggedInUser,
@@ -154,6 +156,7 @@ public class AdminController {
   }
 
   @PostMapping("/users/{id}/edit")
+  @PreAuthorize("hasPermission('SYSTEM', 'VISIBLE')")
   public String updateUser(@PathVariable Integer id,
                            @ModelAttribute UserDTO userDTO,
                            @ModelAttribute("loggedInUser") User loggedInUser,
@@ -193,6 +196,7 @@ public class AdminController {
   }
 
   @PostMapping("/users/lock")
+  @PreAuthorize("hasPermission('SYSTEM', 'VISIBLE')")
   public String lockUser(@RequestParam Integer userId,
                          @RequestParam(required = false) String reason,
                          @ModelAttribute("loggedInUser") User loggedInUser,
@@ -234,6 +238,7 @@ public class AdminController {
   }
 
   @PostMapping("/users/unlock")
+  @PreAuthorize("hasPermission('SYSTEM', 'VISIBLE')")
   public String unlockUser(@RequestParam Integer userId,
                            @ModelAttribute("loggedInUser") User loggedInUser,
                            RedirectAttributes redirectAttributes) {
@@ -274,6 +279,7 @@ public class AdminController {
   }
 
   @PostMapping("/users/delete")
+  @PreAuthorize("hasPermission('SYSTEM', 'VISIBLE')")
   public String deleteUser(@RequestParam Integer userId,
                            @ModelAttribute("loggedInUser") User loggedInUser,
                            RedirectAttributes redirectAttributes) {
@@ -314,6 +320,7 @@ public class AdminController {
   }
 
   @PostMapping("/users/change-role")
+  @PreAuthorize("hasPermission('SYSTEM', 'VISIBLE')")
   public String changeUserRole(@RequestParam Integer userId,
                              @RequestParam String role,
                              @ModelAttribute("loggedInUser") User loggedInUser,
@@ -357,6 +364,7 @@ public class AdminController {
   }
 
   @GetMapping("/logs")
+  @PreAuthorize("hasPermission('SYSTEM', 'VISIBLE')")
   public String logs(Model model,
                      @ModelAttribute("loggedInUser") User loggedInUser,
                      @RequestParam(required = false) String query,
@@ -366,7 +374,6 @@ public class AdminController {
                      @RequestParam(required = false, defaultValue = "createdAt") String sort,
                      @RequestParam(required = false, defaultValue = "desc") String dir,
                      @PageableDefault(size = 10, sort = "createdAt", direction = Sort.Direction.DESC) Pageable pageable) {
-
     Sort.Direction direction = "asc".equalsIgnoreCase(dir) ? Sort.Direction.ASC : Sort.Direction.DESC;
 
     Pageable customPageable = PageRequest.of(
@@ -387,6 +394,19 @@ public class AdminController {
       auditLogs = auditLogService.findByDate(date, customPageable);
     } else {
       auditLogs = auditLogService.getAll(customPageable);
+    }
+
+    if (query != null && !query.isEmpty() && date != null) {
+      Page<AuditLogDTO> dateFilteredLogs = auditLogService.findByDate(date, customPageable);
+      List<AuditLogDTO> filteredContent = dateFilteredLogs.getContent().stream()
+          .filter(log -> {
+            String username = log.getUsername() != null ? log.getUsername().toLowerCase() : "";
+            String actionInfo = log.getActionInfo() != null ? log.getActionInfo().toLowerCase() : "";
+            String searchQuery = query.toLowerCase();
+            return username.contains(searchQuery) || actionInfo.contains(searchQuery);
+          })
+          .collect(Collectors.toList());
+      auditLogs = new PageImpl<>(filteredContent, customPageable, filteredContent.size());
     }
 
     Map<String, Integer> quantity = auditLogService.getQuantity();

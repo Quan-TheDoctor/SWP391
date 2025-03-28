@@ -4,6 +4,7 @@ import com.se1873.js.springboot.project.dto.AttendanceDTO;
 import com.se1873.js.springboot.project.entity.Attendance;
 import com.se1873.js.springboot.project.mapper.AttendanceDTOMapper;
 import com.se1873.js.springboot.project.repository.AttendanceRepository;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -31,6 +32,7 @@ public class AttendanceViewController {
   }
 
   @GetMapping
+  @PreAuthorize("hasPermission('ATTENDANCE', 'VISIBLE')")
   public String viewAttendance(@RequestParam(value = "attendanceId", required = false) Integer attendanceId, Model model, RedirectAttributes redirectAttributes) {
     if(attendanceId == null) {
       redirectAttributes.addFlashAttribute("message", "Employee haven't check attendance yet, no details");
@@ -82,6 +84,7 @@ public class AttendanceViewController {
   }
 
   @PostMapping("/update")
+  @PreAuthorize("hasPermission('ATTENDANCE', 'UPDATE')")
   public String updateAttendance(@RequestParam("attendanceId") Integer attendanceId,
                                  @RequestParam("attendanceCheckIn") String checkIn,
                                  @RequestParam("attendanceCheckOut") String checkOut,

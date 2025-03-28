@@ -125,12 +125,32 @@
 
             <!-- Salary Range -->
             <div>
-                <label for="salaryRange" class="block text-sm font-medium text-gray-700">Salary Range</label>
-                <input type="text" 
-                       id="salaryRange" 
+                <label class="block text-sm font-medium text-gray-700">Salary Range</label>
+                <div class="flex items-center gap-4">
+                    <div class="flex-1">
+                        <label class="block text-sm text-gray-500 mb-1">Minimum (triệu VNĐ)</label>
+                        <div class="relative">
+                            <input type="number" 
+                                   id="minSalary" 
+                                   class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500"
+                                   required>
+                            <span class="absolute right-3 top-1/2 transform -translate-y-1/2 text-sm text-gray-500">× 1,000,000</span>
+                        </div>
+                    </div>
+                    <div class="flex-1">
+                        <label class="block text-sm text-gray-500 mb-1">Maximum (triệu VNĐ)</label>
+                        <div class="relative">
+                            <input type="number" 
+                                   id="maxSalary" 
+                                   class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500"
+                                   required>
+                            <span class="absolute right-3 top-1/2 transform -translate-y-1/2 text-sm text-gray-500">× 1,000,000</span>
+                        </div>
+                    </div>
+                </div>
+                <input type="hidden" 
                        th:field="*{salaryRange}" 
-                       class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500"
-                       required>
+                       id="salaryRange">
             </div>
 
             <!-- Status -->
@@ -147,14 +167,11 @@
             </div>
 
             <!-- Deadline -->
-            <div>
-                <label for="deadline" class="block text-sm font-medium text-gray-700">Application Deadline</label>
-                <input type="datetime-local" 
-                       id="deadline" 
-                       th:field="*{deadline}" 
+            <div class="w-full md:w-1/2">
+                <label class="block text-sm text-gray-500 mb-1">Application deadline</label>
+                <input type="datetime-local" name="deadline" th:value="${#temporals.format(#temporals.createNow(), 'yyyy-MM-dd''T''HH:mm')}"
                        th:min="${#temporals.format(#temporals.createNow(), 'yyyy-MM-dd''T''HH:mm')}"
-                       class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500"
-                       required>
+                       class="w-full border rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent">
             </div>
 
             <!-- Submit Button -->
@@ -248,12 +265,32 @@
 
             <!-- Salary Range -->
             <div>
-                <label for="salaryRange" class="block text-sm font-medium text-gray-700">Salary Range</label>
-                <input type="text" 
-                       id="salaryRange" 
+                <label class="block text-sm font-medium text-gray-700">Salary Range</label>
+                <div class="flex items-center gap-4">
+                    <div class="flex-1">
+                        <label class="block text-sm text-gray-500 mb-1">Minimum (triệu VNĐ)</label>
+                        <div class="relative">
+                            <input type="number" 
+                                   id="minSalary" 
+                                   class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500"
+                                   required>
+                            <span class="absolute right-3 top-1/2 transform -translate-y-1/2 text-sm text-gray-500">× 1,000,000</span>
+                        </div>
+                    </div>
+                    <div class="flex-1">
+                        <label class="block text-sm text-gray-500 mb-1">Maximum (triệu VNĐ)</label>
+                        <div class="relative">
+                            <input type="number" 
+                                   id="maxSalary" 
+                                   class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500"
+                                   required>
+                            <span class="absolute right-3 top-1/2 transform -translate-y-1/2 text-sm text-gray-500">× 1,000,000</span>
+                        </div>
+                    </div>
+                </div>
+                <input type="hidden" 
                        th:field="*{salaryRange}" 
-                       class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500"
-                       required>
+                       id="salaryRange">
             </div>
 
             <!-- Status -->
@@ -270,14 +307,11 @@
             </div>
 
             <!-- Deadline -->
-            <div>
-                <label for="deadline" class="block text-sm font-medium text-gray-700">Application Deadline</label>
-                <input type="datetime-local"
-                       id="deadline"
-                       name="deadline"
-                       th:value="${#temporals.format(jobPositionDTO.deadline, 'yyyy-MM-dd''T''HH:mm')}"
-                       class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500"
-                       required>
+            <div class="w-full md:w-1/2">
+                <label class="block text-sm text-gray-500 mb-1">Application deadline</label>
+                <input type="datetime-local" name="deadline" th:value="${#temporals.format(jobPositionDTO.deadline, 'yyyy-MM-dd''T''HH:mm')}"
+                       th:min="${#temporals.format(#temporals.createNow(), 'yyyy-MM-dd''T''HH:mm')}"
+                       class="w-full border rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent">
             </div>
 
             <!-- Submit Button -->
@@ -336,6 +370,43 @@
                 document.getElementById('title').innerHTML = '<option value="">Error loading positions</option>';
             });
     }
+
+    function formatCurrency(number) {
+        return new Intl.NumberFormat('vi-VN', {
+            style: 'currency',
+            currency: 'VND'
+        }).format(number);
+    }
+
+    function updateSalaryRange() {
+        const minSalary = document.getElementById('minSalary').value;
+        const maxSalary = document.getElementById('maxSalary').value;
+        const salaryRangeInput = document.getElementById('salaryRange');
+        
+        if (minSalary && maxSalary) {
+            const minVND = Math.round(minSalary * 1000000);
+            const maxVND = Math.round(maxSalary * 1000000);
+            const formattedRange = `${formatCurrency(minVND)} - ${formatCurrency(maxVND)}`;
+            salaryRangeInput.value = formattedRange;
+        }
+    }
+
+    document.getElementById('minSalary').addEventListener('input', updateSalaryRange);
+    document.getElementById('maxSalary').addEventListener('input', updateSalaryRange);
+
+    document.addEventListener('DOMContentLoaded', function() {
+        const salaryRangeInput = document.getElementById('salaryRange');
+        if (salaryRangeInput && salaryRangeInput.value) {
+            const range = salaryRangeInput.value.split(' - ');
+            if (range.length === 2) {
+                const min = parseInt(range[0].replace(/[^\d]/g, '')) / 1000000;
+                const max = parseInt(range[1].replace(/[^\d]/g, '')) / 1000000;
+                
+                document.getElementById('minSalary').value = min;
+                document.getElementById('maxSalary').value = max;
+            }
+        }
+    });
 </script>
 </body>
 </html>

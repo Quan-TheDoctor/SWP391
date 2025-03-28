@@ -38,4 +38,5 @@ public class JobApplicationDTO {
     private String experience;
     private String education;
     private String skills;
+    private Integer matchRate;
 } 
