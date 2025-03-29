@@ -281,8 +281,11 @@
                         </td>
                         <td class="px-4 py-4 text-sm text-center">
                             <div class="flex justify-center gap-2">
-                                <a th:href="@{/employee/view(employeeId=${e.employeeId})}"
-                                   class="text-primary-600 hover:text-primary-800 transition-colors">View</a>
+                                <a th:href="@{/employee/delete(employeeId=${e.employeeId})}"
+                                   onclick="return confirm('Bạn có chắc chắn muốn xóa nhân viên này?');"
+                                   class="text-red-600 hover:text-red-800 transition-colors">
+                                    <i class="fas fa-trash-alt"></i> Delete
+                                </a>
                             </div>
                         </td>
                     </tr>

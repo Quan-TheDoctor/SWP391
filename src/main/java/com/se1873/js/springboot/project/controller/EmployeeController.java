@@ -334,5 +334,21 @@ public class EmployeeController {
       .body(file);
   }
 
+  @RequestMapping("/delete")
+  @PreAuthorize("hasPermission('EMPLOYEE', 'MANAGE')")
+  public String deleteEmployee(@RequestParam("employeeId") Integer employeeId,
+                             RedirectAttributes redirectAttributes,
+                             @ModelAttribute("loggedInUser") User loggedInUser) {
+      try {
+          employeeService.deleteEmployee(employeeId);
+          globalController.createAuditLog(loggedInUser, "Delete Employee ID #" + employeeId, "Delete", "Normal");
+          redirectAttributes.addFlashAttribute("message", "Employee deleted successfully");
+          redirectAttributes.addFlashAttribute("messageType", "success");
+      } catch (Exception e) {
+          redirectAttributes.addFlashAttribute("message", "Error deleting employee: " + e.getMessage());
+          redirectAttributes.addFlashAttribute("messageType", "error");
+      }
+      return "redirect:/employee";
+  }
 
 }

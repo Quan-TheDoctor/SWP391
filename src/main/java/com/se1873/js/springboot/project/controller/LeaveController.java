@@ -55,7 +55,7 @@ public class LeaveController {
     }
 
     @RequestMapping
-    @PreAuthorize("hasPermission('ATTENDANCE', 'VIEW')")
+    @PreAuthorize("hasPermission('ATTENDANCE', 'VISIBLE')")
     public String leave(Model model,
                         @RequestParam(value = "page", required = false, defaultValue = "0") Integer page,
                         @RequestParam(value = "size", required = false, defaultValue = "10") Integer size) {
@@ -71,7 +71,7 @@ public class LeaveController {
     }
 
     @RequestMapping("/leave-policies")
-    @PreAuthorize("hasPermission('SYSTEM', 'VIEW')")
+    @PreAuthorize("hasPermission('SYSTEM', 'VISIBLE')")
     public String leavepolicies(Model model) {
         List<LeavePolicy> policies = leavePolicyService.getAllLeavePolicies();
         model.addAttribute("policies", policies);
@@ -79,7 +79,7 @@ public class LeaveController {
     }
 
     @RequestMapping("/leavefilter")
-    @PreAuthorize("hasPermission('ATTENDANCE', 'VIEW')")
+    @PreAuthorize("hasPermission('ATTENDANCE', 'VISIBLE')")
     public String leavefilter(@RequestParam("value") String leaveType, Model model, Pageable pageable,
                               @RequestParam(value = "page", required = false, defaultValue = "0") Integer page,
                               @RequestParam(value = "size", required = false, defaultValue = "10") Integer size) {
@@ -99,7 +99,7 @@ public class LeaveController {
     }
 
     @RequestMapping("/sort")
-    @PreAuthorize("hasPermission('ATTENDANCE', 'VIEW')")
+    @PreAuthorize("hasPermission('ATTENDANCE', 'VISIBLE')")
     public String sort(@RequestParam("field") String field,
                        @RequestParam("direction") String direction,
                        Model model, Pageable pageable,

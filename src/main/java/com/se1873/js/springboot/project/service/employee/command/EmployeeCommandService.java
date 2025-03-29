@@ -6,4 +6,5 @@ import com.se1873.js.springboot.project.entity.Position;
 
 public interface EmployeeCommandService {
   void saveEmployee(EmployeeDTO dto, Department department, Position position);
+  void deleteEmployee(Integer employeeId);
 }

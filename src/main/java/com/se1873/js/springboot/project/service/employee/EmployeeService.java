@@ -268,4 +268,9 @@ public class EmployeeService {
       .filter(e -> e.getEmploymentHistoryIsCurrent() != null && e.getEmploymentHistoryIsCurrent())
       .count();
   }
+
+  @CacheEvict(value = "employees", allEntries = true)
+  public void deleteEmployee(Integer employeeId) {
+    employeeCommandService.deleteEmployee(employeeId);
+  }
 }

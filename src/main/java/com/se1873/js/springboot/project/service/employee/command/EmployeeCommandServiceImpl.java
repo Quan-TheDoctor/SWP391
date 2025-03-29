@@ -248,4 +248,13 @@ public class EmployeeCommandServiceImpl implements EmployeeCommandService {
     dependent.setIdNumber(dependentDTO.getIdNumber());
     dependent.setIsTaxDependent(dependentDTO.getIsTaxDependent());
   }
+
+  @Override
+  public void deleteEmployee(Integer employeeId) {
+    Employee employee = employeeRepository.getEmployeeByEmployeeId(employeeId);
+    if (employee != null) {
+      employee.setIsDeleted(true);
+      employeeRepository.save(employee);
+    }
+  }
 }

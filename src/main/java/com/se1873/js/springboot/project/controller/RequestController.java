@@ -26,6 +26,7 @@ import org.springframework.core.io.Resource;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.PageImpl;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
@@ -497,6 +498,41 @@ public class RequestController {
                             @RequestParam(value = "size", defaultValue = "5") int size) {
     Page<RequestDTO> requests = requestService.multiFilter(type, status, dateRange, approver, department, getPageable(page, size));
     return populateRequestModel(model, requests, "request");
+  }
+
+  @RequestMapping("/sort")
+  @PreAuthorize("hasPermission('REQUEST', 'VISIBLE')")
+  public String sortRequests(Model model,
+                         @RequestParam("field") String field,
+                         @RequestParam("direction") String direction,
+                         @RequestParam(value = "page", defaultValue = "0") int page,
+                         @RequestParam(value = "size", defaultValue = "5") int size) {
+    Page<RequestDTO> requests = requestService.getRequests(getPageable(page, size));
+    List<RequestDTO> sortedRequests = new ArrayList<>(requests.getContent());
+    
+    Comparator<RequestDTO> comparator = switch (field.toLowerCase()) {
+        case "requestername" -> Comparator.comparing(RequestDTO::getRequesterName);
+        case "requesttype" -> Comparator.comparing(RequestDTO::getRequestType);
+        case "requestdate" -> Comparator.comparing(RequestDTO::getRequestDate);
+        case "requeststatus" -> Comparator.comparing(RequestDTO::getRequestStatus);
+        default -> Comparator.comparing(RequestDTO::getRequestId);
+    };
+    
+    if ("desc".equalsIgnoreCase(direction)) {
+        comparator = comparator.reversed();
+    }
+    
+    sortedRequests.sort(comparator);
+    
+    int start = (int) getPageable(page, size).getOffset();
+    int end = Math.min((start + getPageable(page, size).getPageSize()), sortedRequests.size());
+    List<RequestDTO> pageContent = sortedRequests.subList(start, end);
+    
+    Page<RequestDTO> sortedPage = new PageImpl<>(pageContent, getPageable(page, size), sortedRequests.size());
+    
+    model.addAttribute("sortField", field);
+    model.addAttribute("direction", direction);
+    return populateRequestModel(model, sortedPage, "request");
   }
 
 }

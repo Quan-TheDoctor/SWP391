@@ -268,82 +268,82 @@ INSERT INTO employees (employee_code, first_name, last_name, birth_date, gender,
                        marital_status, bank_account, bank_name, tax_code)
 VALUES
     -- Ban lãnh đạo
-    ('GD001', 'Nguyễn', 'Văn An', '1975-05-15', 'Nam',
+    ('GD001', 'Nguyễn', 'Văn An', '1975-05-15', 'Male',
      '001075123456', '123 Lê Lợi, Q.1, TP.HCM', '123 Lê Lợi, Q.1, TP.HCM',
      'nguyenvanan@gmail.com', 'an.nguyen@company.com', '0901234567',
-     'Đã kết hôn', '1234567890', 'Vietcombank', '0123456789'),
+     'Married', '1234567890', 'Vietcombank', '0123456789'),
 
-    ('PGD001', 'Trần', 'Bảo Hùng', '1978-11-10', 'Nam',
+    ('PGD001', 'Trần', 'Bảo Hùng', '1978-11-10', 'Male',
      '002078123456', '456 Nguyễn Thị Minh Khai, Q.3, TP.HCM', '456 Nguyễn Thị Minh Khai, Q.3, TP.HCM',
      'tranbaohung@gmail.com', 'hung.tran@company.com', '0902345678',
-     'Đã kết hôn', '2345678901', 'Vietcombank', '0234567890'),
+     'Married', '2345678901', 'Vietcombank', '0234567890'),
 
     -- Trưởng phòng
-    ('TP001', 'Lê', 'Thị Hương', '1982-03-25', 'Nữ',
+    ('TP001', 'Lê', 'Thị Hương', '1982-03-25', 'Female',
      '003082123456', '789 Nguyễn Huệ, Q.1, TP.HCM', '789 Nguyễn Huệ, Q.1, TP.HCM',
      'lethihuong@gmail.com', 'huong.le@company.com', '0903456789',
-     'Độc thân', '3456789012', 'Techcombank', '0345678901'),
+     'Single', '3456789012', 'Techcombank', '0345678901'),
 
-    ('TP002', 'Phạm', 'Minh Đức', '1980-07-12', 'Nam',
+    ('TP002', 'Phạm', 'Minh Đức', '1980-07-12', 'Male',
      '004080123456', '101 Điện Biên Phủ, Q.Bình Thạnh, TP.HCM', '101 Điện Biên Phủ, Q.Bình Thạnh, TP.HCM',
      'phamminhduc@gmail.com', 'duc.pham@company.com', '0904567890',
-     'Đã kết hôn', '4567890123', 'BIDV', '0456789012'),
+     'Married', '4567890123', 'BIDV', '0456789012'),
 
-    ('TP003', 'Võ', 'Thanh Tùng', '1981-11-05', 'Nam',
+    ('TP003', 'Võ', 'Thanh Tùng', '1981-11-05', 'Male',
      '005081123456', '202 Võ Văn Ngân, Q.Thủ Đức, TP.HCM', '202 Võ Văn Ngân, Q.Thủ Đức, TP.HCM',
      'vothanhtung@gmail.com', 'tung.vo@company.com', '0905678901',
-     'Độc thân', '5678901234', 'ACB', '0567890123'),
+     'Single', '5678901234', 'ACB', '0567890123'),
 
-    ('TP004', 'Nguyễn', 'Thị Mai', '1983-09-18', 'Nữ',
+    ('TP004', 'Nguyễn', 'Thị Mai', '1983-09-18', 'Female',
      '006083123456', '303 Cách Mạng Tháng 8, Q.10, TP.HCM', '303 Cách Mạng Tháng 8, Q.10, TP.HCM',
      'nguyenthimai@gmail.com', 'mai.nguyen@company.com', '0906789012',
-     'Đã kết hôn', '6789012345', 'Sacombank', '0678901234'),
+     'Married', '6789012345', 'Sacombank', '0678901234'),
 
-    ('TP005', 'Trần', 'Văn Hiếu', '1979-04-30', 'Nam',
+    ('TP005', 'Trần', 'Văn Hiếu', '1979-04-30', 'Male',
      '007079123456', '404 Nguyễn Văn Linh, Q.7, TP.HCM', '404 Nguyễn Văn Linh, Q.7, TP.HCM',
      'tranvanhieu@gmail.com', 'hieu.tran@company.com', '0907890123',
-     'Đã kết hôn', '7890123456', 'VPBank', '0789012345'),
+     'Married', '7890123456', 'VPBank', '0789012345'),
 
     -- Nhân viên
-    ('NV001', 'Đỗ', 'Thị Hà', '1990-02-14', 'Nữ',
+    ('NV001', 'Đỗ', 'Thị Hà', '1990-02-14', 'Female',
      '008090123456', '505 Lý Tự Trọng, Q.1, TP.HCM', '505 Lý Tự Trọng, Q.1, TP.HCM',
      'dothiha@gmail.com', 'ha.do@company.com', '0908901234',
-     'Độc thân', '8901234567', 'MB Bank', '0890123456'),
+     'Single', '8901234567', 'MB Bank', '0890123456'),
 
-    ('NV002', 'Hoàng', 'Minh Tuấn', '1988-12-01', 'Nam',
+    ('NV002', 'Hoàng', 'Minh Tuấn', '1988-12-01', 'Male',
      '009088123456', '606 Lê Duẩn, Q.1, TP.HCM', '606 Lê Duẩn, Q.1, TP.HCM',
      'hoangminhtuan@gmail.com', 'tuan.hoang@company.com', '0909012345',
-     'Đã kết hôn', '9012345678', 'OCB', '0901234567'),
+     'Married', '9012345678', 'OCB', '0901234567'),
 
-    ('NV003', 'Lý', 'Thanh Thảo', '1991-06-20', 'Nữ',
+    ('NV003', 'Lý', 'Thanh Thảo', '1991-06-20', 'Female',
      '010091123456', '707 Trần Hưng Đạo, Q.5, TP.HCM', '707 Trần Hưng Đạo, Q.5, TP.HCM',
      'lythanhthao@gmail.com', 'thao.ly@company.com', '0910123456',
-     'Độc thân', '0123456789', 'TPBank', '1012345678'),
+     'Single', '0123456789', 'TPBank', '1012345678'),
 
-    ('NV004', 'Nguyễn', 'Văn Bình', '1992-08-25', 'Nam',
+    ('NV004', 'Nguyễn', 'Văn Bình', '1992-08-25', 'Male',
      '011092123456', '808 Nguyễn Trãi, Q.5, TP.HCM', '808 Nguyễn Trãi, Q.5, TP.HCM',
      'nguyenvanbinh@gmail.com', 'binh.nguyen@company.com', '0911234567',
-     'Độc thân', '1234567891', 'Vietinbank', '1123456789'),
+     'Single', '1234567891', 'Vietinbank', '1123456789'),
 
-    ('NV005', 'Trần', 'Thị Lan', '1993-03-15', 'Nữ',
+    ('NV005', 'Trần', 'Thị Lan', '1993-03-15', 'Female',
      '012093123456', '909 Lê Hồng Phong, Q.10, TP.HCM', '909 Lê Hồng Phong, Q.10, TP.HCM',
      'tranthilan@gmail.com', 'lan.tran@company.com', '0912345678',
-     'Đã kết hôn', '2345678912', 'BIDV', '1234567890'),
+     'Married', '2345678912', 'BIDV', '1234567890'),
 
-    ('NV006', 'Lê', 'Văn Cường', '1989-09-05', 'Nam',
+    ('NV006', 'Lê', 'Văn Cường', '1989-09-05', 'Male',
      '013089123456', '101 Nguyễn Đình Chiểu, Q.3, TP.HCM', '101 Nguyễn Đình Chiểu, Q.3, TP.HCM',
      'levancuong@gmail.com', 'cuong.le@company.com', '0913456789',
-     'Đã kết hôn', '3456789123', 'ACB', '1345678901'),
+     'Married', '3456789123', 'ACB', '1345678901'),
 
-    ('NV007', 'Phạm', 'Thị Hồng', '1994-11-20', 'Nữ',
+    ('NV007', 'Phạm', 'Thị Hồng', '1994-11-20', 'Female',
      '014094123456', '202 Điện Biên Phủ, Q.1, TP.HCM', '202 Điện Biên Phủ, Q.1, TP.HCM',
      'phamthihong@gmail.com', 'hong.pham@company.com', '0914567890',
-     'Độc thân', '4567891234', 'Sacombank', '1456789012'),
+     'Single', '4567891234', 'Sacombank', '1456789012'),
 
-    ('NV008', 'Vũ', 'Đình Trung', '1987-07-30', 'Nam',
+    ('NV008', 'Vũ', 'Đình Trung', '1987-07-30', 'Male',
      '015087123456', '303 Nguyễn Công Trứ, Q.1, TP.HCM', '303 Nguyễn Công Trứ, Q.1, TP.HCM',
      'vudinhtrung@gmail.com', 'trung.vu@company.com', '0915678901',
-     'Đã kết hôn', '5678912345', 'VPBank', '1567890123');
+     'Married', '5678912345', 'VPBank', '1567890123');
 
 -- Thêm tài khoản người dùng
 INSERT INTO users (employee_id, username, password_hash)
@@ -539,7 +539,7 @@ VALUES
 
     -- Phó Giám đốc
     (2, 'Lê Thị Lan', 'Vợ', '1982-05-15', '002082123456', true),
-    (2, 'Trần Bảo Nam', 'Con', '2008-09-20', NULL, true),
+    (2, 'Trần Bảo Male', 'Con', '2008-09-20', NULL, true),
 
     -- Trưởng phòng
     (4, 'Nguyễn Thị Hồng', 'Vợ', '1983-07-25', '004083123456', true),
@@ -548,7 +548,7 @@ VALUES
     (5, 'Lê Thị Ngọc', 'Vợ', '1984-10-30', '005084123456', true),
     (5, 'Võ Minh Trí', 'Con', '2013-04-22', NULL, true),
 
-    (6, 'Trần Văn Nam', 'Chồng', '1980-12-05', '006080123456', true),
+    (6, 'Trần Văn Male', 'Chồng', '1980-12-05', '006080123456', true),
     (6, 'Nguyễn Thị Linh', 'Con', '2015-03-18', NULL, true),
 
     (7, 'Phạm Thị Lan', 'Vợ', '1982-05-15', '007082123456', true),
