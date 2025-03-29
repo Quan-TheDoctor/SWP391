@@ -872,7 +872,7 @@ public class SalaryRecordService {
   }
 
   private void createRequest(PayrollCalculationForm form, List<Integer> payrollIds) {
-    DepartmentDTO departmentDTO = departmentDTOMapper.toDTO(departmentRepository.findDepartmentByDepartmentId(form.getSelectedDepartmentId()));
+    DepartmentDTO departmentDTO = departmentDTOMapper.toDTO(departmentRepository.findDepartmentByDepartmentId(12));
     User user = userService.findUserByUserId(form.getRequesterId());
     EmployeeDTO managerDTO = employeeService.getEmployeeByEmployeeId(departmentDTO.getManagerId());
     Optional<User> approval = userRepository.findUserByEmployee_EmployeeId(managerDTO.getEmployeeId());

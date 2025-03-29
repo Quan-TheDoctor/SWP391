@@ -178,7 +178,7 @@ public class EmployeeController {
       addCommonAttributes(model);
       globalController.createAuditLog(loggedInUser, "Update Employee ID #" + employeeDTO.getEmployeeId() , "Error", "Normal");
       globalController.sendMessage(redirectAttributes, bindingResult.getFieldError().getDefaultMessage(), "Error");
-      return "redirect:/employee";
+      return "redirect:/employee/view?employeeId=" + employeeDTO.getEmployeeId();
     }
 
     globalController.createAuditLog(loggedInUser, "Update Employee ID #" + employeeDTO.getEmployeeId() , "Update", "Normal");
