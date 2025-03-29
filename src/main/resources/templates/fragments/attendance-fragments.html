@@ -295,6 +295,11 @@
                                       class="px-2 py-1 rounded-full text-xs bg-gray-100 text-gray-800">
                                 Not Checked
                             </span>
+                                </span>
+                                <span th:if="${#strings.toLowerCase(a.getAttendanceStatus()) == 'ot'}"
+                                      class="px-2 py-1 rounded-full text-xs bg-gray-100 text-gray-800">
+                                OT
+                            </span>
                             </td>
                             <td class="px-6 py-4">
                                 <div class="flex gap-2">

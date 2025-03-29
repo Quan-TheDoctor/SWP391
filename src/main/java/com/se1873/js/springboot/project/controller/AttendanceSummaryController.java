@@ -46,10 +46,22 @@ public class AttendanceSummaryController {
     @RequestParam Integer selectedDepartmentId,
     @RequestParam Integer selectedMonth,
     @RequestParam Integer selectedYear,
-    @RequestParam Integer pageSize) {
+    @RequestParam Integer pageSize,
+    @RequestParam(value = "page", defaultValue = "0") Integer page,
+    @RequestParam(value = "search", required = false) String searchQuery) {
 
-    return "redirect:/attendance/summary?selectedDepartmentId=" + selectedDepartmentId +
-      "&selectedMonth=" + selectedMonth + "&selectedYear=" + selectedYear + "&pageSize=" + pageSize;
+    StringBuilder redirectUrl = new StringBuilder("/attendance/summary?");
+    redirectUrl.append("selectedDepartmentId=").append(selectedDepartmentId)
+              .append("&selectedMonth=").append(selectedMonth)
+              .append("&selectedYear=").append(selectedYear)
+              .append("&pageSize=").append(pageSize)
+              .append("&page=").append(page);
+
+    if (searchQuery != null && !searchQuery.isEmpty()) {
+      redirectUrl.append("&search=").append(searchQuery);
+    }
+
+    return "redirect:" + redirectUrl.toString();
   }
 
   @RequestMapping

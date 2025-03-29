@@ -303,57 +303,74 @@ public class RequestController {
     Employee employee = employeeRepository.findEmployeeByEmployeeId(employeeId);
 
     if ("Salary Calculation".equals(type)) {
-      switch (field) {
-        case "Approved":
-          if ("Pending".equals(requestDTO.getRequestStatus())) {
-            requestDTO.setRequestStatus("Approved");
-            requestDTO.setApprovalName(user.getUsername());
-            requestService.updateStatus(requestDTO, type);
-            notificationMessage = "yêu cầu hạch toán lương được phê duyệt bởi " + user.getUsername();
-          }
-          break;
-        case "Denied":
-          if ("Pending".equals(requestDTO.getRequestStatus())) {
-            requestDTO.setRequestStatus("Denied");
-            requestService.updateStatus(requestDTO, type);
-            notificationMessage = "yêu cầu hạch toán lương bị từ chối bởi " + user.getUsername();
-          }
-          break;
-      }
-    } else if ("Leave Permit".equals(type)) {
-      switch (field) {
-        case "Approved":
-          if ("Pending".equals(requestDTO.getRequestStatus())) {
-            requestDTO.setRequestStatus("Approved");
-            requestDTO.setApprovalName(user.getUsername());
-            requestService.updateStatus(requestDTO, type);
-            int remainingDays = leavePolicyService.calculate(requestDTO.getLeaveDTO().getLeavePolicyId(), employeeId, requestDTO);
-            requestDTO.getLeaveDTO().setLeaveAllowedDay(remainingDays);
-            requestService.save(requestDTO, requestUser, employee);
-            notificationMessage = "đơn xin nghỉ được phê duyệt bởi " + user.getUsername();
-          }
-          break;
-        case "Denied":
-          if ("Pending".equals(requestDTO.getRequestStatus())) {
-            requestDTO.setRequestStatus("Denied");
-            requestDTO.setApprovalName(user.getUsername());
-            requestService.updateStatus(requestDTO, type);
-            requestService.save(requestDTO, requestUser, employee);
-            notificationMessage = "đơn xin nghỉ đã bị từ chối bởi " + user.getUsername();
-          }
-          break;
-      }
+        switch (field) {
+            case "Approved":
+                if ("Pending".equals(requestDTO.getRequestStatus())) {
+                    requestDTO.setRequestStatus("Approved");
+                    requestDTO.setApprovalName(user.getUsername());
+                    if (!requestService.updateStatus(requestDTO, type)) {
+                        model.addAttribute("message", "not authorized");
+                        model.addAttribute("messageType", "error");
+                        return "redirect:/request";
+                    }
+                    notificationMessage = "yêu cầu hạch toán lương được phê duyệt bởi " + user.getUsername();
+                }
+                break;
+            case "Denied":
+                if ("Pending".equals(requestDTO.getRequestStatus())) {
+                    requestDTO.setRequestStatus("Denied");
+                    if (!requestService.updateStatus(requestDTO, type)) {
+                        model.addAttribute("message", "not authorized");
+                        model.addAttribute("messageType", "error");
+                        return "redirect:/request";
+                    }
+                    notificationMessage = "yêu cầu hạch toán lương bị từ chối bởi " + user.getUsername();
+                }
+                break;
+        }
+    } else {
+        switch (field) {
+            case "Approved":
+                if ("Pending".equals(requestDTO.getRequestStatus())) {
+                    requestDTO.setRequestStatus("Approved");
+                    requestDTO.setApprovalName(user.getUsername());
+                    if (!requestService.updateStatus(requestDTO, type)) {
+                        model.addAttribute("message", "not authorized");
+                        model.addAttribute("messageType", "error");
+                        return "redirect:/request";
+                    }
+                    int remainingDays = leavePolicyService.calculate(requestDTO.getLeaveDTO().getLeavePolicyId(), employeeId, requestDTO);
+                    requestDTO.getLeaveDTO().setLeaveAllowedDay(remainingDays);
+                    requestService.save(requestDTO, requestUser, employee);
+                    notificationMessage = "đơn xin nghỉ được phê duyệt bởi " + user.getUsername();
+                }
+                break;
+            case "Denied":
+                if ("Pending".equals(requestDTO.getRequestStatus())) {
+                    requestDTO.setRequestStatus("Denied");
+                    requestDTO.setApprovalName(user.getUsername());
+                    if (!requestService.updateStatus(requestDTO, type)) {
+                        model.addAttribute("message", "not authorized");
+                        model.addAttribute("messageType", "error");
+                        return "redirect:/request";
+                    }
+                    requestService.save(requestDTO, requestUser, employee);
+                    notificationMessage = "đơn xin nghỉ đã bị từ chối bởi " + user.getUsername();
+                }
+                break;
+        }
     }
+
     if (!notificationMessage.isEmpty()) {
-      Notification notification = Notification.builder()
-        .user(requestUser)
-        .requestId(requestId)
-        .message(notificationMessage)
-        .status("unread")
-        .createdAt(LocalDateTime.now())
-        .type(type)
-        .build();
-      notificationRepository.save(notification);
+        Notification notification = Notification.builder()
+            .user(requestUser)
+            .requestId(requestId)
+            .message(notificationMessage)
+            .status("unread")
+            .createdAt(LocalDateTime.now())
+            .type(type)
+            .build();
+        notificationRepository.save(notification);
     }
 
     var requests = requestService.getRequests(PageRequest.of(0, 10));
@@ -361,16 +378,16 @@ public class RequestController {
     Integer totalPendingRequests = 0;
     Integer totalFinishedRequests = 0;
     for (var request : requests) {
-      totalRequests++;
-      if (request.getRequestStatus().equals("pending")) totalPendingRequests++;
-      else totalFinishedRequests++;
-      requestTypes.add(request.getRequestType());
+        totalRequests++;
+        if (request.getRequestStatus().equals("pending")) totalPendingRequests++;
+        else totalFinishedRequests++;
+        requestTypes.add(request.getRequestType());
     }
 
     model.addAttribute("totalRequests", totalRequests);
     model.addAttribute("totalPendingRequests", totalPendingRequests);
     model.addAttribute("totalFinishedRequests", totalFinishedRequests);
-    model.addAttribute("requestDTO", requestDTO);
+    model.addAttribute("requestTypes", requestTypes);
     model.addAttribute("requests", requests);
     model.addAttribute("contentFragment", "fragments/request-fragments");
     return "index";

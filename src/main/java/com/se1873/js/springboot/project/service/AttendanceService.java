@@ -179,7 +179,6 @@ public class AttendanceService {
   }
 
 
-
   public Integer countAttendanceByStatus(List<AttendanceDTO> attendances, String status) {
     return (int) attendances.stream()
       .filter(a -> a != null)
@@ -189,10 +188,10 @@ public class AttendanceService {
 
   public Double countOvertimeHours(List<AttendanceDTO> attendances) {
     return attendances.stream()
-          .filter(a -> a != null)
-          .mapToDouble(a -> a.getAttendanceOvertimeHours() != null ?
-            a.getAttendanceOvertimeHours() : 0.0)
-          .sum();
+      .filter(a -> a != null)
+      .mapToDouble(a -> a.getAttendanceOvertimeHours() != null ?
+        a.getAttendanceOvertimeHours() : 0.0)
+      .sum();
   }
 
   public void updateAttendanceRecord(AttendanceDTO dto) {
@@ -255,7 +254,7 @@ public class AttendanceService {
     for (AttendanceDTO dto : attendanceCountDTOList) {
       if (dto.getAttendanceStatus().equals("Late")) {
         attendancecountDTO.setLateEmployee(attendancecountDTO.getLateEmployee() + 1);
-      } else if (dto.getAttendanceStatus().equals("On time")){
+      } else if (dto.getAttendanceStatus().equals("On time")) {
         attendancecountDTO.setWorkedEmployee(attendancecountDTO.getWorkedEmployee() + 1);
       }
     }
@@ -652,7 +651,13 @@ public class AttendanceService {
       AttendanceDTO attendanceDTO = getAttendanceByEmployeeIdAndDate(employeeId, LocalDate.now());
       Employee employee = employeeRepository.findEmployeeByEmployeeId(employeeId);
       if (attendanceDTO.getAttendanceCheckIn() != null) return "Already Clock In";
-      Attendance attendance = Attendance.builder().checkIn(LocalTime.now()).checkOut(null).date(LocalDate.now()).status("Đúng giờ").employee(employee).build();
+
+      LocalTime onTimeHours = LocalTime.of(8, 0);
+      LocalTime now = LocalTime.now();
+
+      String clockInStatus = now.isBefore(onTimeHours) ? "On time" : "Late";
+
+      Attendance attendance = Attendance.builder().checkIn(LocalTime.now()).checkOut(null).date(LocalDate.now()).status(clockInStatus).employee(employee).build();
 
       saveAttendance(attendance);
       String notificationText = "Employee ID #" + employee.getEmployeeId() + " clock-in";
@@ -672,9 +677,15 @@ public class AttendanceService {
       attendance.setAttendanceCheckOut(LocalTime.now());
       attendance.setAttendanceOvertimeHours(calculateOvertimeHours(attendance.getAttendanceCheckIn(), attendance.getAttendanceCheckOut()));
 
+      LocalTime onTimeHours = LocalTime.of(18, 0);
+      LocalTime now = LocalTime.now();
+
+
       Attendance existedAttendance = attendanceRepository.findByAttendanceId(attendance.getAttendanceId());
+      String clockOutStatus = now.isAfter(onTimeHours) ? "OT" : existedAttendance.getStatus().equals("Late") ? "Late" : "OT";
       existedAttendance.setCheckOut(attendance.getAttendanceCheckOut());
       existedAttendance.setOvertimeHours(attendance.getAttendanceOvertimeHours());
+      existedAttendance.setStatus(clockOutStatus);
 
       saveAttendance(existedAttendance);
       String notificationText = "Employee ID #" + attendance.getEmployeeId() + " clock-out";
@@ -861,6 +872,7 @@ public class AttendanceService {
 
     return employeeAttendanceStatusDTOS;
   }
+
   public Map<String, EmployeeAttendanceStatusDTO> findEmployeesWithMostLateAndAbsent(List<EmployeeAttendanceStatusDTO> employeeAttendanceStatusDTOS) {
     EmployeeAttendanceStatusDTO mostLateEmployee = null;
     EmployeeAttendanceStatusDTO mostAbsentEmployee = null;
@@ -904,8 +916,8 @@ public class AttendanceService {
     Set<Long> employeeIdSet = employeeIds.stream().map(Long::valueOf).collect(Collectors.toSet());
 
     return employeeAttendanceStatusDTOList.stream()
-            .filter(dto -> dto.getEmployee() != null && employeeIdSet.contains(dto.getEmployee().getEmployeeId().longValue()))
-            .collect(Collectors.toList());
+      .filter(dto -> dto.getEmployee() != null && employeeIdSet.contains(dto.getEmployee().getEmployeeId().longValue()))
+      .collect(Collectors.toList());
   }
 
   public int countWeekendDays(int year, int month) {
@@ -943,9 +955,10 @@ public class AttendanceService {
     Set<Long> employeeIdSet = employeeIds.stream().map(Long::valueOf).collect(Collectors.toSet());
 
     return employeeAttendanceStatusDTOList.stream()
-            .filter(dto -> dto.getEmployee() != null && employeeIdSet.contains(dto.getEmployee().getEmployeeId().longValue()))
-            .collect(Collectors.toList());
+      .filter(dto -> dto.getEmployee() != null && employeeIdSet.contains(dto.getEmployee().getEmployeeId().longValue()))
+      .collect(Collectors.toList());
   }
+
   public List<EmployeeAttendanceStatusDTO> positionfilter(String departmentName, Pageable pageable, String date) {
     Page<Employee> employees = employeeRepository.findEmployeesByPositionName(departmentName, pageable);
     List<Long> employeeIds = employees.getContent().stream().map(emp -> emp.getEmployeeId().longValue()).collect(Collectors.toList());
@@ -957,7 +970,7 @@ public class AttendanceService {
     Set<Long> employeeIdSet = employeeIds.stream().map(Long::valueOf).collect(Collectors.toSet());
 
     return employeeAttendanceStatusDTOList.stream()
-            .filter(dto -> dto.getEmployee() != null && employeeIdSet.contains(dto.getEmployee().getEmployeeId().longValue()))
-            .collect(Collectors.toList());
+      .filter(dto -> dto.getEmployee() != null && employeeIdSet.contains(dto.getEmployee().getEmployeeId().longValue()))
+      .collect(Collectors.toList());
   }
 }

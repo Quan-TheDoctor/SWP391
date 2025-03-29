@@ -207,56 +207,62 @@ public class RequestService {
 
   @Transactional
   @CacheEvict(value = "allPayrolls", allEntries = true)
-  public void updateStatus(RequestDTO requestDTO, String type) {
+  public boolean updateStatus(RequestDTO requestDTO, String type) {
     User approval = userRepository.findUserByUsername(requestDTO.getApprovalName())
             .orElse(null);
-    if("Leave Permit".equals(type)) {
-      String status = "Approved".equals(requestDTO.getRequestStatus()) ? "Approved" : "Denied";
-      Request request = requestRepository.findRequestByRequestId(requestDTO.getRequestId());
-      request.setApproval(approval);
-      request.setStatus(status);
-      requestRepository.save(request);
-    } else if("Salary Calculation".equals(type)) {
-      for(var payrollId : requestDTO.getPayrollIds()) {
-        String status = requestDTO.getRequestStatus().equals("Approved") ? "Paid" : "Cancelled";
-        SalaryRecord salaryRecord = salaryRecordRepository.findSalaryRecordBySalaryIdAndIsDeleted(payrollId, false);
-        salaryRecord.setPaymentStatus(status);
-        salaryRecordRepository.save(salaryRecord);
-
-        PayrollDTO payroll = salaryRecordService.payrollDTO(payrollId);
-        String month = String.valueOf(payroll.getSalaryRecordMonth());
-        String year = String.valueOf(payroll.getSalaryRecordYear());
-        String employeeName = payroll.getEmployeeFirstName() + " " + payroll.getEmployeeLastName();
-        String employeeEmail = employeeService.getEmployeeByEmployeeId(payroll.getEmployeeId()).getEmployeePersonalEmail();
-
-        Context context = new Context();
-        context.setVariable("payroll", payroll);
-        String payslipContent = templateEngine.process("fragments/payroll-slip-fragments", context);
-
-        emailUtils.sendPayslipEmail(employeeEmail, employeeName, month, year, payslipContent);
-      }
-    } else if("Salary Raise".equals(type)) {
-      response responseDetails = responsRepository.findByRequestId(requestDTO.getRequestId())
-              .orElseThrow(() -> new RuntimeException("Request not found"));
-
-      String employeeCode = responseDetails.getEmployeeCode();
-      Employee employee = employeeRepository.findByEmployeeCode(employeeCode)
-              .orElseThrow(() -> new RuntimeException("Employee not found"));
-      
-      Contract employeeContract = contractRepository.findContractByEmployee_EmployeeIdAndPresent(employee.getEmployeeId(), true);
-      if (employeeContract != null) {
-        if ("Approved".equals(requestDTO.getRequestStatus())) {
-          employeeContract.setBaseSalary(responseDetails.getNewBaseSalary());
-        } else if ("Denied".equals(requestDTO.getRequestStatus())) {
-          employeeContract.setBaseSalary(responseDetails.getOldBaseSalary());
-        }
-        contractRepository.save(employeeContract);
-      }
-    }
+            
+    // Kiểm tra người phê duyệt có phải là người được chỉ định
     Request request = requestRepository.findRequestByRequestId(requestDTO.getRequestId());
+    if (request == null || request.getApproval() == null || !request.getApproval().getUserId().equals(approval.getUserId())) {
+        return false;
+    }
+
+    if("Leave Permit".equals(type)) {
+        String status = "Approved".equals(requestDTO.getRequestStatus()) ? "Approved" : "Denied";
+        request.setApproval(approval);
+        request.setStatus(status);
+        requestRepository.save(request);
+    } else if("Salary Calculation".equals(type)) {
+        for(var payrollId : requestDTO.getPayrollIds()) {
+            String status = requestDTO.getRequestStatus().equals("Approved") ? "Paid" : "Cancelled";
+            SalaryRecord salaryRecord = salaryRecordRepository.findSalaryRecordBySalaryIdAndIsDeleted(payrollId, false);
+            salaryRecord.setPaymentStatus(status);
+            salaryRecordRepository.save(salaryRecord);
+
+            PayrollDTO payroll = salaryRecordService.payrollDTO(payrollId);
+            String month = String.valueOf(payroll.getSalaryRecordMonth());
+            String year = String.valueOf(payroll.getSalaryRecordYear());
+            String employeeName = payroll.getEmployeeFirstName() + " " + payroll.getEmployeeLastName();
+            String employeeEmail = employeeService.getEmployeeByEmployeeId(payroll.getEmployeeId()).getEmployeePersonalEmail();
+
+            Context context = new Context();
+            context.setVariable("payroll", payroll);
+            String payslipContent = templateEngine.process("fragments/payroll-slip-fragments", context);
+
+            emailUtils.sendPayslipEmail(employeeEmail, employeeName, month, year, payslipContent);
+        }
+    } else {
+        response responseDetails = responsRepository.findByRequestId(requestDTO.getRequestId())
+                .orElseThrow(() -> new RuntimeException("Request not found"));
+
+        String employeeCode = responseDetails.getEmployeeCode();
+        Employee employee = employeeRepository.findByEmployeeCode(employeeCode)
+                .orElseThrow(() -> new RuntimeException("Employee not found"));
+        
+        Contract employeeContract = contractRepository.findContractByEmployee_EmployeeIdAndPresent(employee.getEmployeeId(), true);
+        if (employeeContract != null) {
+            if ("Approved".equals(requestDTO.getRequestStatus())) {
+                employeeContract.setBaseSalary(responseDetails.getNewBaseSalary());
+            } else if ("Denied".equals(requestDTO.getRequestStatus())) {
+                employeeContract.setBaseSalary(responseDetails.getOldBaseSalary());
+            }
+            contractRepository.save(employeeContract);
+        }
+    }
     request.setApproval(approval);
     request.setStatus(requestDTO.getRequestStatus());
     requestRepository.save(request);
+    return true;
   }
 
 

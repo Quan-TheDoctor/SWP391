@@ -63,13 +63,7 @@ public class WebSecurityConfig {
                 .logoutSuccessUrl("/login?logout=true")
                 .permitAll()
             )
-            .csrf(csrf -> csrf
-                .ignoringRequestMatchers("/payroll/**","/api/roles/**", "/api/attendance/**", "/api/face-recognition/**",
-                    "/api/chat/**", "/api/chat", "/resume/**", "/request/bulk-delete", 
-                    "/recruitment/**", "/request/bulk-approve", "/request/bulk-deny", "/api/roles/permissions")
-                .csrfTokenRepository(CookieCsrfTokenRepository.withHttpOnlyFalse())
-                .csrfTokenRequestHandler(new CsrfTokenRequestAttributeHandler())
-            )
+            .csrf(csrf -> csrf.disable())
             .exceptionHandling((exceptions) -> exceptions
                 .accessDeniedHandler(accessDeniedHandler())
             );

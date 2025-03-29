@@ -186,8 +186,8 @@ public class AttendanceController {
       attendances = attendanceService.searchAttendanceByEmployeeName(startDate, endDate, query, pageable);
     } else if (status != null && !status.isEmpty() && !status.equals("ALL")) {
       attendances = attendanceService.filterByStatus(startDate, endDate, pageable, status);
-    } else if(sortField != null) {
-      List<AttendanceDTO> sortedList = attendances.stream()
+    } else if(sortField != null && !sortField.isEmpty()) {
+      List<AttendanceDTO> sortedList = attendances.getContent().stream()
         .sorted(getComparator(sortField, direction))
         .toList();
 
@@ -309,7 +309,14 @@ public class AttendanceController {
       endDate = LocalDate.now();
     }
 
-    Page<AttendanceDTO> attendances = attendanceService.getAll(startDate, endDate, status, PageRequest.of(page, size));
+    Pageable pageable = PageRequest.of(page, size);
+    Page<AttendanceDTO> attendances;
+
+    if (status != null && !status.isEmpty() && !status.equals("ALL")) {
+      attendances = attendanceService.filterByStatus(startDate, endDate, pageable, status);
+    } else {
+      attendances = attendanceService.getAll(startDate, endDate, pageable);
+    }
 
     model.addAttribute("attendances", attendances);
     model.addAttribute("startDate", startDate);
