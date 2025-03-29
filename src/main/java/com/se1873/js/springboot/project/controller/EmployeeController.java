@@ -28,7 +28,10 @@ import org.springframework.core.io.Resource;
 import org.springframework.web.multipart.MultipartFile;
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 
+import java.time.LocalDate;
+import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Comparator;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -251,39 +254,39 @@ public class EmployeeController {
     return "index";
   }
 
-  @RequestMapping("/sort")
-  @PreAuthorize("hasPermission('EMPLOYEE', 'VISIBLE')")
-  public String sort(Model model,
-                     @RequestParam("field") String field,
-                     @RequestParam("direction") String direction,
-                     @RequestParam(value = "page", defaultValue = "0") int page,
-                     @RequestParam(value = "size", defaultValue = "10") int size,
-                     @ModelAttribute("loggedInUser") User loggedInUser) {
-    
-    Sort sort = "asc".equals(direction) ?
-        Sort.by(field).ascending() : 
-        Sort.by(field).descending();
-    Pageable pageable = PageRequest.of(page, size, sort);
-
-    log.error("estttt");
-
+  @GetMapping("/sort")
+  public String sortEmployees(@RequestParam(defaultValue = "employeeId") String field,
+                             @RequestParam(defaultValue = "asc") String direction,
+                             @RequestParam(defaultValue = "0") int page,
+                             @RequestParam(defaultValue = "10") int size,
+                             Model model) {
+    Pageable pageable = PageRequest.of(page, size);
     Page<EmployeeDTO> employees = employeeService.getAll(pageable);
-    log.error("estttt");
+    List<EmployeeDTO> sortedEmployees = new ArrayList<>(employees.getContent());
 
-    employees =  employeeService.sort(employees, direction, field);
-    var totalEmployees = employees.getTotalElements();
-    var avgSalary = employees.getContent().stream().mapToDouble(EmployeeDTO::getContractBaseSalary).average().orElse(0.0);
-    var activeEmployees = employeeService.countActiveEmployees(employees.getContent());
+    Comparator<EmployeeDTO> comparator = switch (field) {
+      case "departmentName" -> Comparator.comparing(EmployeeDTO::getDepartmentName, Comparator.nullsLast(String::compareTo));
+      case "positionName" -> Comparator.comparing(EmployeeDTO::getPositionName, Comparator.nullsLast(String::compareTo));
+      case "startDate" -> Comparator.comparing(EmployeeDTO::getEmploymentHistoryStartDate, Comparator.nullsLast(LocalDate::compareTo));
+      case "contractBaseSalary" -> Comparator.comparing(EmployeeDTO::getContractBaseSalary, Comparator.nullsLast(Double::compareTo));
+      case "employeeCode" -> Comparator.comparing(EmployeeDTO::getEmployeeCode, Comparator.nullsLast(String::compareTo));
+      case "employeeFirstName" -> Comparator.comparing(EmployeeDTO::getEmployeeFirstName, Comparator.nullsLast(String::compareTo));
+      default -> Comparator.comparing(EmployeeDTO::getEmployeeId);
+    };
 
-    globalController.createAuditLog(loggedInUser, "Sort Employee by " + field + " in " + direction + " order", "View", "Normal");
-    
-    addCommonAttributes(model);
-    model.addAttribute("totalEmployees", totalEmployees);
-    model.addAttribute("activeEmployees", activeEmployees);
-    model.addAttribute("avgSalary", avgSalary);
-    model.addAttribute("employees", employees);
-    model.addAttribute("direction", direction);
-    model.addAttribute("currentSortField", field);
+    if ("desc".equalsIgnoreCase(direction)) {
+      comparator = comparator.reversed();
+    }
+
+    sortedEmployees.sort(comparator);
+
+    model.addAttribute("employees", new PageImpl<>(sortedEmployees, pageable, employees.getTotalElements()));
+    model.addAttribute("currentPage", page);
+    model.addAttribute("totalPages", employees.getTotalPages());
+    model.addAttribute("totalItems", employees.getTotalElements());
+    model.addAttribute("pageSize", size);
+    model.addAttribute("sortField", field);
+    model.addAttribute("sortDirection", direction);
     model.addAttribute("contentFragment", "fragments/employee-fragments");
     return "index";
   }
