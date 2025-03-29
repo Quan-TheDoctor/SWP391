@@ -13,6 +13,8 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
+import org.springframework.context.annotation.Lazy;
+import org.springframework.beans.factory.annotation.Autowired;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -23,7 +25,9 @@ import java.util.List;
 @RequestMapping("/api/payroll")
 public class PayrollAPI {
 
-    private final SalaryRecordService salaryRecordService;
+    @Autowired
+    @Lazy
+    private SalaryRecordService salaryRecordService;
 
     @RequestMapping("/totalpayrollByYear")
     public ResponseEntity<List<PayrollChartDTO>> getSalaryByYear(@RequestParam("year") int year) {

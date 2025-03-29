@@ -1,11 +1,14 @@
 package com.se1873.js.springboot.project.service;
 
+import com.se1873.js.springboot.project.api.PayrollAPI;
 import com.se1873.js.springboot.project.dto.*;
 import com.se1873.js.springboot.project.entity.*;
 import com.se1873.js.springboot.project.repository.*;
 import com.se1873.js.springboot.project.service.department.DepartmentService;
 import com.se1873.js.springboot.project.service.employee.EmployeeService;
 import com.se1873.js.springboot.project.service.employment_history.EmploymentHistoryService;
+import com.se1873.js.springboot.project.service.salary_record.SalaryRecordService;
+import com.se1873.js.springboot.project.utils.EmailUtils;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -22,6 +25,11 @@ import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
+import org.thymeleaf.context.Context;
+import org.thymeleaf.spring6.SpringTemplateEngine;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.annotation.Lazy;
+import org.springframework.cache.annotation.CacheEvict;
 
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
@@ -58,6 +66,13 @@ public class RequestService {
   private final ReponseRepo responsRepository;
   private final LeavePolicyRepository leavePolicyRepository;
   private final ContractRepository contractRepository;
+  private final SpringTemplateEngine templateEngine;
+  private final EmailUtils emailUtils;
+  private final SalaryRecordService salaryRecordService;
+
+  @Autowired
+  @Lazy
+  private PayrollAPI payrollAPI;
 
   /**
    * Lấy danh sách requests đi kèm pagination
@@ -190,6 +205,8 @@ public class RequestService {
     return convertRequestToDTO(requestRepository.findRequestByRequestId(requestId));
   }
 
+  @Transactional
+  @CacheEvict(value = "allPayrolls", allEntries = true)
   public void updateStatus(RequestDTO requestDTO, String type) {
     User approval = userRepository.findUserByUsername(requestDTO.getApprovalName())
             .orElse(null);
@@ -205,6 +222,18 @@ public class RequestService {
         SalaryRecord salaryRecord = salaryRecordRepository.findSalaryRecordBySalaryIdAndIsDeleted(payrollId, false);
         salaryRecord.setPaymentStatus(status);
         salaryRecordRepository.save(salaryRecord);
+
+        PayrollDTO payroll = salaryRecordService.payrollDTO(payrollId);
+        String month = String.valueOf(payroll.getSalaryRecordMonth());
+        String year = String.valueOf(payroll.getSalaryRecordYear());
+        String employeeName = payroll.getEmployeeFirstName() + " " + payroll.getEmployeeLastName();
+        String employeeEmail = employeeService.getEmployeeByEmployeeId(payroll.getEmployeeId()).getEmployeePersonalEmail();
+
+        Context context = new Context();
+        context.setVariable("payroll", payroll);
+        String payslipContent = templateEngine.process("fragments/payroll-slip-fragments", context);
+
+        emailUtils.sendPayslipEmail(employeeEmail, employeeName, month, year, payslipContent);
       }
     } else if("Salary Raise".equals(type)) {
       response responseDetails = responsRepository.findByRequestId(requestDTO.getRequestId())

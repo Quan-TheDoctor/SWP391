@@ -34,6 +34,8 @@ import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.annotation.Lazy;
 
 import java.io.ByteArrayOutputStream;
 import java.io.File;
@@ -59,7 +61,9 @@ public class SalaryRecordService {
   private final FinancialPolicyRepository financialPolicyRepository;
   private final DependentRepository dependentRepository;
   private final EmployeeService employeeService;
-  private final RequestService requestService;
+  @Autowired
+  @Lazy
+  private RequestService requestService;
   private final UserRepository userRepository;
   private final DepartmentRepository departmentRepository;
   private final UserService userService;
