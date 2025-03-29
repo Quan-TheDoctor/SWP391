@@ -103,12 +103,15 @@ public class PayrollController {
   @PreAuthorize("hasPermission('PAYROLL', 'VISIBLE')")
   public String search(Model model,
                        @RequestParam("query") String query) {
-    var employees = employeeService.search(PageRequest.of(1, 1000), query);
+    var allEmployees = employeeService.getAllEmployees();
+    List<EmployeeDTO> searchEmployees = allEmployees.stream()
+      .filter(e -> (e.getEmployeeFirstName() + " " + e.getEmployeeLastName()).toLowerCase().contains(query.toLowerCase()))
+      .collect(Collectors.toList());
+
     List<PayrollDTO> payrolls = new ArrayList<>();
 
-    for(var e : employees) {
+    for(var e : searchEmployees) {
       Page<PayrollDTO> initialPayrolls = salaryRecordService.getPayrollByEmployeeId(PageRequest.of(0, DEFAULT_PAGE_SIZE), e.getEmployeeId());
-
       payrolls.addAll(initialPayrolls.getContent());
     }
 

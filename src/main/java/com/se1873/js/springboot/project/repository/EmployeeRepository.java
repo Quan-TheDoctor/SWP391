@@ -88,15 +88,6 @@ public interface EmployeeRepository extends JpaRepository<Employee, Long> {
           "JOIN eh.position p " +
           "WHERE eh.isCurrent = true " +
           "AND e.isDeleted = false " +
-          "ORDER BY e.employeeId")
-  Page<Employee> findAllCurrentEmployees(Pageable pageable);
-
-  @Query("SELECT e FROM Employee e " +
-          "JOIN e.employmentHistories eh " +
-          "JOIN eh.department d " +
-          "JOIN eh.position p " +
-          "WHERE eh.isCurrent = true " +
-          "AND e.isDeleted = false " +
           "ORDER BY e.firstName")
   Page<Employee> findAllOrderByFirstName(Pageable pageable);
 
@@ -129,4 +120,5 @@ public interface EmployeeRepository extends JpaRepository<Employee, Long> {
           "ORDER BY c.baseSalary")
   Page<Employee> findAllOrderByBaseSalary(Pageable pageable);
 
+  Page<Employee> findEmployeesByIsDeleted(Boolean isDeleted, Pageable pageable);
 }

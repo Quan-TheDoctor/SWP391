@@ -1,15 +1,15 @@
 <!DOCTYPE html>
-<html lang="vi" xmlns:th="http://www.thymeleaf.org">
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Form Xin Nghỉ Phép</title>
+    <title>Leave Request Form</title>
     <script src="https://cdn.tailwindcss.com"></script>
 </head>
 <div th:fragment="main-content" class="bg-gray-50">
 <div class="max-w-4xl mx-auto p-8">
     <div class="bg-white rounded-lg shadow-lg p-6">
-        <h1 class="text-2xl font-bold text-gray-800 mb-6">Form Xin Nghỉ Phép</h1>
+        <h1 class="text-2xl font-bold text-gray-800 mb-6">Leave Request Form</h1>
 
         <div th:if="${errorMessage}" class="mb-4 bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded relative">
             <span class="block sm:inline" th:text="${errorMessage}"></span>
@@ -22,11 +22,11 @@
         <form action="/user/request/create" method="POST" th:object="${requestDTO}">
             <div class="mb-4">
                 <input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}" />
-                <label for="reason" class="block text-sm font-medium text-gray-700 mb-1">Loại nghỉ phép</label>
-                <select id="reason" name="reason"
+                <label for="reason" class="block text-sm font-medium text-gray-700 mb-1">Leave Type</label>
+                <select id="reason" name="reason" required
                         onchange="this.form.submit()"
                         class="w-full px-4 py-2 rounded-lg border border-gray-200 focus:ring-2 focus:ring-blue-500 focus:border-transparent">
-                    <option>Select a leave type</option>
+                    <option value="">Select leave type</option>
                     <option th:each="leave: ${leavePolicy}"
                             th:value="${leave.leavePolicyId}"
                             th:selected="${leave.leavePolicyId != null && reason == leave.leavePolicyId}"
@@ -35,58 +35,53 @@
                 </select>
             </div>
         </form>
-        <form action="/request/save" method="POST" th:object="${requestDTO}">
+        <form action="/request/save" method="POST" th:object="${requestDTO}" id="leaveForm">
             <input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}" />
             <input type="hidden" name="LeavePolicyId" th:value="${reason}" />
 
             <div class="mb-4">
-                <label for="start-date" class="block text-sm font-medium text-gray-700 mb-1">Ngày bắt đầu</label>
+                <label for="start-date" class="block text-sm font-medium text-gray-700 mb-1">Start Date</label>
                 <input type="date" id="start-date" name="start-date" required
                        class="w-full px-4 py-2 rounded-lg border border-gray-200 focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                       th:field="*{leaveDTO.startDate}">
+                       th:field="*{leaveDTO.startDate}"
+                       min="">
+                <p class="mt-1 text-sm text-red-600" id="start-date-error"></p>
             </div>
 
             <div class="mb-4">
-                <label for="end-date" class="block text-sm font-medium text-gray-700 mb-1">Ngày kết thúc</label>
+                <label for="end-date" class="block text-sm font-medium text-gray-700 mb-1">End Date</label>
                 <input type="date" id="end-date" name="end-date" required
                        class="w-full px-4 py-2 rounded-lg border border-gray-200 focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                       th:field="*{leaveDTO.endDate}">
+                       th:field="*{leaveDTO.endDate}"
+                       min="">
+                <p class="mt-1 text-sm text-red-600" id="end-date-error"></p>
             </div>
 
             <div class="mb-4">
-                <label for="total-days" class="block text-sm font-medium text-gray-700 mb-1">Số ngày nghỉ</label>
-                <input type="text" id="total-days" name="total-days" readonly
-                       class="w-full px-4 py-2 rounded-lg border border-gray-200 bg-gray-100"
+                <label for="total-days" class="block text-sm font-medium text-gray-700 mb-1">Total Days</label>
+                <input type="number" id="total-days" name="total-days" readonly
+                       class="w-full px-4 py-2 rounded-lg border border-gray-200 bg-gray-50"
                        th:field="*{leaveDTO.totalDays}">
             </div>
 
             <div class="mb-4">
-                <label for="leave-allowed-day" class="block text-sm font-medium text-gray-700 mb-1">Số ngày còn lại</label>
-                <input  class="w-full px-4 py-2 rounded-lg border border-gray-200 bg-gray-100" id="leave-allowed-day"
-                        th:field="*{leaveDTO.leaveAllowedDay}"
-                        readonly>
-            </div>
-
-            <div class="mb-6">
-                <label for="note" class="block text-sm font-medium text-gray-700 mb-1">Ghi chú (nếu có)</label>
-                <textarea id="note" name="note" rows="4"
+                <label for="note" class="block text-sm font-medium text-gray-700 mb-1">Notes</label>
+                <textarea id="note" name="note" rows="3"
                           class="w-full px-4 py-2 rounded-lg border border-gray-200 focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                          placeholder="Nhập ghi chú (nếu có)" th:field="*{note}"></textarea>
+                          th:field="*{note}"></textarea>
             </div>
 
-            <div class="flex justify-end">
-                <button type="submit" class="px-6 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors">
-                    Gửi Yêu Cầu
+            <div class="mt-6 flex justify-end gap-4">
+                <button type="submit" class="px-6 py-2 bg-blue-600 text-white rounded-lg shadow-md hover:bg-blue-700 transition-all duration-200 transform hover:scale-105">
+                    Submit Request
                 </button>
+                <form th:action="@{/user/back}">
+                    <button type="submit" class="px-6 py-2 bg-gray-600 text-white rounded-lg shadow-md hover:bg-gray-700 transition-all duration-200 transform hover:scale-105">
+                        Back
+                    </button>
+                </form>
             </div>
         </form>
-        <div class="mt-6 flex justify-end">
-            <form th:action="@{/user/back}">
-                <button type="submit" class="px-6 py-2 bg-gray-600 text-white rounded-lg shadow-md hover:bg-gray-700 transition-all duration-200 transform hover:scale-105">
-                    Back
-                </button>
-            </form>
-        </div>
     </div>
 </div>
 
@@ -94,12 +89,40 @@
     const startDate = document.getElementById('start-date');
     const endDate = document.getElementById('end-date');
     const totalDays = document.getElementById('total-days');
+    const leaveForm = document.getElementById('leaveForm');
+    const today = new Date().toISOString().split('T')[0];
 
-    [startDate, endDate].forEach(input => input.addEventListener("change", calculateLeaveDays));
+    // Set minimum date to today
+    startDate.min = today;
+    endDate.min = today;
 
-    function calculateLeaveDays() {
+    [startDate, endDate].forEach(input => input.addEventListener("change", validateDates));
+
+    function validateDates() {
         const start = new Date(startDate.value);
         const end = new Date(endDate.value);
+        const today = new Date();
+        today.setHours(0, 0, 0, 0);
+
+        // Reset error messages
+        document.getElementById('start-date-error').textContent = '';
+        document.getElementById('end-date-error').textContent = '';
+
+        // Validate start date
+        if (start < today) {
+            document.getElementById('start-date-error').textContent = 'Start date cannot be before today';
+            startDate.value = '';
+            return;
+        }
+
+        // Validate end date
+        if (end < start) {
+            document.getElementById('end-date-error').textContent = 'End date must be after start date';
+            endDate.value = '';
+            return;
+        }
+
+        // Calculate total days
         if (start && end && start <= end) {
             const dayDiff = Math.ceil((end - start) / (1000 * 3600 * 24)) + 1;
             totalDays.value = dayDiff;
@@ -107,6 +130,37 @@
             totalDays.value = '0';
         }
     }
+
+    // Form validation before submit
+    leaveForm.addEventListener('submit', function(e) {
+        if (!startDate.value || !endDate.value) {
+            e.preventDefault();
+            if (!startDate.value) {
+                document.getElementById('start-date-error').textContent = 'Please select a start date';
+            }
+            if (!endDate.value) {
+                document.getElementById('end-date-error').textContent = 'Please select an end date';
+            }
+            return;
+        }
+
+        const start = new Date(startDate.value);
+        const end = new Date(endDate.value);
+        const today = new Date();
+        today.setHours(0, 0, 0, 0);
+
+        if (start < today) {
+            e.preventDefault();
+            document.getElementById('start-date-error').textContent = 'Start date cannot be before today';
+            return;
+        }
+
+        if (end < start) {
+            e.preventDefault();
+            document.getElementById('end-date-error').textContent = 'End date must be after start date';
+            return;
+        }
+    });
 </script>
 </div>
 </html>

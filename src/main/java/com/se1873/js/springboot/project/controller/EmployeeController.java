@@ -264,8 +264,13 @@ public class EmployeeController {
         Sort.by(field).ascending() : 
         Sort.by(field).descending();
     Pageable pageable = PageRequest.of(page, size, sort);
-    
+
+    log.error("estttt");
+
     Page<EmployeeDTO> employees = employeeService.getAll(pageable);
+    log.error("estttt");
+
+    employees =  employeeService.sort(employees, direction, field);
     var totalEmployees = employees.getTotalElements();
     var avgSalary = employees.getContent().stream().mapToDouble(EmployeeDTO::getContractBaseSalary).average().orElse(0.0);
     var activeEmployees = employeeService.countActiveEmployees(employees.getContent());

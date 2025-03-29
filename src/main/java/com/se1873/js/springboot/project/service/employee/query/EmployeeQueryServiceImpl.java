@@ -17,6 +17,7 @@ import java.util.Comparator;
 import java.util.List;
 import java.util.Objects;
 import java.util.stream.Collectors;
+import java.util.ArrayList;
 
 @Slf4j
 @Service
@@ -76,12 +77,7 @@ public class EmployeeQueryServiceImpl implements EmployeeQueryService {
 
   @Override
   public Page<EmployeeDTO> getAll(Pageable pageable) {
-    Page<Employee> employeePage = employeeRepository.findAllCurrentEmployees(pageable);
-    List<EmployeeDTO> employeeDTOs = employeePage.getContent().stream()
-      .map(employeeDTOMapper::toDTO)
-      .collect(Collectors.toList());
-
-    return new PageImpl<>(employeeDTOs, pageable, employeePage.getTotalElements());
+    return new PageImpl<>(getAll(), pageable, getAll().size());
   }
 
   @Override
@@ -121,34 +117,17 @@ public class EmployeeQueryServiceImpl implements EmployeeQueryService {
 
   @Override
   public List<EmployeeDTO> sort(Page<EmployeeDTO> source, String direction, String field) {
-    Pageable pageable = source.getPageable();
-    Page<Employee> sortedEmployees;
-
-    switch (field) {
-      case "firstName":
-        sortedEmployees = employeeRepository.findAllOrderByFirstName(pageable);
-        break;
-      case "departmentName":
-        sortedEmployees = employeeRepository.findAllOrderByDepartmentName(pageable);
-        break;
-      case "positionName":
-        sortedEmployees = employeeRepository.findAllOrderByPositionName(pageable);
-        break;
-      case "salary":
-        sortedEmployees = employeeRepository.findAllOrderByBaseSalary(pageable);
-        break;
-      default:
-        sortedEmployees = employeeRepository.findAllCurrentEmployees(pageable);
+    if (source == null) {
+      source = getAll(source.getPageable());
     }
 
-    List<EmployeeDTO> sorted = sortedEmployees.getContent().stream()
-      .map(employeeDTOMapper::toDTO)
-      .collect(Collectors.toList());
+    log.error("tét");
 
-    if ("desc".equals(direction)) {
-      Collections.reverse(sorted);
-    }
-
+    List<EmployeeDTO> sorted = new ArrayList<>(source.getContent());
+    
+    Comparator<EmployeeDTO> comparator = getComparator(field, direction);
+    sorted.sort(comparator);
+    
     return sorted;
   }
 

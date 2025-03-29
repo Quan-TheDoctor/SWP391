@@ -568,65 +568,6 @@ VALUES
 
     (15, 'Nguyễn Thị Hoa', 'Vợ', '1989-10-30', '015089123456', true);
 
--- Thêm phụ cấp
-INSERT INTO allowances (employee_id, allowance_type, amount, start_date, end_date, description)
-VALUES
-    -- Ban lãnh đạo
-    (1, 'Phụ cấp chức vụ', 10000000, '2020-01-01', NULL, 'Phụ cấp cho vị trí Giám đốc'),
-    (1, 'Phụ cấp nhiên liệu', 3000000, '2020-01-01', NULL, 'Phụ cấp xăng xe hàng tháng'),
-    (1, 'Phụ cấp điện thoại', 1000000, '2020-01-01', NULL, 'Phụ cấp điện thoại hàng tháng'),
-
-    (2, 'Phụ cấp chức vụ', 8000000, '2020-01-01', NULL, 'Phụ cấp cho vị trí Phó Giám đốc'),
-    (2, 'Phụ cấp nhiên liệu', 2500000, '2020-01-01', NULL, 'Phụ cấp xăng xe hàng tháng'),
-    (2, 'Phụ cấp điện thoại', 800000, '2020-01-01', NULL, 'Phụ cấp điện thoại hàng tháng'),
-
-    -- Trưởng phòng
-    (3, 'Phụ cấp chức vụ', 5000000, '2021-01-01', NULL, 'Phụ cấp cho vị trí Trưởng phòng'),
-    (3, 'Phụ cấp nhiên liệu', 1500000, '2021-01-01', NULL, 'Phụ cấp xăng xe hàng tháng'),
-    (3, 'Phụ cấp điện thoại', 500000, '2021-01-01', NULL, 'Phụ cấp điện thoại hàng tháng'),
-
-    (4, 'Phụ cấp chức vụ', 5000000, '2021-01-01', NULL, 'Phụ cấp cho vị trí Trưởng phòng'),
-    (4, 'Phụ cấp nhiên liệu', 1500000, '2021-01-01', NULL, 'Phụ cấp xăng xe hàng tháng'),
-    (4, 'Phụ cấp điện thoại', 500000, '2021-01-01', NULL, 'Phụ cấp điện thoại hàng tháng'),
-
-    (5, 'Phụ cấp chức vụ', 5000000, '2021-01-01', NULL, 'Phụ cấp cho vị trí Trưởng phòng'),
-    (5, 'Phụ cấp nhiên liệu', 1500000, '2021-01-01', NULL, 'Phụ cấp xăng xe hàng tháng'),
-    (5, 'Phụ cấp điện thoại', 500000, '2021-01-01', NULL, 'Phụ cấp điện thoại hàng tháng'),
-
-    (6, 'Phụ cấp chức vụ', 5000000, '2021-01-01', NULL, 'Phụ cấp cho vị trí Trưởng phòng'),
-    (6, 'Phụ cấp nhiên liệu', 1500000, '2021-01-01', NULL, 'Phụ cấp xăng xe hàng tháng'),
-    (6, 'Phụ cấp điện thoại', 500000, '2021-01-01', NULL, 'Phụ cấp điện thoại hàng tháng'),
-
-    (7, 'Phụ cấp chức vụ', 5000000, '2021-01-01', NULL, 'Phụ cấp cho vị trí Trưởng phòng'),
-    (7, 'Phụ cấp nhiên liệu', 1500000, '2021-01-01', NULL, 'Phụ cấp xăng xe hàng tháng'),
-    (7, 'Phụ cấp điện thoại', 500000, '2021-01-01', NULL, 'Phụ cấp điện thoại hàng tháng'),
-
-    -- Nhân viên
-    (8, 'Phụ cấp ăn trưa', 800000, '2022-01-01', NULL, 'Phụ cấp ăn trưa hàng tháng'),
-    (8, 'Phụ cấp điện thoại', 300000, '2022-01-01', NULL, 'Phụ cấp điện thoại hàng tháng'),
-
-    (9, 'Phụ cấp ăn trưa', 800000, '2022-01-01', NULL, 'Phụ cấp ăn trưa hàng tháng'),
-    (9, 'Phụ cấp nhiên liệu', 1000000, '2022-01-01', NULL, 'Phụ cấp xăng xe hàng tháng'),
-    (9, 'Phụ cấp điện thoại', 300000, '2022-01-01', NULL, 'Phụ cấp điện thoại hàng tháng'),
-
-    (10, 'Phụ cấp ăn trưa', 800000, '2022-06-01', NULL, 'Phụ cấp ăn trưa hàng tháng'),
-    (10, 'Phụ cấp dự án', 2000000, '2023-01-01', '2023-06-30', 'Phụ cấp cho dự án đặc biệt'),
-
-    (11, 'Phụ cấp ăn trưa', 800000, '2022-03-01', NULL, 'Phụ cấp ăn trưa hàng tháng'),
-    (11, 'Phụ cấp chuyên môn', 1500000, '2022-03-01', NULL, 'Phụ cấp cho kỹ năng lập trình'),
-
-    (12, 'Phụ cấp ăn trưa', 800000, '2022-05-01', NULL, 'Phụ cấp ăn trưa hàng tháng'),
-    (12, 'Phụ cấp chuyên môn', 1200000, '2022-05-01', NULL, 'Phụ cấp cho kỹ năng phân tích dữ liệu'),
-
-    (13, 'Phụ cấp ăn trưa', 800000, '2022-04-01', NULL, 'Phụ cấp ăn trưa hàng tháng'),
-    (13, 'Phụ cấp nhiên liệu', 1000000, '2022-04-01', NULL, 'Phụ cấp xăng xe hàng tháng'),
-
-    (14, 'Phụ cấp ăn trưa', 800000, '2023-01-01', NULL, 'Phụ cấp ăn trưa hàng tháng'),
-
-    (15, 'Phụ cấp ăn trưa', 800000, '2022-07-01', NULL, 'Phụ cấp ăn trưa hàng tháng'),
-    (15, 'Phụ cấp chuyên môn', 1300000, '2022-07-01', NULL, 'Phụ cấp cho kỹ năng bảo mật');
-
--- Generate attendance records for all employees (20 days each)
 WITH date_range AS (SELECT generate_series(
                                    (date_trunc('month',
                                                (CURRENT_TIMESTAMP AT TIME ZONE 'Asia/Ho_Chi_Minh'))::date), -- First day of month
@@ -657,83 +598,6 @@ SELECT e.employee_id,
 FROM employees e
          CROSS JOIN date_range d
 WHERE EXTRACT(DOW FROM d.work_date) BETWEEN 1 AND 5;
--- Weekdays only
-
-
--- Tiếp tục thêm dữ liệu lương
-INSERT INTO salary_records (employee_id, month, year, base_salary, total_allowance,
-                            overtime_pay, deductions, insurance_deduction, tax_amount, net_salary, payment_status)
-VALUES
-    -- Tiếp tục từ nhân viên 15
-    (15, 1, 2023, 17000000, 2100000, 1700000, 0, 1700000, 2100000, 17000000, 'Paid'),
-    (15, 2, 2023, 17000000, 2100000, 1500000, 0, 1700000, 2000000, 16900000, 'Paid'),
-    (14, 1, 2023, 12500000, 2100000, 12500000, 0, 12500000, 2100000, 12500000, 'Paid'),
-    (13, 1, 2023, 16500000, 2100000, 16500000, 0, 16500000, 2100000, 16500000, 'Paid'),
-    (12, 1, 2023, 15000000, 2100000, 15000000, 0, 15000000, 2100000, 15000000, 'Paid'),
-    (11, 1, 2023, 16000000, 2100000, 16000000, 0, 16000000, 2100000, 16000000, 'Paid'),
-    (10, 1, 2023, 14000000, 2100000, 14000000, 0, 14000000, 2100000, 14000000, 'Paid'),
-    (9, 1, 2023, 18000000, 2100000, 18000000, 0, 18000000, 2100000, 18000000, 'Paid'),
-    (8, 1, 2023, 15000000, 2100000, 15000000, 0, 15000000, 2100000, 15000000, 'Paid'),
-    (7, 1, 2023, 30000000, 2100000, 30000000, 0, 30000000, 2100000, 30000000, 'Paid'),
-    (6, 1, 2023, 30000000, 2100000, 30000000, 0, 30000000, 2100000, 30000000, 'Paid'),
-    (5, 1, 2023, 30000000, 2100000, 30000000, 0, 30000000, 2100000, 30000000, 'Paid'),
-    (4, 1, 2023, 30000000, 2100000, 30000000, 0, 30000000, 2100000, 30000000, 'Paid'),
-    (3, 1, 2023, 30000000, 2100000, 30000000, 0, 30000000, 2100000, 30000000, 'Paid'),
-    (2, 1, 2023, 40000000, 2100000, 40000000, 0, 40000000, 2100000, 40000000, 'Paid'),
-    (1, 1, 2023, 50000000, 2100000, 50000000, 0, 50000000, 2100000, 50000000, 'Paid');
-;
-
--- Thêm nhật ký hệ thống
-INSERT INTO audit_logs (user_id, action_type, action_info, action_level)
-VALUES (1, 'Authentication', 'Đăng nhập hệ thống', 'INFO'),
-       (1, 'Create', 'Tạo yêu cầu kết toán lương tháng 3/2023', 'INFO'),
-       (2, 'APPROVE', 'Phê duyệt yêu cầu kết toán lương tháng 3/2023', 'INFO'),
-       (1, 'Create', 'Tạo yêu cầu kết toán lương tháng 4/2023', 'INFO'),
-       (2, 'APPROVE', 'Phê duyệt yêu cầu kết toán lương tháng 4/2023', 'INFO'),
-
-       (3, 'Authentication', 'Đăng nhập hệ thống', 'INFO'),
-       (3, 'Create', 'Tạo yêu cầu nghỉ phép', 'INFO'),
-       (1, 'APPROVE', 'Phê duyệt yêu cầu nghỉ phép của Lê Thị Hương', 'INFO'),
-
-       (5, 'Authentication', 'Đăng nhập hệ thống', 'INFO'),
-       (5, 'Create', 'Tạo yêu cầu nghỉ phép', 'INFO'),
-       (1, 'APPROVE', 'Phê duyệt yêu cầu nghỉ phép của Võ Thanh Tùng', 'INFO'),
-
-       (6, 'Authentication', 'Đăng nhập hệ thống', 'INFO'),
-       (6, 'Create', 'Tạo yêu cầu nghỉ không lương', 'INFO'),
-       (1, 'APPROVE', 'Phê duyệt yêu cầu nghỉ không lương của Nguyễn Thị Mai', 'INFO'),
-
-       (8, 'Authentication', 'Đăng nhập hệ thống', 'INFO'),
-       (8, 'Create', 'Tạo yêu cầu nghỉ phép', 'INFO'),
-       (3, 'APPROVE', 'Phê duyệt yêu cầu nghỉ phép của Đỗ Thị Hà', 'INFO'),
-
-       (9, 'Authentication', 'Đăng nhập hệ thống', 'INFO'),
-       (9, 'Create', 'Tạo yêu cầu tăng lương', 'INFO'),
-
-       (10, 'Authentication', 'Đăng nhập hệ thống', 'INFO'),
-       (10, 'Create', 'Tạo yêu cầu nghỉ ốm', 'INFO'),
-       (7, 'APPROVE', 'Phê duyệt yêu cầu nghỉ ốm của Lý Thanh Thảo', 'INFO'),
-
-       (11, 'Authentication', 'Đăng nhập hệ thống', 'INFO'),
-       (11, 'Create', 'Tạo yêu cầu tăng lương', 'INFO'),
-       (3, 'APPROVE', 'Phê duyệt yêu cầu tăng lương của Nguyễn Văn Bình', 'INFO'),
-
-       (12, 'Authentication', 'Đăng nhập hệ thống', 'INFO'),
-       (12, 'Create', 'Tạo yêu cầu bổ sung phụ cấp', 'INFO'),
-       (4, 'APPROVE', 'Phê duyệt yêu cầu bổ sung phụ cấp của Trần Thị Lan', 'INFO'),
-
-       (14, 'Authentication', 'Đăng nhập hệ thống', 'INFO'),
-       (14, 'Create', 'Tạo yêu cầu bổ sung phụ cấp', 'INFO'),
-       (4, 'REJECT', 'Từ chối yêu cầu bổ sung phụ cấp của Phạm Thị Hồng', 'INFO'),
-
-       (2, 'Authentication', 'Đăng nhập hệ thống', 'INFO'),
-       (2, 'Update', 'Chỉnh sửa thông tin nhân viên Đỗ Thị Hà', 'INFO'),
-
-       (4, 'Authentication', 'Đăng nhập hệ thống', 'INFO'),
-       (4, 'Update', 'Chỉnh sửa thông tin hợp đồng của Lý Thanh Thảo', 'INFO'),
-
-       (1, 'View', 'Sao lưu dữ liệu hệ thống', 'INFO'),
-       (2, 'View', 'Khôi phục dữ liệu hệ thống', 'WARNING');
 
 create table channels
 (
@@ -762,82 +626,6 @@ VALUES (1, 'annual leave', 12),
        (4, 'wedding leave', 3),
        (5, 'funeral leave', 4),
        (6, 'no pay leave', 1000);
-
--- Thêm dữ liệu lương cho tháng 1, 2, 3 năm 2025
--- Tháng 1/2025
-INSERT INTO salary_records (employee_id, month, year, base_salary, total_allowance,
-                            overtime_pay, deductions, insurance_deduction, tax_amount, net_salary, payment_status)
-VALUES
-    -- Ban lãnh đạo
-    (1, 1, 2025, 55000000, 14000000, 0, 11000000, 6325000, 5470000, 46205000, 'Paid'),
-    (2, 1, 2025, 45000000, 11300000, 0, 11000000, 5175000, 3862500, 36262500, 'Paid'),
-
-    -- Trưởng phòng
-    (3, 1, 2025, 33000000, 7000000, 1500000, 11000000, 3795000, 1955500, 25749500, 'Paid'),
-    (4, 1, 2025, 33000000, 7000000, 0, 11000000, 3795000, 1805500, 24399500, 'Paid'),
-    (5, 1, 2025, 33000000, 7000000, 2000000, 15000000, 3795000, 1630500, 21574500, 'Paid'),
-    (6, 1, 2025, 33000000, 7000000, 1200000, 11000000, 3795000, 1925500, 25679500, 'Paid'),
-    (7, 1, 2025, 33000000, 7000000, 800000, 11000000, 3795000, 1865500, 25139500, 'Paid'),
-
-    -- Nhân viên
-    (8, 1, 2025, 16500000, 1100000, 1200000, 11000000, 1897500, 0, 15902500, 'Paid'),
-    (9, 1, 2025, 19800000, 2100000, 0, 15000000, 2277000, 0, 19623000, 'Paid'),
-    (10, 1, 2025, 15400000, 800000, 1500000, 11000000, 1771000, 0, 14929000, 'Paid'),
-    (11, 1, 2025, 17600000, 2300000, 800000, 15000000, 2024000, 0, 18676000, 'Paid'),
-    (12, 1, 2025, 16500000, 2000000, 0, 11000000, 1897500, 0, 15602500, 'Paid'),
-    (13, 1, 2025, 18150000, 1800000, 1200000, 11000000, 2087250, 0, 18062750, 'Paid'),
-    (14, 1, 2025, 13750000, 800000, 0, 11000000, 1581250, 0, 11968750, 'Paid'),
-    (15, 1, 2025, 18700000, 2100000, 1500000, 15000000, 2150500, 0, 20149500, 'Paid');
-
--- Tháng 2/2025
-INSERT INTO salary_records (employee_id, month, year, base_salary, total_allowance,
-                            overtime_pay, deductions, insurance_deduction, tax_amount, net_salary, payment_status)
-VALUES
-    -- Ban lãnh đạo
-    (1, 2, 2025, 55000000, 14000000, 0, 11000000, 6325000, 5470000, 46205000, 'Paid'),
-    (2, 2, 2025, 45000000, 11300000, 0, 11000000, 5175000, 3862500, 36262500, 'Paid'),
-
-    -- Trưởng phòng
-    (3, 2, 2025, 33000000, 7000000, 2000000, 11000000, 3795000, 2005500, 26199500, 'Paid'),
-    (4, 2, 2025, 33000000, 7000000, 1500000, 11000000, 3795000, 1955500, 25749500, 'Paid'),
-    (5, 2, 2025, 33000000, 7000000, 0, 15000000, 3795000, 1505500, 19699500, 'Paid'),
-    (6, 2, 2025, 33000000, 7000000, 1800000, 11000000, 3795000, 1985500, 26019500, 'Paid'),
-    (7, 2, 2025, 33000000, 7000000, 1200000, 11000000, 3795000, 1925500, 25679500, 'Paid'),
-
-    -- Nhân viên
-    (8, 2, 2025, 16500000, 1100000, 1800000, 11000000, 1897500, 0, 16502500, 'Paid'),
-    (9, 2, 2025, 19800000, 2100000, 1200000, 15000000, 2277000, 0, 20823000, 'Paid'),
-    (10, 2, 2025, 15400000, 800000, 2000000, 11000000, 1771000, 0, 15429000, 'Paid'),
-    (11, 2, 2025, 17600000, 2300000, 1500000, 15000000, 2024000, 0, 19376000, 'Paid'),
-    (12, 2, 2025, 16500000, 2000000, 1200000, 11000000, 1897500, 0, 16802500, 'Paid'),
-    (13, 2, 2025, 18150000, 1800000, 900000, 11000000, 2087250, 0, 17762750, 'Paid'),
-    (14, 2, 2025, 13750000, 800000, 1500000, 11000000, 1581250, 0, 13468750, 'Paid'),
-    (15, 2, 2025, 18700000, 2100000, 0, 15000000, 2150500, 0, 18649500, 'Paid');
-
--- Tháng 3/2025
-INSERT INTO salary_records (employee_id, month, year, base_salary, total_allowance,
-                            overtime_pay, deductions, insurance_deduction, tax_amount, net_salary, payment_status)
-VALUES
-    -- Ban lãnh đạo
-    (1, 3, 2025, 55000000, 14000000, 0, 11000000, 6325000, 5470000, 46205000, 'Pending'),
-    (2, 3, 2025, 45000000, 11300000, 0, 11000000, 5175000, 3862500, 36262500, 'Pending'),
-
-    -- Trưởng phòng
-    (3, 3, 2025, 33000000, 7000000, 2500000, 11000000, 3795000, 2055500, 26649500, 'Pending'),
-    (4, 3, 2025, 33000000, 7000000, 1800000, 11000000, 3795000, 1985500, 26019500, 'Pending'),
-    (5, 3, 2025, 33000000, 7000000, 1000000, 15000000, 3795000, 1605500, 20599500, 'Pending'),
-    (6, 3, 2025, 33000000, 7000000, 2000000, 11000000, 3795000, 2005500, 26199500, 'Pending'),
-    (7, 3, 2025, 33000000, 7000000, 1500000, 11000000, 3795000, 1955500, 25749500, 'Pending'),
-
-    -- Nhân viên
-    (8, 3, 2025, 16500000, 1100000, 2000000, 11000000, 1897500, 0, 16702500, 'Pending'),
-    (9, 3, 2025, 19800000, 2100000, 1500000, 15000000, 2277000, 0, 21123000, 'Pending'),
-    (10, 3, 2025, 15400000, 800000, 1800000, 11000000, 1771000, 0, 15229000, 'Pending'),
-    (11, 3, 2025, 17600000, 2300000, 2000000, 15000000, 2024000, 0, 19876000, 'Pending'),
-    (12, 3, 2025, 16500000, 2000000, 1500000, 11000000, 1897500, 0, 17102500, 'Pending'),
-    (13, 3, 2025, 18150000, 1800000, 1200000, 11000000, 2087250, 0, 18062750, 'Pending'),
-    (14, 3, 2025, 13750000, 800000, 1800000, 11000000, 1581250, 0, 13768750, 'Pending'),
-    (15, 3, 2025, 18700000, 2100000, 1200000, 15000000, 2150500, 0, 19849500, 'Pending');
 
 create table roles
 (
@@ -883,6 +671,10 @@ alter table roles
 insert into roles(attendance_permission, description, employee_management_permission, name, payroll_permission,
                   recruitment_management_permission, request_permission, system_settings_permission, user_permission)
 VALUES ('MANAGE', 'Admin ne', 'MANAGE', 'Administrator', 'MANAGE',
+        'MANAGE', 'MANAGE', 'MANAGE', 'MANAGE'),
+       ('MANAGE', 'Head of Department', 'MANAGE', 'Department Manager', 'MANAGE',
+        'MANAGE', 'MANAGE', 'MANAGE', 'MANAGE'),
+       ('MANAGE', 'HR', 'MANAGE', 'HR Personnel', 'MANAGE',
         'MANAGE', 'MANAGE', 'MANAGE', 'MANAGE'),
        ('NONE', 'Employee ne', 'NONE', 'Employee', 'NONE',
         'NONE', 'NONE', 'NONE', 'MANAGE')

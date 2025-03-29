@@ -1,6 +1,8 @@
 package com.se1873.js.springboot.project.dto;
 
 import com.se1873.js.springboot.project.entity.SalaryRecord;
+import jakarta.validation.Valid;
+import jakarta.validation.constraints.NotNull;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
@@ -26,9 +28,11 @@ public class RequestDTO {
   private LocalDate requestDate;
 
   @DateTimeFormat(pattern = "yyyy-MM-dd")
+  @NotNull(message = "Start date is required")
   private LocalDate startDate;
 
   @DateTimeFormat(pattern = "yyyy-MM-dd")
+  @NotNull(message = "End date is required")
   private LocalDate endDate;
 
   private Integer totalDays;
@@ -38,6 +42,9 @@ public class RequestDTO {
   private String approvalName;
   private Integer approvalId;
   private String requestType;
+  
+  @Valid
   private LeaveDTO leaveDTO;
+  
   private List<SalaryRecord> salaryRecords;
 }

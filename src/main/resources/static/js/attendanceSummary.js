@@ -192,16 +192,16 @@ ${isAbsent ?
         },
 
         updateStats: function (data) {
-            const workDays = data.filter(r => r.status.includes('On time')).length;
-            const lateDays = data.filter(r => r.status.includes('Late')).length;
-            const absentDays = data.filter(r => r.status.includes('Absent')).length;
+            const workDays = data.filter(r => r.status === 'On time').length;
+            const lateDays = data.filter(r => r.status === 'Late').length;
+            const absentDays = data.filter(r => r.status === 'Absent').length;
 
             const totalOTHours = data.reduce((total, record) => {
                 if (typeof record.overtimeHours === 'number') {
                     return total + record.overtimeHours;
                 }
 
-                if (record.status.includes('OT')) {
+                if (record.status === 'OT') {
                     const match = record.status.match(/OT\s+(\d+(\.\d+)?)/);
                     if (match) {
                         return total + parseFloat(match[1]);
@@ -300,10 +300,10 @@ ${isAbsent ?
         },
 
         getRecordStatusType: function (record) {
-            if (record.status.includes('On time')) return 'ontime';
-            if (record.status.includes('Late')) return 'late';
-            if (record.status.includes('OT')) return 'overtime';
-            if (record.status.includes('Absent')) return 'absent';
+            if (record.status === 'On time') return 'ontime';
+            if (record.status === 'Late') return 'late';
+            if (record.status === 'OT') return 'overtime';
+            if (record.status === 'Absent') return 'absent';
             return 'unknown';
         },
 
@@ -409,10 +409,10 @@ ${isAbsent ?
         let filteredData = this.data.attendanceRecords;
         if (status !== 'all') {
             filteredData = this.data.attendanceRecords.filter(record => {
-                if (status === 'On time') return record.status.includes('On time');
-                if (status === 'late') return record.status.includes('Late');
-                if (status === 'overtime') return record.status.includes('OT');
-                if (status === 'absent') return record.status.includes('Absent');
+                if (status === 'On time') return record.status === 'On time';
+                if (status === 'late') return record.status === 'Late';
+                if (status === 'overtime') return record.status === 'OT';
+                if (status === 'absent') return record.status === 'Absent';
                 return true;
             });
         }

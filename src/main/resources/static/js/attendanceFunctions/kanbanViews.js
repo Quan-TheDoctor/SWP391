@@ -530,16 +530,16 @@ function getStatusInfo(status) {
 
     if (status) {
         const statusLower = status.toLowerCase();
-        if (statusLower === 'đúng giờ' || statusLower === 'on time') {
+        if (statusLower === 'on time') {
             dotColor = 'green';
             statusText = 'On Time';
-        } else if (statusLower === 'đi muộn' || statusLower === 'late') {
+        } else if (statusLower === 'late') {
             dotColor = 'yellow';
             statusText = 'Late';
-        } else if (statusLower === 'vắng mặt' || statusLower === 'absent') {
+        } else if (statusLower === 'absent') {
             dotColor = 'red';
             statusText = 'Absent';
-        } else if (statusLower === 'chưa chấm công' || statusLower === 'not checked') {
+        } else if (statusLower === 'not checked') {
             dotColor = 'gray';
             statusText = 'Not Checked';
         }

@@ -101,23 +101,36 @@ public class RequestService {
       leaveRepository.save(leave);
 
       for (int i = 0; i < leave.getTotalDays(); i++) {
-        Attendance attendance = Attendance.builder()
-                .date(leave.getStartDate().plusDays(i))
-                .checkIn(LocalTime.of(0, 0, 0))
-                .checkOut(LocalTime.of(0, 0, 0))
-                .overtimeHours(0.0)
-                .status("Nghỉ")
-                .note(leave.getReason())
-                .employee(employee)
-                .build();
+        LocalDate currentDate = leave.getStartDate().plusDays(i);
+        
+        // Kiểm tra xem đã có bản ghi chấm công cho ngày này chưa
+        Optional<Attendance> existingAttendance = attendanceRepository.findByDateAndEmployee_EmployeeId(currentDate, employee.getEmployeeId());
+        
+        if (existingAttendance.isPresent()) {
+          // Nếu đã có bản ghi, cập nhật trạng thái và ghi chú
+          Attendance attendance = existingAttendance.get();
+          attendance.setStatus("Absent");
+          attendance.setNote(leave.getReason());
+          attendanceRepository.save(attendance);
+        } else {
+          // Nếu chưa có, tạo mới
+          Attendance attendance = Attendance.builder()
+                  .date(currentDate)
+                  .checkIn(LocalTime.of(0, 0, 0))
+                  .checkOut(LocalTime.of(0, 0, 0))
+                  .overtimeHours(0.0)
+                  .status("Absent")
+                  .note(leave.getReason())
+                  .employee(employee)
+                  .build();
 
-        attendanceRepository.save(attendance);
+          attendanceRepository.save(attendance);
+        }
       }
     }else{
       leave.setStatus("deny");
       leaveRepository.save(leave);
     }
-
   }
   public void saveRequestForLeave(RequestDTO requestDTO, User user, User approval) {
     if (user == null) {

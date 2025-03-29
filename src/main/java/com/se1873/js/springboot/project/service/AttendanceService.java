@@ -117,18 +117,18 @@ public class AttendanceService {
     int countAbsent = 0;
     List<Attendance> getAll = attendanceRepository.findAll();
     for (Attendance attendance : getAll) {
-      if ("Đúng giờ".equals(attendance.getStatus())) {
+      if ("On time".equals(attendance.getStatus())) {
         countOntime++;
-      } else if ("Đi muộn".equals(attendance.getStatus())) {
+      } else if ("Late".equals(attendance.getStatus())) {
         countLate++;
-      } else if ("Vắng mặt".equals(attendance.getStatus())) {
+      } else if ("Absent".equals(attendance.getStatus())) {
         countAbsent++;
       }
     }
     Map<String, Integer> result = new HashMap<>();
-    result.put("Đúng giờ", countOntime);
-    result.put("Đi muộn", countLate);
-    result.put("Vắng mặt", countAbsent);
+    result.put("On time", countOntime);
+    result.put("Late", countLate);
+    result.put("Absent", countAbsent);
 
     return result;
   }
@@ -139,18 +139,18 @@ public class AttendanceService {
     int countAbsent = 0;
     List<Attendance> getAll = attendanceRepository.findAllByEmployee_EmployeeId(employeeId);
     for (Attendance attendance : getAll) {
-      if ("Đúng giờ".equals(attendance.getStatus())) {
+      if ("On time".equals(attendance.getStatus())) {
         countOntime++;
-      } else if ("Đi muộn".equals(attendance.getStatus())) {
+      } else if ("Late".equals(attendance.getStatus())) {
         countLate++;
-      } else if ("Vắng mặt".equals(attendance.getStatus())) {
+      } else if ("Absent".equals(attendance.getStatus())) {
         countAbsent++;
       }
     }
     Map<String, Integer> result = new HashMap<>();
-    result.put("Đúng giờ", countOntime);
-    result.put("Đi muộn", countLate);
-    result.put("Vắng mặt", countAbsent);
+    result.put("On time", countOntime);
+    result.put("Late", countLate);
+    result.put("Absent", countAbsent);
 
     return result;
   }
