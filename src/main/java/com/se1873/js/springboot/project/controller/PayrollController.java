@@ -42,6 +42,8 @@ import java.util.stream.Collectors;
 @RequestMapping("/payroll")
 public class PayrollController {
 
+  private static final int DEFAULT_PAGE_SIZE = 10;
+
   private final SalaryRecordService salaryRecordService;
   private final SalaryRecordQueryService salaryRecordQueryService;
   private final EmployeeService employeeService;
@@ -105,7 +107,7 @@ public class PayrollController {
     List<PayrollDTO> payrolls = new ArrayList<>();
 
     for(var e : employees) {
-      Page<PayrollDTO> initialPayrolls = salaryRecordService.getPayrollByEmployeeId(PageRequest.of(0, 10), e.getEmployeeId());
+      Page<PayrollDTO> initialPayrolls = salaryRecordService.getPayrollByEmployeeId(PageRequest.of(0, DEFAULT_PAGE_SIZE), e.getEmployeeId());
 
       payrolls.addAll(initialPayrolls.getContent());
     }
@@ -130,7 +132,7 @@ public class PayrollController {
   public String filter(Model model,
                        @RequestParam(value = "field", required = false) String[] field,
                        @RequestParam(value = "value", required = false) String[] value) {
-    Page<PayrollDTO> initialPayrolls = salaryRecordService.getAllPayrolls(PageRequest.of(0, 10));
+    Page<PayrollDTO> initialPayrolls = salaryRecordService.getAllPayrolls(PageRequest.of(0, DEFAULT_PAGE_SIZE));
 
     List<PayrollDTO> filteredPayrolls = salaryRecordQueryService.filterPayrolls(
       initialPayrolls.getContent(), field, null, value
@@ -547,7 +549,6 @@ public class PayrollController {
   }
 
   @PostMapping("/send-payslip")
-  @PreAuthorize("hasPermission('PAYROLL', 'MANAGE')")
   public String sendPayrollSlip(@RequestParam("salaryId") Integer salaryId, Model model) {
     try {
       PayrollDTO payroll = salaryRecordService.payrollDTO(salaryId);

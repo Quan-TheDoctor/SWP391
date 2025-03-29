@@ -233,12 +233,14 @@
                                     <span th:if="${payroll.salaryRecordPaymentStatus == 'Chưa thanh toán'}" class="status-badge status-pending">Chưa thanh toán</span>
                                 </td>
                                 <td class="table-cell">
-                                    <a th:href="@{/user/download/{id}(id=${payroll.salaryRecordId})}" class="btn btn-outline inline-flex items-center text-sm">
+                                    <form th:action="@{/payroll/send-payslip}" method="post"
+                                          class="btn btn-outline inline-flex items-center text-sm">
+                                        <input type="hidden" name="salaryId" th:value="${payroll.salaryRecordId}">
                                         <svg class="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"/>
                                         </svg>
-                                        Download
-                                    </a>
+                                        <button type="submit">Download</button>
+                                    </form>
                                 </td>
                             </tr>
                             <tr th:if="${payrollDTO.isEmpty()}">

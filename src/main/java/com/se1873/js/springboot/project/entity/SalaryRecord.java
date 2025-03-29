@@ -57,6 +57,42 @@ public class SalaryRecord {
   @Column(name = "is_deleted")
   private Boolean isDeleted;
 
+  @Column(name = "social_insurance_rate")
+  private Double socialInsuranceRate;
+
+  @Column(name = "health_insurance_rate")
+  private Double healthInsuranceRate;
+
+  @Column(name = "unemployment_insurance_rate")
+  private Double unemploymentInsuranceRate;
+
+  @Column(name = "personal_income_tax_rate")
+  private Double personalIncomeTaxRate;
+
+  @Column(name = "union_fee_rate")
+  private Double unionFeeRate;
+
+  @Column(name = "social_insurance_amount")
+  private Double socialInsuranceAmount;
+
+  @Column(name = "health_insurance_amount")
+  private Double healthInsuranceAmount;
+
+  @Column(name = "unemployment_insurance_amount")
+  private Double unemploymentInsuranceAmount;
+
+  @Column(name = "personal_income_tax_amount")
+  private Double personalIncomeTaxAmount;
+
+  @Column(name = "union_fee_amount")
+  private Double unionFeeAmount;
+
+  @Column(name = "policy_version")
+  private String policyVersion;
+
+  @Column(name = "policy_snapshot_time")
+  private LocalDateTime policySnapshotTime;
+
   @PrePersist
   protected void onCreate() {
     this.createdAt = LocalDateTime.now();

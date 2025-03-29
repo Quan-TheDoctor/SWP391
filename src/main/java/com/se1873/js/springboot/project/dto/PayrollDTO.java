@@ -2,6 +2,8 @@ package com.se1873.js.springboot.project.dto;
 
 import lombok.*;
 
+import java.time.LocalDateTime;
+
 @Data
 @Builder
 @AllArgsConstructor
@@ -50,4 +52,17 @@ public class PayrollDTO {
 
   private Double totalTaxAmount;
   private Double totalNetSalary;
+
+  private Double socialInsuranceRate;
+  private Double healthInsuranceRate;
+  private Double unemploymentInsuranceRate;
+  private Double personalIncomeTaxRate;
+  private Double unionFeeRate;
+  private Double socialInsuranceAmount;
+  private Double healthInsuranceAmount;
+  private Double unemploymentInsuranceAmount;
+  private Double personalIncomeTaxAmount;
+  private Double unionFeeAmount;
+  private String policyVersion;
+  private LocalDateTime policySnapshotTime;
 }
