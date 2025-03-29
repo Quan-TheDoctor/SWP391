@@ -18,6 +18,7 @@ import java.util.List;
 import java.util.Objects;
 import java.util.stream.Collectors;
 import java.util.ArrayList;
+import java.time.LocalDate;
 
 @Slf4j
 @Service
@@ -174,18 +175,15 @@ public class EmployeeQueryServiceImpl implements EmployeeQueryService {
   }
 
   private java.util.Comparator<EmployeeDTO> getComparator(String field, String direction) {
-    return switch (field) {
-      case "firstName" ->
-        Comparator.comparing(EmployeeDTO::getEmployeeFirstName, direction.equals("asc") ? Comparator.reverseOrder() : Comparator.naturalOrder());
-      case "departmentName" ->
-        Comparator.comparing(EmployeeDTO::getDepartmentName, direction.equals("asc") ? Comparator.reverseOrder() : Comparator.naturalOrder());
-      case "positionName" ->
-        Comparator.comparing(EmployeeDTO::getPositionName, direction.equals("asc") ? Comparator.reverseOrder() : Comparator.naturalOrder());
-      case "startDate" ->
-        Comparator.comparing(EmployeeDTO::getEmploymentHistoryStartDate, direction.equals("asc") ? Comparator.reverseOrder() : Comparator.naturalOrder());
-      case "salary" ->
-        Comparator.comparing(EmployeeDTO::getContractBaseSalary, direction.equals("asc") ? Comparator.reverseOrder() : Comparator.naturalOrder());
-      default -> Comparator.comparing(EmployeeDTO::getEmployeeFirstName, Comparator.naturalOrder());
+    Comparator<EmployeeDTO> comparator = switch (field) {
+      case "firstName" -> Comparator.comparing(EmployeeDTO::getEmployeeFirstName, Comparator.nullsLast(String::compareTo));
+      case "departmentName" -> Comparator.comparing(EmployeeDTO::getDepartmentName, Comparator.nullsLast(String::compareTo));
+      case "positionName" -> Comparator.comparing(EmployeeDTO::getPositionName, Comparator.nullsLast(String::compareTo));
+      case "startDate" -> Comparator.comparing(EmployeeDTO::getEmploymentHistoryStartDate, Comparator.nullsLast(LocalDate::compareTo));
+      case "salary" -> Comparator.comparing(EmployeeDTO::getContractBaseSalary, Comparator.nullsLast(Double::compareTo));
+      default -> Comparator.comparing(EmployeeDTO::getEmployeeFirstName, Comparator.nullsLast(String::compareTo));
     };
+
+    return "desc".equalsIgnoreCase(direction) ? comparator.reversed() : comparator;
   }
 }

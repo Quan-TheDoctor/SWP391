@@ -280,13 +280,14 @@ public class EmployeeController {
 
     sortedEmployees.sort(comparator);
 
+    addCommonAttributes(model);
     model.addAttribute("employees", new PageImpl<>(sortedEmployees, pageable, employees.getTotalElements()));
     model.addAttribute("currentPage", page);
     model.addAttribute("totalPages", employees.getTotalPages());
     model.addAttribute("totalItems", employees.getTotalElements());
     model.addAttribute("pageSize", size);
-    model.addAttribute("sortField", field);
-    model.addAttribute("sortDirection", direction);
+    model.addAttribute("currentSortField", field);
+    model.addAttribute("direction", direction);
     model.addAttribute("contentFragment", "fragments/employee-fragments");
     return "index";
   }

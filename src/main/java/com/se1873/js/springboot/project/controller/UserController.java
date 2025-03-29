@@ -17,6 +17,8 @@ import jakarta.validation.Valid;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.PageImpl;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
@@ -32,6 +34,7 @@ import java.time.YearMonth;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
+import java.util.stream.Collectors;
 
 @Slf4j
 @Controller
@@ -225,16 +228,35 @@ public class UserController {
   @RequestMapping("/filterPayroll")
   @PreAuthorize("hasPermission('USER', 'VISIBLE')")
   public String filterPayroll(Model model,
-                              @RequestParam(value = "month", required = false) YearMonth month,
+                              @RequestParam(value = "year", required = false) String year,
+                              @RequestParam(value = "month", required = false) String month,
+                              @RequestParam(value = "paymentStatus", required = false) String paymentStatus,
                               @RequestParam(value = "page", defaultValue = "0") int page,
                               @RequestParam(value = "size", defaultValue = "5") int size) {
-    if (month != null) {
-      Integer months = month.getMonthValue();
-      Integer year = month.getYear();
-      Page<PayrollDTO> payrollDTO = salaryRecordService.filterByMonth(PageRequest.of(page, size), getEmployeeId(), months, year);
-      model.addAttribute("payrollDTO", payrollDTO);
-      model.addAttribute("month", month != null ? month.toString() : "");
+    Pageable pageable = PageRequest.of(page, size);
+    Page<PayrollDTO> payrollDTO;
+    
+    if (year != null && month != null) {
+      try {
+        int yearInt = Integer.parseInt(year);
+        int monthInt = Integer.parseInt(month);
+        payrollDTO = salaryRecordService.filterByMonth(PageRequest.of(page, size), getEmployeeId(), 
+            monthInt, yearInt);
+      } catch (NumberFormatException e) {
+        payrollDTO = salaryRecordService.getAllPayrollsByEmployeeId(pageable, getEmployeeId());
+      }
+    } else {
+      payrollDTO = salaryRecordService.getAllPayrollsByEmployeeId(pageable, getEmployeeId());
     }
+
+    if (paymentStatus != null && !paymentStatus.equals("all")) {
+      List<PayrollDTO> filteredContent = payrollDTO.getContent().stream()
+          .filter(p -> p.getSalaryRecordPaymentStatus().equals(paymentStatus))
+          .collect(Collectors.toList());
+      payrollDTO = new PageImpl<>(filteredContent, pageable, filteredContent.size());
+    }
+
+    model.addAttribute("payrollDTO", payrollDTO);
     model.addAttribute("contentFragment", "fragments/user-payroll-fragments");
     return "index";
   }

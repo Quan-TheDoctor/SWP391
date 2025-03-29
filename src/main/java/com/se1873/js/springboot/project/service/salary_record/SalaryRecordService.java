@@ -1028,4 +1028,12 @@ public class SalaryRecordService {
     salaryRecord.setPaymentStatus(status);
     salaryRecordRepository.save(salaryRecord);
   }
+
+  public Page<PayrollDTO> getAllPayrollsByEmployeeId(Pageable pageable, Integer employeeId) {
+    Page<SalaryRecord> salaryRecords = salaryRecordRepository.getSalaryRecordsByEmployee_EmployeeIdAndIsDeleted(employeeId, false, pageable);
+    List<PayrollDTO> payrollDTOs = salaryRecords.getContent().stream()
+        .map(record -> payrollDTO(record.getSalaryId()))
+        .collect(Collectors.toList());
+    return new PageImpl<>(payrollDTOs, pageable, salaryRecords.getTotalElements());
+  }
 }
