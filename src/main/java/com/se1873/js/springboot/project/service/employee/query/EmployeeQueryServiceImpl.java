@@ -134,9 +134,6 @@ public class EmployeeQueryServiceImpl implements EmployeeQueryService {
       case "positionName":
         sortedEmployees = employeeRepository.findAllOrderByPositionName(pageable);
         break;
-//      case "startDate":
-//        sortedEmployees = employeeRepository.findAllOrderByStartDate(pageable);
-//        break;
       case "salary":
         sortedEmployees = employeeRepository.findAllOrderByBaseSalary(pageable);
         break;

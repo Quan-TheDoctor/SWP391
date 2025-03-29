@@ -156,20 +156,20 @@
                     </h3>
                     <div class="text-sm text-gray-900 space-y-2">
                         <div class="flex justify-between">
-                            <span>Health Insurance (<span th:text="${payroll.getCalculatedEmployeeHealthInsuranceAmount()}"></span>%):</span>
-                            <span class="font-medium" th:text="${T(java.lang.String).format('%,.0f VND',payroll.getCalculatedEmployeeHealthInsurance())}"></span>
+                            <span>Health Insurance (<span th:text="${payroll.healthInsuranceRate}"></span>%):</span>
+                            <span class="font-medium" th:text="${T(java.lang.String).format('%,.0f VND',payroll.healthInsuranceAmount)}"></span>
                         </div>
                         <div class="flex justify-between">
-                            <span>Social Insurance (<span th:text="${payroll.getCalculatedEmployeeSocialInsuranceAmount()}"></span>%):</span>
-                            <span class="font-medium" th:text="${T(java.lang.String).format('%,.0f VND',payroll.getCalculatedEmployeeSocialInsurance())}"></span>
+                            <span>Social Insurance (<span th:text="${payroll.socialInsuranceRate}"></span>%):</span>
+                            <span class="font-medium" th:text="${T(java.lang.String).format('%,.0f VND',payroll.socialInsuranceAmount)}"></span>
                         </div>
                         <div class="flex justify-between">
-                            <span>Union Fee (<span th:text="${payroll.getCalculatedEmployeeUnionFeeAmount()}"></span>%):</span>
-                            <span class="font-medium" th:text="${T(java.lang.String).format('%,.0f VND',payroll.getCalculatedEmployeeUnionFee())}"></span>
+                            <span>Union Fee (<span th:text="${payroll.unionFeeRate}"></span>%):</span>
+                            <span class="font-medium" th:text="${T(java.lang.String).format('%,.0f VND',payroll.unionFeeAmount)}"></span>
                         </div>
                         <div class="flex justify-between">
-                            <span>Unemployment (<span th:text="${payroll.getCalculatedEmployeeUnemploymentInsuranceAmount()}"></span>%):</span>
-                            <span class="font-medium" th:text="${T(java.lang.String).format('%,.0f VND',payroll.getCalculatedEmployeeUnemploymentInsurance())}"></span>
+                            <span>Unemployment (<span th:text="${payroll.unemploymentInsuranceRate}"></span>%):</span>
+                            <span class="font-medium" th:text="${T(java.lang.String).format('%,.0f VND',payroll.unemploymentInsuranceAmount)}"></span>
                         </div>
                     </div>
                 </div>
@@ -181,20 +181,20 @@
                     </h3>
                     <div class="text-sm text-gray-900 space-y-2">
                         <div class="flex justify-between">
-                            <span>Health Insurance (<span th:text="${payroll.getCalculatedEmployerHealthInsuranceAmount()}"></span>%):</span>
-                            <span class="font-medium" th:text="${T(java.lang.String).format('%,.0f VND',payroll.getCalculatedEmployerHealthInsurance())}"></span>
+                            <span>Health Insurance (<span th:text="${payroll.healthInsuranceRate}"></span>%):</span>
+                            <span class="font-medium" th:text="${T(java.lang.String).format('%,.0f VND',payroll.healthInsuranceAmount)}"></span>
                         </div>
                         <div class="flex justify-between">
-                            <span>Social Insurance (<span th:text="${payroll.getCalculatedEmployerSocialInsuranceAmount()}"></span>%):</span>
-                            <span class="font-medium" th:text="${T(java.lang.String).format('%,.0f VND',payroll.getCalculatedEmployerSocialInsurance())}"></span>
+                            <span>Social Insurance (<span th:text="${payroll.socialInsuranceRate}"></span>%):</span>
+                            <span class="font-medium" th:text="${T(java.lang.String).format('%,.0f VND',payroll.socialInsuranceAmount)}"></span>
                         </div>
                         <div class="flex justify-between">
-                            <span>Union Fee (<span th:text="${payroll.getCalculatedEmployerUnionFeeAmount()}"></span>%):</span>
-                            <span class="font-medium" th:text="${T(java.lang.String).format('%,.0f VND',payroll.getCalculatedEmployerUnionFee())}"></span>
+                            <span>Union Fee (<span th:text="${payroll.unionFeeRate}"></span>%):</span>
+                            <span class="font-medium" th:text="${T(java.lang.String).format('%,.0f VND',payroll.unionFeeAmount)}"></span>
                         </div>
                         <div class="flex justify-between">
-                            <span>Unemployment (<span th:text="${payroll.getCalculatedEmployerUnemploymentInsuranceAmount()}"></span>%):</span>
-                            <span class="font-medium" th:text="${T(java.lang.String).format('%,.0f VND',payroll.getCalculatedEmployerUnemploymentInsurance())}"></span>
+                            <span>Unemployment (<span th:text="${payroll.unemploymentInsuranceRate}"></span>%):</span>
+                            <span class="font-medium" th:text="${T(java.lang.String).format('%,.0f VND',payroll.unemploymentInsuranceAmount)}"></span>
                         </div>
                     </div>
                 </div>
@@ -220,73 +220,110 @@
                     <tbody class="bg-white divide-y divide-gray-200">
                     <tr class="hover:bg-gray-50">
                         <td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">Health Insurance (Employee)</td>
-                        <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500" th:text="${payroll.getCalculatedEmployeeHealthInsuranceAmount()} + '%'"></td>
+                        <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500" th:text="${payroll.healthInsuranceRate} + '%'"></td>
                         <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500"
-                            th:text="${T(java.lang.String).format('%,.0f VND',payroll.getSalaryRecordBaseSalary())}"></td>
+                            th:text="${T(java.lang.String).format('%,.0f VND',payroll.salaryRecordBaseSalary)}"></td>
                         <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500"
-                            th:text="${T(java.lang.String).format('%,.0f VND',payroll.getCalculatedEmployeeHealthInsurance())}"></td>
+                            th:text="${T(java.lang.String).format('%,.0f VND',payroll.healthInsuranceAmount)}"></td>
                     </tr>
                     <tr class="hover:bg-gray-50">
                         <td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">Social Insurance (Employee)</td>
-                        <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500" th:text="${payroll.getCalculatedEmployeeSocialInsuranceAmount() + '%'}"></td>
+                        <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500" th:text="${payroll.socialInsuranceRate} + '%'"></td>
                         <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500"
-                            th:text="${T(java.lang.String).format('%,.0f VND',payroll.getSalaryRecordBaseSalary())}"></td>
+                            th:text="${T(java.lang.String).format('%,.0f VND',payroll.salaryRecordBaseSalary)}"></td>
                         <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500"
-                            th:text="${T(java.lang.String).format('%,.0f VND',payroll.getCalculatedEmployeeSocialInsurance())}"></td>
+                            th:text="${T(java.lang.String).format('%,.0f VND',payroll.socialInsuranceAmount)}"></td>
                     </tr>
                     <tr class="hover:bg-gray-50">
                         <td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">Union Fee (Employee)</td>
-                        <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500" th:text="${payroll.getCalculatedEmployeeUnionFeeAmount() + '%'}"></td>
+                        <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500" th:text="${payroll.unionFeeRate} + '%'"></td>
                         <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500"
-                            th:text="${T(java.lang.String).format('%,.0f VND',payroll.getSalaryRecordBaseSalary())}"></td>
+                            th:text="${T(java.lang.String).format('%,.0f VND',payroll.salaryRecordBaseSalary)}"></td>
                         <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500"
-                            th:text="${T(java.lang.String).format('%,.0f VND',payroll.getCalculatedEmployeeUnionFee())}"></td>
+                            th:text="${T(java.lang.String).format('%,.0f VND',payroll.unionFeeAmount)}"></td>
                     </tr>
                     <tr class="hover:bg-gray-50">
                         <td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">Unemployment Insurance (Employee)</td>
                         <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500"
-                            th:text="${payroll.getCalculatedEmployeeUnemploymentInsuranceAmount() +'%'}"></td>
+                            th:text="${payroll.unemploymentInsuranceRate} + '%'"></td>
                         <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500"
-                            th:text="${T(java.lang.String).format('%,.0f VND',payroll.getSalaryRecordBaseSalary())}"></td>
+                            th:text="${T(java.lang.String).format('%,.0f VND',payroll.salaryRecordBaseSalary)}"></td>
                         <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500"
-                            th:text="${T(java.lang.String).format('%,.0f VND',payroll.getCalculatedEmployeeUnemploymentInsurance())}"></td>
+                            th:text="${T(java.lang.String).format('%,.0f VND',payroll.unemploymentInsuranceAmount)}"></td>
                     </tr>
                     <tr class="hover:bg-gray-50 bg-gray-50">
                         <td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">Health Insurance (Employer)</td>
-                        <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500" th:text="${payroll.getCalculatedEmployerHealthInsuranceAmount() +'%'}"></td>
+                        <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500" th:text="${payroll.healthInsuranceRate} + '%'"></td>
                         <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500"
-                            th:text="${T(java.lang.String).format('%,.0f VND',payroll.getSalaryRecordBaseSalary())}"></td>
+                            th:text="${T(java.lang.String).format('%,.0f VND',payroll.salaryRecordBaseSalary)}"></td>
                         <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500"
-                            th:text="${T(java.lang.String).format('%,.0f VND',payroll.getCalculatedEmployerHealthInsurance())}"></td>
+                            th:text="${T(java.lang.String).format('%,.0f VND',payroll.healthInsuranceAmount)}"></td>
                     </tr>
                     <tr class="hover:bg-gray-50 bg-gray-50">
                         <td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">Social Insurance (Employer)</td>
-                        <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500" th:text="${payroll.getCalculatedEmployerSocialInsuranceAmount() +'%'}"></td>
+                        <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500" th:text="${payroll.socialInsuranceRate} + '%'"></td>
                         <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500"
-                            th:text="${T(java.lang.String).format('%,.0f VND',payroll.getSalaryRecordBaseSalary())}"></td>
+                            th:text="${T(java.lang.String).format('%,.0f VND',payroll.salaryRecordBaseSalary)}"></td>
                         <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500"
-                            th:text="${T(java.lang.String).format('%,.0f VND',payroll.getCalculatedEmployerSocialInsurance())}"></td>
+                            th:text="${T(java.lang.String).format('%,.0f VND',payroll.socialInsuranceAmount)}"></td>
                     </tr>
                     <tr class="hover:bg-gray-50 bg-gray-50">
                         <td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">Union Fee (Employer)</td>
-                        <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500" th:text="${payroll.getCalculatedEmployerUnionFeeAmount() +'%'}"></td>
+                        <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500" th:text="${payroll.unionFeeRate} + '%'"></td>
                         <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500"
-                            th:text="${T(java.lang.String).format('%,.0f VND',payroll.getSalaryRecordBaseSalary())}"></td>
+                            th:text="${T(java.lang.String).format('%,.0f VND',payroll.salaryRecordBaseSalary)}"></td>
                         <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500"
-                            th:text="${T(java.lang.String).format('%,.0f VND',payroll.getCalculatedEmployerUnionFee())}"></td>
+                            th:text="${T(java.lang.String).format('%,.0f VND',payroll.unionFeeAmount)}"></td>
                     </tr>
                     <tr class="hover:bg-gray-50 bg-gray-50">
                         <td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">Unemployment Insurance (Employer)</td>
                         <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500"
-                            th:text="${payroll.getCalculatedEmployerUnemploymentInsuranceAmount() +'%'}"></td>
+                            th:text="${payroll.unemploymentInsuranceRate} + '%'"></td>
                         <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500"
-                            th:text="${T(java.lang.String).format('%,.0f VND',payroll.getSalaryRecordBaseSalary())}"></td>
+                            th:text="${T(java.lang.String).format('%,.0f VND',payroll.salaryRecordBaseSalary)}"></td>
                         <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500"
-                            th:text="${T(java.lang.String).format('%,.0f VND',payroll.getCalculatedEmployerUnemploymentInsurance())}"></td>
+                            th:text="${T(java.lang.String).format('%,.0f VND',payroll.unemploymentInsuranceAmount)}"></td>
                     </tr>
                     </tbody>
                 </table>
             </div>
+        </div>
+
+        <div class="grid grid-cols-2 gap-4">
+            <div class="bg-white p-4 rounded-lg shadow">
+                <h3 class="text-lg font-semibold mb-4">Insurance Details</h3>
+                <div class="space-y-2">
+                    <div class="flex justify-between">
+                        <span>Social Insurance:</span>
+                        <span>[[${payroll.socialInsuranceRate}]]% - [[${payroll.socialInsuranceAmount}]] VND</span>
+                    </div>
+                    <div class="flex justify-between">
+                        <span>Health Insurance:</span>
+                        <span>[[${payroll.healthInsuranceRate}]]% - [[${payroll.healthInsuranceAmount}]] VND</span>
+                    </div>
+                    <div class="flex justify-between">
+                        <span>Unemployment Insurance:</span>
+                        <span>[[${payroll.unemploymentInsuranceRate}]]% - [[${payroll.unemploymentInsuranceAmount}]] VND</span>
+                    </div>
+                </div>
+            </div>
+            <div class="bg-white p-4 rounded-lg shadow">
+                <h3 class="text-lg font-semibold mb-4">Tax Details</h3>
+                <div class="space-y-2">
+                    <div class="flex justify-between">
+                        <span>Personal Income Tax:</span>
+                        <span>[[${payroll.personalIncomeTaxRate}]]% - [[${T(java.lang.String).format('%,.0f VND',payroll.personalIncomeTaxAmount)}]]</span>
+                    </div>
+                    <div class="flex justify-between">
+                        <span>Other Deductions:</span>
+                        <span>[[${T(java.lang.String).format('%,.0f VND',payroll.calculatedPersonalDeduction)}]]</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="mt-4 text-sm text-gray-500">
+            <p>Policy Version: [[${payroll.policyVersion}]]</p>
+            <p>Policy Snapshot Time: [[${#temporals.format(payroll.policySnapshotTime, 'dd/MM/yyyy HH:mm:ss')}]]</p>
         </div>
 
         <div class="bg-white rounded-lg shadow-md p-6" th:if="${payroll == null}">

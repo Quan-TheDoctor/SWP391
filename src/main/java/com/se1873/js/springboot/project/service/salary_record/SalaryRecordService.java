@@ -24,6 +24,7 @@ import org.apache.poi.ss.usermodel.Font;
 import org.apache.poi.ss.util.CellRangeAddress;
 import org.apache.poi.xssf.usermodel.XSSFWorkbook;
 import org.springframework.cache.annotation.Cacheable;
+import org.springframework.cache.annotation.CacheEvict;
 import org.springframework.core.io.ByteArrayResource;
 import org.springframework.core.io.FileSystemResource;
 import org.springframework.core.io.Resource;
@@ -40,6 +41,7 @@ import java.io.FileOutputStream;
 import java.io.IOException;
 import java.text.SimpleDateFormat;
 import java.time.LocalDate;
+import java.time.LocalDateTime;
 import java.util.*;
 import java.util.List;
 import java.util.stream.Collectors;
@@ -618,7 +620,12 @@ public class SalaryRecordService {
     return new PageImpl<>(payrolls, pageable, salaryRecords.getTotalElements());
   }
   public PayrollDTO findSalaryRecordBySalaryId(Integer salaryId) {
-    return payrollDTO(salaryId);
+    try {
+      return payrollDTO(salaryId);
+    } catch (RuntimeException e) {
+      log.error("Lỗi khi tìm kiếm bản ghi lương với ID: " + salaryId, e);
+      throw e;
+    }
   }
 
   public Page<PayrollDTO> getAll(Pageable pageable) {
@@ -721,19 +728,36 @@ public class SalaryRecordService {
     } else if (0 < salaryAfterDeductions && salaryAfterDeductions <= 5000000) {
       return salaryAfterDeductions * 0.05;
     } else if (5000000 < salaryAfterDeductions && salaryAfterDeductions <= 10000000) {
-      return salaryAfterDeductions * 0.05 + (salaryAfterDeductions - 10000000) * 0.1;
-    } else if (10000000 < salaryAfterDeductions && salaryAfterDeductions <= 20000000) {
-      return salaryAfterDeductions * 0.05 + 5000000 * 0.1 + (salaryAfterDeductions - 10000000) * 0.15;
-    } else if (18000000 < salaryAfterDeductions && salaryAfterDeductions <= 30000000) {
-      return salaryAfterDeductions * 0.05 + 5000000 * 0.1 + 10000000 * 0.15 + (salaryAfterDeductions - 10000000) * 0.2;
+      return salaryAfterDeductions * 0.1 - 250000;
+    } else if (10000000 < salaryAfterDeductions && salaryAfterDeductions <= 18000000) {
+      return salaryAfterDeductions * 0.15 - 750000;
+    } else if (18000000 < salaryAfterDeductions && salaryAfterDeductions <= 32000000) {
+      return salaryAfterDeductions * 0.2 - 1650000;
+    } else if (32000000 < salaryAfterDeductions && salaryAfterDeductions <= 52000000) {
+      return salaryAfterDeductions * 0.25 - 3250000;
+    } else if (52000000 < salaryAfterDeductions && salaryAfterDeductions <= 80000000) {
+      return salaryAfterDeductions * 0.3 - 5850000;
     } else {
-      return salaryAfterDeductions * 0.05 + 5000000 * 0.1 + 10000000 * 0.15 + 10000000 * 0.2 + (salaryAfterDeductions - 10000000) * 0.25;
+      return salaryAfterDeductions * 0.35 - 9850000;
     }
   }
   public PayrollDTO payrollDTO(int salaryId) {
     SalaryRecord salaryRecords = salaryRecordRepository.findSalaryRecordBySalaryIdAndIsDeleted(salaryId, false);
+    
+    if (salaryRecords == null) {
+      throw new RuntimeException("Không tìm thấy bản ghi lương với ID: " + salaryId);
+    }
+    
     Employee employee = employeeRepository.findEmployeeByEmployeeId(salaryRecords.getEmployee().getEmployeeId());
+    if (employee == null) {
+      throw new RuntimeException("Không tìm thấy nhân viên cho bản ghi lương ID: " + salaryId);
+    }
+    
     EmployeeDTO employeeDTO = employeeService.getEmployeeByEmployeeId(employee.getEmployeeId());
+    if (employeeDTO == null) {
+      throw new RuntimeException("Không tìm thấy thông tin chi tiết nhân viên cho ID: " + employee.getEmployeeId());
+    }
+    
     double calculatedEmployeeHealthInsuranceAmount = financialPolicyRepository.getFinancialPolicyAmount(1);
     double calculatedEmployeeSocialInsuranceAmount = financialPolicyRepository.getFinancialPolicyAmount(3);
     double calculatedEmployeeUnionFeeAmount = financialPolicyRepository.getFinancialPolicyAmount(5);
@@ -762,6 +786,10 @@ public class SalaryRecordService {
     double totalNetSalary = totalEarning - taxAmount + salaryRecords.getTotalAllowance();
 
     double grossSalary = totalEarning - totalDeductions;
+
+    String policyVersion = salaryRecords.getPolicyVersion();
+    LocalDateTime policySnapshotTime = salaryRecords.getPolicySnapshotTime();
+
     return PayrollDTO.builder()
       .departmentName(employeeDTO.getDepartmentName())
       .employeeId(employee.getEmployeeId())
@@ -802,8 +830,21 @@ public class SalaryRecordService {
       .totalTaxAmount(taxAmount)
       .totalNetSalary(totalNetSalary)
       .totalGrossSalary(grossSalary)
+      .socialInsuranceRate(salaryRecords.getSocialInsuranceRate())
+      .healthInsuranceRate(salaryRecords.getHealthInsuranceRate())
+      .unemploymentInsuranceRate(salaryRecords.getUnemploymentInsuranceRate())
+      .personalIncomeTaxRate(salaryRecords.getPersonalIncomeTaxRate())
+      .unionFeeRate(salaryRecords.getUnionFeeRate())
+      .socialInsuranceAmount(salaryRecords.getSocialInsuranceAmount())
+      .healthInsuranceAmount(salaryRecords.getHealthInsuranceAmount())
+      .unemploymentInsuranceAmount(salaryRecords.getUnemploymentInsuranceAmount())
+      .personalIncomeTaxAmount(salaryRecords.getPersonalIncomeTaxAmount())
+      .unionFeeAmount(salaryRecords.getUnionFeeAmount())
+      .policyVersion(policyVersion)
+      .policySnapshotTime(policySnapshotTime)
       .build();
   }
+  @CacheEvict(value = "allPayrolls", allEntries = true)
   public void savePayroll(PayrollCalculationForm form) {
     List<Integer> payrollIds = new ArrayList<>();
     int workingDaysPerMonth = (int) financialPolicyRepository.getFinancialPolicyAmount(12);
@@ -831,7 +872,7 @@ public class SalaryRecordService {
   }
 
   private void createRequest(PayrollCalculationForm form, List<Integer> payrollIds) {
-    DepartmentDTO departmentDTO = departmentDTOMapper.toDTO(departmentRepository.findDepartmentByDepartmentId(form.getSelectedDepartmentId()));
+    DepartmentDTO departmentDTO = departmentDTOMapper.toDTO(departmentRepository.findDepartmentByDepartmentId(12));
     User user = userService.findUserByUserId(form.getRequesterId());
     EmployeeDTO managerDTO = employeeService.getEmployeeByEmployeeId(departmentDTO.getManagerId());
     Optional<User> approval = userRepository.findUserByEmployee_EmployeeId(managerDTO.getEmployeeId());
@@ -883,6 +924,18 @@ public class SalaryRecordService {
     EmployeeDTO employeeDTO,
     SalaryCalculationResult calculated
   ) {
+    double socialInsuranceRate = financialPolicyRepository.getFinancialPolicyAmount(3);
+    double healthInsuranceRate = financialPolicyRepository.getFinancialPolicyAmount(1);
+    double unemploymentInsuranceRate = financialPolicyRepository.getFinancialPolicyAmount(7);
+    double personalIncomeTaxRate = financialPolicyRepository.getFinancialPolicyAmount(9);
+    double unionFeeRate = financialPolicyRepository.getFinancialPolicyAmount(5);
+
+    double socialInsuranceAmount = calculated.proratedBaseSalary() * socialInsuranceRate / 100;
+    double healthInsuranceAmount = calculated.proratedBaseSalary() * healthInsuranceRate / 100;
+    double unemploymentInsuranceAmount = calculated.proratedBaseSalary() * unemploymentInsuranceRate / 100;
+    double personalIncomeTaxAmount = calculated.proratedBaseSalary() * personalIncomeTaxRate / 100;
+    double unionFeeAmount = calculated.proratedBaseSalary() * unionFeeRate / 100;
+
     return SalaryRecord.builder()
       .employee(employeeRepository.findEmployeeByEmployeeId(payroll.getEmployeeId()))
       .baseSalary(calculated.proratedBaseSalary())
@@ -896,6 +949,18 @@ public class SalaryRecordService {
       .netSalary(0.0)
       .paymentStatus("Pending")
       .isDeleted(false)
+      .socialInsuranceRate(socialInsuranceRate)
+      .healthInsuranceRate(healthInsuranceRate)
+      .unemploymentInsuranceRate(unemploymentInsuranceRate)
+      .personalIncomeTaxRate(personalIncomeTaxRate)
+      .unionFeeRate(unionFeeRate)
+      .socialInsuranceAmount(socialInsuranceAmount)
+      .healthInsuranceAmount(healthInsuranceAmount)
+      .unemploymentInsuranceAmount(unemploymentInsuranceAmount)
+      .personalIncomeTaxAmount(personalIncomeTaxAmount)
+      .unionFeeAmount(unionFeeAmount)
+      .policyVersion("1.0")
+      .policySnapshotTime(LocalDateTime.now())
       .build();
   }
 
@@ -907,6 +972,19 @@ public class SalaryRecordService {
     salaryRecord.setInsuranceDeduction(payrollDTO.getSalaryRecordInsuranceDeduction());
     salaryRecord.setTaxAmount(payrollDTO.getSalaryRecordTaxAmount());
     salaryRecord.setNetSalary(payrollDTO.getSalaryRecordNetSalary());
+
+    salaryRecord.setSocialInsuranceRate(payrollDTO.getSocialInsuranceRate());
+    salaryRecord.setHealthInsuranceRate(payrollDTO.getHealthInsuranceRate());
+    salaryRecord.setUnemploymentInsuranceRate(payrollDTO.getUnemploymentInsuranceRate());
+    salaryRecord.setPersonalIncomeTaxRate(payrollDTO.getPersonalIncomeTaxRate());
+    salaryRecord.setUnionFeeRate(payrollDTO.getUnionFeeRate());
+    salaryRecord.setSocialInsuranceAmount(payrollDTO.getSocialInsuranceAmount());
+    salaryRecord.setHealthInsuranceAmount(payrollDTO.getHealthInsuranceAmount());
+    salaryRecord.setUnemploymentInsuranceAmount(payrollDTO.getUnemploymentInsuranceAmount());
+    salaryRecord.setPersonalIncomeTaxAmount(payrollDTO.getPersonalIncomeTaxAmount());
+    salaryRecord.setUnionFeeAmount(payrollDTO.getUnionFeeAmount());
+    salaryRecord.setPolicyVersion(payrollDTO.getPolicyVersion());
+    salaryRecord.setPolicySnapshotTime(payrollDTO.getPolicySnapshotTime());
 
     salaryRecordRepository.save(salaryRecord);
   }
@@ -940,5 +1018,14 @@ public class SalaryRecordService {
     double overtimePay,
     double grossSalary
   ) {
+  }
+
+  @Transactional
+  @CacheEvict(value = "allPayrolls", allEntries = true)
+  public void updateStatus(Long salaryId, String status) {
+    SalaryRecord salaryRecord = salaryRecordRepository.findById(salaryId)
+        .orElseThrow(() -> new RuntimeException("Không tìm thấy bản ghi lương"));
+    salaryRecord.setPaymentStatus(status);
+    salaryRecordRepository.save(salaryRecord);
   }
 }

@@ -52,6 +52,24 @@
                         <span>My Profile</span>
                     </a>
                 </div>
+                <div class="space-y-1">
+                    <a href="/chat" th:classappend="${requestURI == '/chat'} ? 'bg-primary-50 text-primary-600' : 'text-gray-700 hover:bg-gray-100'"
+                       class="flex items-center space-x-3 p-3 rounded-lg transition-colors">
+                        <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
+                        </svg>
+                        <span>Internal Chat</span>
+                    </a>
+                </div>
+                <div class="space-y-1">
+                    <a href="/face-recognition" th:classappend="${requestURI == '/face-recognition'} ? 'bg-primary-50 text-primary-600' : 'text-gray-700 hover:bg-gray-100'"
+                       class="flex items-center space-x-3 p-3 rounded-lg transition-colors">
+                        <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
+                        </svg>
+                        <span>Face Recognition Portal</span>
+                    </a>
+                </div>
             </div>
 
             <div class="h-px bg-gray-200 my-4"></div>
