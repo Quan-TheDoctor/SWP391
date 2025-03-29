@@ -46,7 +46,6 @@ import java.util.stream.Collectors;
 @RequiredArgsConstructor
 @RequestMapping("/attendance")
 @SessionAttributes({"formattedDate", "payrollCalculationForm", "user"})
-
 public class AttendanceController {
   private final AttendanceService attendanceService;
   private final EmployeeService employeeService;
@@ -325,25 +324,33 @@ public class AttendanceController {
 
     return "index";
   }
-
-
-
   @RequestMapping("/status")
   @PreAuthorize("hasPermission('ATTENDANCE', 'VISIBLE')")
   public String status(@RequestParam(value = "month", required = false) String month,
                        @RequestParam(value = "year", required = false) String year,
-                       @RequestParam(value = "action" ,required = false) String action,
-                       @RequestParam(value = "query" ,required = false) String query,
+                       @RequestParam(value = "action", required = false) String action,
+                       @RequestParam(value = "query", required = false) String query,
                        Model model, Pageable pageable) {
+
+    LocalDate currentDate = LocalDate.now();
+    String currentMonth = String.format("%02d", currentDate.getMonthValue());
+    String currentYear = String.valueOf(currentDate.getYear());
 
     String formattedDate = (String) model.getAttribute("formattedDate");
 
     if (formattedDate == null || month != null || year != null) {
-      if (month == null) month = "01";
-      if (year == null) year = "2024";
+      if (month == null) month = currentMonth;
+      if (year == null) year = currentYear;
       formattedDate = year + "-" + month;
       model.addAttribute("formattedDate", formattedDate);
     }
+
+    String[] parts = formattedDate.split("-");
+    String selectedYear = parts[0];
+    String selectedMonth = parts[1];
+
+    model.addAttribute("selectedMonth", selectedMonth);
+    model.addAttribute("selectedYear", selectedYear);
 
     if (action == null) {
       action = (String) model.getAttribute("action");
@@ -352,23 +359,37 @@ public class AttendanceController {
       query = (String) model.getAttribute("query");
     }
 
+    System.out.println("Action: " + action);
+    System.out.println("Query: " + query);
 
     List<Position> positions = positionService.getAllPositions();
     List<Department> departments = departmentService.getAllDepartments();
     List<EmployeeAttendanceStatusDTO> employeeAttendanceStatusDTOS = new ArrayList<>();
-    if("search".equals(action) && query != null && !query.trim().isEmpty()){
-        employeeAttendanceStatusDTOS = attendanceService.findEmployeeAttendanceStatusbyEmployeeName(query, pageable, formattedDate);
 
-    }else if( "departmentfilter".equals(action) && query != null && !query.trim().isEmpty()){
-      employeeAttendanceStatusDTOS = attendanceService.departmentFilter(query, pageable, formattedDate);
+    if ("search".equals(action) && query != null && !query.trim().isEmpty()) {
+      employeeAttendanceStatusDTOS = attendanceService.findEmployeeAttendanceStatusbyEmployeeName(query, pageable, formattedDate);
+    } else if ("departmentfilter".equals(action) && query != null && !query.trim().isEmpty()) {
+      System.out.println("checllllllll");
+      if ("all".equals(query)) {
+        employeeAttendanceStatusDTOS = attendanceService.getEmployeeAttendanceStatus(formattedDate, pageable);
+      } else {
+        employeeAttendanceStatusDTOS = attendanceService.departmentFilter(query, pageable, formattedDate);
+      }
+    } else if ("positionfilter".equals(action) && query != null && !query.trim().isEmpty()) {
+      if ("all".equals(query)) {
+        employeeAttendanceStatusDTOS = attendanceService.getEmployeeAttendanceStatus(formattedDate, pageable);
+      } else {
+
+        employeeAttendanceStatusDTOS = attendanceService.positionfilter(query, pageable, formattedDate);
+      }
     }else {
       employeeAttendanceStatusDTOS = attendanceService.getEmployeeAttendanceStatus(formattedDate, pageable);
-
     }
-    Map<String, EmployeeAttendanceStatusDTO> mostLateAndAbsent = attendanceService.findEmployeesWithMostLateAndAbsent(employeeAttendanceStatusDTOS);
 
+    Map<String, EmployeeAttendanceStatusDTO> mostLateAndAbsent = attendanceService.findEmployeesWithMostLateAndAbsent(employeeAttendanceStatusDTOS);
     EmployeeAttendanceStatusDTO mostLate = mostLateAndAbsent.get("MostLate");
     EmployeeAttendanceStatusDTO mostAbsent = mostLateAndAbsent.get("MostAbsent");
+
     int employeeCount = employeeService.countEmployees();
     model.addAttribute("employeeCount", employeeCount);
     model.addAttribute("mostLate", mostLate);
@@ -376,9 +397,9 @@ public class AttendanceController {
     model.addAttribute("employeeAttendanceStatusDTOS", employeeAttendanceStatusDTOS);
     model.addAttribute("positions", positions);
     model.addAttribute("departments", departments);
+
     return "fragments/employee-attendance-status";
   }
-
 
   @GetMapping("/searchstatus")
   @PreAuthorize("hasPermission('ATTENDANCE', 'VISIBLE')")
@@ -389,12 +410,24 @@ public class AttendanceController {
     return "redirect:/attendance/status";
 
   }
-  @GetMapping("/departmentfilter")
+  @GetMapping("/filterEmployee")
   @PreAuthorize("hasPermission('ATTENDANCE', 'VISIBLE')")
-  public String departmentFilter(@RequestParam("value") String filter,
+  public String filterEmployee(@RequestParam(value = "department", required = false) String department,
+                                 @RequestParam(value = "position", required = false) String position,
                                  RedirectAttributes redirectAttributes) {
-    redirectAttributes.addFlashAttribute("action", "departmentfilter");
-    redirectAttributes.addFlashAttribute("query", filter);
+
+    if (department != null && !department.isEmpty()&& !department.equals("all") ) {
+      System.out.println(department);
+      redirectAttributes.addFlashAttribute("action", "departmentfilter");
+      redirectAttributes.addFlashAttribute("query", department);
+    }
+
+    if (position != null && !position.isEmpty() && !position.equals("all")) {
+      System.out.println(position);
+      redirectAttributes.addFlashAttribute("action", "positionfilter");
+      redirectAttributes.addFlashAttribute("query", position);
+    }
+
     return "redirect:/attendance/status";
   }
 }

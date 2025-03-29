@@ -827,7 +827,7 @@ public class AttendanceService {
     int month = yearMonth.getMonthValue();
     int daysInMonth = yearMonth.lengthOfMonth();
 
-    List<Attendance> attendanceList = attendanceRepository.findAllAttendanceByMonthYear(year, month);
+    List<Attendance> attendanceList = attendanceRepository.findAllAttendanceByMonthYearAndActiveEmployee(year, month);
 
 
     Map<Integer, EmployeeAttendanceStatusDTO> employeeStatusMap = new HashMap<>();
@@ -892,10 +892,7 @@ public class AttendanceService {
     System.out.println("date: " + date);
     System.out.println("check: " + employees.getContent());
     List<Long> employeeIds = employees.getContent().stream().map(emp -> emp.getEmployeeId().longValue()).collect(Collectors.toList());
-
     System.out.println("check Employeeid: " + employeeIds.toString());
-
-
     if (employeeIds.isEmpty()) {
       return Collections.emptyList();
     }
@@ -903,8 +900,9 @@ public class AttendanceService {
     System.out.println(employeeAttendanceStatusDTOList);
     Set<Long> employeeIdSet = employeeIds.stream().map(Long::valueOf).collect(Collectors.toSet());
 
-    return employeeAttendanceStatusDTOList.stream().filter(dto -> employeeIdSet.contains(dto.getEmployee().getEmployeeId().longValue()))
-      .collect(Collectors.toList());
+    return employeeAttendanceStatusDTOList.stream()
+            .filter(dto -> dto.getEmployee() != null && employeeIdSet.contains(dto.getEmployee().getEmployeeId().longValue()))
+            .collect(Collectors.toList());
   }
 
   public int countWeekendDays(int year, int month) {
@@ -941,6 +939,22 @@ public class AttendanceService {
 
     Set<Long> employeeIdSet = employeeIds.stream().map(Long::valueOf).collect(Collectors.toSet());
 
-    return employeeAttendanceStatusDTOList.stream().filter(dto -> employeeIdSet.contains(dto.getEmployee().getEmployeeId().longValue())).collect(Collectors.toList());
+    return employeeAttendanceStatusDTOList.stream()
+            .filter(dto -> dto.getEmployee() != null && employeeIdSet.contains(dto.getEmployee().getEmployeeId().longValue()))
+            .collect(Collectors.toList());
+  }
+  public List<EmployeeAttendanceStatusDTO> positionfilter(String departmentName, Pageable pageable, String date) {
+    Page<Employee> employees = employeeRepository.findEmployeesByPositionName(departmentName, pageable);
+    List<Long> employeeIds = employees.getContent().stream().map(emp -> emp.getEmployeeId().longValue()).collect(Collectors.toList());
+    if (employeeIds.isEmpty()) {
+      return Collections.emptyList();
+    }
+    List<EmployeeAttendanceStatusDTO> employeeAttendanceStatusDTOList = getEmployeeAttendanceStatus(date, pageable);
+
+    Set<Long> employeeIdSet = employeeIds.stream().map(Long::valueOf).collect(Collectors.toSet());
+
+    return employeeAttendanceStatusDTOList.stream()
+            .filter(dto -> dto.getEmployee() != null && employeeIdSet.contains(dto.getEmployee().getEmployeeId().longValue()))
+            .collect(Collectors.toList());
   }
 }
