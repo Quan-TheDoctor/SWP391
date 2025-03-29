@@ -1,6 +1,7 @@
 package com.se1873.js.springboot.project.controller;
 
 import com.se1873.js.springboot.project.dto.*;
+import com.se1873.js.springboot.project.entity.FinancialPolicy;
 import com.se1873.js.springboot.project.entity.SalaryRecord;
 import com.se1873.js.springboot.project.repository.EmployeeRepository;
 import com.se1873.js.springboot.project.repository.SalaryRecordRepository;
@@ -324,15 +325,25 @@ public class PayrollController {
       return "redirect:/payroll";
     }
 
+    if (financialPolicyDTOList.getFinancialPolicies() != null) {
+        for (FinancialPolicy policy : financialPolicyDTOList.getFinancialPolicies()) {
+            if (policy.getFinancialPolicyAmount() < 0) {
+                bindingResult.rejectValue("financialPolicies", "error.financialPolicy", 
+                    "Value cannot be negative");
+                break;
+            }
+        }
+    }
+
     if (bindingResult.hasErrors()) {
-      model.addAttribute("message", "Setting configs failed.");
+      model.addAttribute("message", "Values cannot be negative.");
       model.addAttribute("messageType", "error");
       model.addAttribute("contentFragment", "fragments/financial-policies-fragments");
       return "index";
     }
     if ("save".equals(service)) {
       financialPolicyService.saveAll(financialPolicyDTOList.getFinancialPolicies());
-      model.addAttribute("message", "Setting configured successfully");
+      model.addAttribute("message", "Policy settings updated successfully");
     }
     model.addAttribute("contentFragment", "fragments/financial-policies-fragments");
     return "index";

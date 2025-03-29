@@ -77,7 +77,13 @@ public class EmployeeQueryServiceImpl implements EmployeeQueryService {
 
   @Override
   public Page<EmployeeDTO> getAll(Pageable pageable) {
-    return new PageImpl<>(getAll(), pageable, getAll().size());
+    Page<Employee> employeePage = employeeRepository.findEmployeesByIsDeleted(false, pageable);
+    List<EmployeeDTO> employeeDTOs = employeePage.getContent()
+        .stream()
+        .map(employeeDTOMapper::toDTO)
+        .collect(Collectors.toList());
+    
+    return new PageImpl<>(employeeDTOs, pageable, employeePage.getTotalElements());
   }
 
   @Override
@@ -86,10 +92,13 @@ public class EmployeeQueryServiceImpl implements EmployeeQueryService {
       case "department" -> employeeRepository.findEmployeesByDepartmentName(value, pageable).map(employeeDTOMapper::toDTO);
       case "position" -> employeeRepository.findEmployeesByPositionName(value, pageable).map(employeeDTOMapper::toDTO);
       case "salaryrange" -> {
+        if ("all".equalsIgnoreCase(value)) {
+            yield getAll(pageable);
+        }
+        
         double salaryValue = Double.parseDouble(value);
-        List<Employee> employees = employeeRepository.findAll(pageable).getContent();
-        List<Employee> filteredEmployees = employees.stream()
-          .filter(e -> !e.getIsDeleted())
+        List<Employee> allEmployees = employeeRepository.findEmployeesByIsDeleted(false);
+        List<Employee> filteredEmployees = allEmployees.stream()
           .filter(e -> e.getContracts().stream()
             .filter(Contract::isPresent)
             .anyMatch(c -> {
@@ -105,8 +114,12 @@ public class EmployeeQueryServiceImpl implements EmployeeQueryService {
             }))
           .collect(Collectors.toList());
 
+        int start = (int) pageable.getOffset();
+        int end = Math.min((start + pageable.getPageSize()), filteredEmployees.size());
+        List<Employee> pageContent = filteredEmployees.subList(start, end);
+
         yield new PageImpl<>(
-          filteredEmployees.stream().map(employeeDTOMapper::toDTO).collect(Collectors.toList()),
+          pageContent.stream().map(employeeDTOMapper::toDTO).collect(Collectors.toList()),
           pageable,
           filteredEmployees.size()
         );
