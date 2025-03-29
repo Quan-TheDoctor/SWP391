@@ -1,289 +1,250 @@
-<!DOCTYPE html>
-<html xmlns:th="http://www.thymeleaf.org"
-      xmlns:sec="http://www.thymeleaf.org/extras/spring-security">
-<head>
-    <meta charset="UTF-8">
-    <title>Monthly Attendance Status</title>
-    <script src="https://cdn.tailwindcss.com"></script>
-    <script>
-        tailwind.config = {
-            theme: {
-                extend: {
-                    colors: {
-                        primary: {
-                            50: '#f5f3ff',
-                            100: '#ede9fe',
-                            200: '#ddd6fe',
-                            300: '#c4b5fd',
-                            400: '#a78bfa',
-                            500: '#8b5cf6',
-                            600: '#7c3aed',
-                            700: '#6d28d9',
-                            800: '#5b21b6',
-                            900: '#4c1d95',
-                        },
-                        secondary: {
-                            50: '#eef2ff',
-                            100: '#e0e7ff',
-                            200: '#c7d2fe',
-                            300: '#a5b4fc',
-                            400: '#818cf8',
-                            500: '#6366f1',
-                            600: '#4f46e5',
-                            700: '#4338ca',
-                            800: '#3730a3',
-                            900: '#312e81',
+    <!DOCTYPE html>
+    <html xmlns:th="http://www.thymeleaf.org"
+          xmlns:sec="http://www.thymeleaf.org/extras/spring-security">
+    <head>
+        <meta charset="UTF-8">
+        <title>Monthly Attendance Status</title>
+        <script src="https://cdn.tailwindcss.com"></script>
+        <script>
+            tailwind.config = {
+                theme: {
+                    extend: {
+                        colors: {
+                            primary: {
+                                50: '#f5f3ff',
+                                100: '#ede9fe',
+                                200: '#ddd6fe',
+                                300: '#c4b5fd',
+                                400: '#a78bfa',
+                                500: '#8b5cf6',
+                                600: '#7c3aed',
+                                700: '#6d28d9',
+                                800: '#5b21b6',
+                                900: '#4c1d95',
+                            },
+                            secondary: {
+                                50: '#eef2ff',
+                                100: '#e0e7ff',
+                                200: '#c7d2fe',
+                                300: '#a5b4fc',
+                                400: '#818cf8',
+                                500: '#6366f1',
+                                600: '#4f46e5',
+                                700: '#4338ca',
+                                800: '#3730a3',
+                                900: '#312e81',
+                            }
                         }
                     }
                 }
             }
-        }
-    </script>
-    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/daterangepicker/daterangepicker.css">
-    <script src="https://cdn.jsdelivr.net/npm/jquery/dist/jquery.min.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/moment/moment.min.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/daterangepicker/daterangepicker.min.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/echarts@5.4.3/dist/echarts.min.js"></script>
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/animate.css/4.1.1/animate.min.css"/>
-</head>
-<body>
-<div th:fragment="main-content" xmlns:sec="http://www.w3.org/1999/xhtml">
-    <main class="flex-1 ml-64 p-6">
-        <div class="max-w-7xl mx-auto space-y-6">
-            <!-- Page Header Component -->
-            <div class="flex flex-col md:flex-row gap-4 items-center justify-between p-4 bg-gradient-to-r from-primary-600 to-secondary-600 rounded-lg text-white shadow-lg animate__animated animate__fadeIn">
-                <div>
-                    <h1 class="text-2xl font-bold">Monthly Attendance Status</h1>
-                    <p class="text-primary-100">Manage your organization's workforce</p>
-                </div>
+        </script>
+        <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/daterangepicker/daterangepicker.css">
+        <script src="https://cdn.jsdelivr.net/npm/jquery/dist/jquery.min.js"></script>
+        <script src="https://cdn.jsdelivr.net/npm/moment/moment.min.js"></script>
+        <script src="https://cdn.jsdelivr.net/npm/daterangepicker/daterangepicker.min.js"></script>
+        <script src="https://cdn.jsdelivr.net/npm/echarts@5.4.3/dist/echarts.min.js"></script>
+        <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/animate.css/4.1.1/animate.min.css"/>
+    </head>
+    <body>
+    <div th:fragment="main-content" xmlns:sec="http://www.w3.org/1999/xhtml">
+        <main class="flex-1 ml-64 p-6">
+            <div class="max-w-7xl mx-auto space-y-6">
+                <!-- Page Header Component -->
+                <div class="flex flex-col md:flex-row gap-4 items-center justify-between p-4 bg-gradient-to-r from-primary-600 to-secondary-600 rounded-lg text-white shadow-lg animate__animated animate__fadeIn">
+                    <div>
+                        <h1 class="text-2xl font-bold">Monthly Attendance Status</h1>
+                        <p class="text-primary-100">Manage your organization's workforce</p>
+                    </div>
 
-                <div class="flex gap-2">
                     <form id="filterForm" action="/attendance/status" method="GET" class="flex gap-2">
                         <select id="monthSelect" name="month" class="px-4 py-2 bg-white text-primary-600 rounded-md shadow">
-                            <option value="01">January</option>
-                            <option value="02">February</option>
-                            <option value="03">March</option>
-                            <option value="04">April</option>
-                            <option value="05">May</option>
-                            <option value="06">June</option>
-                            <option value="07">July</option>
-                            <option value="08">August</option>
-                            <option value="09">September</option>
-                            <option value="10">October</option>
-                            <option value="11">November</option>
-                            <option value="12">December</option>
+                            <option value="01" th:selected="${selectedMonth == '01'}">January</option>
+                            <option value="02" th:selected="${selectedMonth == '02'}">February</option>
+                            <option value="03" th:selected="${selectedMonth == '03'}">March</option>
+                            <option value="04" th:selected="${selectedMonth == '04'}">April</option>
+                            <option value="05" th:selected="${selectedMonth == '05'}">May</option>
+                            <option value="06" th:selected="${selectedMonth == '06'}">June</option>
+                            <option value="07" th:selected="${selectedMonth == '07'}">July</option>
+                            <option value="08" th:selected="${selectedMonth == '08'}">August</option>
+                            <option value="09" th:selected="${selectedMonth == '09'}">September</option>
+                            <option value="10" th:selected="${selectedMonth == '10'}">October</option>
+                            <option value="11" th:selected="${selectedMonth == '11'}">November</option>
+                            <option value="12" th:selected="${selectedMonth == '12'}">December</option>
                         </select>
 
-                        <!-- Chọn năm -->
                         <select id="yearSelect" name="year" class="px-4 py-2 bg-white text-primary-600 rounded-md shadow">
-
+                            <option value="2019" th:selected="${selectedYear == '2019'}">2019</option>
+                            <option value="2020" th:selected="${selectedYear == '2020'}">2020</option>
+                            <option value="2021" th:selected="${selectedYear == '2021'}">2021</option>
+                            <option value="2022" th:selected="${selectedYear == '2022'}">2022</option>
+                            <option value="2023" th:selected="${selectedYear == '2023'}">2023</option>
+                            <option value="2024" th:selected="${selectedYear == '2024'}">2024</option>
+                            <option value="2025" th:selected="${selectedYear == '2025'}">2025</option>
                         </select>
 
-                        <!-- Nút tìm kiếm -->
                         <button type="submit" class="px-4 py-2 bg-secondary-500 text-white rounded-md hover:bg-secondary-600 transition-colors shadow">
-                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 16v-4m0 0l-3 3m3-3l3 3M4 12h16"/>
-                            </svg>
                             Find
                         </button>
                     </form>
-                </div>
-            </div>
-
-            <!-- Search Bar Component -->
-            <div class="flex items-center gap-2 w-full">
-                <form th:action="@{/attendance/searchstatus}" method="get" class="flex flex-grow gap-2">
-                    <input type="text" name="query" placeholder="Search employee..."
-                           class="flex-grow p-2 border rounded-md focus:ring-2 focus:ring-primary-500">
-                    <button type="submit" class="px-4 py-2 bg-primary-600 text-white rounded-md hover:bg-primary-700">
-                        Search
-                    </button>
-                </form>
-            </div>
-
-            <!-- Analytics Cards Component -->
-            <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
-                <div class="bg-blue-50 p-4 rounded-lg shadow-sm">
-                    <div class="flex items-center gap-3">
-                        <div class="p-2 bg-blue-100 rounded-full">
-                            <svg class="w-6 h-6 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                                      d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"/>
-                            </svg>
-                        </div>
-                        <div>
-                            <p class="text-sm text-gray-500">Total Employees</p>
-                            <p class="text-xl font-bold" th:text="${employeeCount}"></p>
-                        </div>
                     </div>
                 </div>
 
-                <div class="bg-green-50 p-4 rounded-lg shadow-sm">
-                    <div class="flex items-center gap-3">
-                        <div class="p-2 bg-green-100 rounded-full">
-                            <svg class="w-6 h-6 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                                      d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/>
-                            </svg>
-                        </div>
-                        <div >
-                            <p class="text-sm text-gray-500">Most frequently late employee</p>
-                            <div th:if="${mostLate != null}">
-                            <p class="text-xl font-bold" th:text="${mostLate.getEmployee().getEmployeeFirstName() + ' '+mostLate.getEmployee().getEmployeeLastName() }"></p>
-                        </div></div>
-                    </div>
+                <!-- Search Bar Component -->
+                <div class="flex items-center gap-2 w-full">
+                    <form th:action="@{/attendance/searchstatus}" method="get" class="flex flex-grow gap-2">
+                        <input type="text" name="query" placeholder="Search employee..."
+                               class="flex-grow p-2 border rounded-md focus:ring-2 focus:ring-primary-500">
+                        <button type="submit" class="px-4 py-2 bg-primary-600 text-white rounded-md hover:bg-primary-700">
+                            Search
+                        </button>
+                    </form>
                 </div>
 
-                <div class="bg-purple-50 p-4 rounded-lg shadow-sm">
-                    <div class="flex items-center gap-3">
-                        <div class="p-2 bg-purple-100 rounded-full">
-                            <svg class="w-6 h-6 text-purple-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                                      d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/>
-                            </svg>
-                        </div>
-                        <div>
-                            <p class="text-sm text-gray-500">Most frequently absent employee</p>
-                            <div th:if="${mostAbsent != null}">
-                            <p class="text-xl font-bold" th:text="${mostAbsent.getEmployee().getEmployeeFirstName() + ' ' + mostAbsent.getEmployee().getEmployeeLastName()}"></p>
+                <!-- Analytics Cards Component -->
+                <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+                    <div class="bg-blue-50 p-4 rounded-lg shadow-sm">
+                        <div class="flex items-center gap-3">
+                            <div class="p-2 bg-blue-100 rounded-full">
+                                <svg class="w-6 h-6 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                          d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"/>
+                                </svg>
+                            </div>
+                            <div>
+                                <p class="text-sm text-gray-500">Total Employees</p>
+                                <p class="text-xl font-bold" th:text="${employeeCount}"></p>
                             </div>
                         </div>
+                    </div>
 
+                    <div class="bg-green-50 p-4 rounded-lg shadow-sm">
+                        <div class="flex items-center gap-3">
+                            <div class="p-2 bg-green-100 rounded-full">
+                                <svg class="w-6 h-6 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                          d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/>
+                                </svg>
+                            </div>
+                            <div >
+                                <p class="text-sm text-gray-500">Most frequently late employee</p>
+                                <div th:if="${mostLate != null}">
+                                <p class="text-xl font-bold" th:text="${mostLate.getEmployee().getEmployeeFirstName() + ' '+mostLate.getEmployee().getEmployeeLastName() }"></p>
+                            </div></div>
+                        </div>
+                    </div>
+
+                    <div class="bg-purple-50 p-4 rounded-lg shadow-sm">
+                        <div class="flex items-center gap-3">
+                            <div class="p-2 bg-purple-100 rounded-full">
+                                <svg class="w-6 h-6 text-purple-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                          d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/>
+                                </svg>
+                            </div>
+                            <div>
+                                <p class="text-sm text-gray-500">Most frequently absent employee</p>
+                                <div th:if="${mostAbsent != null}">
+                                <p class="text-xl font-bold" th:text="${mostAbsent.getEmployee().getEmployeeFirstName() + ' ' + mostAbsent.getEmployee().getEmployeeLastName()}"></p>
+                                </div>
+                            </div>
+
+                        </div>
                     </div>
                 </div>
-            </div>
-            <!-- Filter Panel Component -->
-            <div class="bg-white rounded-lg shadow-lg p-4 space-y-4 animate__animated animate__fadeInUp">
+
+            <form th:action="@{/attendance/filterEmployee}" method="GET" id="filter">
                 <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
-                    <div class="space-y-2">
-                        <form th:action="@{/attendance/departmentfilter}" method="GET" id="departmentForm">
-                            <input type="hidden" name="field" value="department"/>
-                            <label class="block text-sm font-medium text-gray-700">Department</label>
-                            <select name="value" class="w-full p-2 border rounded-md focus:ring-2 focus:ring-primary-500"
-                                    onchange="document.getElementById('departmentForm').submit();">
-                                <option value="all">All Departments</option>
-                                <option th:each="dept : ${departments}"
-                                        th:value="${dept.departmentName}"
-                                        th:text="${dept.departmentName}"
-                                        th:selected="${param.value != null && param.value[0] == dept.departmentName}">
-                                </option>
-                            </select>
-                        </form>
-                    </div>
 
                     <div class="space-y-2">
-                        <form th:action="@{/employee/filterAttendance(field='position')}">
-                            <input type="hidden" name="field" value="position"/>
-                            <label class="block text-sm font-medium text-gray-700">Position</label>
-                            <select name="value" onchange="this.form.submit()"
-                                    class="w-full p-2 border rounded-md focus:ring-2 focus:ring-primary-500">
-                                <option value="all">All Positions</option>
-                                <option th:each="pos : ${positions}"
-                                        th:value="${pos.positionName}"
-                                        th:text="${pos.positionName}"
-                                        th:selected="${param.value != null && param.value[0] == pos.positionName}">
-                                </option>
-                            </select>
-                        </form>
+                        <label class="block text-sm font-medium text-gray-700">Department</label>
+                        <select name="department" class="w-full p-2 border rounded-md focus:ring-2 focus:ring-primary-500"
+                                onchange="document.getElementById('filter').submit();">
+                            <option value="all">All Departments</option>
+                            <option th:each="dept : ${departments}"
+                                    th:value="${dept.departmentName}"
+                                    th:text="${dept.departmentName}"
+                                    th:selected="${param.department == dept.departmentName}">
+                            </option>
+                        </select>
                     </div>
 
 
+                    <div class="space-y-2">
+                        <label class="block text-sm font-medium text-gray-700">Position</label>
+                        <select name="position" class="w-full p-2 border rounded-md focus:ring-2 focus:ring-primary-500"
+                                onchange="document.getElementById('filter').submit();">
+                            <option value="all">All Positions</option>
+                            <option th:each="pos : ${positions}"
+                                    th:value="${pos.positionName}"
+                                    th:text="${pos.positionName}"
+                                    th:selected="${param.position == pos.positionName}">
+                            </option>
+                        </select>
+                    </div>
+                </div>
+            </form>
+
+                <div class="bg-white rounded-lg shadow-lg overflow-hidden animate__animated animate__fadeIn">
+                    <div class="overflow-x-auto">
+                        <table class="w-full min-w-[1024px] divide-y divide-gray-200">
+                            <thead class="bg-gray-50">
+                            <tr>
+                                <th class="px-4 py-3 text-left text-sm font-semibold text-gray-600">
+                                    <span>Employee name</span>
+                                </th>
+                                <th class="px-4 py-3 text-left text-sm font-semibold text-gray-600">
+                                    <span>Department</span>
+                                  </th>
+                                <th class="px-4 py-3 text-left text-sm font-semibold text-gray-600">
+                                    <span>Position</span>
+                                </th>
+                                <th class="px-4 py-3 text-left text-sm font-semibold text-gray-600">
+                                    <span>Month/Year</span>
+                                </th>
+                                <th class="px-4 py-3 text-right text-sm font-semibold text-gray-600">
+                                    <span>Total late days</span>
+                                </th>
+                                <th class="px-4 py-3 text-right text-sm font-semibold text-gray-600">
+                                    <span>Total absent days</span>
+                                </th>
+
+                            </tr>
+                            </thead>
+                            <tbody class="divide-y divide-gray-200 bg-white">
+                            <tr th:each="att : ${employeeAttendanceStatusDTOS}"
+                                class="hover:bg-primary-50 hover:cursor-pointer transition-colors duration-150">
+
+                                <td class="px-4 py-4 text-sm text-gray-700"
+                                    th:text="${att.getEmployee().getEmployeeFirstName() + ' ' + att.getEmployee().getEmployeeLastName()}">
+                                </td>
+                                <td class="px-4 py-4 text-sm text-gray-700" th:text="${att.getEmployee().getDepartmentName()}"></td>
+                                <td class="px-4 py-4 text-sm text-gray-700" th:text="${att.getEmployee().getPositionName()}"></td>
+                                <td class="px-4 py-4 text-sm text-gray-700" th:text="${att.getMonthYear()}"></td>
+                                <td class="px-4 py-4 text-sm text-gray-700 text-right" th:text="${att.getCountLateDays()}"></td>
+                                <td class="px-4 py-4 text-sm text-gray-700 text-right" th:text="${att.getCountAbsentDays()}"></td>
+                            </tr>
+
+                            <tr>
+                                <td colspan="7" class="px-4 py-6 text-center text-gray-500 text-sm">
+                                    No employees found matching your criteria
+                                </td>
+                            </tr>
+                            </tbody>
+                        </table>
+                    </div>
+
+
+
+    <!--                <div th:replace="~{fragments/pagination :: pagination(${employees}, '/employee', ${currentSortField}, ${direction})}"></div>-->
                 </div>
             </div>
-
-            <!-- Data Table Component -->
-            <div class="bg-white rounded-lg shadow-lg overflow-hidden animate__animated animate__fadeIn">
-                <div class="overflow-x-auto">
-                    <table class="w-full min-w-[1024px] divide-y divide-gray-200">
-                        <thead class="bg-gray-50">
-                        <tr>
-                            <th class="px-4 py-3 text-left text-sm font-semibold text-gray-600">
-                                <span>Employee name</span>
-                            </th>
-                            <th class="px-4 py-3 text-left text-sm font-semibold text-gray-600">
-                                <span>Department</span>
-                              </th>
-                            <th class="px-4 py-3 text-left text-sm font-semibold text-gray-600">
-                                <span>Position</span>
-                            </th>
-                            <th class="px-4 py-3 text-left text-sm font-semibold text-gray-600">
-                                <span>Month/Year</span>
-                            </th>
-                            <th class="px-4 py-3 text-right text-sm font-semibold text-gray-600">
-                                <span>Total late days</span>
-                            </th>
-                            <th class="px-4 py-3 text-right text-sm font-semibold text-gray-600">
-                                <span>Total absent days</span>
-                            </th>
-
-                        </tr>
-                        </thead>
-                        <tbody class="divide-y divide-gray-200 bg-white">
-                        <tr th:each="att : ${employeeAttendanceStatusDTOS}"
-                            class="hover:bg-primary-50 hover:cursor-pointer transition-colors duration-150">
-
-                            <td class="px-4 py-4 text-sm text-gray-700"
-                                th:text="${att.getEmployee().getEmployeeFirstName() + ' ' + att.getEmployee().getEmployeeLastName()}">
-                            </td>
-                            <td class="px-4 py-4 text-sm text-gray-700" th:text="${att.getEmployee().getDepartmentName()}"></td>
-                            <td class="px-4 py-4 text-sm text-gray-700" th:text="${att.getEmployee().getPositionName()}"></td>
-                            <td class="px-4 py-4 text-sm text-gray-700" th:text="${att.getMonthYear()}"></td>
-                            <td class="px-4 py-4 text-sm text-gray-700 text-right" th:text="${att.getCountLateDays()}"></td>
-                            <td class="px-4 py-4 text-sm text-gray-700 text-right" th:text="${att.getCountAbsentDays()}"></td>
+        </main>
+    </div>
 
 
-                        </tr>
-
-                        <tr>
-                            <td colspan="7" class="px-4 py-6 text-center text-gray-500 text-sm">
-                                No employees found matching your criteria
-                            </td>
-                        </tr>
-                        </tbody>
-                    </table>
-                </div>
+    </body>
 
 
-
-<!--                <div th:replace="~{fragments/pagination :: pagination(${employees}, '/employee', ${currentSortField}, ${direction})}"></div>-->
-            </div>
-        </div>
-    </main>
-</div>
-
-
-</body>
-
-<script>
-    document.addEventListener("DOMContentLoaded", function () {
-        let today = new Date();
-        let currentMonth = String(today.getMonth() + 1).padStart(2, "0");
-        let currentYear = today.getFullYear();
-
-
-        document.getElementById("monthSelect").value = currentMonth;
-
-        let yearSelect = document.getElementById("yearSelect");
-        for (let year = currentYear - 5; year <= currentYear + 5; year++) {
-            let option = document.createElement("option");
-            option.value = year;
-            option.textContent = year;
-            if (year === currentYear) {
-                option.selected = true;
-            }
-            yearSelect.appendChild(option);
-        }
-
-        let urlParams = new URLSearchParams(window.location.search);
-        let hasMonth = urlParams.has("month");
-        let hasYear = urlParams.has("year");
-
-
-        if ((!hasMonth || !hasYear) && !sessionStorage.getItem("formSubmitted")) {
-            sessionStorage.setItem("formSubmitted", "true");
-            document.getElementById("filterForm").submit();
-        }
-    });
-</script>
-</html>
+    </html>
 
