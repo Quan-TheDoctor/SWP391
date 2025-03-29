@@ -92,7 +92,6 @@
     const leaveForm = document.getElementById('leaveForm');
     const today = new Date().toISOString().split('T')[0];
 
-    // Set minimum date to today
     startDate.min = today;
     endDate.min = today;
 
@@ -104,25 +103,21 @@
         const today = new Date();
         today.setHours(0, 0, 0, 0);
 
-        // Reset error messages
         document.getElementById('start-date-error').textContent = '';
         document.getElementById('end-date-error').textContent = '';
 
-        // Validate start date
         if (start < today) {
             document.getElementById('start-date-error').textContent = 'Start date cannot be before today';
             startDate.value = '';
             return;
         }
 
-        // Validate end date
         if (end < start) {
             document.getElementById('end-date-error').textContent = 'End date must be after start date';
             endDate.value = '';
             return;
         }
 
-        // Calculate total days
         if (start && end && start <= end) {
             const dayDiff = Math.ceil((end - start) / (1000 * 3600 * 24)) + 1;
             totalDays.value = dayDiff;
@@ -131,7 +126,6 @@
         }
     }
 
-    // Form validation before submit
     leaveForm.addEventListener('submit', function(e) {
         if (!startDate.value || !endDate.value) {
             e.preventDefault();

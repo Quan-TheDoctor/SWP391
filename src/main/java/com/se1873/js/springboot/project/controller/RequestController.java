@@ -390,6 +390,19 @@ public class RequestController {
     return INDEX;
   }
 
+  @PostMapping("/create/form")
+  @PreAuthorize("hasPermission('REQUEST', 'ADD')")
+  public String createRequestFormPost(Model model) {
+    var result = departmentService.getAllDepartments();
+    model.addAttribute("departmentList", result);
+
+    var requestDTO = requestService.getAllRequests();
+    model.addAttribute("requestDTO", requestDTO);
+    model.addAttribute("_csrf", ((ServletRequestAttributes) RequestContextHolder.getRequestAttributes()).getRequest().getAttribute("_csrf"));
+    model.addAttribute("contentFragment", "fragments/request-create-fragments");
+    return INDEX;
+  }
+
   @PostMapping("/create")
   @ResponseBody
   public List<RequestCreationResponseDTO> createRequest(@RequestBody RequestCreationRequestDTO request) {

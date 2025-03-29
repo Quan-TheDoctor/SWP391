@@ -57,6 +57,7 @@ public class RequestService {
   private final EmployeeRepository employeeRepository;
   private final ReponseRepo responsRepository;
   private final LeavePolicyRepository leavePolicyRepository;
+  private final ContractRepository contractRepository;
 
   /**
    * Lấy danh sách requests đi kèm pagination
@@ -103,17 +104,14 @@ public class RequestService {
       for (int i = 0; i < leave.getTotalDays(); i++) {
         LocalDate currentDate = leave.getStartDate().plusDays(i);
         
-        // Kiểm tra xem đã có bản ghi chấm công cho ngày này chưa
         Optional<Attendance> existingAttendance = attendanceRepository.findByDateAndEmployee_EmployeeId(currentDate, employee.getEmployeeId());
         
         if (existingAttendance.isPresent()) {
-          // Nếu đã có bản ghi, cập nhật trạng thái và ghi chú
           Attendance attendance = existingAttendance.get();
           attendance.setStatus("Absent");
           attendance.setNote(leave.getReason());
           attendanceRepository.save(attendance);
         } else {
-          // Nếu chưa có, tạo mới
           Attendance attendance = Attendance.builder()
                   .date(currentDate)
                   .checkIn(LocalTime.of(0, 0, 0))
@@ -207,6 +205,23 @@ public class RequestService {
         SalaryRecord salaryRecord = salaryRecordRepository.findSalaryRecordBySalaryIdAndIsDeleted(payrollId, false);
         salaryRecord.setPaymentStatus(status);
         salaryRecordRepository.save(salaryRecord);
+      }
+    } else if("Salary Raise".equals(type)) {
+      response responseDetails = responsRepository.findByRequestId(requestDTO.getRequestId())
+              .orElseThrow(() -> new RuntimeException("Request not found"));
+
+      String employeeCode = responseDetails.getEmployeeCode();
+      Employee employee = employeeRepository.findByEmployeeCode(employeeCode)
+              .orElseThrow(() -> new RuntimeException("Employee not found"));
+      
+      Contract employeeContract = contractRepository.findContractByEmployee_EmployeeIdAndPresent(employee.getEmployeeId(), true);
+      if (employeeContract != null) {
+        if ("Approved".equals(requestDTO.getRequestStatus())) {
+          employeeContract.setBaseSalary(responseDetails.getNewBaseSalary());
+        } else if ("Denied".equals(requestDTO.getRequestStatus())) {
+          employeeContract.setBaseSalary(responseDetails.getOldBaseSalary());
+        }
+        contractRepository.save(employeeContract);
       }
     }
     Request request = requestRepository.findRequestByRequestId(requestDTO.getRequestId());
@@ -355,11 +370,15 @@ public class RequestService {
       Employee employee = employeeRepository.findByEmployeeCode(employeeCode)
               .orElseThrow(() -> new RuntimeException("Employee not found: " + employeeCode));
 
-      Double currentSalary = employee.getSalaryRecords().stream()
-              .filter(Objects::nonNull)
-              .max(Comparator.comparing(SalaryRecord::getCreatedAt, Comparator.nullsFirst(Comparator.naturalOrder())))
-              .map(SalaryRecord::getBaseSalary)
-              .orElse(0.0);
+      Contract currentContract = contractRepository.findContractByEmployee_EmployeeIdAndPresent(employee.getEmployeeId(), true);
+      if (currentContract == null) {
+        throw new RuntimeException("Employee has no active contract: " + employeeCode);
+      }
+      
+      Double currentSalary = currentContract.getBaseSalary();
+      if (currentSalary == null || currentSalary == 0) {
+        throw new RuntimeException("Employee has invalid base salary: " + employeeCode);
+      }
 
       Double newSalary = currentSalary + (currentSalary * increasePercentage / 100);
 
@@ -380,21 +399,6 @@ public class RequestService {
 
       salaryRecordRepository.save(newSalaryRecord);
 
-      EmploymentHistory history = EmploymentHistory.builder()
-              .employee(employee)
-              .department(department)
-              .position(employee.getEmploymentHistories().stream()
-                      .max(Comparator.comparing(EmploymentHistory::getStartDate))
-                      .map(EmploymentHistory::getPosition)
-                      .orElseThrow(() -> new RuntimeException("No position found")))
-              .startDate(LocalDate.now())
-              .isCurrent(true)
-              .transferReason("Salary increase")
-              .createdAt(LocalDateTime.now())
-              .build();
-
-      employmentHistoryRepository.save(history);
-
       Request request = Request.builder()
               .requesterId(userCreate.getUserId())
               .requestType("Salary Raise")
@@ -402,6 +406,7 @@ public class RequestService {
               .user(userCreate)
               .status("Pending")
               .createdAt(LocalDateTime.now())
+              .requestIdList(employee.getEmployeeId().toString())
               .build();
 
       requestRepository.save(request);
@@ -410,7 +415,11 @@ public class RequestService {
               .requestId(request.getRequestId())
               .fullName(employee.getFirstName() + " " + employee.getLastName())
               .employeeCode(employee.getEmployeeCode())
-              .positionName(history.getPosition().getPositionName())
+              .positionName(employee.getEmploymentHistories().stream()
+                      .max(Comparator.comparing(EmploymentHistory::getStartDate))
+                      .map(EmploymentHistory::getPosition)
+                      .map(Position::getPositionName)
+                      .orElse(null))
               .oldBaseSalary(currentSalary)
               .newBaseSalary(newSalary)
               .startedAt(employee.getCreatedAt().toLocalDate())
