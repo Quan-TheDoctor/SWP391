@@ -267,20 +267,23 @@ public class AttendanceService {
     if (employeeName == null || employeeName.trim().isEmpty()) {
       return Page.empty(pageable);
     }
-    String normalizedSearchText = employeeName.trim();
 
-    Page<AttendanceDTO> attendancesPage = attendanceRepository.searchAttendanceByEmployeeName(normalizedSearchText, pageable).map(attendanceDTOMapper::toDTO);
-    if (startDate != null && endDate != null) {
-      List<AttendanceDTO> filteredContent = attendancesPage.getContent().stream().filter(a -> {
-        return a.getAttendanceDate().isAfter(startDate);
-      }).collect(Collectors.toList());
+    var allEmployees = employeeService.getAllEmployees();
+    List<EmployeeDTO> searchEmployees = allEmployees.stream()
+      .filter(e -> (e.getEmployeeFirstName() + " " + e.getEmployeeLastName()).toLowerCase().contains(employeeName.toLowerCase()))
+      .collect(Collectors.toList());
 
-      Page<AttendanceDTO> filteredPage = new PageImpl<>(filteredContent, attendancesPage.getPageable(), filteredContent.size());
-
-      return filteredPage;
+    List<AttendanceDTO> allAttendances = new ArrayList<>();
+    for (EmployeeDTO employee : searchEmployees) {
+      List<Attendance> attendances = attendanceRepository.getAttendanceByDateBetweenAndEmployee_EmployeeIdAndEmployee_IsDeleted(startDate, endDate, employee.getEmployeeId(), false);
+      allAttendances.addAll(attendances.stream().map(attendanceDTOMapper::toDTO).collect(Collectors.toList()));
     }
 
-    return attendancesPage;
+    int start = (int) pageable.getOffset();
+    int end = Math.min((start + pageable.getPageSize()), allAttendances.size());
+    List<AttendanceDTO> pageContent = allAttendances.subList(start, end);
+
+    return new PageImpl<>(pageContent, pageable, allAttendances.size());
   }
 
   private List<AttendanceDTO> getAllAttendancesBetweenDates(LocalDate start, LocalDate end) {
