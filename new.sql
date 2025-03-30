@@ -673,7 +673,7 @@ insert into roles(attendance_permission, description, employee_management_permis
 VALUES ('MANAGE', 'Admin ne', 'MANAGE', 'Administrator', 'MANAGE',
         'MANAGE', 'MANAGE', 'MANAGE', 'MANAGE'),
        ('NONE', 'Head of Department', 'NONE', 'Department Manager', 'NONE',
-        'NONE', 'MANAGE', 'NONE', 'NONE'),
+        'NONE', 'MANAGE', 'NONE', 'MANAGE'),
        ('MANAGE', 'HR', 'MANAGE', 'HR Personnel', 'MANAGE',
         'MANAGE', 'MANAGE', 'NONE', 'MANAGE'),
        ('NONE', 'Employee ne', 'NONE', 'Employee', 'NONE',
