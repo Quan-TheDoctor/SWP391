@@ -165,7 +165,7 @@
 
     <!-- Main Form Container -->
     <form th:action="@{/employee/create/update}" method="POST" th:object="${employeeDTO}" @submit.prevent="submit" enctype="multipart/form-data" class="card animate__animated animate__fadeIn">
-        <input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}"/>
+<!--        <input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}"/>-->
         <input type="hidden" th:field="*{employeeId}"/>
 
         <div class="p-6 grid grid-cols-1 lg:grid-cols-3 gap-8" x-data="{ activeTab: 'personal' }">

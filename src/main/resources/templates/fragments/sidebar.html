@@ -129,7 +129,7 @@
                     </a>
                     <a href="/attendance/summary" th:classappend="${requestURI == '/attendance/summary'} ? 'bg-primary-50 text-primary-600' : 'text-gray-700 hover:bg-gray-100'"
                        class="flex items-center space-x-3 p-3 rounded-lg transition-colors"
-                       sec:authorize="hasPermission('REQUEST', 'ADD')">
+                       sec:authorize="hasPermission('ATTENDANCE', 'VISIBLE')">
                         <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
                         </svg>

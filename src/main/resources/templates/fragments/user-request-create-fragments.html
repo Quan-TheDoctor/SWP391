@@ -21,7 +21,7 @@
 
         <form action="/user/request/create" method="POST" th:object="${requestDTO}">
             <div class="mb-4">
-                <input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}" />
+<!--                <input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}" />-->
                 <label for="reason" class="block text-sm font-medium text-gray-700 mb-1">Leave Type</label>
                 <select id="reason" name="reason" required
                         onchange="this.form.submit()"
@@ -36,7 +36,7 @@
             </div>
         </form>
         <form action="/request/save" method="POST" th:object="${requestDTO}" id="leaveForm">
-            <input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}" />
+<!--            <input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}" />-->
             <input type="hidden" name="LeavePolicyId" th:value="${reason}" />
 
             <div class="mb-4">

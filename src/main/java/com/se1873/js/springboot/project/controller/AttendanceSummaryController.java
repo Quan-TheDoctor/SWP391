@@ -11,6 +11,7 @@ import com.se1873.js.springboot.project.service.employee.EmployeeService;
 import com.se1873.js.springboot.project.service.salary_record.SalaryRecordService;
 import jakarta.validation.Valid;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.validation.BindingResult;
@@ -42,6 +43,7 @@ public class AttendanceSummaryController {
   }
 
   @RequestMapping("/filter")
+  @PreAuthorize("hasPermission('ATTENDANCE', 'VISIBLE')")
   public String applyFilters(
     @RequestParam Integer selectedDepartmentId,
     @RequestParam Integer selectedMonth,
@@ -65,6 +67,7 @@ public class AttendanceSummaryController {
   }
 
   @RequestMapping
+  @PreAuthorize("hasPermission('ATTENDANCE', 'VISIBLE')")
   public String summaryPage(@ModelAttribute PayrollCalculationForm form,
                             Model model,
                             @ModelAttribute("loggedInUser") User loggedInUser,

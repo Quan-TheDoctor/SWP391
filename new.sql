@@ -346,22 +346,22 @@ VALUES
      'Married', '5678912345', 'VPBank', '1567890123');
 
 -- Thêm tài khoản người dùng
-INSERT INTO users (employee_id, username, password_hash)
-VALUES (1, 'annguyen', '$2a$10$cUtg8nvDC7PnZLe5eZGVDO4fwD5yvRhemp/vFXDG67OxDMSv7fHbm'),
-       (2, 'hungtran', '$2a$10$cUtg8nvDC7PnZLe5eZGVDO4fwD5yvRhemp/vFXDG67OxDMSv7fHbm'),
-       (3, 'huongle', '$2a$10$cUtg8nvDC7PnZLe5eZGVDO4fwD5yvRhemp/vFXDG67OxDMSv7fHbm'),
-       (4, 'ducpham', '$2a$10$cUtg8nvDC7PnZLe5eZGVDO4fwD5yvRhemp/vFXDG67OxDMSv7fHbm'),
-       (5, 'tungvo', '$2a$10$cUtg8nvDC7PnZLe5eZGVDO4fwD5yvRhemp/vFXDG67OxDMSv7fHbm'),
-       (6, 'mainguyen', '$2a$10$cUtg8nvDC7PnZLe5eZGVDO4fwD5yvRhemp/vFXDG67OxDMSv7fHbm'),
-       (7, 'hieutran', '$2a$10$cUtg8nvDC7PnZLe5eZGVDO4fwD5yvRhemp/vFXDG67OxDMSv7fHbm'),
-       (8, 'hado', '$2a$10$cUtg8nvDC7PnZLe5eZGVDO4fwD5yvRhemp/vFXDG67OxDMSv7fHbm'),
-       (9, 'tuanhoang', '$2a$10$cUtg8nvDC7PnZLe5eZGVDO4fwD5yvRhemp/vFXDG67OxDMSv7fHbm'),
-       (10, 'thaoly', '$2a$10$cUtg8nvDC7PnZLe5eZGVDO4fwD5yvRhemp/vFXDG67OxDMSv7fHbm'),
-       (11, 'binhnguyen', '$2a$10$cUtg8nvDC7PnZLe5eZGVDO4fwD5yvRhemp/vFXDG67OxDMSv7fHbm'),
-       (12, 'lantran', '$2a$10$cUtg8nvDC7PnZLe5eZGVDO4fwD5yvRhemp/vFXDG67OxDMSv7fHbm'),
-       (13, 'cuongle', '$2a$10$cUtg8nvDC7PnZLe5eZGVDO4fwD5yvRhemp/vFXDG67OxDMSv7fHbm'),
-       (14, 'hongpham', '$2a$10$cUtg8nvDC7PnZLe5eZGVDO4fwD5yvRhemp/vFXDG67OxDMSv7fHbm'),
-       (15, 'trungvu', '$2a$10$cUtg8nvDC7PnZLe5eZGVDO4fwD5yvRhemp/vFXDG67OxDMSv7fHbm');
+INSERT INTO users (employee_id, username, password_hash, role)
+VALUES (1, 'annguyen', '$2a$10$cUtg8nvDC7PnZLe5eZGVDO4fwD5yvRhemp/vFXDG67OxDMSv7fHbm', 'Administrator'),
+       (2, 'hungtran', '$2a$10$cUtg8nvDC7PnZLe5eZGVDO4fwD5yvRhemp/vFXDG67OxDMSv7fHbm', 'Administrator'),
+       (3, 'huongle', '$2a$10$cUtg8nvDC7PnZLe5eZGVDO4fwD5yvRhemp/vFXDG67OxDMSv7fHbm', 'Department Manager'),
+       (4, 'ducpham', '$2a$10$cUtg8nvDC7PnZLe5eZGVDO4fwD5yvRhemp/vFXDG67OxDMSv7fHbm', 'Department Manager'),
+       (5, 'tungvo', '$2a$10$cUtg8nvDC7PnZLe5eZGVDO4fwD5yvRhemp/vFXDG67OxDMSv7fHbm', 'Department Manager'),
+       (6, 'mainguyen', '$2a$10$cUtg8nvDC7PnZLe5eZGVDO4fwD5yvRhemp/vFXDG67OxDMSv7fHbm', 'Department Manager'),
+       (7, 'hieutran', '$2a$10$cUtg8nvDC7PnZLe5eZGVDO4fwD5yvRhemp/vFXDG67OxDMSv7fHbm', 'Department Manager'),
+       (8, 'hado', '$2a$10$cUtg8nvDC7PnZLe5eZGVDO4fwD5yvRhemp/vFXDG67OxDMSv7fHbm', 'HR Personnel'),
+       (9, 'tuanhoang', '$2a$10$cUtg8nvDC7PnZLe5eZGVDO4fwD5yvRhemp/vFXDG67OxDMSv7fHbm', 'Employee'),
+       (10, 'thaoly', '$2a$10$cUtg8nvDC7PnZLe5eZGVDO4fwD5yvRhemp/vFXDG67OxDMSv7fHbm', 'Employee'),
+       (11, 'binhnguyen', '$2a$10$cUtg8nvDC7PnZLe5eZGVDO4fwD5yvRhemp/vFXDG67OxDMSv7fHbm', 'Employee'),
+       (12, 'lantran', '$2a$10$cUtg8nvDC7PnZLe5eZGVDO4fwD5yvRhemp/vFXDG67OxDMSv7fHbm', 'Employee'),
+       (13, 'cuongle', '$2a$10$cUtg8nvDC7PnZLe5eZGVDO4fwD5yvRhemp/vFXDG67OxDMSv7fHbm', 'Employee'),
+       (14, 'hongpham', '$2a$10$cUtg8nvDC7PnZLe5eZGVDO4fwD5yvRhemp/vFXDG67OxDMSv7fHbm', 'Department Manager'),
+       (15, 'trungvu', '$2a$10$cUtg8nvDC7PnZLe5eZGVDO4fwD5yvRhemp/vFXDG67OxDMSv7fHbm', 'Employee');
 
 INSERT INTO employees (employee_code, first_name, last_name, birth_date, gender,
                        id_number, permanent_address, temporary_address,
@@ -394,7 +394,7 @@ VALUES ('Ban Giám đốc', 'BGD', 'Ban lãnh đạo công ty', 1),
        ('Phòng Nhân sự', 'HRM', 'Quản lý tuyển dụng và phát triển nhân sự', 4),
        ('Phòng Hành chính', 'ADM', 'Quản lý các công việc hành chính văn phòng', 7),
 
-       ('Phòng Kế toán', 'ACC', 'Quản lý kế toán và báo cáo tài chính', 5),
+       ('Phòng Kế toán', 'ACC', 'Quản lý kế toán và báo cáo tài chính', 14),
        ('Phòng Phân tích Tài chính', 'FIN-ANAL', 'Phân tích tài chính và lập báo cáo tài chính', 4),
 
        ('Phòng Nghiên cứu', 'RES', 'Nghiên cứu công nghệ và xu hướng mới', 3),

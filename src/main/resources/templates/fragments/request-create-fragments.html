@@ -3,8 +3,8 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <meta name="_csrf" th:content="${_csrf.token}"/>
-  <meta name="_csrf_header" th:content="${_csrf.headerName}"/>
+<!--  <meta name="_csrf" th:content="${_csrf.token}"/>-->
+<!--  <meta name="_csrf_header" th:content="${_csrf.headerName}"/>-->
   <title>Create Salary Increase Request</title>
   <script src="https://cdn.tailwindcss.com"></script>
   <script>
@@ -171,14 +171,14 @@
         employeeNamewithSalary: salaryIncreases
       };
 
-      const csrfToken = document.querySelector('meta[name="_csrf"]').getAttribute('content');
-      const csrfHeader = document.querySelector('meta[name="_csrf_header"]').getAttribute('content');
+      // const csrfToken = document.querySelector('meta[name="_csrf"]').getAttribute('content');
+      // const csrfHeader = document.querySelector('meta[name="_csrf_header"]').getAttribute('content');
 
       fetch("/request/create", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
-          [csrfHeader]: csrfToken
+          // [csrfHeader]: csrfToken
         },
         body: JSON.stringify(payload)
       })

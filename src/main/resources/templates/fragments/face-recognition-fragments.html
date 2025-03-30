@@ -1,8 +1,8 @@
 <!DOCTYPE html>
 <html xmlns:th="http://www.thymeleaf.org">
 <head>
-    <meta name="_csrf" th:content="${_csrf.token}"/>
-    <meta name="_csrf_header" th:content="${_csrf.headerName}"/>
+<!--    <meta name="_csrf" th:content="${_csrf.token}"/>-->
+<!--    <meta name="_csrf_header" th:content="${_csrf.headerName}"/>-->
 
     <title>Face Recognition System</title>
     <script src="https://cdn.tailwindcss.com"></script>
@@ -326,8 +326,8 @@
 </div>
 
 <script>
-    const csrfToken = document.querySelector('meta[name="_csrf"]').getAttribute('content');
-    const csrfHeader = document.querySelector('meta[name="_csrf_header"]').getAttribute('content');
+    // const csrfToken = document.querySelector('meta[name="_csrf"]').getAttribute('content');
+    // const csrfHeader = document.querySelector('meta[name="_csrf_header"]').getAttribute('content');
     setInterval(checkStatus, 5000);
 
     function updateStatus(status, message) {
@@ -402,7 +402,7 @@
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json',
-                [csrfHeader]: csrfToken
+                // [csrfHeader]: csrfToken
             },
             body: JSON.stringify({
                 id: userId,
@@ -428,7 +428,7 @@
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json',
-                [csrfHeader]: csrfToken
+                // [csrfHeader]: csrfToken
             }
         })
             .then(response => response.json())
@@ -450,7 +450,7 @@
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json',
-                [csrfHeader]: csrfToken
+                // [csrfHeader]: csrfToken
             },
             body: JSON.stringify({})
         })
@@ -479,7 +479,7 @@
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json',
-                [csrfHeader]: csrfToken
+                // [csrfHeader]: csrfToken
             },
             body: JSON.stringify({})
         })
