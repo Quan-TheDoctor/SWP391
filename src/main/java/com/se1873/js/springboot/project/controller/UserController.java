@@ -203,16 +203,21 @@ public class UserController {
   @PreAuthorize("hasPermission('USER', 'VISIBLE')")
   public String filterAttendance(Model model,
                                  @RequestParam(value = "status", required = false) String status,
-                                 @RequestParam(value = "month", required = false) YearMonth month,
+                                 @RequestParam(value = "month", required = false) String month,
                                  @RequestParam(value = "page", defaultValue = "0") int page,
                                  @RequestParam(value = "size", defaultValue = "5") int size) {
     Page<AttendanceDTO> attendanceDTO = null;
+    YearMonth yearMonth = null;
 
-    if (month != null) {
-      Integer months = month.getMonthValue();
-      Integer year = month.getYear();
-      attendanceDTO = attendanceService.filterByMonth(PageRequest.of(page, size), getEmployeeId(), months, year);
-    } else if (status != null) {
+    if (month != null && !month.isEmpty()) {
+      try {
+        yearMonth = YearMonth.parse(month);
+        attendanceDTO = attendanceService.filterByMonth(PageRequest.of(page, size), getEmployeeId(), yearMonth.getMonthValue(), yearMonth.getYear());
+      } catch (Exception e) {
+        // Xử lý lỗi khi parse month không đúng định dạng
+        model.addAttribute("error", "Invalid month format");
+      }
+    } else if (status != null && !status.isEmpty()) {
       attendanceDTO = attendanceService.filterByStatusAndEmployeeId(PageRequest.of(page, size), status, getEmployeeId());
     }
 
@@ -220,7 +225,10 @@ public class UserController {
 
     model.addAttribute("quantity", quantity);
     model.addAttribute("attendanceDTO", attendanceDTO);
-    model.addAttribute("month", month != null ? month.toString() : "");
+    model.addAttribute("month", month);
+    model.addAttribute("status", status);
+    model.addAttribute("page", page);
+    model.addAttribute("size", size);
     model.addAttribute("contentFragment", "fragments/user-attendance-fragments");
     return "index";
   }

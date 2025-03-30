@@ -124,10 +124,66 @@ class ProjectApplicationTest {
         .param("startDate", String.valueOf(LocalDate.now()))
         .param("endDate", String.valueOf(LocalDate.now()))
         .with(csrf()))
+      .andExpect(status().isOk());
+  }
+
+  @Test
+  @WithMockUser(username = "annguyen", password = "1", roles = "Administrator")
+  void shouldHandleInvalidAttendanceData() throws Exception {
+    this.mockMvc.perform(post("/attendance/create")
+        .param("employeeId", "invalid")
+        .param("date", "invalid-date")
+        .param("status", "INVALID_STATUS")
+        .with(csrf()))
+      .andExpect(status().isBadRequest());
+  }
+
+  @Test
+  @WithMockUser(username = "admin", password = "1", roles = "ADMIN")
+  void shouldHandleAttendanceSearchWithInvalidDates() throws Exception {
+    this.mockMvc.perform(get("/attendance")
+        .param("page", "0")
+        .param("size", "5")
+        .param("startDate", "invalid-date")
+        .param("endDate", "invalid-date")
+        .with(csrf()))
+      .andExpect(status().isBadRequest());
+  }
+
+  @Test
+  @WithMockUser(username = "admin", password = "1", roles = "ADMIN")
+  void shouldHandleAttendanceSearchWithEndDateBeforeStartDate() throws Exception {
+    LocalDate startDate = LocalDate.now();
+    LocalDate endDate = startDate.minusDays(1);
+
+    this.mockMvc.perform(get("/attendance")
+        .param("page", "0")
+        .param("size", "5")
+        .param("startDate", String.valueOf(startDate))
+        .param("endDate", String.valueOf(endDate))
+        .with(csrf()))
+      .andExpect(status().isBadRequest());
+  }
+
+  @Test
+  @WithMockUser(username = "admin", password = "1", roles = "ADMIN")
+  void shouldHandleAttendanceSearchWithPagination() throws Exception {
+    Page<AttendanceDTO> attendancePage = new PageImpl<>(Collections.emptyList());
+    Map<String, Integer> quantity = new HashMap<>();
+
+    when(attendanceService.getAll(any(LocalDate.class), any(LocalDate.class), any(Pageable.class)))
+      .thenReturn(attendancePage);
+    when(attendanceService.getQuantity()).thenReturn(quantity);
+
+    this.mockMvc.perform(get("/attendance")
+        .param("page", "1")
+        .param("size", "10")
+        .param("startDate", String.valueOf(LocalDate.now()))
+        .param("endDate", String.valueOf(LocalDate.now()))
+        .with(csrf()))
       .andExpect(status().isOk())
-      .andExpect(view().name("attendance"))
+      .andExpect(view().name("index"))
       .andExpect(model().attributeExists("attendances"))
       .andExpect(model().attributeExists("quantity"));
   }
-
 }
